@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spelletjes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1230">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Spelletjes</title>
+<style>
+:root{--nacht:#0d1230;--paars:#3d2f5e;--maan:#f6ebc4;--goud:#f0b83c;--licht:#ffe2a8;--zacht:#c9c3e6}
+*{box-sizing:border-box}
+html{background:var(--nacht)}
+body{margin:0;min-height:100vh;color:var(--maan);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+ background:radial-gradient(120% 70% at 80% 0%,#3d2f5e 0%,#141b3a 55%,#0d1230 100%) fixed;
+ padding:calc(28px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left))}
+main{max-width:860px;margin:0 auto}
+h1{font:bold clamp(44px,11vw,76px)/.95 Georgia,"Times New Roman",serif;color:var(--licht);margin:12px 0 10px;letter-spacing:-.01em;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.sub{color:var(--zacht);font-size:16px;line-height:1.5;margin:0 0 28px;max-width:34em}
+.lijst{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;list-style:none;padding:0;margin:0}
+.spel{display:block;text-decoration:none;color:inherit;background:rgba(255,255,255,.05);border:1px solid rgba(255,226,168,.18);border-radius:18px;overflow:hidden;
+ transition:transform .15s ease,border-color .15s ease;-webkit-tap-highlight-color:transparent}
+.spel:active{transform:scale(.98)}
+.spel:hover{border-color:rgba(255,226,168,.5)}
+.spel:focus-visible{outline:3px solid var(--goud);outline-offset:3px}
+.spel img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;background:#211c40}
+.tekst{padding:14px 16px 16px}
+.spel h2{font:bold 24px/1.15 Georgia,"Times New Roman",serif;color:var(--licht);margin:0 0 6px}
+.spel p{margin:0;font-size:14.5px;line-height:1.45;color:#ddd8f0}
+.stand{display:inline-block;margin-top:10px;font-size:12.5px;color:var(--goud)}
+.status{margin-top:26px;font-size:13px;color:var(--zacht);min-height:1.4em}
+@media (prefers-reduced-motion:reduce){.spel{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Spelletjes</h1>
+  <p class="sub">Kies een spel. Alles werkt ook zonder internet, als je de app één keer met internet hebt geopend.</p>
+  <ul class="lijst" id="lijst"></ul>
+  <p class="status" id="status"></p>
+</main>
+<script>
+// Reservelijst voor als spellen.json niet te laden is
+const RESERVE=[{"naam": "Kasteelsprong", "omschrijving": "Ren over de kasteelmuur, spring over rotsen, duik onder pijlen door en luid de klok.", "bestand": "kasteelsprong.html", "plaatje": "kasteelsprong.jpg", "stand": "liggend"}, {"naam": "Koekjesschuiver", "omschrijving": "Laat koekjes op de schuifplank vallen, vind de koekjesfiguren en verdien Koekie-badges.", "bestand": "koekjesschuiver.html", "plaatje": "koekjesschuiver.jpg", "stand": "staand"}, {"naam": "Kikkersprong", "omschrijving": "Help de kikkers over de polderweg en de sloot naar hun huisje. Pas op voor tractoren en duikende blaadjes.", "bestand": "kikkersprong.html", "plaatje": "kikkersprong.jpg", "stand": "staand"}, {"naam": "Skirun", "omschrijving": "Skiën tussen bomen door, poortjes pakken, trucjes op de schans en wegwezen voor de boze sneeuwpop.", "bestand": "skirun.html", "plaatje": "skirun.jpg", "stand": "staand"}];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function laad(){let lijst;try{lijst=await (await fetch('spellen.json',{cache:'no-cache'})).json()}catch(e){lijst=RESERVE}
+ document.getElementById('lijst').innerHTML=lijst.map(s=>`<li><a class="spel" href="${esc(s.bestand)}">
+   ${s.plaatje?`<img src="${esc(s.plaatje)}" alt="" loading="lazy">`:''}
+   <div class="tekst"><h2>${esc(s.naam)}</h2><p>${esc(s.omschrijving||'')}</p>${s.stand?`<span class="stand">${s.stand=='liggend'?'Telefoon liggend houden':'Telefoon rechtop houden'}</span>`:''}</div></a></li>`).join('');
+ return lijst}
+async function offlineCheck(lijst){const st=document.getElementById('status');
+ if(!('serviceWorker' in navigator)||location.protocol=='file:'){st.textContent='';return}
+ try{await navigator.serviceWorker.register('sw.js');const reg=await navigator.serviceWorker.ready;if(reg.active)reg.active.postMessage('bewaar');
+   for(let i=0;i<20;i++){const ok=(await Promise.all(lijst.map(s=>caches.match(s.bestand)))).every(Boolean);
+     if(ok){st.textContent='✓ Alle spellen zijn bewaard voor offline gebruik.';return}
+     st.textContent='Spellen worden bewaard voor offline gebruik…';await new Promise(r=>setTimeout(r,700))}
+   st.textContent='Nog niet alles is bewaard. Open de app nog een keer met internet.'}catch(e){st.textContent=''}}
+laad().then(offlineCheck);
+</script>
+</body>
+</html>

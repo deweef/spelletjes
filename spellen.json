@@ -1,0 +1,30 @@
+[
+  {
+    "naam": "Kasteelsprong",
+    "omschrijving": "Ren over de kasteelmuur, spring over rotsen, duik onder pijlen door en luid de klok.",
+    "bestand": "kasteelsprong.html",
+    "plaatje": "kasteelsprong.jpg",
+    "stand": "liggend"
+  },
+  {
+    "naam": "Koekjesschuiver",
+    "omschrijving": "Laat koekjes op de schuifplank vallen, vind de koekjesfiguren en verdien Koekie-badges.",
+    "bestand": "koekjesschuiver.html",
+    "plaatje": "koekjesschuiver.jpg",
+    "stand": "staand"
+  },
+  {
+    "naam": "Kikkersprong",
+    "omschrijving": "Help de kikkers over de polderweg en de sloot naar hun huisje. Pas op voor tractoren en duikende blaadjes.",
+    "bestand": "kikkersprong.html",
+    "plaatje": "kikkersprong.jpg",
+    "stand": "staand"
+  },
+  {
+    "naam": "Skirun",
+    "omschrijving": "Skiën tussen bomen door, poortjes pakken, trucjes op de schans en wegwezen voor de boze sneeuwpop.",
+    "bestand": "skirun.html",
+    "plaatje": "skirun.jpg",
+    "stand": "staand"
+  }
+]
