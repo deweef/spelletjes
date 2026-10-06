@@ -12,6 +12,7 @@ html,body{margin:0;height:100%;background:#4a0a12;overflow:hidden;touch-action:n
 canvas{display:block;cursor:pointer}
 .terug{position:fixed;z-index:10;top:calc(8px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,226,168,.45);color:#ffe2a8;font:bold 22px/34px Georgia,serif;text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .terug:focus-visible{outline:2px solid #ffe2a8;outline-offset:2px}
+canvas,.b,button{touch-action:none}
 </style>
 </head>
 <body>
@@ -35,7 +36,12 @@ function fit(){const s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=W*s+'
 addEventListener('resize',fit);fit();
 
 // ---------- geluid ----------
-let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state=='suspended')ac.resume()}catch(e){}}
+let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!='running')ac.resume();if(!ac._ok){const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);ac._ok=1}}catch(e){}}
+['touchend','click','keydown'].forEach(t=>document.addEventListener(t,unlock,{passive:true}));
+// geen inzoomen bij dubbeltikken
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+{let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<400&&e.cancelable)e.preventDefault();lt=n},{passive:false})}
 function snd(f,d,type='sine',v=.08,slide=0,delay=0){if(!ac)return;try{const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+delay;o.type=type;o.frequency.setValueAtTime(f,n);if(slide)o.frequency.exponentialRampToValueAtTime(slide,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g).connect(ac.destination);o.start(n);o.stop(n+d+.02)}catch(e){}}
 const sWin=g=>{snd(880,.12,'triangle',.06);snd(1320,.18,'triangle',.05,0,.07);if(g){snd(1760,.3,'sine',.07,0,.15);snd(2093,.4,'sine',.06,0,.25)}};
 const sPrize=()=>[784,988,1175,1568].forEach((f,i)=>snd(f,.25,'triangle',.06,0,i*.08));

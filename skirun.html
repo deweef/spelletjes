@@ -17,6 +17,7 @@ canvas{display:block}
 @media (pointer:coarse){#pad{display:flex}}
 .terug{position:fixed;z-index:10;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(20,50,90,.35);border:1.5px solid rgba(255,255,255,.7);color:#fff;font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .terug:focus-visible{outline:2px solid #fff;outline-offset:2px}
+canvas,.b,button{touch-action:none}
 </style>
 </head>
 <body>
@@ -31,7 +32,12 @@ function fit(){const s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=W*s+'
 addEventListener('resize',fit);fit();
 
 // ---------- geluid ----------
-let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state=='suspended')ac.resume()}catch(e){}}
+let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!='running')ac.resume();if(!ac._ok){const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);ac._ok=1}}catch(e){}}
+['touchend','click','keydown'].forEach(t=>document.addEventListener(t,unlock,{passive:true}));
+// geen inzoomen bij dubbeltikken
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+{let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<400&&e.cancelable)e.preventDefault();lt=n},{passive:false})}
 function snd(f,d,type='square',v=.05,slide=0,delay=0){if(!ac)return;try{const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+delay;o.type=type;o.frequency.setValueAtTime(f,n);if(slide)o.frequency.exponentialRampToValueAtTime(slide,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g).connect(ac.destination);o.start(n);o.stop(n+d+.02)}catch(e){}}
 function noise(d,v=.08,f=800){if(!ac)return;try{const n=ac.currentTime,b=ac.createBuffer(1,Math.max(1,ac.sampleRate*d|0),ac.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*(1-i/a.length);
  const s=ac.createBufferSource(),fl=ac.createBiquadFilter(),g=ac.createGain();s.buffer=b;fl.type='lowpass';fl.frequency.value=f;g.gain.value=v;s.connect(fl).connect(g).connect(ac.destination);s.start(n)}catch(e){}}

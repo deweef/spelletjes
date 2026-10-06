@@ -15,13 +15,16 @@ canvas{display:block}
 .b{pointer-events:auto;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.10);border:2px solid rgba(255,220,150,.35);color:#ffe2a8;font:bold 26px Georgia,serif;display:flex;align-items:center;justify-content:center}
 .b.on{background:rgba(245,180,80,.45)}
 @media (hover:hover) and (pointer:fine){#pad{display:none}}
+.pauze{position:fixed;z-index:10;top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,226,168,.45);color:#ffe2a8;font:bold 15px system-ui,sans-serif;padding:0}
 .terug{position:fixed;z-index:10;top:calc(8px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,226,168,.45);color:#ffe2a8;font:bold 22px/34px Georgia,serif;text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .terug:focus-visible{outline:2px solid #ffe2a8;outline-offset:2px}
+canvas,.b,button{touch-action:none}
 </style>
 </head>
 <body>
 <a class="terug" href="./" aria-label="Terug naar de spellen">‹</a>
 <div id="wrap"><canvas id="c" width="800" height="450"></canvas></div>
+<button class="pauze" id="pz" aria-label="Pauze">II</button>
 <div id="pad">
   <div class="grp"><div class="b" data-k="l">◀</div><div class="b" data-k="r">▶</div></div>
   <div class="grp"><div class="b" data-k="d">▼</div><div class="b" data-k="j">▲</div></div>
@@ -35,17 +38,23 @@ addEventListener('resize',fit);fit();
 // ---------- invoer ----------
 const keys={l:0,r:0,d:0,j:0};let jumpPressed=false;
 const map={ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',ArrowDown:'d',KeyS:'d',Space:'j',ArrowUp:'j',KeyW:'j',Enter:'j'};
-addEventListener('keydown',e=>{const k=map[e.code];if(!k)return;e.preventDefault();unlock();if(k=='j'&&!e.repeat)jumpPressed=true;keys[k]=1});
+addEventListener('keydown',e=>{if(e.code=='KeyP'||e.code=='Escape'){togglePause();return}if(paused){if(e.code=='Space'){e.preventDefault();togglePause()}return}const k=map[e.code];if(!k)return;e.preventDefault();unlock();if(k=='j'&&!e.repeat)jumpPressed=true;keys[k]=1});
 addEventListener('keyup',e=>{const k=map[e.code];if(k)keys[k]=0});
 document.querySelectorAll('.b').forEach(b=>{const k=b.dataset.k;
   const on=e=>{e.preventDefault();unlock();keys[k]=1;if(k=='j')jumpPressed=true;b.classList.add('on')};
   const off=e=>{e.preventDefault();keys[k]=0;b.classList.remove('on')};
   b.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(t=>b.addEventListener(t,off));
 });
-cv.addEventListener('pointerdown',()=>{if(state=='title'||state=='over'||state=='song'){unlock();jumpPressed=true}});
+document.getElementById('pz').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();unlock();togglePause()});
+cv.addEventListener('pointerdown',()=>{if(paused){togglePause();return}if(state=='title'||state=='over'||state=='song'){unlock();jumpPressed=true}});
 
 // ---------- geluid ----------
-let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state=='suspended')ac.resume()}catch(e){}}
+let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!='running')ac.resume();if(!ac._ok){const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);ac._ok=1}}catch(e){}}
+['touchend','click','keydown'].forEach(t=>document.addEventListener(t,unlock,{passive:true}));
+// geen inzoomen bij dubbeltikken
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+{let lt=0;document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt<400&&e.cancelable)e.preventDefault();lt=n},{passive:false})}
 function snd(f,d,type='square',v=.06,slide=0){if(!ac)return;try{const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime;o.type=type;o.frequency.setValueAtTime(f,n);if(slide)o.frequency.exponentialRampToValueAtTime(slide,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g).connect(ac.destination);o.start(n);o.stop(n+d+.02)}catch(e){}}
 function bell(){[523,784,1047,1568].forEach((f,i)=>snd(f,1.8-i*.3,'sine',.12/(i+1)))}
 
@@ -86,6 +95,7 @@ const LEVELS=[
  {name:'Bukken!',arrows:{p:'HHLH',i:100},pits:[[520,80]]},
  {name:'Vuurballen',balls:{p:'fbf',i:170},pikes:[[420,140,40]]},
  {name:'De wachters',pikes:[[300,130,0],[560,130,65]],rocks:[430]},
+ {name:'Wachters op de muur',pikes:[[190,120,0],[380,120,40],[570,120,80]]},
  {name:'Touw en pijl',pits:[[330,180,1]],arrows:{p:'H',i:170},rocks:[620]},
  {name:'Dubbel touw',pits:[[200,170,1],[480,170,1]]},
  {name:'Vuur van voren, pijl van achter',balls:{p:'f',i:230},arrows:{p:'hl',i:190,first:12}},
@@ -111,13 +121,15 @@ function loadLevel(){
  const d=LEVELS[lvl];
  L={name:d.name,rocks:(d.rocks||[]).map(x=>({x})),pits:(d.pits||[]).map(([x,w,r])=>({x,w,rope:r?mkRope(x,w):null})),
     pikes:(d.pikes||[]).map(([x,per,off])=>({x,per,off})),arrows:d.arrows||null,balls:d.balls||null};
+ for(const k of L.pikes)L.pits.push({x:k.x-12,w:30,rope:null,guard:1});
  arrows=[];balls=[];arrowIdx=0;ballIdx=0;lt=0;parts=[];
  arrowTimer=L.arrows&&L.arrows.first?L.arrows.first:90;ballTimer=60;
  p={x:24,y:G,py:G,vx:0,vy:0,w:22,h:40,ground:true,rope:null,s:0,face:1,anim:0,cool:0,rot:0};
  state='count';stTimer=120;snd(440,.15,'square',.06);
 }
 function newGame(){lvl=0;round=0;lives=5;score=0;streak=0;startSong()}
-function startSong(){state='song';songF=0;ip={x:W+20,y:H-6,w:22,h:40,ground:true,rope:null,vx:-1,anim:0,face:-1,rot:0};playSong()}
+let songOn=false,songWait=0;
+function startSong(){state='song';songF=0;songOn=false;songWait=0;ip={x:W+20,y:H-6,w:22,h:40,ground:true,rope:null,vx:-1,anim:0,face:-1,rot:0};unlock()}
 const overPit=cx=>L.pits.some(q=>cx>q.x+4&&cx<q.x+q.w-4);
 const pikeH=k=>{const ph=((t*spd()+k.off)%k.per)/k.per;return ph<.45?70*Math.min(1,Math.sin(ph/.45*Math.PI)*1.6):0};
 
@@ -168,13 +180,13 @@ function updatePlay(){
    balls.push({x:W+20,y:G-11,vy:0,fire:c=='f',ph:0,fall:false,rot:0});ballTimer=L.balls.i;
    snd(c=='f'?180:110,.3,'sawtooth',.03,c=='f'?420:80)}}
  for(const b of balls){const v=(b.fire?3.4:2.5)*spd();b.x-=v;b.rot-=v/11;
-   if(!b.fall&&overPit(b.x))b.fall=true;
+   if(!b.fall&&L.pits.some(q=>!q.guard&&b.x>q.x+4&&b.x<q.x+q.w-4))b.fall=true;
    if(b.fall){b.vy+=.5;b.y+=b.vy}else{b.ph+=v;b.y=G-11-(b.fire?Math.abs(Math.sin(b.ph/40))*16:0)}
    if(b.fire&&gt%2==0)parts.push({x:b.x+7,y:b.y-5+Math.random()*10,vx:.8+Math.random(),vy:-.6-Math.random()*.8,l:16,c:Math.random()<.5?'#ff8a2a':'#ffd23f',ng:1});
    if(boxHit({x:b.x-9,y:b.y-9,w:18,h:18}))die(b.fire?'Au, een vuurbal!':'Overrold door een kogel!')}
  balls=balls.filter(b=>b.x>-30&&b.y<H+30);
  for(const r of L.rocks)if(boxHit({x:r.x+3,y:G-16,w:20,h:16}))die('Gestruikeld over een rotsblok!');
- for(const k of L.pikes){const h=pikeH(k);if(h>10&&boxHit({x:k.x,y:G-h,w:6,h}))die('Au, een speer!')}
+ for(const k of L.pikes){const h=pikeH(k);if(h>10&&boxHit({x:k.x+7,y:G-h,w:6,h}))die('Au, de wachter prikte je!')}
  // doel
  if(state=='play'&&!p.rope&&p.x+p.w>=748&&p.y<=G){
    state='done';stTimer=120;bellSwing=1;bell();
@@ -183,19 +195,24 @@ function updatePlay(){
  }
 }
 
+let tops=[],topNew=-1;try{tops=JSON.parse(localStorage.getItem('kasteelsprong_top'))||[]}catch(e){}
+function addTop(){const d=new Date(),e={s:score,l:lvl+1+round*LEVELS.length,d:d.getDate()+'-'+(d.getMonth()+1)};tops.push(e);tops.sort((a,b)=>b.s-a.s);tops=tops.slice(0,5);topNew=tops.indexOf(e);try{localStorage.setItem('kasteelsprong_top',JSON.stringify(tops))}catch(e){}}
+function drawTop(y,size){if(!tops.length)return;txt('Beste scores',W/2,y,size+2,'#f0b83c');tops.forEach((e,i)=>txt((i+1)+'.  '+e.s+' punten   (level '+e.l+', '+e.d+')',W/2,y+22+i*(size+5),size,i==topNew?'#ffe07a':'#c9c3e6','center','system-ui,sans-serif'))}
+let paused=false;
+function togglePause(){if(state=='play'||state=='count'){paused=!paused;snd(paused?300:600,.1,'triangle',.05)}}
 function tick(){
- gt++;
+ gt++;if(paused){jumpPressed=false;return}
  if(state=='play'){t++;lt++;if(goTimer>0)goTimer--;updatePlay()}
  else if(state=='count'){stTimer--;if(stTimer==80||stTimer==40)snd(440,.15,'square',.06);
    if(stTimer<=0){state='play';goTimer=40;snd(880,.25,'square',.07)}}
- else if(state=='song'){songF++;
+ else if(state=='song'){if(!songOn){if(ac&&ac.state=='running'){playSong();songOn=true}else if(++songWait>40)songOn=true;if(jumpPressed){stopSong();parts=[];loadLevel()}jumpPressed=false;return}songF++;
    const walkEnd=SONG_FRAMES-100;
    if(songF<walkEnd){ip.x=W+20-(W-20)*songF/walkEnd;const hop=songF/(3*EIGHTH*60)*Math.PI;ip.y=H-6-Math.abs(Math.sin(hop))*16;ip.anim=songF;ip.ground=ip.y>H-9}
    else{const k=Math.min(1,(songF-walkEnd)/80),e=k*k*(3-2*k);ip.y=(H-6)+(G-(H-6))*e;ip.face=1;ip.ground=true;ip.vx=0;
      if(gt%3==0&&k<1)parts.push({x:ip.x+Math.random()*24,y:ip.y-Math.random()*40,vx:(Math.random()-.5),vy:-Math.random(),l:30})}
    if(songF>=SONG_FRAMES+15||jumpPressed){stopSong();parts=[];loadLevel()}}
  else if(state=='dead'){stTimer--;p.vy+=.45;p.y+=p.vy;p.rot+=.15;
-   if(stTimer<=0){if(lives<=0){state='over';if(score>hi){hi=score;try{localStorage.setItem('kasteelsprong_hi',hi)}catch(e){}}}else loadLevel()}}
+   if(stTimer<=0){if(lives<=0){state='over';if(score>hi){hi=score;try{localStorage.setItem('kasteelsprong_hi',hi)}catch(e){}}addTop()}else loadLevel()}}
  else if(state=='done'){if(--stTimer<=0){lvl++;if(lvl>=LEVELS.length){lvl=0;round++;lives++;roundMsg=1}else roundMsg=0;loadLevel()}}
  else if((state=='title'||state=='over')&&jumpPressed){newGame()}
  bellSwing*=.988;
@@ -241,13 +258,18 @@ function drawRopes(){
  }
 }
 function drawRocks(){for(const r of L.rocks){
- ctx.fillStyle='#7d7f8f';ctx.beginPath();ctx.ellipse(r.x+13,G-8,14,10,0,Math.PI,0);ctx.lineTo(r.x+27,G);ctx.lineTo(r.x-1,G);ctx.fill();
- ctx.fillStyle='#a4a6b6';ctx.beginPath();ctx.ellipse(r.x+9,G-11,5,3,-.4,0,7);ctx.fill()}}
-function drawPikes(){for(const k of L.pikes){
- ctx.fillStyle='#1b1c28';ctx.fillRect(k.x-5,G,16,6);
- const h=pikeH(k);if(h<2)continue;
- ctx.fillStyle='#7a5230';ctx.fillRect(k.x+1,G-h+12,4,h-12);
- ctx.fillStyle='#d9dde8';ctx.beginPath();ctx.moveTo(k.x+3,G-h-4);ctx.lineTo(k.x+9,G-h+12);ctx.lineTo(k.x-3,G-h+12);ctx.fill()}}
+ ctx.fillStyle='#5a3a1e';ctx.beginPath();ctx.ellipse(r.x+13,G-8,15,11,0,Math.PI,0);ctx.lineTo(r.x+28,G);ctx.lineTo(r.x-2,G);ctx.fill();
+ ctx.fillStyle='#9a6a3a';ctx.beginPath();ctx.ellipse(r.x+13,G-8,13,9,0,Math.PI,0);ctx.lineTo(r.x+26,G-1);ctx.lineTo(r.x,G-1);ctx.fill();
+ ctx.fillStyle='#c99a62';ctx.beginPath();ctx.ellipse(r.x+9,G-12,5,3,-.4,0,7);ctx.fill();ctx.fillStyle='#6e4826';ctx.fillRect(r.x+16,G-9,5,2);ctx.fillRect(r.x+6,G-5,4,2)}}
+function drawPikes(){for(const k of L.pikes){const h=pikeH(k),rise=Math.min(9,h*.2),cx=k.x+3,top=G+3-rise;
+ ctx.save();ctx.beginPath();ctx.rect(k.x-14,G-120,34,200);ctx.clip();
+ ctx.fillStyle='#2f5fa8';ctx.fillRect(cx-10,top+13,20,34);ctx.fillStyle='#f0c040';ctx.fillRect(cx-2,top+15,4,20);ctx.fillRect(cx-8,top+21,16,4);
+ ctx.fillStyle='#f0c9a0';ctx.fillRect(cx-6,top+2,12,11);ctx.fillStyle='#222';ctx.fillRect(cx-4,top+6,2,2);ctx.fillRect(cx+2,top+6,2,2);ctx.fillRect(cx-3,top+10,6,1);
+ ctx.fillStyle='#9aa0ad';ctx.beginPath();ctx.arc(cx,top+2,7,Math.PI,0);ctx.fill();ctx.beginPath();ctx.ellipse(cx,top+2,11,2.8,0,0,7);ctx.fill();
+ const tipY=h>2?G-h-4:top-14,base=top+32;
+ ctx.fillStyle='#7a5230';ctx.fillRect(k.x+8,tipY+14,4,base-(tipY+14));
+ ctx.fillStyle='#d9dde8';ctx.beginPath();ctx.moveTo(k.x+10,tipY-2);ctx.lineTo(k.x+15,tipY+14);ctx.lineTo(k.x+5,tipY+14);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#f0c9a0';ctx.beginPath();ctx.arc(k.x+10,top+22,3,0,7);ctx.fill();ctx.restore()}}
 function drawArrows(){for(const a of arrows){
  ctx.save();ctx.translate(a.x+14,a.y);ctx.scale(-a.dx,1);
  ctx.strokeStyle='#c9a46a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(14,0);ctx.stroke();
@@ -299,14 +321,14 @@ function draw(){
    txt('en luid de klok aan het eind van elk level.',W/2,206,18,'#f6ebc4');
    if(gt%60<40)txt('Druk op spatie of tik om te beginnen',W/2,262,22);
    txt('← → lopen   spatie springen   ↓ bukken (dubbele pijl? alleen bukken helpt!)',W/2,300,14,'#c9c3e6','center','system-ui,sans-serif');
-   if(hi)txt('Record: '+hi,W/2,90,18,'#f0b83c');
+   drawTop(330,13);
    if(innerHeight>innerWidth)txt('Tip: draai je telefoon',W/2,52,16,'#c9c3e6','center','system-ui,sans-serif');
    return}
  if(state=='song'){txt('Kasteelsprong',W/2,120,46);txt('Spatie of tik om over te slaan',W/2,156,14,'#c9c3e6','center','system-ui,sans-serif');return}
  const num=lvl+1+round*LEVELS.length;
  txt('Level '+num+'  '+L.name,58,30,18,'#ffe2a8','left');
  txt('Punten '+score,W/2,30,18,'#f6ebc4');
- txt('♥'.repeat(Math.max(0,lives)),W-16,30,20,'#e0574c','right','system-ui,sans-serif');
+ txt('♥'.repeat(Math.max(0,lives)),W-58,30,20,'#e0574c','right','system-ui,sans-serif');
  for(let i=0;i<5;i++)miniBell(66+i*18,42,i<streak);
  if(state=='count'){const n=Math.ceil(stTimer/40),f=(stTimer%40)/40;
    txt('Level '+num,W/2,120,30,'#f6ebc4');txt(L.name,W/2,152,22,'#f6ebc4');
@@ -316,8 +338,9 @@ function draw(){
  if(state=='dead')txt(msg,W/2,170,28,'#ffb3a8');
  if(state=='done'){txt('Bong! De klok luidt.',W/2,160,34);txt(msg,W/2,200,20,'#f0b83c')}
  if(state=='over'){ctx.fillStyle='rgba(13,18,48,.65)';ctx.fillRect(0,0,W,H);
-   txt('Game over',W/2,150,56);txt('Punten: '+score+'    Record: '+hi,W/2,200,22,'#f6ebc4');
-   if(gt%60<40)txt('Druk op spatie of tik om opnieuw te spelen',W/2,260,20)}
+   txt('Game over',W/2,110,52);txt('Punten: '+score+(topNew==0?'   Nieuw record!':''),W/2,150,22,'#f6ebc4');drawTop(200,14);
+   if(gt%60<40)txt('Druk op spatie of tik om opnieuw te spelen',W/2,330,20)}
+ if(paused){ctx.fillStyle='rgba(13,18,48,.6)';ctx.fillRect(0,0,W,H);txt('Pauze',W/2,200,56);txt('Druk op P of tik om verder te spelen',W/2,250,18,'#f6ebc4')}
 }
 
 // ---------- lus ----------
