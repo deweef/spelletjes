@@ -33,5 +33,12 @@
     "bestand": "piratenbluf.html",
     "plaatje": "piratenbluf.jpg",
     "stand": "staand"
+  },
+  {
+    "naam": "Orkenstorm",
+    "omschrijving": "Bouw een dorp, hak hout, haal goud uit de mijn, train soldaten en verjaag de orks onder de wolken vandaan.",
+    "bestand": "orkenstorm.html",
+    "plaatje": "orkenstorm.jpg",
+    "stand": "staand"
   }
 ]
