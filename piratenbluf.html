@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Piratenbluf</title>
+<style>
+html,body{margin:0;height:100%;background:#1a0f08;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+canvas{display:block}
+.terug{position:fixed;z-index:10;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.4);border:1.5px solid rgba(240,200,120,.6);color:#f6dfa8;font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.terug:focus-visible{outline:2px solid #f6dfa8;outline-offset:2px}
+</style>
+</head>
+<body>
+<a class="terug" href="./" aria-label="Terug naar de spellen">‹</a>
+<div id="wrap"><canvas id="c"></canvas></div>
+<script>
+const W=400,H=740;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const DPR=Math.min(2,window.devicePixelRatio||1);cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+function fit(){const s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=W*s+'px';cv.style.height=H*s+'px'}
+addEventListener('resize',fit);fit();
+
+// ---------- geluid ----------
+let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state=='suspended')ac.resume()}catch(e){}}
+function snd(f,d,type='square',v=.05,slide=0,delay=0){if(!ac)return;try{const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime+delay;o.type=type;o.frequency.setValueAtTime(f,n);if(slide)o.frequency.exponentialRampToValueAtTime(slide,n+d);g.gain.setValueAtTime(v,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g).connect(ac.destination);o.start(n);o.stop(n+d+.02)}catch(e){}}
+function noise(d,v=.08,f=800,delay=0){if(!ac)return;try{const n=ac.currentTime+delay,b=ac.createBuffer(1,Math.max(1,ac.sampleRate*d|0),ac.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=(Math.random()*2-1)*(1-i/a.length);
+ const s=ac.createBufferSource(),fl=ac.createBiquadFilter(),g=ac.createGain();s.buffer=b;fl.type='bandpass';fl.frequency.value=f;g.gain.value=v;s.connect(fl).connect(g).connect(ac.destination);s.start(n)}catch(e){}}
+const sRattle=()=>{for(let i=0;i<7;i++)noise(.05,.12,1800+Math.random()*1500,i*.07)};
+const sSquawk=()=>{for(let i=0;i<3;i++)snd(900+Math.random()*500,.09,'sawtooth',.045,1700+Math.random()*600,i*.11)};
+const sBid=()=>snd(520,.08,'triangle',.05,700);
+const sLiar=()=>{snd(200,.25,'sawtooth',.06,120);snd(150,.3,'square',.04,90,.05)};
+const sLose=()=>{snd(392,.2,'triangle',.06,0);snd(330,.2,'triangle',.06,0,.18);snd(262,.4,'triangle',.06,0,.36)};
+const sWin=()=>[523,659,784,1046,784,1046,1318].forEach((f,i)=>snd(f,.2,'triangle',.06,0,i*.1));
+
+// ---------- spelers ----------
+const SEATS=[{x:200,y:420},{x:62,y:250},{x:200,y:150},{x:338,y:250}];
+const PIRATES=[
+ null,
+ {naam:'Ouwe Kees',call:.55,bluff:.15,hoed:'#3a2a1a',baard:'#d8d2c4',huid:'#e8b98f',ooglap:0,jas:'#3b5b8c'},
+ {naam:'Roodbaard Riek',call:1.6,bluff:.55,hoed:'#7a1f1f',baard:'#c4471d',huid:'#f0c49a',ooglap:1,jas:'#7a1f1f'},
+ {naam:'Zwarte Joop',call:1.0,bluff:.3,hoed:'#1a1a1a',baard:'#2a1d14',huid:'#c98e62',ooglap:0,jas:'#2d4a2d'}];
+const NUM=['nul','één','twee','drie','vier','vijf','zes','zeven','acht','negen','tien','elf','twaalf','dertien','veertien','vijftien','zestien','zeventien','achttien','negentien','twintig'];
+const FACEW={2:'tweeën',3:'drieën',4:'vieren',5:'vijven',6:'zessen'};
+const FACE1={2:'twee',3:'drie',4:'vier',5:'vijf',6:'zes'};
+const bidText=b=>b.q==1?'Eén '+FACE1[b.f]:(NUM[b.q]||b.q)+' '+FACEW[b.f];
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+
+let state='title',players=[],turn=0,bid=null,bidder=-1,stT=0,gt=0,starter=0,log='',reveal=null,selQ=1,selF=2,wins=0,speech=[null,null,null,null],parrot={txt:'',t:0,next:600,flap:0},buttons=[],loserIdx=-1,result='';
+try{wins=+localStorage.getItem('piratenbluf_wins')||0}catch(e){}
+const roll=()=>1+Math.floor(Math.random()*6);
+const alive=()=>players.map((p,i)=>i).filter(i=>players[i].n>0);
+const totalDice=()=>players.reduce((a,p)=>a+p.n,0);
+function nextAlive(i){for(let k=1;k<=4;k++){const j=(i+k)%4;if(players[j].n>0)return j}return i}
+function say(i,t,dur=110){speech[i]={t,d:dur}}
+function squawk(list,dur=130){parrot.txt=list[Math.floor(Math.random()*list.length)];parrot.t=dur;parrot.flap=40;sSquawk()}
+const P_PLAYERLOSE=['Sukkel!','Loser, loser! Krrraa!','Landrot!','Zoetwatermatroos!','Krrr, planken lopen!','Haha, kielhalen!','Sloeber! Krrraa!'];
+const P_AILOSE=['Arrr, die was raak!','Krrr, betrapt!','Zie je wel, bluffer!','Haha, overboord ermee!'];
+const P_LIAR=['Leugenaar! Leugenaar!','Bekers omhoog! Krrraa!','Ooooh, spannend!'];
+const P_IDLE=['Krrraa! Dukaten!','Rum! Wie heeft er rum?','Ik zie alles, hoor!','Bluffen, bluffen...','Lekker bezig, kapitein!','Krrr, schiet eens op!','Piraten bieden hoger!'];
+
+function newGame(){players=[{naam:'Jij',n:5,dice:[],human:1},...[1,2,3].map(i=>({naam:PIRATES[i].naam,n:5,dice:[],pr:PIRATES[i]}))];
+ starter=Math.floor(Math.random()*4);newRound();squawk(['Ahoy! Krrraa! Bekers klaar?','Welkom aan boord, sukkel! Krrr!']);}
+function newRound(){for(const p of players)p.dice=Array.from({length:p.n},roll);bid=null;bidder=-1;reveal=null;speech=[null,null,null,null];
+ state='shake';stT=50;sRattle();turn=players[starter].n>0?starter:nextAlive(starter);log=''}
+function validRaise(q,f){if(f<2||f>6||q<1||q>totalDice())return false;if(!bid)return true;return q>bid.q||q==bid.q&&f>bid.f}
+function minRaiseFor(f){if(!bid)return 1;return f>bid.f?bid.q:bid.q+1}
+function placeBid(i,q,f){bid={q,f};bidder=i;log=(players[i].human?'Jij':players[i].naam)+' biedt: '+bidText(bid).toLowerCase();say(i,bidText(bid)+'!');sBid();turn=nextAlive(i);stT=0;if(players[turn].human)prepHuman()}
+function callLiar(i){sLiar();say(i,'Leugenaar!',140);squawk(P_LIAR,100);
+ let count=0;for(const p of players)for(const d of p.dice)if(d==bid.f||d==1)count++;
+ const ok=count>=bid.q;loserIdx=ok?i:bidder;
+ reveal={count,caller:i,ok};state='reveal';stT=0;
+ log=(players[i].human?'Jij roept':players[i].naam+' roept')+' leugenaar!'}
+function prepHuman(){// stel een handig standaardbod voor
+ const counts=[0,0,0,0,0,0,0];for(const d of players[0].dice)counts[d]++;
+ let best=2;for(let f=2;f<=6;f++)if(counts[f]+counts[1]>counts[best]+counts[1]||counts[f]>counts[best])best=f;
+ selF=best;selQ=Math.max(minRaiseFor(selF),bid?bid.q:1);if(!validRaise(selQ,selF))selQ=minRaiseFor(selF)}
+
+// ---------- computerpiraten ----------
+function aiAct(i){const me=players[i],pr=me.pr,unknown=totalDice()-me.n;
+ const known=f=>me.dice.filter(d=>d==f||d==1).length;const exp=f=>known(f)+unknown/3;
+ if(bid){const risk=bid.q-exp(bid.f);if(risk>pr.call+Math.random()*.9||bid.q>totalDice()*0.75)return callLiar(i)}
+ let opts=[];for(let f=2;f<=6;f++){const q0=minRaiseFor(f);for(let q=q0;q<=q0+2&&q<=totalDice();q++){
+   let sc=exp(f)-q+(known(f)>=2?.4:0)+Math.random()*.6;if(Math.random()<pr.bluff)sc+=.8;opts.push({q,f,sc})}}
+ opts.sort((a,b)=>b.sc-a.sc);const o=opts[0];
+ if(bid&&o.sc<-pr.call-.3&&Math.random()<.85)return callLiar(i);
+ if(!bid){const f=[2,3,4,5,6].sort((a,b)=>known(b)-known(a)+Math.random()*.5-.25)[0];return placeBid(i,Math.max(1,Math.round(exp(f)-1-(1-pr.bluff))),f)}
+ placeBid(i,o.q,o.f)}
+
+// ---------- invoer ----------
+cv.addEventListener('pointerdown',e=>{unlock();const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;
+ for(const b of buttons)if(x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h&&!b.off){b.act();return}});
+addEventListener('keydown',e=>{unlock();if(state=='title'||state=='over'){if(e.code=='Space'||e.code=='Enter'){newGame()}return}
+ if(!(state=='turn'&&players[turn].human))return;
+ if(e.code=='ArrowUp')selQ=Math.min(totalDice(),selQ+1);if(e.code=='ArrowDown')selQ=Math.max(1,selQ-1);
+ if(e.code=='ArrowLeft')selF=Math.max(2,selF-1);if(e.code=='ArrowRight')selF=Math.min(6,selF+1);
+ if(e.code=='Enter'&&validRaise(selQ,selF))placeBid(0,selQ,selF);if(e.code=='KeyL'&&bid)callLiar(0)});
+
+// ---------- verloop ----------
+function tick(){gt++;
+ for(let i=0;i<4;i++)if(speech[i]&&--speech[i].d<=0)speech[i]=null;
+ if(parrot.t>0)parrot.t--;if(parrot.flap>0)parrot.flap--;
+ if(state!='title'&&--parrot.next<=0){parrot.next=700+Math.random()*700;if(parrot.t<=0)squawk(P_IDLE,120)}
+ if(state=='shake'){if(--stT<=0){state='turn';stT=0;if(players[turn].human)prepHuman()}return}
+ if(state=='turn'){if(!players[turn].human){stT++;if(stT>55+Math.random()*40)aiAct(turn)}return}
+ if(state=='reveal'){stT++;
+   if(stT==150){const L=players[loserIdx];L.n--;sLose();
+     if(L.human)squawk(P_PLAYERLOSE);else squawk(P_AILOSE);
+     result=(L.human?'Jij verliest':L.naam+' verliest')+' een dobbelsteen'+(L.n==0?(L.human?' en ligt eruit!':' en gaat overboord!'):'.');}
+   if(stT==260){const al=alive();
+     if(players[0].n==0){state='over';result='Je ligt eruit!';squawk(['Loser! Hahaha! Krrraa!','Sukkel! Planken lopen!'],200);return}
+     if(al.length==1){state='over';result='Jij wint! Kapitein van de zeven zeeën!';wins++;try{localStorage.setItem('piratenbluf_wins',wins)}catch(e){};sWin();squawk(['Kapitein! Kapitein! Krrraa!','Hoera! Rum voor iedereen!'],220);return}
+     starter=players[loserIdx].n>0?loserIdx:nextAlive(loserIdx);newRound()}}
+}
+
+// ---------- tekenen ----------
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h)}
+function txt(t,x,y,size,col='#f6dfa8',align='center',font='Georgia,"Times New Roman",serif',weight='bold',sh='rgba(0,0,0,.6)'){ctx.font=weight+' '+size+'px '+font;ctx.textAlign=align;if(sh){ctx.fillStyle=sh;ctx.fillText(t,x+1.5,y+1.5)}ctx.fillStyle=col;ctx.fillText(t,x,y)}
+function joker(cx,cy,s){// narrenkop met zotskap
+ ctx.save();ctx.translate(cx,cy);ctx.scale(s/40,s/40);
+ const cols=['#d9342b','#2f9a4a','#e8b72a'];
+ [[-16,-2,-20,-20],[0,-4,0,-24],[16,-2,20,-20]].forEach(([x0,y0,x1,y1],i)=>{ctx.fillStyle=cols[i];ctx.beginPath();ctx.moveTo(x0*.4-6,y0+2);ctx.quadraticCurveTo(x1*.6,y1+6,x1,y1);ctx.quadraticCurveTo(x1*.3+2,y1+10,x0*.4+6,y0+2);ctx.closePath();ctx.fill();ctx.fillStyle='#ffd23f';ctx.beginPath();ctx.arc(x1,y1,3.2,0,7);ctx.fill()});
+ ctx.fillStyle='#f3d2b0';ctx.beginPath();ctx.arc(0,6,9,0,7);ctx.fill();ctx.fillStyle='#d9342b';ctx.fillRect(-10,-1,20,3);
+ ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-3.5,5,1.4,0,7);ctx.arc(3.5,5,1.4,0,7);ctx.fill();ctx.strokeStyle='#222';ctx.lineWidth=1.4;ctx.beginPath();ctx.arc(0,8,4,.2,Math.PI-.2);ctx.stroke();
+ ctx.fillStyle='#e8556b';ctx.beginPath();ctx.arc(-6,9,1.6,0,7);ctx.arc(6,9,1.6,0,7);ctx.fill();ctx.restore()}
+const PIPS={2:[[-1,-1],[1,1]],3:[[-1,-1],[0,0],[1,1]],4:[[-1,-1],[1,-1],[-1,1],[1,1]],5:[[-1,-1],[1,-1],[0,0],[-1,1],[1,1]],6:[[-1,-1],[1,-1],[-1,0],[1,0],[-1,1],[1,1]]};
+function die(x,y,s,v,opt={}){ctx.save();ctx.translate(x,y);if(opt.rot)ctx.rotate(opt.rot);
+ ctx.fillStyle='rgba(0,0,0,.35)';rr(-s/2+2,-s/2+3,s,s,s*.18);ctx.fill();
+ const g=ctx.createLinearGradient(-s/2,-s/2,s/2,s/2);g.addColorStop(0,opt.hl?'#fff6c8':'#fbf6ea');g.addColorStop(1,opt.hl?'#f2c84a':'#d9cdb4');ctx.fillStyle=g;rr(-s/2,-s/2,s,s,s*.18);ctx.fill();
+ if(opt.hl){ctx.strokeStyle='#f0b83c';ctx.lineWidth=2.5;ctx.stroke()}else if(opt.sel){ctx.strokeStyle='#f6dfa8';ctx.lineWidth=3;ctx.stroke()}
+ if(v==1)joker(0,2,s*.78);else{ctx.fillStyle='#2a1a10';for(const [a,b] of PIPS[v]){ctx.beginPath();ctx.arc(a*s*.26,b*s*.26,s*.085,0,7);ctx.fill()}}
+ if(opt.dim){ctx.fillStyle='rgba(30,15,5,.45)';rr(-s/2,-s/2,s,s,s*.18);ctx.fill()}
+ ctx.restore()}
+function cup(x,y,s,lift){ctx.save();ctx.translate(x,y-lift);const g=ctx.createLinearGradient(-s,0,s,0);g.addColorStop(0,'#4a2a12');g.addColorStop(.5,'#8a5428');g.addColorStop(1,'#4a2a12');
+ ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(-s,0);ctx.lineTo(-s*.75,-s*1.3);ctx.lineTo(s*.75,-s*1.3);ctx.lineTo(s,0);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#3a1f0c';ctx.beginPath();ctx.ellipse(0,0,s,s*.22,0,0,7);ctx.fill();ctx.strokeStyle='#c99a4a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-s*.9,-s*.35);ctx.lineTo(s*.9,-s*.35);ctx.moveTo(-s*.82,-s*1.05);ctx.lineTo(s*.82,-s*1.05);ctx.stroke();ctx.restore()}
+function pirate(i,x,y,active){const pr=PIRATES[i],out=players[i]&&players[i].n==0;ctx.save();ctx.translate(x,y);if(out)ctx.globalAlpha=.35;
+ if(active){ctx.fillStyle='rgba(255,210,100,'+(.25+.15*Math.sin(gt*.15))+')';ctx.beginPath();ctx.arc(0,0,38,0,7);ctx.fill()}
+ ctx.fillStyle=pr.jas;ctx.beginPath();ctx.arc(0,30,26,Math.PI,0);ctx.fill();
+ ctx.fillStyle=pr.huid;ctx.beginPath();ctx.arc(0,0,20,0,7);ctx.fill();
+ ctx.fillStyle=pr.baard;ctx.beginPath();ctx.moveTo(-18,4);ctx.quadraticCurveTo(0,34,18,4);ctx.quadraticCurveTo(0,14,-18,4);ctx.fill();
+ ctx.fillStyle='#222';ctx.beginPath();ctx.arc(-7,-3,2.3,0,7);ctx.fill();
+ if(pr.ooglap){ctx.fillStyle='#111';ctx.beginPath();ctx.ellipse(7,-3,5,4,0,0,7);ctx.fill();ctx.strokeStyle='#111';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-18,-10);ctx.lineTo(18,0);ctx.stroke()}
+ else{ctx.fillStyle='#222';ctx.beginPath();ctx.arc(7,-3,2.3,0,7);ctx.fill()}
+ ctx.fillStyle='#c97a5a';ctx.beginPath();ctx.ellipse(0,4,3,2.5,0,0,7);ctx.fill();
+ ctx.fillStyle=pr.hoed;ctx.beginPath();ctx.moveTo(-28,-10);ctx.quadraticCurveTo(0,-22,28,-10);ctx.quadraticCurveTo(14,-38,0,-30);ctx.quadraticCurveTo(-14,-38,-28,-10);ctx.fill();
+ ctx.fillStyle='#f4ead2';ctx.beginPath();ctx.arc(0,-20,4,0,7);ctx.fill();ctx.strokeStyle='#f4ead2';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-4,-14);ctx.lineTo(4,-26);ctx.moveTo(4,-14);ctx.lineTo(-4,-26);ctx.stroke();
+ ctx.restore()}
+function bubble(x,y,t,up){ctx.font='bold 14px Georgia,serif';const w=Math.min(190,ctx.measureText(t).width+22);const bx=Math.max(6,Math.min(W-w-6,x-w/2)),by=up?y-38:y;
+ ctx.fillStyle='#fffaf0';rr(bx,by,w,30,12);ctx.fill();ctx.beginPath();ctx.moveTo(x-6,up?by+30:by);ctx.lineTo(x+6,up?by+30:by);ctx.lineTo(x,up?by+40:by-10);ctx.fill();
+ txt(t,bx+w/2,by+20,14,'#3a1f0c','center','Georgia,serif','bold',null)}
+function drawParrot(){const x=352,y=78,f=parrot.flap>0?Math.sin(gt*.8)*.6:0;
+ ctx.strokeStyle='#6b4423';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(318,y+26);ctx.lineTo(392,y+26);ctx.stroke();ctx.fillStyle='#6b4423';ctx.fillRect(386,y+26,4,60);
+ ctx.save();ctx.translate(x,y);
+ ctx.fillStyle='#2f9a4a';ctx.beginPath();ctx.moveTo(4,14);ctx.lineTo(12,40);ctx.lineTo(-2,40);ctx.closePath();ctx.fill();ctx.fillStyle='#2a62c9';ctx.beginPath();ctx.moveTo(2,20);ctx.lineTo(7,44);ctx.lineTo(0,44);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#d9342b';ctx.beginPath();ctx.ellipse(0,6,12,17,0,0,7);ctx.fill();
+ ctx.save();ctx.translate(-6,2);ctx.rotate(-.3-f);ctx.fillStyle='#e8b72a';ctx.beginPath();ctx.ellipse(-4,6,6,13,.2,0,7);ctx.fill();ctx.fillStyle='#2a62c9';ctx.beginPath();ctx.ellipse(-5,13,4,7,.2,0,7);ctx.fill();ctx.restore();
+ ctx.fillStyle='#d9342b';ctx.beginPath();ctx.arc(2,-12,10,0,7);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(6,-14,5,5.5,0,0,7);ctx.fill();ctx.fillStyle='#111';ctx.beginPath();ctx.arc(7,-14,2.2,0,7);ctx.fill();
+ const open=parrot.t>0&&Math.floor(gt/5)%2?4:1;ctx.fillStyle='#2a2a2a';ctx.beginPath();ctx.moveTo(8,-9);ctx.quadraticCurveTo(20,-8,15,2);ctx.lineTo(10,-4+open*.2);ctx.closePath();ctx.fill();
+ ctx.fillStyle='#555';ctx.beginPath();ctx.moveTo(9,-4+open);ctx.lineTo(15,-1+open);ctx.lineTo(9,0+open);ctx.fill();
+ ctx.fillStyle='#e8a33a';ctx.fillRect(-6,22,4,6);ctx.fillRect(2,22,4,6);ctx.restore();
+ if(parrot.t>0){ctx.font='bold 15px Georgia,serif';const w=Math.min(230,ctx.measureText(parrot.txt).width+24),bx=330-w,by=48;
+   ctx.fillStyle='#fff3c4';rr(bx,by,w,32,14);ctx.fill();ctx.beginPath();ctx.moveTo(bx+w-4,by+10);ctx.lineTo(bx+w+12,by+14);ctx.lineTo(bx+w-4,by+22);ctx.fill();
+   txt(parrot.txt,bx+w/2,by+21,15,'#7a1f1f','center','Georgia,serif','bold',null)}}
+function draw(){buttons=[];
+ // dek en tafel
+ const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#2a1709');bg.addColorStop(1,'#140b05');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=2;for(let y=24;y<H;y+=32){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ const lg=ctx.createRadialGradient(200,300,20,200,300,320);lg.addColorStop(0,'rgba(255,190,90,.28)');lg.addColorStop(1,'rgba(255,190,90,0)');ctx.fillStyle=lg;ctx.fillRect(0,0,W,H);
+ const tg=ctx.createRadialGradient(200,290,30,200,290,200);tg.addColorStop(0,'#2f6b3f');tg.addColorStop(1,'#1d4a2a');ctx.fillStyle='#5a3416';ctx.beginPath();ctx.ellipse(200,292,188,150,0,0,7);ctx.fill();ctx.fillStyle=tg;ctx.beginPath();ctx.ellipse(200,292,176,138,0,0,7);ctx.fill();
+ // titel
+ txt('Piratenbluf',48,30,22,'#f6dfa8','left');
+ if(state=='title'){drawTitle();drawParrot();return}
+ // tegenstanders
+ for(let i=1;i<=3;i++){const s=SEATS[i],p=players[i];pirate(i,s.x,s.y,state=='turn'&&turn==i);
+   txt(p.naam,s.x,s.y-44,12,p.n?'#f6dfa8':'#8a7a5a','center','system-ui,sans-serif','700');
+   const dy=s.y+(i==2?52:64);
+   if(p.n==0){txt('Overboord!',s.x,dy+6,12,'#c98a6a','center','Georgia,serif','bold');continue}
+   if(state=='reveal'){const n=p.dice.length,sz=20,w=n*(sz+3);p.dice.forEach((d,k)=>die(s.x-w/2+sz/2+k*(sz+3),dy+8,sz,d,{hl:stT>40&&(d==bid.f||d==1),dim:stT>40&&!(d==bid.f||d==1)}));if(stT<25){ctx.globalAlpha=1-stT/25;cup(s.x,dy+18,26,stT*1.6);ctx.globalAlpha=1}}
+   else{cup(s.x,dy+18,26,state=='shake'?Math.abs(Math.sin(gt*.6))*6:0);for(let k=0;k<p.n;k++){ctx.fillStyle='#f6dfa8';ctx.beginPath();ctx.arc(s.x-(p.n-1)*5+k*10,dy+28,3,0,7);ctx.fill()}}
+   if(speech[i])bubble(s.x,s.y+(i==2?-60:-62),speech[i].t,true)}
+ drawParrot();
+ // bod in het midden
+ if(bid){ctx.fillStyle='rgba(20,10,4,.55)';rr(120,262,160,62,14);ctx.fill();txt(players[bidder].human?'Jouw bod':players[bidder].naam,200,280,11,'#d9c49a','center','system-ui,sans-serif','600',null);
+   txt(String(bid.q)+' ×',184,312,26,'#fff3c4','right');die(214,303,30,bid.f)}
+ else if(state=='turn'||state=='shake')txt(state=='shake'?'Schudden...':'Nog geen bod',200,300,16,'#d9c49a','center','Georgia,serif','bold');
+ // jouw stenen
+ const me=players[0];txt(me.n?'Jouw stenen':'Je ligt eruit',200,388,13,'#f6dfa8','center','system-ui,sans-serif','700');
+ if(state=='turn'&&turn==0){ctx.fillStyle='rgba(255,210,100,'+(.18+.1*Math.sin(gt*.15))+')';rr(52,396,296,60,14);ctx.fill()}
+ const n=me.dice.length,sz=46,gap=8,w0=n*sz+(n-1)*gap;
+ me.dice.forEach((d,k)=>{const v=state=='shake'?roll():d;die(200-w0/2+sz/2+k*(sz+gap),426,sz,v,{rot:state=='shake'?Math.sin(gt*.7+k)*.3:0,hl:state=='reveal'&&stT>40&&(d==bid.f||d==1),dim:state=='reveal'&&stT>40&&!(d==bid.f||d==1)})});
+ if(speech[0])bubble(200,370,speech[0].t,true);
+ // uitslag / log
+ if(state=='reveal'){const r=reveal;ctx.fillStyle='rgba(20,10,4,.8)';rr(20,470,360,92,14);ctx.fill();
+   if(stT>40){txt('Er liggen '+r.count+' × ',190,500,20,'#fff3c4','right');die(214,493,26,bid.f);txt('(jokers tellen mee)',200,522,12,'#d9c49a','center','system-ui,sans-serif','600',null);
+     txt(r.ok?'Het bod klopte!':'Het bod was gebluft!',200,550,17,r.ok?'#9ee08a':'#ff9a8a','center','Georgia,serif','bold')}
+   else txt('Bekers omhoog...',200,520,20,'#fff3c4','center','Georgia,serif','bold');
+   if(stT>150)txt(result,200,590,15,'#f6dfa8','center','Georgia,serif','bold')}
+ else if(log)txt(log,200,484,13,'#d9c49a','center','system-ui,sans-serif','600',null);
+ if(state=='turn'&&turn==0)drawControls();
+ else if(state=='turn')txt(players[turn].naam+' denkt na...',200,560,15,'#d9c49a','center','Georgia,serif','bold',null);
+ if(state=='over')drawOver();
+}
+function btn(x,y,w,h,label,act,opt={}){buttons.push({x,y,w,h,act,off:opt.off});rr(x,y,w,h,12);
+ ctx.fillStyle=opt.off?'rgba(255,255,255,.08)':opt.red?'#a8281f':opt.gold?'#e8b440':'rgba(246,223,168,.16)';ctx.fill();ctx.strokeStyle=opt.off?'rgba(255,255,255,.1)':'rgba(246,223,168,.5)';ctx.lineWidth=1.5;ctx.stroke();
+ if(label)txt(label,x+w/2,y+h/2+7,opt.size||20,opt.off?'rgba(246,223,168,.35)':opt.gold?'#3a1f0c':'#fff3c4','center','Georgia,serif','bold',opt.gold?null:'rgba(0,0,0,.5)')}
+function drawControls(){
+ txt('Hoeveel?',100,505,12,'#d9c49a','center','system-ui,sans-serif','700',null);
+ btn(30,514,46,46,'−',()=>{selQ=Math.max(1,selQ-1)},{size:26});rr(80,514,40,46,10);ctx.fillStyle='rgba(0,0,0,.3)';ctx.fill();txt(String(selQ),100,546,24,'#fff3c4');
+ btn(124,514,46,46,'+',()=>{selQ=Math.min(totalDice(),selQ+1)},{size:26});
+ txt('Welk getal?',282,505,12,'#d9c49a','center','system-ui,sans-serif','700',null);
+ for(let f=2;f<=6;f++){const x=192+(f-2)*36;buttons.push({x:x-16,y:518,w:34,h:40,act:()=>{selF=f;if(!validRaise(selQ,selF))selQ=Math.max(selQ,minRaiseFor(selF))}});die(x,537,30,f,{sel:selF==f,dim:selF!=f})}
+ const ok=validRaise(selQ,selF);
+ txt(ok?'Jouw bod: '+bidText({q:selQ,f:selF}).toLowerCase():'Te laag: bied meer, of een hoger getal',200,592,14,ok?'#fff3c4':'#ff9a8a','center','Georgia,serif','bold',null);
+ btn(24,610,170,58,'Bied',()=>{if(validRaise(selQ,selF))placeBid(0,selQ,selF)},{gold:1,off:!ok,size:22});
+ btn(206,610,170,58,'Leugenaar!',()=>{if(bid)callLiar(0)},{red:1,off:!bid,size:22});
+ txt('Een joker (de nar) telt mee als elk getal',200,694,12,'#bfa77a','center','system-ui,sans-serif','600',null);
+ txt('Tip: gemiddeld 1 op de 3 onbekende stenen is jouw getal of een joker',200,712,10.5,'#8f7a55','center','system-ui,sans-serif','500',null)}
+function drawTitle(){
+ ctx.fillStyle='rgba(10,5,2,.55)';ctx.fillRect(0,0,W,H);txt('Piratenbluf',W/2,170,52,'#f6dfa8');
+ [1,2,3].forEach((i,k)=>pirate(i,110+k*90,240,0));
+ die(140,330,40,1);die(190,330,40,6);die(240,330,40,6);
+ const lines=['Iedereen heeft vijf stenen onder een beker.','Om de beurt bied je hoger over álle stenen','op tafel: "drie vieren", "vier vieren"...','Geloof je het niet? Roep "Leugenaar!"','Wie ongelijk heeft, verliest een steen.','De nar is een joker en telt overal mee.'];
+ lines.forEach((l,k)=>txt(l,W/2,390+k*22,14,'#f0e2c0','center','system-ui,sans-serif','500',null));
+ btn(110,540,180,58,'Aan boord!',newGame,{gold:1,size:24});
+ if(wins)txt('Gewonnen: '+wins+'×',W/2,630,15,'#e8b440','center','Georgia,serif','bold')}
+function drawOver(){ctx.fillStyle='rgba(10,5,2,.72)';ctx.fillRect(0,0,W,H);const won=players[0].n>0;
+ txt(won?'Gewonnen!':'Verloren...',W/2,250,46,won?'#f6dfa8':'#ff9a8a');txt(result,W/2,292,15,'#f0e2c0','center','Georgia,serif','bold');
+ if(parrot.t>0)drawParrot();
+ btn(100,350,200,58,'Nog een potje',newGame,{gold:1,size:22});if(wins)txt('Gewonnen: '+wins+'×',W/2,450,15,'#e8b440','center','Georgia,serif','bold')}
+let acc=0,last=performance.now();
+function loop(now){acc+=Math.min(100,now-last);last=now;while(acc>=1000/60){tick();acc-=1000/60}draw();requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

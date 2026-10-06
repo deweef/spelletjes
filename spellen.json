@@ -22,9 +22,16 @@
   },
   {
     "naam": "Skirun",
-    "omschrijving": "Skiën tussen bomen door, poortjes pakken, trucjes op de schans en wegwezen voor de boze sneeuwpop.",
+    "omschrijving": "Ski de berg af tussen bomen door, pak de poortjes, doe trucjes op de schans en blijf de boze sneeuwbal voor.",
     "bestand": "skirun.html",
     "plaatje": "skirun.jpg",
+    "stand": "staand"
+  },
+  {
+    "naam": "Piratenbluf",
+    "omschrijving": "Het dobbelspel van de piraten: bied, bluf en roep 'Leugenaar!' tegen drie zeerovers en een brutale papegaai.",
+    "bestand": "piratenbluf.html",
+    "plaatje": "piratenbluf.jpg",
     "stand": "staand"
   }
 ]
