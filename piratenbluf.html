@@ -65,7 +65,7 @@ function say(i,t,dur=110){speech[i]={t,d:dur}}
 let voiceOn=true,voiceReady=false;try{voiceOn=localStorage.getItem('piratenbluf_stem')!='uit'}catch(e){}
 function nlVoice(){const v=speechSynthesis.getVoices();return v.find(x=>/^nl/i.test(x.lang))||null}
 function speak(t,en){if(!voiceOn||!('speechSynthesis' in window))return;try{const u=new SpeechSynthesisUtterance(en?t.replace(/Squawk/gi,'squaaawk'):t.replace(/K?r+a+!?/gi,'kraa!').replace(/Kr+r,?/gi,'kraa,').replace(/Ahoy/i,'Ahooi'));
- const vs=speechSynthesis.getVoices();const v=en?(vs.find(x=>/^en[-_](GB|US)/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang))):nlVoice();u.lang=en?'en-GB':'nl-NL';if(v)u.voice=v;u.pitch=2;u.rate=en?1.3:1.2;u.volume=1;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+ const vs=speechSynthesis.getVoices();const v=en?(vs.find(x=>/^en[-_](GB|US)/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang))):nlVoice();u.lang=en?'en-GB':'nl-NL';if(v)u.voice=v;u.pitch=2;u.rate=en?1.3:1.2;u.volume=1;const go=()=>{try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){}};if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();setTimeout(go,80)}else go()}catch(e){}}
 function primeVoice(){if(voiceReady||!('speechSynthesis' in window))return;voiceReady=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}
 function squawk(list,dur=130){let t=list[Math.floor(Math.random()*list.length)];const en=t[0]=='#';if(en)t=t.slice(1);parrot.txt=t;parrot.t=dur;parrot.flap=40;sSquawk();setTimeout(()=>speak(t,en),260)}
 const P_PLAYERLOSE=['Sukkel!','Loser, loser! Krrraa!','Landrot!','Zoetwatermatroos!','Krrr, planken lopen!','Haha, kielhalen!','Sloeber! Krrraa!','#Loser! Squawk!','#Sucker!','#Walk the plank!','#Landlubber!'];
@@ -179,9 +179,11 @@ function drawParrot(){const x=352,y=78,f=parrot.flap>0?Math.sin(gt*.8)*.6:0;
  const open=parrot.t>0&&Math.floor(gt/5)%2?4:1;ctx.fillStyle='#2a2a2a';ctx.beginPath();ctx.moveTo(8,-9);ctx.quadraticCurveTo(20,-8,15,2);ctx.lineTo(10,-4+open*.2);ctx.closePath();ctx.fill();
  ctx.fillStyle='#555';ctx.beginPath();ctx.moveTo(9,-4+open);ctx.lineTo(15,-1+open);ctx.lineTo(9,0+open);ctx.fill();
  ctx.fillStyle='#e8a33a';ctx.fillRect(-6,22,4,6);ctx.fillRect(2,22,4,6);ctx.restore();
- if(parrot.t>0){ctx.font='bold 15px Georgia,serif';const w=Math.min(230,ctx.measureText(parrot.txt).width+24),bx=330-w,by=48;
-   ctx.fillStyle='#fff3c4';rr(bx,by,w,32,14);ctx.fill();ctx.beginPath();ctx.moveTo(bx+w-4,by+10);ctx.lineTo(bx+w+12,by+14);ctx.lineTo(bx+w-4,by+22);ctx.fill();
-   txt(parrot.txt,bx+w/2,by+21,15,'#7a1f1f','center','Georgia,serif','bold',null)}}
+ if(parrot.t>0){ctx.font='bold 13.5px Georgia,serif';const maxW=146,words=parrot.txt.split(' '),lines=[];let ln='';
+   for(const w of words){const tt=ln?ln+' '+w:w;if(ctx.measureText(tt).width>maxW&&ln){lines.push(ln);ln=w}else ln=tt}if(ln)lines.push(ln);
+   const bw=Math.max(...lines.map(l=>ctx.measureText(l).width))+22,bh=lines.length*17+12,bx=W-8-bw,by=126;
+   ctx.fillStyle='#fff3c4';rr(bx,by,bw,bh,12);ctx.fill();ctx.beginPath();ctx.moveTo(342,by+1);ctx.lineTo(356,by-12);ctx.lineTo(362,by+1);ctx.fill();
+   lines.forEach((l,i)=>txt(l,bx+bw/2,by+20+i*17,13.5,'#7a1f1f','center','Georgia,serif','bold',null))}}
 function draw(){buttons=[];
  // dek en tafel
  const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#2a1709');bg.addColorStop(1,'#140b05');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
@@ -198,7 +200,7 @@ function draw(){buttons=[];
    if(p.n==0){txt('Overboord!',s.x,dy+6,12,'#c98a6a','center','Georgia,serif','bold');continue}
    if(state=='reveal'){const n=p.dice.length,sz=20,w=n*(sz+3);p.dice.forEach((d,k)=>die(s.x-w/2+sz/2+k*(sz+3),dy+8,sz,d,{hl:stT>40&&(d==bid.f||d==1),dim:stT>40&&!(d==bid.f||d==1)}));if(stT<25){ctx.globalAlpha=1-stT/25;cup(s.x,dy+18,26,stT*1.6);ctx.globalAlpha=1}}
    else{cup(s.x,dy+18,26,state=='shake'?Math.abs(Math.sin(gt*.6))*6:0);for(let k=0;k<p.n;k++){ctx.fillStyle='#f6dfa8';ctx.beginPath();ctx.arc(s.x-(p.n-1)*5+k*10,dy+28,3,0,7);ctx.fill()}}
-   if(speech[i])bubble(s.x,s.y+(i==2?-60:-62),speech[i].t,true)}
+   if(speech[i]){if(i==2)bubble(s.x,s.y-60,speech[i].t,true);else bubble(s.x,s.y+96,speech[i].t,false)}}
  drawParrot();
  // bod in het midden
  if(bid){ctx.fillStyle='rgba(20,10,4,.55)';rr(120,262,160,62,14);ctx.fill();txt(players[bidder].human?'Jouw bod':players[bidder].naam,200,280,11,'#d9c49a','center','system-ui,sans-serif','600',null);

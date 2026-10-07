@@ -44,8 +44,16 @@ const sChop=()=>noise(.08,.07,900),sGold=()=>{snd(1568,.08,'triangle',.04);snd(2
  sBuild=()=>{noise(.05,.06,600);noise(.05,.06,600,.15)},sClick=()=>snd(700,.04,'triangle',.03);
 let voiceOn=true;try{voiceOn=localStorage.getItem('orkenstorm_stem')!='uit'}catch(e){}
 let lastSpeak=0;const LANGS={nl:'nl-NL',en:'en-GB',de:'de-DE'};
-function speak(t,pitch=1,lang='nl'){if(!voiceOn||!('speechSynthesis' in window))return;const n=Date.now();if(n-lastSpeak<700)return;lastSpeak=n;
- try{const u=new SpeechSynthesisUtterance(t);u.lang=LANGS[lang];const vs=speechSynthesis.getVoices();const v=vs.find(x=>x.lang.replace('_','-')==LANGS[lang])||vs.find(x=>x.lang.toLowerCase().startsWith(lang));if(v)u.voice=v;u.pitch=pitch;u.rate=1.1;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+let VOX={nl:null,en:null,de:null},voicePrimed=false;
+function loadVoices(){if(!('speechSynthesis' in window))return;const vs=speechSynthesis.getVoices();if(!vs.length)return;const L=v=>v.lang.replace('_','-').toLowerCase();
+ const find=(...codes)=>{for(const c of codes){const v=vs.find(x=>L(x)==c&&x.localService!==false)||vs.find(x=>L(x)==c);if(v)return v}return null};
+ VOX.nl=find('nl-nl','nl-be')||vs.find(v=>L(v).startsWith('nl'))||null;VOX.en=find('en-gb','en-us','en-au','en-ie')||vs.find(v=>L(v).startsWith('en'))||null;VOX.de=find('de-de','de-at','de-ch')||vs.find(v=>L(v).startsWith('de'))||null}
+if('speechSynthesis' in window){loadVoices();try{speechSynthesis.addEventListener('voiceschanged',loadVoices)}catch(e){speechSynthesis.onvoiceschanged=loadVoices}}
+function primeVoice(){if(voicePrimed||!('speechSynthesis' in window))return;voicePrimed=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}
+function speak(t,pitch=1,lang='nl',force){if(!voiceOn||!('speechSynthesis' in window))return;const n=Date.now();if(!force&&n-lastSpeak<300)return;lastSpeak=n;loadVoices();
+ try{const u=new SpeechSynthesisUtterance(t);u.lang=LANGS[lang];const v=VOX[lang];if(v)u.voice=v;u.pitch=pitch;u.rate=1.1;u.volume=1;
+   const go=()=>{try{speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){}};
+   if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();setTimeout(go,80)}else go()}catch(e){}}
 const VOICES={
  nl:{werker:['Ja?','Tot uw dienst!','Wat moet ik doen?','Ja, heer?'],krijger:['Klaar voor de strijd!','Ja, heer!','Voor de koning!'],boog:['Pijl en boog klaar!','Ik zie alles!','Ja?'],
   werkerGo:['Komt in orde!','Ik ga al!','Oké!'],krijgerGo:['Op weg!','Begrepen!','Jawel!'],aanval:['Ten aanval!','Voor de koning!','Aanvallen!'],werkerAanval:['Euh... oké!','Moet dat echt?'],
@@ -56,7 +64,8 @@ const VOICES={
  de:{werker:['Ja?','Zu Diensten!','Was soll ich tun?','Jawohl?'],krijger:['Bereit zum Kampf!','Jawohl, Herr!','Für den König!'],boog:['Bogen bereit!','Ich sehe alles!','Ja?'],
   werkerGo:['Ich mache es!','Sofort!','Jawohl!'],krijgerGo:['Unterwegs!','Verstanden!','Jawohl!'],aanval:['Angriff!','Vorwärts!','Für den König!'],werkerAanval:['Äh... na gut!','Muss das sein?'],
   prik:['Hör auf mich zu stupsen!','He! Das kitzelt!'],bouw:['Ich baue!','An die Arbeit!'],hout:['Holz hacken!','Ab in den Wald!'],goud:['Zur Mine!','Gold suchen!'],samen:['Alle bereit!']}};
-function unitSay(u,key){if(!u)return;if(!u.voice)u.voice={lang:pick(['nl','nl','en','de']),pitch:u.k=='werker'?.9+Math.random()*.8:.45+Math.random()*.7};
+function pickLang(){loadVoices();const ok=['nl','en','de'].filter(l=>VOX[l]);if(!ok.length)return pick(['nl','nl','en','de']);return pick(ok)}
+function unitSay(u,key){if(u.voice&&!VOX[u.voice.lang]&&Object.values(VOX).some(Boolean)){u.voice.lang=pickLang()}if(!u)return;if(!u.voice)u.voice={lang:pickLang(),pitch:u.k=='werker'?.9+Math.random()*.8:.45+Math.random()*.7};
  const v=VOICES[u.voice.lang];speak(pick(v[key]||v.werker),u.voice.pitch,u.voice.lang)}
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 
@@ -124,7 +133,7 @@ function loadLevel(i){lvl=i;L=LEVELS[i];map=L.map.map(r=>r.split(''));trees={};m
  const c=blds[0]||{x:L.u[0][1]-1,y:L.u[0][2]-1};cam.x=c.x*T+48-VW/2;cam.y=c.y*T+48-VH/2;clampCam();lostMsg='';reveal();state='brief';msg='';buildGround()}
 function minesKey(x,y){// linkerbovenhoek van de mijn
  while(x>0&&map[y][x-1]=='M')x--;while(y>0&&map[y-1][x]=='M')y--;return x+','+y}
-function addUnit(k,tx,ty){const d=UNIT[k],hm=d.side=='o'?DIFF[diff].hp:1;const u={id:uid++,voice:d.side=='h'?{lang:pick(['nl','nl','en','de']),pitch:k=='werker'?.9+Math.random()*.8:.45+Math.random()*.7}:null,k,side:d.side,x:tx*T+T/2,y:ty*T+T/2,hp:Math.round(d.hp*hm),max:Math.round(d.hp*hm),st:'idle',path:null,cd:0,carry:null,anim:0,face:1};units.push(u);return u}
+function addUnit(k,tx,ty){const d=UNIT[k],hm=d.side=='o'?DIFF[diff].hp:1;const u={id:uid++,voice:d.side=='h'?{lang:pickLang(),pitch:k=='werker'?.9+Math.random()*.8:.45+Math.random()*.7}:null,k,side:d.side,x:tx*T+T/2,y:ty*T+T/2,hp:Math.round(d.hp*hm),max:Math.round(d.hp*hm),st:'idle',path:null,cd:0,carry:null,anim:0,face:1};units.push(u);return u}
 function addBld(k,x,y,done){const d=BLD[k];const b={id:uid++,k,side:d.side,x,y,w:d.w,h:d.h,hp:done?d.hp:Math.max(1,d.hp*.1),max:d.hp,done:!!done,prog:done?1:0,q:[],qp:0,cd:0};blds.push(b);return b}
 const S={count:k=>blds.filter(b=>b.k==k&&b.done).length,huts:()=>blds.filter(b=>b.k=='orkhut').length,orcs:()=>units.filter(u=>u.side=='o').length};
 function food(){let cap=0,use=0;for(const b of blds)if(b.side=='h'&&b.done&&BLD[b.k].food)cap+=BLD[b.k].food;for(const u of units)if(u.side=='h')use++;
@@ -238,7 +247,7 @@ function train(b,k){const c=UNIT[k].cost;if(k=='werker'&&!freed){say('Er zijn ge
 function startPlace(k){const c=BLD[k].cost;if(!canAfford(c)){say('Niet genoeg goud of hout voor een '+BLD[k].n.toLowerCase()+'.');snd(150,.15,'square',.04);return}place={k,x:-1,y:-1};if(lastPT!='mouse'){place.x=Math.floor(sel[0].x/T)+1;place.y=Math.floor(sel[0].y/T)-1}say(lastPT=='mouse'?'Beweeg de muis naar de plek en klik om te bouwen.':'Tik op de kaart om de schaduw te verplaatsen, tik nog een keer op de schaduw om te bouwen.',400)}
 function canPlace(k,x,y){const d=BLD[k];for(let j=y;j<y+d.h;j++)for(let i=x;i<x+d.w;i++){if(!isExp(i,j)||blocked(i,j))return false;if(map[j][i]=='='||units.some(u=>u.side=='o'&&tileOf(u)[0]==i&&tileOf(u)[1]==j))return false}return true}
 let drag=null,lastPT='touch',lastMod=false,multi=false;
-cv.addEventListener('pointerdown',e=>{unlock();lastPT=e.pointerType||'touch';lastMod=e.ctrlKey||e.metaKey||e.shiftKey;const p=toCanvas(e);drag={sx:p.x,sy:p.y,cx:cam.x,cy:cam.y,moved:false,id:e.pointerId};
+cv.addEventListener('pointerdown',e=>{unlock();primeVoice();lastPT=e.pointerType||'touch';lastMod=e.ctrlKey||e.metaKey||e.shiftKey;const p=toCanvas(e);drag={sx:p.x,sy:p.y,cx:cam.x,cy:cam.y,moved:false,id:e.pointerId};
  try{cv.setPointerCapture(e.pointerId)}catch(_){}});
 cv.addEventListener('pointermove',e=>{if(place&&e.pointerType=='mouse'&&state=='play'){const q=toCanvas(e);if(inView(q.x,q.y)){const d=BLD[place.k];place.x=Math.floor((q.x+cam.x)/T)-Math.floor((d.w-1)/2);place.y=Math.floor((q.y-TOPH+cam.y)/T)-Math.floor((d.h-1)/2)}}if(!drag)return;const p=toCanvas(e),dx=p.x-drag.sx,dy=p.y-drag.sy;if(Math.hypot(dx,dy)>10)drag.moved=true;
  if(drag.moved&&inView(drag.sx,drag.sy)&&!(drag.sx>VW-82&&drag.sy<TOPH+96)){cam.x=drag.cx-dx;cam.y=drag.cy-dy;clampCam()}});
@@ -467,8 +476,10 @@ function draw(){BTNS.length=0;ctx.fillStyle='#0b0d16';ctx.fillRect(0,0,W,H);
 function drawTitle(){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#1a2a14');g.addColorStop(1,'#0b0d16');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
  txt('Orkenstorm',W/2,150,52,'#f6dfa8','center','Georgia,serif','bold');txt('Bouw een dorp, verzamel hout en goud,',W/2,192,15,'#d9c49a','center');txt('en houd de orks buiten de deur.',W/2,214,15,'#d9c49a','center');
  const iy=WIDE?250:262;iconUnit('werker')(W/2-90,iy);iconUnit('soldaat')(W/2-50,iy);iconUnit('boog')(W/2-10,iy);iconUnit('genezer')(W/2+30,iy);iconUnit('ork','o')(W/2+70,iy);iconUnit('skelet','o')(W/2+100,iy);
- const ty0=WIDE?276:300,tst=WIDE?60:70;LEVELS.forEach((l,i)=>{const ok=i<unlocked;btn(W/2-140,ty0+i*tst,280,tst-10,(i+1)+'. '+l.naam,()=>{if(ok){loadLevel(i)}},{gold:ok,off:!ok,always:ok,small:16,why:'Win eerst het vorige level.'})});
- {const dy=ty0+LEVELS.length*tst+2;txt('Moeilijkheid:',W/2-150,dy+22,12,'#bfa77a','left','system-ui,sans-serif','700',null);DIFF.forEach((d,i)=>btn(W/2-58+i*68,dy,64,34,d.n,()=>{diff=i;try{localStorage.setItem('orkenstorm_diff',i)}catch(e){};sClick()},{gold:diff==i,always:1,small:10.5}))}txt('Tekeningen: Kenney.nl',W/2,H-16,11,'#6f6045','center','system-ui,sans-serif','600',null);
+ const ty0=WIDE?276:300,tst=WIDE?60:70;LEVELS.forEach((l,i)=>{const ok=i<unlocked;btn(W/2-140,ty0+i*tst,280,tst-10,(i+1)+'. '+l.naam+(i<unlocked-1?'  ✓':''),()=>{if(ok){loadLevel(i)}},{gold:ok,off:!ok,always:ok,small:16,why:'Win eerst het vorige level.'})});
+ {const dy=ty0+LEVELS.length*tst+2;txt('Moeilijkheid:',W/2-150,dy+22,12,'#bfa77a','left','system-ui,sans-serif','700',null);DIFF.forEach((d,i)=>btn(W/2-58+i*68,dy,64,34,d.n,()=>{diff=i;try{localStorage.setItem('orkenstorm_diff',i)}catch(e){};sClick()},{gold:diff==i,always:1,small:10.5}))}{loadVoices();const st=['nl','en','de'].map(l=>l.toUpperCase()+(VOX[l]?' ✓':' ✗')).join('   ');const vx=WIDE?160:W/2;txt('Stemmen op dit toestel:  '+st,vx,H-62,11.5,'#bfa77a','center','system-ui,sans-serif','600',null);
+ btn(vx-70,H-52,140,28,'Test de stemmen',()=>{primeVoice();voiceOn=true;speak('Hallo, ik spreek Nederlands!',1,'nl',true);setTimeout(()=>speak('Hello, I speak English!',.8,'en',true),2300);setTimeout(()=>speak('Hallo, ich spreche Deutsch!',1.2,'de',true),4600)},{always:1,small:11.5})}
+txt('Tekeningen: Kenney.nl',W/2,H-7,11,'#6f6045','center','system-ui,sans-serif','600',null);
  txt('Tik op iets om het te kiezen, tik dan op de kaart.',W/2,ty0+LEVELS.length*tst+60,12,'#bfa77a','center','system-ui,sans-serif','600',null);txt('Sleep met je vinger om over de kaart te kijken.',W/2,ty0+LEVELS.length*tst+78,12,'#bfa77a','center','system-ui,sans-serif','600',null)}
 function drawBrief(){ctx.fillStyle='rgba(10,8,4,.86)';ctx.fillRect(0,0,W,H);txt('Level '+(lvl+1)+'  ·  '+DIFF[diff].n,W/2,150,16,'#bfa77a','center');txt(L.naam,W/2,186,30,'#f6dfa8','center','Georgia,serif','bold');
  L.brief.forEach((l,i)=>txt(l,W/2,236+i*22,13,'#e8dcc4','center','system-ui,sans-serif','500',null));
