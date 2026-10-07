@@ -94,8 +94,8 @@ const LEVELS=[
  {name:'Kijk achter je!',arrows:{p:'lHL',i:130,first:12},rocks:[520]},
  {name:'Bukken!',arrows:{p:'HHLH',i:100},pits:[[520,80]]},
  {name:'Vuurballen',balls:{p:'fbf',i:170},pikes:[[420,140,40]]},
- {name:'De wachters',pikes:[[300,130,0],[560,130,65]],rocks:[430]},
- {name:'Wachters op de muur',pikes:[[190,120,0],[380,120,40],[570,120,80]]},
+ {name:'De wachters',pikes:[[300,130,0],[560,130,65,'bier']],rocks:[430]},
+ {name:'Wachters op de muur',pikes:[[190,120,0],[380,120,40,'bier'],[570,120,80]]},
  {name:'Touw en pijl',pits:[[330,180,1]],arrows:{p:'H',i:170},rocks:[620]},
  {name:'Dubbel touw',pits:[[200,170,1],[480,170,1]]},
  {name:'Vuur van voren, pijl van achter',balls:{p:'f',i:230},arrows:{p:'hl',i:190,first:12}},
@@ -120,7 +120,7 @@ const ropeDTh=r=>r.A*ropeW()*Math.cos(t*ropeW()+r.ph);
 function loadLevel(){
  const d=LEVELS[lvl];
  L={name:d.name,rocks:(d.rocks||[]).map(x=>({x})),pits:(d.pits||[]).map(([x,w,r])=>({x,w,rope:r?mkRope(x,w):null})),
-    pikes:(d.pikes||[]).map(([x,per,off])=>({x,per,off})),arrows:d.arrows||null,balls:d.balls||null};
+    pikes:(d.pikes||[]).map(([x,per,off,b])=>({x,per,off,beer:b=='bier',mode:'down',tm:60,h:0,hik:0})),arrows:d.arrows||null,balls:d.balls||null};
  for(const k of L.pikes)L.pits.push({x:k.x-12,w:30,rope:null,guard:1});
  arrows=[];balls=[];arrowIdx=0;ballIdx=0;lt=0;parts=[];
  arrowTimer=L.arrows&&L.arrows.first?L.arrows.first:90;ballTimer=60;
@@ -131,7 +131,7 @@ function newGame(){lvl=0;round=0;lives=5;score=0;streak=0;startSong()}
 let songOn=false,songWait=0;
 function startSong(){state='song';songF=0;songOn=false;songWait=0;ip={x:W+20,y:H-6,w:22,h:40,ground:true,rope:null,vx:-1,anim:0,face:-1,rot:0};unlock()}
 const overPit=cx=>L.pits.some(q=>cx>q.x+4&&cx<q.x+q.w-4);
-const pikeH=k=>{const ph=((t*spd()+k.off)%k.per)/k.per;return ph<.45?70*Math.min(1,Math.sin(ph/.45*Math.PI)*1.6):0};
+const pikeH=k=>{if(k.beer)return k.h;const ph=((t*spd()+k.off)%k.per)/k.per;return ph<.45?70*Math.min(1,Math.sin(ph/.45*Math.PI)*1.6):0};
 
 function die(m){if(state!='play')return;state='dead';stTimer=95;msg=m;lives--;streak=0;roundMsg=0;p.rope=null;
  if(p.y<=G+4){p.vy=-6;}snd(420,.7,'sawtooth',.06,70);
@@ -186,7 +186,10 @@ function updatePlay(){
    if(boxHit({x:b.x-9,y:b.y-9,w:18,h:18}))die(b.fire?'Au, een vuurbal!':'Overrold door een kogel!')}
  balls=balls.filter(b=>b.x>-30&&b.y<H+30);
  for(const r of L.rocks)if(boxHit({x:r.x+3,y:G-16,w:20,h:16}))die('Gestruikeld over een rotsblok!');
- for(const k of L.pikes){const h=pikeH(k);if(h>10&&boxHit({x:k.x+7,y:G-h,w:6,h}))die('Au, de wachter prikte je!')}
+ for(const k of L.pikes)if(k.beer){if(--k.tm<=0){if(k.mode=='down'){const r=Math.random();if(r<.25){k.mode='sip';k.tm=70}else if(r<.42){k.mode='wobble';k.tm=60}else{k.mode='up';k.tm=20+Math.random()*70}}else{k.mode='down';k.tm=30+Math.random()*150}}
+   const tg=k.mode=='up'?70:k.mode=='wobble'?28+Math.sin(t*.3)*18:0;k.h+=(tg-k.h)*(k.mode=='up'?.3:.12);if(k.h<.5)k.h=0;
+   if(k.mode=='sip'&&k.tm==25){k.hik=70;snd(520,.08,'square',.05,900);snd(380,.1,'square',.04,0,.12)}if(k.hik>0)k.hik--}
+ for(const k of L.pikes){const h=pikeH(k);if(h>10&&boxHit({x:k.x+7,y:G-h,w:6,h}))die(k.beer?'Au! De wachter met het biertje prikte je!':'Au, de wachter prikte je!')}
  // doel
  if(state=='play'&&!p.rope&&p.x+p.w>=748&&p.y<=G){
    state='done';stTimer=120;bellSwing=1;bell();
@@ -262,14 +265,23 @@ function drawRocks(){for(const r of L.rocks){
  ctx.fillStyle='#9a6a3a';ctx.beginPath();ctx.ellipse(r.x+13,G-8,13,9,0,Math.PI,0);ctx.lineTo(r.x+26,G-1);ctx.lineTo(r.x,G-1);ctx.fill();
  ctx.fillStyle='#c99a62';ctx.beginPath();ctx.ellipse(r.x+9,G-12,5,3,-.4,0,7);ctx.fill();ctx.fillStyle='#6e4826';ctx.fillRect(r.x+16,G-9,5,2);ctx.fillRect(r.x+6,G-5,4,2)}}
 function drawPikes(){for(const k of L.pikes){const h=pikeH(k),rise=Math.min(9,h*.2),cx=k.x+3,top=G+3-rise;
- ctx.save();ctx.beginPath();ctx.rect(k.x-14,G-120,34,200);ctx.clip();
+ ctx.save();ctx.beginPath();ctx.rect(k.x-14,G-120,34,300);ctx.clip();
+ // stenen nis waar de wachter op staat
+ ctx.fillStyle='#4f5268';ctx.fillRect(k.x-12,G+56,30,H-G);ctx.fillStyle='#7d8197';ctx.fillRect(k.x-12,G+56,30,3);ctx.strokeStyle='#3e4155';ctx.lineWidth=1.5;for(let y=G+64;y<H;y+=12){ctx.beginPath();ctx.moveTo(k.x-12,y);ctx.lineTo(k.x+18,y);ctx.stroke()}
+ ctx.fillStyle='#3a2a1a';ctx.fillRect(cx-7,top+46,6,G+56-(top+46));ctx.fillRect(cx+1,top+46,6,G+56-(top+46));
+ if(k.beer){ctx.translate(cx,G+56);ctx.rotate(Math.sin(t*.05)*.06);ctx.translate(-cx,-(G+56))}
  ctx.fillStyle='#2f5fa8';ctx.fillRect(cx-10,top+13,20,34);ctx.fillStyle='#f0c040';ctx.fillRect(cx-2,top+15,4,20);ctx.fillRect(cx-8,top+21,16,4);
  ctx.fillStyle='#f0c9a0';ctx.fillRect(cx-6,top+2,12,11);ctx.fillStyle='#222';ctx.fillRect(cx-4,top+6,2,2);ctx.fillRect(cx+2,top+6,2,2);ctx.fillRect(cx-3,top+10,6,1);
  ctx.fillStyle='#9aa0ad';ctx.beginPath();ctx.arc(cx,top+2,7,Math.PI,0);ctx.fill();ctx.beginPath();ctx.ellipse(cx,top+2,11,2.8,0,0,7);ctx.fill();
  const tipY=h>2?G-h-4:top-14,base=top+32;
  ctx.fillStyle='#7a5230';ctx.fillRect(k.x+8,tipY+14,4,base-(tipY+14));
  ctx.fillStyle='#d9dde8';ctx.beginPath();ctx.moveTo(k.x+10,tipY-2);ctx.lineTo(k.x+15,tipY+14);ctx.lineTo(k.x+5,tipY+14);ctx.closePath();ctx.fill();
- ctx.fillStyle='#f0c9a0';ctx.beginPath();ctx.arc(k.x+10,top+22,3,0,7);ctx.fill();ctx.restore()}}
+ ctx.fillStyle='#f0c9a0';ctx.beginPath();ctx.arc(k.x+10,top+22,3,0,7);ctx.fill();
+ if(k.beer){ctx.fillStyle='#e0574c';ctx.beginPath();ctx.arc(cx,top+9,2.2,0,7);ctx.fill();ctx.fillStyle='rgba(224,87,76,.45)';ctx.beginPath();ctx.arc(cx-4,top+10,2,0,7);ctx.arc(cx+4,top+10,2,0,7);ctx.fill();
+   const sip=k.mode=='sip'&&k.tm>25&&k.tm<60,mx=sip?cx-5:cx-12,my=sip?top+4:top+22;ctx.save();ctx.translate(mx,my);if(sip)ctx.rotate(.8);
+   ctx.fillStyle='rgba(240,180,40,.95)';ctx.fillRect(-4,-5,8,11);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-2,-5,2.5,0,7);ctx.arc(2,-5,2.5,0,7);ctx.fill();ctx.strokeStyle='#d9dde8';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(-5,1,3,Math.PI*.5,Math.PI*1.5);ctx.stroke();ctx.restore()}
+ ctx.restore();
+ if(k.beer&&k.hik>0){ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect?ctx.roundRect(cx-6,G-42-(70-k.hik)*.3,34,16,7):ctx.rect(cx-6,G-42,34,16);ctx.fill();ctx.fillStyle='#3a1f0c';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.fillText('hik!',cx+11,G-30-(70-k.hik)*.3)}}}
 function drawArrows(){for(const a of arrows){
  ctx.save();ctx.translate(a.x+14,a.y);ctx.scale(-a.dx,1);
  ctx.strokeStyle='#c9a46a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-10,0);ctx.lineTo(14,0);ctx.stroke();
