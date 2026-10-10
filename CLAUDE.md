@@ -34,6 +34,9 @@ vrolijk, eerlijk en niet eng.
   voordat je schermposities uitrekent: de camera schuift in de trage testbrowser nog even na.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
+Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee blokken op de
+startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
+
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
 werkers) en 4 (De Donkere Mijnen) zijn speelbaar; levels 5 en 6 uit `orkenstorm.html` moeten nog (namen in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
