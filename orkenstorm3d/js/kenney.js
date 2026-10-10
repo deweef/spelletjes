@@ -21,18 +21,30 @@ const LIJST = [
   // level 2: wachttoren, orkenhut, bruggen
   'castle/tower-hexagon-base', 'castle/tower-hexagon-mid', 'castle/tower-hexagon-roof',
   'survival/tent-canvas', 'survival/campfire-pit', 'survival/fence-fortified', 'forest/bridge',
+  // level 3: gevangenis
+  'dungeon/wood-structure', 'castle/metal-gate',
 ];
 
 const glb = {};
 export let klaar = false;
 
+// Laadt in groepjes van 6 tegelijk, met tot 3 pogingen per bestand (haperend internet op een telefoon)
 export async function laad() {
   const loader = new GLTFLoader();
-  await Promise.all(LIJST.map(async (n) => {
-    const g = await loader.loadAsync(new URL('../assets/' + n + '.glb', import.meta.url).href);
-    g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-    glb[n] = g;
-  }));
+  const een = async (n) => {
+    for (let poging = 1; ; poging++) {
+      try {
+        const g = await loader.loadAsync(new URL('../assets/' + n + '.glb', import.meta.url).href);
+        g.scene.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+        glb[n] = g; return;
+      } catch (e) {
+        if (poging >= 3) throw e;
+        await new Promise((r) => setTimeout(r, 400 * poging));
+      }
+    }
+  };
+  const wachtrij = [...LIJST];
+  await Promise.all(Array.from({ length: 6 }, async () => { while (wachtrij.length) await een(wachtrij.shift()); }));
   klaar = true;
 }
 

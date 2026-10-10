@@ -282,6 +282,13 @@ const MODEL = {
     g.add(doos(0.3, 0.45, 0.06, DONKER, 0, 0.22, 0.62));
     return g;
   },
+  kooi() {
+    const g = new THREE.Group();
+    for (const [x, z] of [[-0.8, -0.8], [0.8, -0.8], [-0.8, 0.8], [0.8, 0.8]]) g.add(doos(0.12, 1.2, 0.12, HOUT, x, 0.6, z));
+    for (let i = -3; i <= 3; i++) { g.add(doos(0.04, 1.1, 0.04, '#5a3b20', i * 0.24, 0.55, 0.8)); g.add(doos(0.04, 1.1, 0.04, '#5a3b20', i * 0.24, 0.55, -0.8)); g.add(doos(0.04, 1.1, 0.04, '#5a3b20', 0.8, 0.55, i * 0.24)); g.add(doos(0.04, 1.1, 0.04, '#5a3b20', -0.8, 0.55, i * 0.24)); }
+    g.add(doos(1.8, 0.1, 1.8, HOUT, 0, 1.25, 0));
+    return g;
+  },
   orkhut() {
     const g = new THREE.Group();
     g.add(kegel(0.9, 1.2, '#7a5a38', 0, 0.6, 0, 7));
@@ -354,7 +361,25 @@ function kenneyOrkhut() {
   return g;
 }
 
-const BOUW = { kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut };
+// Gevangenis (2x2): houten frame met tralies; de gevangen werkers staan erin
+function kenneyKooi() {
+  const g = new THREE.Group();
+  zetIn(g, 'dungeon/wood-structure', 0, 0, 0, 0, 1.75);
+  for (const [x, z, r] of [[-0.85, -0.42, 0], [-0.85, 0.42, 0], [0.85, -0.42, 0], [0.85, 0.42, 0], [-0.42, -0.85, Math.PI / 2], [0.42, -0.85, Math.PI / 2], [-0.42, 0.85, Math.PI / 2], [0.42, 0.85, Math.PI / 2]]) {
+    const t = zetIn(g, 'castle/metal-gate', x, 0, z, r, 1.2); t.scale.y = 2.1;
+  }
+  g.userData.mixers = [];
+  for (const [x, z, r] of [[-0.4, -0.35, 0.3], [0.35, -0.3, -0.4], [-0.3, 0.38, 0.8], [0.38, 0.4, -0.9]]) {
+    const m = kenneyMannetje('werker', 'h', null, false);
+    m.p.hout.visible = false; m.p.goud.visible = false;
+    m.g.position.set(x, 0, z); m.g.rotation.y = r; m.g.scale.setScalar(1.4);
+    const a = m.acties[Math.random() < 0.5 ? 'idle' : 'emote-no']; a.play(); a.time = Math.random() * 2;
+    g.add(m.g); g.userData.mixers.push(m.mixer);
+  }
+  return g;
+}
+
+const BOUW = { kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi };
 
 // brug over één tegel water (loopt van noord naar zuid)
 export function maakBrug() {

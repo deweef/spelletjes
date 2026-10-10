@@ -325,7 +325,7 @@ function syncGebouwen(nu) {
       m = M.maakGebouw(b.k, b.w, b.h);
       m.g.position.set(b.x + b.w / 2, 0, b.y + b.h / 2);
       m.g.userData.pick = { bld: b };
-      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8 }[b.k] || 2.0; m.g.add(m.balk);
+      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6 }[b.k] || 2.0; m.g.add(m.balk);
       scene.add(m.g); bMesh.set(b.id, m); pickables.push(m.g);
     }
     m.g.visible = b.side == 'h' || isExp(b.x, b.y);
@@ -680,7 +680,12 @@ function frame(nu) {
   controls.autoRotate = G.state == 'titel';
   camSchuif(); controls.update(); camBinnenKaart();
   syncWereld(nu); syncGebouwen(nu); syncMannetjes(nu); syncEffecten();
-  if (!G.paused) { const ds = dt / 1000; for (const [, m] of uMesh) if (m.mixer) m.mixer.update(ds); for (const m of stervend) m.mixer.update(ds); }
+  if (!G.paused) {
+    const ds = dt / 1000;
+    for (const [, m] of uMesh) if (m.mixer) m.mixer.update(ds);
+    for (const m of stervend) m.mixer.update(ds);
+    for (const [, m] of bMesh) for (const mx of m.model.userData.mixers || []) mx.update(ds); // gevangenen in de gevangenis
+  }
   renderer.render(scene, camera);
   if (G.state == 'spel' && nu - hudT > 100) { hudT = nu; tekenBalk(); tekenPaneel(false); }
 }

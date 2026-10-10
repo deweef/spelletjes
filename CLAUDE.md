@@ -24,15 +24,18 @@ vrolijk, eerlijk en niet eng.
   GitHub Pages ze binnen een minuut), maar alleen nadat het getest is.
 - Werk in kleine stappen en vertel per stap wat er te zien en te testen is.
 - Test in een browser voordat je klaar meldt, en let op fouten in de console. In de cloudomgeving:
-  start `python3 -m http.server` in de hoofdmap en gebruik Playwright met Chromium
+  start een webserver in de hoofdmap. Gebruik niet de kale `python3 -m http.server`: die kan maar een paar
+  verbindingen tegelijk aan, waardoor Kenney-modellen of hun colormap soms niet laden. Neem een
+  `http.server.ThreadingHTTPServer` met `request_queue_size = 128`. Herlaad een pagina in een test pas als
+  hij klaar is met laden, anders geven afgebroken downloads valse waarschuwingen en gebruik Playwright met Chromium
   (`chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })`
   zodat WebGL werkt). Orkenstorm 3D zet `window.__test = { G, update, camera, controls, uMesh, kies }` klaar om
   de spelstatus te lezen en de tijd vooruit te spoelen. Wacht na het starten van een level een paar seconden
   voordat je schermposities uitrekent: de camera schuift in de trage testbrowser nog even na.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
-De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp) en level 2 (De orks komen eraan) zijn
-speelbaar; levels 3 t/m 6 uit `orkenstorm.html` moeten nog (namen in `BINNENKORT` in `js/data.js`).
+De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan) en 3 (De gevangen
+werkers) zijn speelbaar; levels 4 t/m 6 uit `orkenstorm.html` moeten nog (namen in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
 
@@ -79,6 +82,7 @@ Besturing:
   rechthoek om mannetjes trekken. Knoppen in het paneel: Alle werkers, Alle soldaten, Meer kiezen
   (voor aanraken), Loslaten, en per soort ✕ om ze uit de keuze te halen. Links slepen: camera draaien.
   Rechts slepen: schuiven. Scrollen: zoomen. Pijltjes/WASD: schuiven.
+- Het laden van de Kenney-modellen gaat in groepjes van 6 met tot 3 pogingen per bestand (`laad` in kenney.js).
 - Toetsen: P = pauze, Escape = selectie loslaten. Rechts klikken tijdens bouwen = stoppen met bouwen.
 - Bouwen met de muis gebeurt precies waar de schaduw staat (ook als de camera nog naschuift).
 
@@ -97,7 +101,9 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   (dungeon rotsen, stut, kist, munt; survival rotsen), steigers (dungeon wood-support), pijlen (forest),
   wachttoren (castle-kit zeshoekige toren), orkenhut (survival tentdoek, kampvuur, palissade),
   bruggen (forest bridge, op tegels `=`).
-- Nog te doen (voor latere levels): orkentoren, gevangenis, skeletten en graven (graveyard-kit),
+- Gevangenis (level 3): dungeon wood-structure met castle metal-gate als tralies; de gevangen werkers zijn
+  echte Kenney-mannetjes in het model (hun mixers staan in `model.userData.mixers`).
+- Nog te doen (voor latere levels): orkentoren, skeletten en graven (graveyard-kit),
   grotgangen (modular-cave-kit), stal, ridder, genezer, rovers en de abdij.
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.
 - "Modellen: Kenney.nl" staat op het titelscherm.

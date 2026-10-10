@@ -3,7 +3,7 @@
 // gebouwen staan op tegels (x, y = linkerbovenhoek). De 3D-weergave rekent dat om.
 
 import { UNIT, BLD, DIFF, LEVELS } from './data.js';
-import { unitSay, speak, pick, nieuweStem, nieuweZak, sHorn, sDone, sChop, sGold, sHout, sHit, sArrow, sBuild, sClick, sNee, sWin, noise } from './geluid.js';
+import { unitSay, speak, pick, nieuweStem, nieuweZak, snd, sHorn, sDone, sChop, sGold, sHout, sHit, sArrow, sBuild, sClick, sNee, sWin, noise } from './geluid.js';
 
 export const T = 32;
 
@@ -11,7 +11,7 @@ export const G = {
   state: 'titel', lvl: 0, L: null, map: null, MW: 0, MH: 0, trees: {}, mineG: {}, units: [], blds: [], explored: null,
   res: { goud: 0, hout: 0 }, sel: [], selB: null, place: null, msg: '', msgT: 0, t: 0, fx: [], nextWave: 0, waveN: 0,
   lastAlert: -999, poke: { id: -1, n: 0, t: 0 }, multi: false, unlocked: 1, paused: false, diff: 1, lostMsg: '', uid: 1,
-  levelVersie: 0, mapVersie: 0,
+  levelVersie: 0, mapVersie: 0, freed: true,
 };
 try { G.unlocked = +localStorage.getItem('orkenstorm3d_lvl') || 1; } catch (e) {}
 try { const d = localStorage.getItem('orkenstorm3d_diff'); if (d !== null) G.diff = +d; } catch (e) {}
@@ -24,6 +24,7 @@ export const S = {
   count: (k) => G.blds.filter((b) => b.k == k && b.done).length,
   huts: () => G.blds.filter((b) => b.k == 'orkhut').length,
   orcs: () => G.units.filter((u) => u.side == 'o').length,
+  vrij: () => G.freed,
 };
 
 export function loadLevel(i) {
@@ -42,6 +43,8 @@ export function loadLevel(i) {
   G.explored = Array.from({ length: G.MH }, () => Array(G.MW).fill(false));
   for (const [k, x, y] of L.b) addBld(k, x, y, 1);
   for (const [x, y] of L.huts) addBld('orkhut', x, y, 1);
+  G.freed = !L.kooi;
+  for (const [x, y] of L.kooi || []) addBld('kooi', x, y, 1);
   for (const [k, x, y] of L.u) addUnit(k, x, y);
   for (const [k, x, y] of L.o) { const u = addUnit(k, x, y); u.home = { x: u.x, y: u.y }; }
   G.lostMsg = ''; reveal(); G.state = 'brief'; G.msg = ''; G.msgT = 0;
@@ -167,11 +170,24 @@ function damage(tg, n, by) {
       const c = center(tg);
       for (let i = 0; i < 14; i++) G.fx.push({ x: c.x + (Math.random() - 0.5) * tg.w * T, y: c.y + (Math.random() - 0.5) * tg.h * T, vx: (Math.random() - 0.5) * 2, vy: -Math.random() * 2, h: 0, l: 50, c: '#7a6a5a' });
       noise(0.5, 0.1, 300); if (G.selB == tg) G.selB = null;
+      if (tg.k == 'kooi') bevrijd(tg);
     }
   } else if (tg.hp <= 0) {
     G.units.splice(G.units.indexOf(tg), 1); G.sel = G.sel.filter((s) => s != tg);
     G.fx.push({ x: tg.x, y: tg.y, l: 90, grave: tg.side }); noise(0.2, 0.06, 500);
   }
+}
+
+// De gevangenis is kapot: vier werkers komen vrij
+function bevrijd(b) {
+  G.freed = true;
+  const ring = [...ringAround(b.x, b.y, b.w, b.h)];
+  const vrij = [];
+  for (let i = 0; i < 4; i++) { const [x, y] = (ring[i * 2] || ring[0]).split(',').map(Number); vrij.push(addUnit('werker', x, y)); }
+  [523, 659, 784, 1046].forEach((f, i) => snd(f, 0.2, 'triangle', 0.06, 0, i * 0.1));
+  say('De werkers zijn vrij! Stuur ze terug naar het dorp om te werken.', 300);
+  const u = vrij[0];
+  setTimeout(() => speak({ nl: 'Dank u, heer!', en: 'Thank you, my lord!', de: 'Danke schön!', it: 'Grazie mille!', fr: 'Merci beaucoup!' }[u.voice.lang], 1.3, u.voice.lang), 400);
 }
 
 function nearestEnemy(u, range) {
@@ -316,6 +332,7 @@ export function update() {
   if (G.msgT > 0) G.msgT--;
   // winst en verlies
   if (!G.blds.some((b) => b.k == 'kasteel')) { G.lostMsg = 'Het kasteel is gevallen...'; G.state = 'verloren'; sHorn(); return; }
+  if (!G.freed && !G.units.some((u) => u.side == 'h')) { G.lostMsg = 'Je hele leger is verslagen...'; G.state = 'verloren'; sHorn(); return; }
   if (L.win(S)) {
     G.state = 'gewonnen'; G.unlocked = Math.max(G.unlocked, G.lvl + 2);
     try { localStorage.setItem('orkenstorm3d_lvl', G.unlocked); } catch (e) {}
@@ -420,6 +437,7 @@ function pay(c) { G.res.goud -= c[0]; G.res.hout -= c[1]; }
 
 export function train(b, k) {
   const c = UNIT[k].cost;
+  if (k == 'werker' && !G.freed) { say('Er zijn geen werkers meer in het dorp: bevrijd eerst de gevangenen!'); sNee(); return; }
   if (b.q.length >= 5) { say('De wachtrij is vol (5).'); return; }
   if (!canAfford(c)) { say('Niet genoeg goud of hout.'); sNee(); return; }
   const f = food();
@@ -523,7 +541,7 @@ export function klik(p) {
       for (const u of G.sel) cmdAttack(u, enemy);
       sClick(); unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerAanval' : 'aanval');
       G.fx.push({ x: enemy.w ? center(enemy).x : enemy.x, y: enemy.w ? center(enemy).y : enemy.y, l: 20, ring: '#e0574c' });
-    } else { G.selB = null; G.sel = []; say(enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
+    } else { G.selB = null; G.sel = []; say(enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
     return;
   }
   if (hitU && hitU.side == 'h') {

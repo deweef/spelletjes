@@ -15,6 +15,7 @@ export const BLD = {
   kazerne: { n: 'Kazerne', w: 3, h: 3, hp: 250, cost: [100, 60], time: 900, side: 'h' },
   toren: { n: 'Toren', w: 2, h: 2, hp: 150, cost: [80, 50], time: 700, side: 'h', dmg: 7, rng: 160, cd: 70 },
   orkhut: { n: 'Orkenhut', w: 2, h: 2, hp: 250, side: 'o' },
+  kooi: { n: 'Gevangenis', w: 2, h: 2, hp: 200, side: 'o' },
 };
 
 export const DIFF = [
@@ -126,6 +127,59 @@ export const LEVELS = [
     win: (s) => s.huts() == 0 && s.orcs() == 0,
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b> · orks nog <b>${s.orcs()}</b>`,
   },
+  {
+    naam: 'De gevangen werkers',
+    brief: [
+      'De orks hebben het dorp Zonnedal overvallen.',
+      'Alle werkers zijn meegenomen en zitten opgesloten in een houten',
+      'gevangenis in het orkenkamp, ergens in het noorden onder de wolken.',
+      'Trek op met je soldaten, sla de gevangenis kapot en bevrijd ze.',
+      'Daarna kun je weer hout hakken en goud halen:',
+      'bouw 2 boerderijen en vernietig de orkenhut.',
+    ],
+    doel: 'Bevrijd de werkers, bouw 2 boerderijen, sloop de orkenhut',
+    goud: 250, hout: 200, bouw: ['boerderij', 'kazerne', 'toren'],
+    map: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'TTTTTTTTTT........TTTTTT',
+      'TTTTTTT...............TT',
+      'TTTTT..................T',
+      'TTTT...................T',
+      'TTT....................T',
+      'TT.....................T',
+      'TT...........TT........T',
+      'T...........TTTT.......T',
+      'T...WWW......TT........T',
+      'T..WWWWW...............T',
+      'T..WWWWW.........TTT...T',
+      'T...WWW.........TTTTT..T',
+      'TT..............TTTTT..T',
+      'TTT..............TTT...T',
+      'TTTT...................T',
+      'TTT....TTTT............T',
+      'TT....TTTTTT.........TTT',
+      'T......TTTT..........TTT',
+      'T....................TTT',
+      'T........MM..........TTT',
+      'T........MM...........TT',
+      'T......................T',
+      'T......................T',
+      'T......................T',
+      'T...................TTTT',
+      'T..................TTTTT',
+      'TT.........TTT....TTTTTT',
+      'TTTT.....TTTTTT.TTTTTTTT',
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+    ],
+    b: [['kasteel', 3, 23]],
+    u: [['soldaat', 7, 22], ['soldaat', 8, 22], ['soldaat', 7, 23], ['soldaat', 8, 23], ['boog', 9, 22], ['boog', 9, 23]],
+    o: [['ork', 14, 6], ['ork', 18, 6], ['ork', 13, 4], ['speerork', 16, 7], ['speerork', 12, 6], ['ork', 10, 13], ['ork', 19, 15]],
+    huts: [[19, 2]],
+    kooi: [[15, 4]],
+    waves: { first: 10800, every: 7200 },
+    win: (s) => s.vrij() && s.huts() == 0 && s.count('boerderij') >= 2,
+    voortgang: (s) => `werkers <b>${s.vrij() ? 'bevrijd ✓' : 'gevangen'}</b> · boerderijen <b>${Math.min(2, s.count('boerderij'))}/2</b> · orkenhut nog <b>${s.huts()}</b>`,
+  },
 ];
 
 // Waar de mannetjes vandaan komen: wat ze vasthouden en wat werkers extra kunnen
@@ -138,4 +192,4 @@ export const LAND = {
 };
 
 // Levels uit de 2D-versie die nog naar 3D moeten
-export const BINNENKORT = ['De gevangen werkers', 'De Donkere Mijnen', 'Het Woud van Elwynn', 'De belegerde abdij'];
+export const BINNENKORT = ['De Donkere Mijnen', 'Het Woud van Elwynn', 'De belegerde abdij'];
