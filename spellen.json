@@ -40,5 +40,13 @@
     "bestand": "orkenstorm.html",
     "plaatje": "orkenstorm.jpg",
     "stand": "staand"
+  },
+  {
+    "naam": "Orkenstorm 3D",
+    "omschrijving": "Orkenstorm in 3D, voor op de pc. Bouw je dorp met boerderijen en een kazerne, draai en zoom de camera rond je kasteel.",
+    "bestand": "orkenstorm3d/index.html",
+    "plaatje": "orkenstorm3d.jpg",
+    "stand": "liggend",
+    "concept": true
   }
 ]

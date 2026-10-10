@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="../icon-180.png">
+<title>Orkenstorm 3D</title>
+<style>
+:root{--perkament:#f6dfa8;--goud:#f0b83c;--bruin:#2a2016;--rand:rgba(246,223,168,.45)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#0b0d16;color:var(--perkament);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
+#wereld{position:fixed;inset:0}
+#wereld canvas{display:block}
+[hidden]{display:none!important}
+.terug{position:fixed;z-index:30;top:calc(8px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);border:1.5px solid var(--rand);color:var(--perkament);font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none}
+.terug:focus-visible,button:focus-visible{outline:2px solid var(--perkament);outline-offset:2px}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* bovenbalk */
+#balk{position:fixed;z-index:20;top:calc(8px + env(safe-area-inset-top));left:52px;right:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;pointer-events:none}
+.vak{pointer-events:auto;background:rgba(20,15,10,.72);border:1px solid var(--rand);border-radius:10px;padding:6px 10px;font-weight:700;font-size:15px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.vak.vol{color:#ff8a7a}
+#doel{font-weight:500;font-size:13.5px}
+#doel b{color:var(--goud)}
+.ruimte{flex:1}
+.vak button{background:none;border:0;padding:0 2px;font-size:15px;font-weight:700}
+i.goud,i.hout,i.eten{display:inline-block;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe680,#d9a21b);flex:none}
+i.hout{border-radius:3px;background:linear-gradient(#a8743c,#7a5230)}
+i.eten{border-radius:3px 3px 50% 50%;background:linear-gradient(#f2d25a,#d4a92d)}
+.concept{background:#c0462f;color:#fff;border-color:#e88a6a;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+
+/* melding */
+#melding{position:fixed;z-index:20;left:50%;top:calc(60px + env(safe-area-inset-top));transform:translateX(-50%);max-width:min(560px,92vw);background:rgba(20,15,10,.85);border:1px solid var(--rand);border-radius:10px;padding:8px 14px;font-size:15px;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none}
+#melding.zichtbaar{opacity:1}
+
+/* paneel */
+#paneel{position:fixed;z-index:20;left:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:min(340px,calc(100vw - 16px));background:rgba(20,15,10,.8);border:1px solid var(--rand);border-radius:12px;padding:10px 12px}
+.kop{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-size:14px}
+.kop b{font:bold 18px Georgia,serif}
+.kop span{color:#d9c49a;font-size:13px;text-align:right}
+.hp{height:6px;background:#3a2d20;border-radius:3px;margin:6px 0 8px;overflow:hidden}
+.hp div{height:100%;background:#5ee05a;width:100%}
+.knoppen{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.knoppen button{flex:1 1 140px;background:linear-gradient(#5a4632,#3d2f21);border:1px solid var(--rand);border-radius:9px;padding:8px 10px;text-align:left;font-weight:700;font-size:14px;display:flex;flex-direction:column;gap:3px}
+.knoppen button:hover{border-color:var(--goud)}
+.knoppen button.duur{opacity:.55}
+.knoppen button.actief{border-color:#7dff7a;box-shadow:0 0 0 1px #7dff7a inset}
+.prijs{font-weight:500;font-size:12.5px;display:flex;gap:5px;align-items:center;color:#e9d7ab}
+.prijs i{width:11px;height:11px}
+.rij{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:12.5px}
+.rij span{background:#3a2d20;border-radius:6px;padding:3px 7px;position:relative;overflow:hidden}
+.rij span.nu{padding-bottom:6px}
+.rij i{position:absolute;left:0;bottom:0;height:3px;background:var(--goud);width:0}
+.tip{font-size:13.5px;color:#d9c49a;line-height:1.5}
+#hulp{position:fixed;z-index:20;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));font-size:12px;color:#fff;background:rgba(0,0,0,.35);border-radius:8px;padding:6px 9px;line-height:1.5;max-width:280px}
+@media (max-width:700px),(pointer:coarse){#hulp{display:none}}
+
+/* menu's */
+.scherm{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,8,4,.55)}
+.kaart{background:rgba(28,21,14,.94);border:1.5px solid var(--rand);border-radius:16px;padding:24px 26px;width:min(480px,100%);max-height:100%;overflow:auto;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+h1{font:bold 40px/1 Georgia,serif;margin:4px 0 6px;color:var(--perkament)}
+h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
+.klein{font-size:13px;color:#bfa77a}
+.groot{display:block;width:100%;margin:8px 0;padding:11px;border-radius:10px;border:1px solid var(--rand);background:linear-gradient(#6b5236,#45341f);font-weight:700;font-size:16px}
+.groot.goud{background:linear-gradient(#f4c95a,#c8902a);color:#2a1a08;border-color:#ffe2a8}
+.level{display:block;width:100%;margin:6px 0;padding:10px 12px;border-radius:10px;border:1px solid var(--rand);background:linear-gradient(#f4c95a,#c8902a);color:#2a1a08;font-weight:700;font-size:16px;text-align:left}
+.level:disabled{background:#3a2d20;color:#8d7a5a;cursor:default;border-color:rgba(246,223,168,.15)}
+.level small{float:right;font-weight:500;font-size:12px}
+#moeilijk{display:flex;gap:6px;justify-content:center;margin:12px 0 6px}
+#moeilijk button{padding:6px 12px;border-radius:8px;border:1px solid var(--rand);background:#3a2d20;font-size:13px;font-weight:700}
+#moeilijk button.actief{background:var(--goud);color:#2a1a08}
+#brieftekst p{margin:4px 0;line-height:1.45;font-size:15px}
+#briefdoel{margin:14px 0 4px;font-weight:700;color:var(--goud)}
+.label{display:inline-block;background:#c0462f;color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.tekstknop{background:none;border:0;color:#d9c49a;text-decoration:underline;font-size:13px;margin-top:6px}
+#pauze .kaart{width:auto}
+</style>
+<script type="importmap">{"imports":{"three":"./lib/three.module.js"}}</script>
+</head>
+<body>
+<a class="terug" href="../" aria-label="Terug naar de spellen">‹</a>
+<div id="wereld"></div>
+
+<div id="hud" hidden>
+  <div id="balk">
+    <div class="vak" title="Goud"><i class="goud"></i><span id="goud">0</span></div>
+    <div class="vak" title="Hout"><i class="hout"></i><span id="hout">0</span></div>
+    <div class="vak" title="Voedsel: mannetjes / ruimte"><i class="eten"></i><span id="voedsel">0/0</span></div>
+    <div class="vak" id="doel"></div>
+    <div class="ruimte"></div>
+    <div class="vak concept">Concept</div>
+    <div class="vak"><button id="pauzeknop" title="Pauze (P)">❚❚</button><button id="menuknop" title="Naar het menu">☰</button></div>
+  </div>
+  <div id="melding"></div>
+  <div id="paneel"></div>
+  <div id="hulp">
+    <b>Links klikken</b>: kiezen en opdrachten geven<br>
+    <b>Ctrl/Shift-klik</b>: meer kiezen<br>
+    <b>Links slepen</b>: draaien · <b>Rechts slepen</b>: schuiven<br>
+    <b>Scrollen</b>: zoomen · <b>Pijltjes/WASD</b>: schuiven<br>
+    <b>P</b>: pauze · <b>Esc</b>: loslaten
+  </div>
+</div>
+
+<div id="titel" class="scherm">
+  <div class="kaart">
+    <span class="label">Concept, nog in de maak</span>
+    <h1>Orkenstorm 3D</h1>
+    <p class="klein">De pc-versie van Orkenstorm. Kies een level.</p>
+    <div id="levels"></div>
+    <div id="moeilijk"></div>
+    <button id="stemknop" class="tekstknop">Stemmen: aan</button>
+    <p class="klein" id="stemmen"></p>
+  </div>
+</div>
+
+<div id="brief" class="scherm" hidden>
+  <div class="kaart">
+    <p class="klein" id="briefniveau"></p>
+    <h2 id="briefnaam"></h2>
+    <div id="brieftekst"></div>
+    <p id="briefdoel"></p>
+    <button id="beginknop" class="groot goud">Begin!</button>
+  </div>
+</div>
+
+<div id="einde" class="scherm" hidden>
+  <div class="kaart">
+    <h2 id="eindtitel"></h2>
+    <p id="eindtekst"></p>
+    <button id="volgende" class="groot goud">Volgend level</button>
+    <button id="opnieuw" class="groot">Opnieuw</button>
+    <button id="naarmenu" class="groot">Naar het menu</button>
+  </div>
+</div>
+
+<div id="pauze" class="scherm" hidden>
+  <div class="kaart">
+    <h2>Pauze</h2>
+    <button id="verder" class="groot goud">Verder spelen</button>
+  </div>
+</div>
+
+<noscript>Dit spel heeft JavaScript nodig.</noscript>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
