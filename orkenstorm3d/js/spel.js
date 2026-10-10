@@ -25,6 +25,13 @@ export const S = {
   huts: () => G.blds.filter((b) => b.k == 'orkhut').length,
   orcs: () => G.units.filter((u) => u.side == 'o').length,
   vrij: () => G.freed,
+  heldVrij: () => G.units.some((u) => u.k == 'held' && u.side == 'h'),
+  heldUit: () => G.units.some((u) => { // Sir Lodewijk staat op of naast de trap
+    if (u.k != 'held' || u.side != 'h') return false;
+    const [x, y] = tileOf(u);
+    for (let j = y - 1; j <= y + 1; j++) for (let i = x - 1; i <= x + 1; i++) if (G.map[j] && G.map[j][i] == 'E') return true;
+    return false;
+  }),
 };
 
 export function loadLevel(i) {
@@ -47,6 +54,7 @@ export function loadLevel(i) {
   for (const [x, y] of L.kooi || []) addBld('kooi', x, y, 1);
   for (const [k, x, y] of L.u) addUnit(k, x, y);
   for (const [k, x, y] of L.o) { const u = addUnit(k, x, y); u.home = { x: u.x, y: u.y }; }
+  if (L.held) { const h = addUnit('held', L.held[0], L.held[1]); h.side = 'n'; h.hp = 35; h.captive = 1; h.rolstoel = false; h.voice = { lang: 'nl', pitch: 0.6 }; }
   G.lostMsg = ''; reveal(); G.state = 'brief'; G.msg = ''; G.msgT = 0;
   G.levelVersie++; G.mapVersie++;
 }
@@ -61,7 +69,7 @@ function addUnit(k, tx, ty) {
   const d = UNIT[k], hm = d.side == 'o' ? DIFF[G.diff].hp : 1;
   const u = { id: G.uid++, voice: d.side == 'h' ? nieuweStem(k) : null, k, side: d.side, x: tx * T + T / 2, y: ty * T + T / 2,
     hp: Math.round(d.hp * hm), max: Math.round(d.hp * hm), st: 'idle', path: null, cd: 0, carry: null, swing: 0 };
-  if (d.side == 'h' && Math.random() < 1 / 6) u.rolstoel = true; // af en toe rijdt er iemand in een rolstoel
+  if (d.side == 'h' && k != 'genezer' && k != 'held' && Math.random() < 1 / 6) u.rolstoel = true; // af en toe rijdt er iemand in een rolstoel
   G.units.push(u); return u;
 }
 
@@ -83,7 +91,7 @@ export function food() {
 export function blocked(x, y) {
   if (x < 0 || y < 0 || x >= G.MW || y >= G.MH) return true;
   const c = G.map[y][x];
-  if (c == 'W' || c == 'M') return true;
+  if (c == 'W' || c == 'M' || c == '#' || c == 't') return true;
   if (c == 'T' && G.trees[x + ',' + y] > 0) return true;
   return !!bldAt(x, y);
 }
@@ -163,7 +171,7 @@ function damage(tg, n, by) {
   tg.hp -= n;
   if (tg.side == 'o' && by && G.units.includes(by)) { for (const o of G.units) if (o.side == 'o' && o.st != 'attack' && dist(o, tg) < 4 * T) cmdAttack(o, by); }
   if (tg.side == 'h' && by && G.units.includes(by)) { const c = tg.w ? center(tg) : tg; for (const u of G.units) if (u.side == 'h' && u.k != 'werker' && u.st == 'idle' && dist(u, c) < 10 * T) cmdAttack(u, by); }
-  if (tg.side == 'h' && G.t - G.lastAlert > 600) { G.lastAlert = G.t; sHorn(); say('Je dorp wordt aangevallen!', 150); }
+  if (tg.side == 'h' && G.t - G.lastAlert > 600) { G.lastAlert = G.t; sHorn(); say(G.L.dungeon ? 'Je groep wordt aangevallen!' : 'Je dorp wordt aangevallen!', 150); }
   if (tg.w) {
     if (tg.hp <= 0) {
       G.blds.splice(G.blds.indexOf(tg), 1);
@@ -192,7 +200,7 @@ function bevrijd(b) {
 
 function nearestEnemy(u, range) {
   let best = null, bd = range;
-  for (const e of G.units) if (e.side != u.side) { const d = dist(u, e); if (d < bd && (u.side == 'o' || isExp(...tileOf(e)))) { bd = d; best = e; } }
+  for (const e of G.units) if (e.side != u.side && e.side != 'n') { const d = dist(u, e); if (d < bd && (u.side == 'o' || isExp(...tileOf(e)))) { bd = d; best = e; } }
   for (const b of G.blds) if (b.side != u.side) { const d = targetDist(u, b); if (d < bd) { bd = d; best = b; } }
   return best;
 }
@@ -240,6 +248,28 @@ function uitElkaar() {
   }
 }
 
+// Sir Lodewijk zit gevangen tot er iemand van jou vlak bij hem is; dan worden de skeletten wakker
+function gevangenRidder(u) {
+  if (!G.units.some((o) => o.side == 'h' && dist(o, u) < 1.8 * T)) return;
+  u.side = 'h'; u.captive = 0; sDone();
+  say('Sir Lodewijk is bevrijd! Maar pas op: de skeletten worden wakker!', 300);
+  for (const [ax, ay] of (G.L.ambush || []).slice(0, G.diff == 0 ? 3 : 5)) {
+    if (!blocked(ax, ay)) { const z = addUnit('skelet', ax, ay); z.home = { x: z.x, y: z.y }; }
+  }
+  setTimeout(sHorn, 1200);
+  speak(pick(['Eindelijk! Dank u wel!', 'At last! Thank you!', 'Endlich! Danke!', 'Finalmente! Grazie!', 'Enfin! Merci!']), 0.6, 'nl');
+}
+
+// De genezer maakt elke paar tellen het meest gewonde mannetje vlakbij weer wat beter
+function genezen(u) {
+  if (G.t % 50) return;
+  const w = G.units.filter((o) => o.side == 'h' && o.hp < o.max && dist(o, u) < 4 * T).sort((a, b) => a.hp / a.max - b.hp / b.max)[0];
+  if (!w) return;
+  w.hp = Math.min(w.max, w.hp + 8); u.deel = 30;
+  for (let i = 0; i < 6; i++) G.fx.push({ x: w.x + (Math.random() - 0.5) * 14, y: w.y + (Math.random() - 0.5) * 14, vx: (Math.random() - 0.5) * 0.6, vy: -0.8 - Math.random(), h: 10, l: 30, c: '#9ef08a' });
+  snd(1200, 0.12, 'sine', 0.03, 1600);
+}
+
 function hall() { return G.blds.find((b) => b.k == 'kasteel' && b.done); }
 
 // Elke werker heeft door zijn land iets extra's (zie LAND in data.js)
@@ -284,10 +314,12 @@ export function update() {
     if (!G.units.includes(u)) continue;
     const d = UNIT[u.k];
     if (u.cd > 0) u.cd--;
-    if (u.side == 'o') orcBrain(u);
-    else if (u.k == 'werker' && land(u) == 'it') pizzaPauze(u);
     if (u.deel > 0) u.deel--;
-    else if (u.st == 'idle' && u.k != 'werker') { const e = nearestEnemy(u, d.sight * T); if (e) cmdAttack(u, e); }
+    if (u.side == 'o') orcBrain(u);
+    else if (u.side == 'n') { gevangenRidder(u); continue; }
+    else if (u.k == 'werker' && land(u) == 'it') pizzaPauze(u);
+    else if (u.k == 'genezer') genezen(u);
+    if (u.side == 'h' && u.st == 'idle' && u.k != 'werker' && u.k != 'genezer') { const e = nearestEnemy(u, d.sight * T); if (e) cmdAttack(u, e); }
     if (u.st == 'move') { if (!u.path || moveAlong(u)) { u.st = 'idle'; u.path = null; } }
     else if (u.st == 'attack') {
       const tg = u.tg;
@@ -331,7 +363,11 @@ export function update() {
   G.fx = G.fx.filter((f) => f.l > 0);
   if (G.msgT > 0) G.msgT--;
   // winst en verlies
-  if (!G.blds.some((b) => b.k == 'kasteel')) { G.lostMsg = 'Het kasteel is gevallen...'; G.state = 'verloren'; sHorn(); return; }
+  if (L.dungeon) {
+    const h = G.units.find((u) => u.k == 'held');
+    if (!h) { G.lostMsg = 'Sir Lodewijk is gesneuveld...'; G.state = 'verloren'; sHorn(); return; }
+    if (!G.units.some((u) => u.side == 'h' && u.k != 'held') && h.side == 'n') { G.lostMsg = 'Je hele groep is verslagen...'; G.state = 'verloren'; sHorn(); return; }
+  } else if (!G.blds.some((b) => b.k == 'kasteel')) { G.lostMsg = 'Het kasteel is gevallen...'; G.state = 'verloren'; sHorn(); return; }
   if (!G.freed && !G.units.some((u) => u.side == 'h')) { G.lostMsg = 'Je hele leger is verslagen...'; G.state = 'verloren'; sHorn(); return; }
   if (L.win(S)) {
     G.state = 'gewonnen'; G.unlocked = Math.max(G.unlocked, G.lvl + 2);
@@ -477,7 +513,7 @@ export function stopKeuze() { G.place = null; G.sel = []; G.selB = null; G.multi
 export function kiesAlle(soldaten) {
   if (G.state != 'spel') return;
   G.selB = null; G.place = null;
-  G.sel = G.units.filter((u) => u.side == 'h' && (soldaten ? u.k != 'werker' : u.k == 'werker'));
+  G.sel = G.units.filter((u) => u.side == 'h' && (soldaten == 'groep' || (soldaten ? u.k != 'werker' : u.k == 'werker')));
   if (G.sel.length) { sClick(); unitSay(G.sel[0], 'samen'); } else say(soldaten ? 'Je hebt nog geen soldaten. Bouw een kazerne!' : 'Je hebt geen werkers. Train ze in het kasteel.');
 }
 // een rechthoek over de mannetjes getrokken
@@ -544,6 +580,7 @@ export function klik(p) {
     } else { G.selB = null; G.sel = []; say(enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
     return;
   }
+  if (hitU && hitU.side == 'n') { say('Sir Lodewijk! Stuur iemand naar hem toe om hem te bevrijden.', 150); return; }
   if (hitU && hitU.side == 'h') {
     if ((p.mod || G.multi) && G.sel.length) {
       G.selB = null;
@@ -575,7 +612,7 @@ export function klik(p) {
   }
   if (gx < 0) return;
   // lopen: verspreid een beetje
-  G.sel.forEach((u, i) => {
+  [...G.sel].sort((a, b) => (b.k == 'held') - (a.k == 'held')).forEach((u, i) => { // Sir Lodewijk krijgt het vakje waar je klikt
     const ox = [0, 1, -1, 0, 0, 1, -1, 1, -1][i % 9], oy = [0, 0, 0, 1, -1, 1, 1, -1, -1][i % 9];
     let ax = gx + ox, ay = gy + oy;
     if (blocked(ax, ay)) { ax = gx; ay = gy; }
@@ -586,6 +623,7 @@ export function klik(p) {
 }
 
 export function statusTekst(u) {
+  if (u.captive) return 'zit gevangen';
   if (u.thee > 0) return 'drinkt een kopje thee';
   if (u.hidden) return 'is in de mijn';
   if (u.carry) return u.carry == 'goud' ? 'brengt goud naar het kasteel' : 'brengt hout naar het kasteel';

@@ -23,6 +23,8 @@ const LIJST = [
   'survival/tent-canvas', 'survival/campfire-pit', 'survival/fence-fortified', 'forest/bridge',
   // level 3: gevangenis
   'dungeon/wood-structure', 'castle/metal-gate',
+  // level 4: de Donkere Mijnen
+  'graveyard/character-skeleton', 'graveyard/lantern-candle', 'dungeon/wall', 'dungeon/stairs', 'dungeon/barrel', 'dungeon/banner', 'characters/aid-crutch',
 ];
 
 const glb = {};
@@ -62,7 +64,8 @@ export function delen(n) {
 }
 
 // een mannetje met botten en animaties (lopen, aanvallen, omvallen, rolstoel, ...)
-const FIGUUR = { werker: 'dungeon/character-human', soldaat: 'dungeon/character-human', boog: 'forest/character-archer', ork: 'dungeon/character-orc', speerork: 'dungeon/character-orc' };
+const FIGUUR = { werker: 'dungeon/character-human', soldaat: 'dungeon/character-human', genezer: 'dungeon/character-human', held: 'dungeon/character-human',
+  boog: 'forest/character-archer', ork: 'dungeon/character-orc', speerork: 'dungeon/character-orc', skelet: 'graveyard/character-skeleton' };
 export function figuur(k) {
   const bron = glb[FIGUUR[k] || FIGUUR.werker];
   const model = SkeletonUtils.clone(bron.scene);

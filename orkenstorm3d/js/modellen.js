@@ -136,7 +136,7 @@ function kenneyMannetje(k, side, land, rolstoel) {
   const g = new THREE.Group(), lijf = new THREE.Group();
   g.add(lijf); lijf.add(f.model);
   const ork = side == 'o';
-  lijf.scale.setScalar(ork ? 1.2 : 1.1);
+  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : ork ? 1.2 : 1.1);
   const armR = f.bot('arm-right'), armL = f.bot('arm-left'), hoofd = f.bot('head'), romp = f.bot('torso');
   const p = { ring: keuzering(side) };
   const inHand = (arm, ding, links) => { // ding staat rechtop (+y); in de hand wijst het naar voren
@@ -156,6 +156,20 @@ function kenneyMannetje(k, side, land, rolstoel) {
     const helm = new THREE.Group();
     helm.add(cil(0.21, 0.22, 0.12, '#9aa3ad', 0, 0.36, 0, 10)); helm.add(kegel(0.22, 0.12, '#9aa3ad', 0, 0.48, 0, 10));
     hoofd.add(helm);
+  } else if (k == 'held') { // Sir Lodewijk: gouden helm met pluim, zwaard en schild
+    inHand(armR, K.stuk('dungeon/weapon-sword'));
+    const schild = K.stuk('dungeon/shield-round'); schild.scale.setScalar(0.85);
+    const h = new THREE.Group(); h.position.set(0.2, 0, 0.06); h.add(schild); armL.add(h);
+    const helm = new THREE.Group();
+    helm.add(cil(0.21, 0.22, 0.12, '#e8c547', 0, 0.36, 0, 10)); helm.add(kegel(0.22, 0.12, '#e8c547', 0, 0.48, 0, 10));
+    helm.add(doos(0.05, 0.22, 0.2, '#c0392b', 0, 0.6, -0.04)); // pluim
+    hoofd.add(helm);
+  } else if (k == 'genezer') { // genezer op krukken, met een witte kap
+    for (const [arm, links] of [[armR, false], [armL, true]]) { const kr = K.stuk('characters/aid-crutch'); kr.scale.setScalar(1.6); const h = new THREE.Group(); h.position.set(links ? 0.22 : -0.22, -0.02, 0.02); kr.rotation.x = Math.PI; kr.position.y = 0.05; h.add(kr); arm.add(h); }
+    hoofd.add(kegel(0.24, 0.3, '#f4f1e6', 0, 0.45, -0.01, 10));
+    romp.add(doos(0.1, 0.1, 0.02, '#3cb371', 0, 0.18, 0.12)); // groen kruisje
+  } else if (k == 'skelet') {
+    inHand(armR, K.stuk('dungeon/weapon-sword'));
   } else if (k == 'boog') {
     const boog = K.stuk('forest/weapon-bow'); const h = new THREE.Group(); h.position.set(0.23, 0, 0.02); boog.rotation.x = -0.2; h.add(boog); armL.add(h);
   } else if (k == 'ork') {
@@ -468,6 +482,30 @@ function kenneyMijn() {
 export function maakPijl() {
   if (K.klaar) { const p = K.stuk('forest/weapon-arrow'); p.scale.setScalar(0.9); return p; }
   return new THREE.Mesh(geo('pijl', () => new THREE.CylinderGeometry(0.012, 0.012, 0.35, 4).rotateX(Math.PI / 2)), new THREE.MeshBasicMaterial({ color: 0x5a3b20 }));
+}
+
+// ---------- de Donkere Mijnen ----------
+export function kerkerMuur() {
+  if (K.klaar) return K.delen('dungeon/wall');
+  return [{ geo: new THREE.BoxGeometry(1, 1.1, 1).translate(0, 0.55, 0), mat: mat('#5a4a3c') }];
+}
+export function maakFakkel() {
+  const g = new THREE.Group();
+  if (K.klaar) { const l = K.stuk('graveyard/lantern-candle'); l.scale.setScalar(1.3); g.add(l); }
+  else g.add(cil(0.05, 0.05, 0.3, HOUT, 0, 0.15, 0, 6));
+  const vlam = new THREE.Mesh(geo('vlam', () => new THREE.IcosahedronGeometry(0.07, 0)), new THREE.MeshBasicMaterial({ color: 0xffc35a }));
+  vlam.position.y = 0.32; g.add(vlam);
+  return g;
+}
+export function maakTrap() {
+  if (K.klaar) { const s = K.stuk('dungeon/stairs'); s.rotation.y = Math.PI; return s; }
+  const g = new THREE.Group();
+  for (let i = 0; i < 4; i++) g.add(doos(1, 0.2 * (i + 1), 0.25, STEEN2, 0, 0.1 * (i + 1), 0.375 - i * 0.25));
+  return g;
+}
+export function maakKerkerDing(soort) {
+  if (K.klaar) return K.stuk(soort == 'banier' ? 'dungeon/banner' : 'dungeon/barrel');
+  return soort == 'banier' ? doos(0.5, 0.6, 0.05, '#2f5fb3', 0, 0.6, 0) : cil(0.22, 0.22, 0.45, HOUT, 0, 0.22, 0, 8);
 }
 
 // ---------- vormen voor bomen en wolken (voor InstancedMesh) ----------

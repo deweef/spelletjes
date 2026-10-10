@@ -34,8 +34,8 @@ vrolijk, eerlijk en niet eng.
   voordat je schermposities uitrekent: de camera schuift in de trage testbrowser nog even na.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
-De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan) en 3 (De gevangen
-werkers) zijn speelbaar; levels 4 t/m 6 uit `orkenstorm.html` moeten nog (namen in `BINNENKORT` in `js/data.js`).
+De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
+werkers) en 4 (De Donkere Mijnen) zijn speelbaar; levels 5 en 6 uit `orkenstorm.html` moeten nog (namen in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
 
@@ -103,7 +103,14 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   bruggen (forest bridge, op tegels `=`).
 - Gevangenis (level 3): dungeon wood-structure met castle metal-gate als tralies; de gevangen werkers zijn
   echte Kenney-mannetjes in het model (hun mixers staan in `model.userData.mixers`).
-- Nog te doen (voor latere levels): orkentoren, skeletten en graven (graveyard-kit),
-  grotgangen (modular-cave-kit), stal, ridder, genezer, rovers en de abdij.
+- De Donkere Mijnen (level 4, `dungeon: 1`): dungeon wall op `#`/`t`, graveyard lantern-candle met
+  PointLight op fakkels `t`, dungeon stairs op de uitgang `E`, tonnen en banieren als versiering, donkere
+  rook in plaats van wolken, warm schemerlicht (`bouwKerker` in main.js). Skelet = graveyard
+  character-skeleton; genezer = mens op krukken (characters aid-crutch) met witte kap; Sir Lodewijk =
+  mens met gouden helm en rode pluim (`held`, zit gevangen met de animatie `sit` tot je bij hem bent).
+  Genezer en Sir Lodewijk rijden nooit in een rolstoel. Sir Lodewijk hoeft naast de trap te staan om te winnen.
+- Nog te doen (voor latere levels): orkentoren, stal, ridder, rovers, roverkamp en de abdij.
+- Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. Geef het in 3D een eigen naam.
+  Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.
 - "Modellen: Kenney.nl" staat op het titelscherm.

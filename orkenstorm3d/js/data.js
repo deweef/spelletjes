@@ -6,6 +6,9 @@ export const UNIT = {
   soldaat: { n: 'Soldaat', hp: 60, dmg: 8, rng: 22, cd: 50, spd: 1, sight: 4, side: 'h', cost: [60, 10], time: 420, from: ['kazerne'] },
   boog: { n: 'Boogschutter', hp: 40, dmg: 6, rng: 130, cd: 70, spd: 1, sight: 5, side: 'h', cost: [50, 25], time: 420, from: ['kazerne'] },
   ork: { n: 'Ork', hp: 55, dmg: 8, rng: 22, cd: 55, spd: 0.9, sight: 4, side: 'o' },
+  genezer: { n: 'Genezer', hp: 30, dmg: 2, rng: 22, cd: 60, spd: 1, sight: 4, side: 'h' },
+  held: { n: 'Sir Lodewijk', hp: 140, dmg: 12, rng: 22, cd: 45, spd: 1.05, sight: 5, side: 'h' },
+  skelet: { n: 'Skelet', hp: 45, dmg: 7, rng: 22, cd: 55, spd: 0.85, sight: 4, side: 'o' },
   speerork: { n: 'Speerwerper', hp: 35, dmg: 6, rng: 110, cd: 75, spd: 0.9, sight: 5, side: 'o' },
 };
 
@@ -180,6 +183,60 @@ export const LEVELS = [
     win: (s) => s.vrij() && s.huts() == 0 && s.count('boerderij') >= 2,
     voortgang: (s) => `werkers <b>${s.vrij() ? 'bevrijd ✓' : 'gevangen'}</b> · boerderijen <b>${Math.min(2, s.count('boerderij'))}/2</b> · orkenhut nog <b>${s.huts()}</b>`,
   },
+  {
+    naam: 'De Donkere Mijnen', dungeon: 1,
+    brief: [
+      'De dappere ridder Sir Lodewijk is verdwenen in de Donkere Mijnen.',
+      'Volgens de verhalen houden orks en skeletten hem daar gevangen.',
+      'Daal af met je soldaten, je boogschutters en een genezer.',
+      'De genezer maakt gewonde mannetjes vanzelf weer beter.',
+      'Zoek Sir Lodewijk, bevrijd hem en breng hem levend',
+      'terug naar de trap waar je naar binnen kwam.',
+    ],
+    doel: 'Vind Sir Lodewijk en breng hem naar de uitgang',
+    goud: 0, hout: 0, bouw: [],
+    held: [3, 2],
+    map: [
+      '########################',
+      '#......####............#',
+      '#......####............#',
+      '#......####....###.....#',
+      '#......####....###.....#',
+      '###..######....#t#.....#',
+      '###..#t####...........##',
+      '###.........######..####',
+      '######......####t#..####',
+      '######..##..........####',
+      '#.......##..........####',
+      '#..###..########....####',
+      '#..##t..########.......#',
+      '#.......####...........#',
+      '####....####...#####...#',
+      '####..######...#t###...#',
+      '####..######.........###',
+      '#.........###........###',
+      '#.........###..#########',
+      '#...###...###..#########',
+      '#...tt#..........#######',
+      '#........###.....#######',
+      '######...###.....#######',
+      '######.......##..#######',
+      '#######......##..#######',
+      '#######...............##',
+      '########.........#######',
+      '#########.......########',
+      '##########EEEE##########',
+      '########################',
+    ],
+    b: [],
+    u: [['soldaat', 10, 26], ['soldaat', 11, 26], ['soldaat', 12, 26], ['soldaat', 13, 26], ['boog', 11, 27], ['boog', 12, 27], ['genezer', 10, 27]],
+    o: [['skelet', 8, 23], ['skelet', 14, 21], ['ork', 3, 18], ['speerork', 7, 17], ['skelet', 2, 12], ['ork', 6, 10], ['ork', 12, 9], ['skelet', 18, 10], ['speerork', 17, 13],
+      ['ork', 8, 7], ['skelet', 10, 7], ['ork', 5, 3], ['speerork', 2, 4], ['ork', 5, 1], ['skelet', 19, 3], ['skelet', 14, 2], ['ork', 1, 10], ['skelet', 3, 13], ['skelet', 9, 18], ['ork', 16, 20], ['speerork', 15, 24]],
+    huts: [],
+    ambush: [[5, 12], [2, 17], [8, 21], [12, 24], [6, 9]],
+    win: (s) => s.heldUit(),
+    voortgang: (s) => (s.heldVrij() ? 'Sir Lodewijk <b>bevrijd ✓</b> · breng hem naar de <b>trap</b> (onderaan)' : 'zoek <b>Sir Lodewijk</b> in de mijnen'),
+  },
 ];
 
 // Waar de mannetjes vandaan komen: wat ze vasthouden en wat werkers extra kunnen
@@ -192,4 +249,4 @@ export const LAND = {
 };
 
 // Levels uit de 2D-versie die nog naar 3D moeten
-export const BINNENKORT = ['De Donkere Mijnen', 'Het Woud van Elwynn', 'De belegerde abdij'];
+export const BINNENKORT = ['Het Woud van Elwynn', 'De belegerde abdij'];

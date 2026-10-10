@@ -25,7 +25,8 @@ scene.fog = new THREE.Fog('#9fd3f0', 28, 60);
 const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 200);
 camera.position.set(12, 14, 30);
 
-scene.add(new THREE.HemisphereLight('#dff1ff', '#56703a', 1.6));
+const hemel = new THREE.HemisphereLight('#dff1ff', '#56703a', 1.6);
+scene.add(hemel);
 const zon = new THREE.DirectionalLight('#fff3dc', 2.4);
 zon.castShadow = true;
 zon.shadow.mapSize.set(isTouch ? 1024 : 2048, isTouch ? 1024 : 2048);
@@ -78,12 +79,14 @@ function tekenGrond() {
   for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) {
     const t = G.map[y][x], v = r();
     let kleur;
-    if (t == 'W' || t == '=') kleur = '#3a7bbf';
+    if (G.L.dungeon) kleur = t == '#' || t == 't' ? '#2d2520' : t == 'E' ? '#c9b27a' : v < 0.33 ? '#7a6a58' : v < 0.66 ? '#74644f' : '#806f5c';
+    else if (t == 'W' || t == '=') kleur = '#3a7bbf';
     else if (t == 'M') kleur = '#8d8170';
     else if (t == 'T') kleur = v < 0.5 ? '#4d7a33' : '#517f36';
     else if (t == 's') kleur = '#7d6a45';
     else kleur = v < 0.33 ? '#6aa84f' : v < 0.66 ? '#70ad53' : '#66a34b';
     c.fillStyle = kleur; c.fillRect(x * S, y * S, S, S);
+    if (G.L.dungeon) { if (t == '.' && v > 0.85) { c.fillStyle = '#5f5142'; c.fillRect(x * S + 3, y * S + 4, 4, 3); c.fillRect(x * S + 10, y * S + 9, 3, 3); } continue; }
     if (t == '.' && v > 0.8) { c.fillStyle = '#86c063'; c.fillRect(x * S + 4 + (v * 37 % 6), y * S + 5, 2, 3); c.fillRect(x * S + 9, y * S + 9 + (v * 51 % 4), 2, 3); }
     if (t == '.' && v < 0.04) { c.fillStyle = '#f4e27a'; c.fillRect(x * S + 7, y * S + 7, 2, 2); }
   }
@@ -98,6 +101,38 @@ function tekenGrond() {
     }
   }
   grondTex.needsUpdate = true;
+}
+
+// Muren, fakkels, de trap naar buiten en wat tonnen en banieren in de Donkere Mijnen
+function bouwKerker(groep) {
+  const { MW, MH } = G, r = rnd(31);
+  const muren = [], fakkels = [], trap = [], vloer = [];
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
+    const t = G.map[y][x];
+    if (t == '#' || t == 't') muren.push([x, y]); else vloer.push([x, y]);
+    if (t == 't') fakkels.push([x, y]);
+    if (t == 'E') trap.push([x, y]);
+  }
+  const m4 = new THREE.Matrix4();
+  for (const d of M.kerkerMuur()) {
+    const im = new THREE.InstancedMesh(d.geo, d.mat, muren.length);
+    muren.forEach(([x, y], i) => im.setMatrixAt(i, m4.makeTranslation(x + 0.5, 0, y + 0.5)));
+    im.castShadow = true; im.receiveShadow = true; groep.add(im);
+  }
+  for (const [x, y] of fakkels) {
+    const f = M.maakFakkel(); f.position.set(x + 0.5, 1.1, y + 0.5); groep.add(f);
+    const licht = new THREE.PointLight('#ffb35a', 6, 6, 1.4); licht.position.set(x + 0.5, 1.7, y + 0.5); groep.add(licht);
+  }
+  for (const [x, y] of trap) { const s = M.maakTrap(); s.position.set(x + 0.5, 0, y + 0.5); groep.add(s); }
+  // een paar tonnen en banieren tegen de muren (alleen versiering)
+  const tegenMuur = vloer.filter(([x, y]) => G.map[y][x] == '.' && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => G.map[y + dy] && G.map[y + dy][x + dx] == '#'));
+  for (let i = 0; i < 10 && tegenMuur.length; i++) {
+    const [x, y] = tegenMuur.splice(Math.floor(r() * tegenMuur.length), 1)[0];
+    const ding = M.maakKerkerDing(i % 3 == 0 ? 'banier' : 'ton');
+    const [dx, dy] = [[1, 0], [-1, 0], [0, 1], [0, -1]].find(([dx, dy]) => G.map[y + dy][x + dx] == '#');
+    ding.position.set(x + 0.5 + dx * 0.3, 0, y + 0.5 + dy * 0.3); ding.rotation.y = Math.atan2(-dx, -dy);
+    groep.add(ding);
+  }
 }
 
 function bouwWereld() {
@@ -117,7 +152,13 @@ function bouwWereld() {
   grond.position.set(MW / 2, 0, MH / 2); grond.receiveShadow = true; grond.userData = { eigenGeo: 1, eigenMat: 1 };
   wereld.add(grond);
   tekenGrond(); kaartVersie = G.mapVersie;
-  const rand = new THREE.Mesh(new THREE.PlaneGeometry(220, 220).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: '#4b7a32' }));
+  // licht en lucht: buiten zonnig, in de mijnen warm en schemerig (maar niet eng)
+  const kerker = !!G.L.dungeon;
+  scene.background.set(kerker ? '#1d1712' : '#9fd3f0'); scene.fog.color.set(kerker ? '#1d1712' : '#9fd3f0');
+  scene.fog.near = kerker ? 22 : 28; scene.fog.far = kerker ? 48 : 60;
+  hemel.color.set(kerker ? '#ffe2b8' : '#dff1ff'); hemel.groundColor.set(kerker ? '#4a3626' : '#56703a'); hemel.intensity = kerker ? 1.25 : 1.6;
+  zon.intensity = kerker ? 1.1 : 2.4;
+  const rand = new THREE.Mesh(new THREE.PlaneGeometry(220, 220).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: kerker ? '#241d18' : '#4b7a32' }));
   rand.position.set(MW / 2, -0.02, MH / 2); rand.receiveShadow = true; rand.userData = { eigenGeo: 1, eigenMat: 1 };
   wereld.add(rand);
 
@@ -140,7 +181,7 @@ function bouwWereld() {
   const r = rnd(11);
   for (let y = -4; y < MH + 4; y++) for (let x = -4; x < MW + 4; x++) {
     if (x >= 0 && y >= 0 && x < MW && y < MH) continue;
-    if (r() < 0.75) sier.push([x, y]);
+    if (!kerker && r() < 0.75) sier.push([x, y]);
   }
   const alle = [...keys.map((k) => k.split(',').map(Number)), ...sier];
   // elke boom krijgt een soort; per soort en per deel één InstancedMesh
@@ -180,13 +221,15 @@ function bouwWereld() {
     wereld.add(m.g); pickables.push(m.g); mijnen.push({ key, goud: m.goud });
   }
 
-  // wolken boven onontdekt gebied
+  if (kerker) bouwKerker(wereld);
+
+  // wolken boven onontdekt gebied (in de mijnen: donkere rook)
   const wpos = [];
   const r2 = rnd(23);
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) wpos.push({ x, y, ox: (r2() - 0.5) * 0.4, oz: (r2() - 0.5) * 0.4, s: 1 + r2() * 0.5, h: 1.7 + r2() * 0.6, f: r2() * 6.28 });
   const wm = new THREE.InstancedMesh(M.wolk(), new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }), wpos.length);
   const kl = new THREE.Color();
-  wpos.forEach((w, i) => { kl.setHSL(0.6, 0.15, 0.9 + r2() * 0.1); wm.setColorAt(i, kl); });
+  wpos.forEach((w, i) => { kl.setHSL(kerker ? 0.07 : 0.6, kerker ? 0.12 : 0.15, kerker ? 0.16 + r2() * 0.05 : 0.9 + r2() * 0.1); wm.setColorAt(i, kl); });
   wm.userData = { eigenGeo: 1, eigenMat: 1 };
   wereld.add(wm);
   const schaal = new Float32Array(wpos.length);
@@ -201,7 +244,8 @@ function bouwWereld() {
 
   // camera naar het kasteel
   const k = G.blds.find((b) => b.k == 'kasteel');
-  const kx = k ? k.x + k.w / 2 : MW / 2, kz = k ? k.y + k.h / 2 : MH / 2;
+  const eigen = G.units.filter((u) => u.side == 'h'); // zonder kasteel: midden van je groep
+  const kx = k ? k.x + k.w / 2 : eigen.reduce((a, u) => a + u.x / T, 0) / eigen.length, kz = k ? k.y + k.h / 2 : eigen.reduce((a, u) => a + u.y / T, 0) / eigen.length;
   controls.target.set(kx + 2, 0, kz - 2);
   camera.position.set(kx + 2, 11, kz + 8);
   controls.update();
@@ -292,6 +336,7 @@ function speel(m, naam, eenmaal) {
 }
 function animeer(m, u, beweegt, gekozen) {
   const nu = performance.now();
+  if (u.captive) { speel(m, 'sit'); return; } // Sir Lodewijk zit gevangen
   if (u.rolstoel) { speel(m, beweegt ? 'wheelchair-move-forward' : 'wheelchair-sit'); return; }
   if (u.swing > (m.vorigeSwing || 0)) speel(m, u.st == 'build' ? 'interact-right' : 'attack-melee-right', true);
   m.vorigeSwing = u.swing;
@@ -565,7 +610,7 @@ function tekenPaneel(forceer) {
   const p = $('paneel');
   let h = '';
   const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
-  h += `<div class="kiesbalk"><button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button><button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
+  h += `<div class="kiesbalk">${G.L && G.L.dungeon ? '<button data-alle="groep">Hele groep</button>' : '<button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button>'}<button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
   if (sel.length == 1) {
     const u = sel[0], l = LAND[u.voice && u.voice.lang];
     h += `<div class="kop"><b>${esc(UNIT[u.k].n)}</b><span id="pstatus"></span></div><div class="hp"><div id="php"></div></div>`;
@@ -587,7 +632,7 @@ function tekenPaneel(forceer) {
   }
   if (!sel.length && !b) h += '<div class="tip">Klik op een mannetje of gebouw.<br>Ctrl/Shift-klik: meer kiezen of weer weghalen.<br>Shift + slepen: een rechthoek om mannetjes trekken.</div>';
   p.innerHTML = h;
-  p.querySelectorAll('[data-alle]').forEach((el) => el.onclick = () => { unlock(); kiesAlle(el.dataset.alle == '1'); tekenPaneel(true); });
+  p.querySelectorAll('[data-alle]').forEach((el) => el.onclick = () => { unlock(); kiesAlle(el.dataset.alle == 'groep' ? 'groep' : el.dataset.alle == '1'); tekenPaneel(true); });
   p.querySelector('[data-meer]').onclick = () => { G.multi = !G.multi; sClick(); if (G.multi) { G.msg = isTouch ? 'Tik op meer mannetjes om ze toe te voegen of weg te halen.' : 'Klik op meer mannetjes om ze toe te voegen of weg te halen (of houd Ctrl ingedrukt).'; G.msgT = 200; } tekenPaneel(true); };
   const los = p.querySelector('[data-los]'); if (los) los.onclick = () => { stopKeuze(); sClick(); tekenPaneel(true); };
   p.querySelectorAll('[data-weg]').forEach((el) => el.onclick = () => { haalWeg(el.dataset.weg); tekenPaneel(true); });
@@ -608,6 +653,7 @@ function vulPaneel() {
 
 function tekenBalk() {
   const f = food();
+  for (const id of ['goud', 'hout', 'voedsel']) $(id).parentElement.hidden = !!G.L.dungeon;
   $('goud').textContent = G.res.goud;
   $('hout').textContent = G.res.hout;
   $('voedsel').textContent = f.use + '/' + f.cap;
