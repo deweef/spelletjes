@@ -12,7 +12,7 @@ Uploaden: in GitHub **Add file → Upload files**, een paar zips per keer (max. 
 | mini-forest | Orkenstorm 3D | bomen, rotsen, tenten, boogschutter |
 | mini-dungeon | Orkenstorm 3D | mannetjes (mens, ork), wapens, kisten |
 | castle-kit | Orkenstorm 3D, Kasteelsprong 3D | kasteel, muren, torens, poort |
-| animated-characters-protagonists | Orkenstorm 3D | mannetjes die echt kunnen lopen en zwaaien (animaties) |
+| animated-characters-protagonists | (reserve) | let op: alleen FBX en moderne skins (skater, cyborg); past niet goed in de middeleeuwen |
 | mini-characters | Orkenstorm 3D | extra figuurtjes (werkers, ridders, genezer) |
 | survival-kit | Orkenstorm 3D | orkenkamp: tenten, kampvuur, gereedschap |
 | tower-defense-kit | Orkenstorm 3D | torens, orkentorens |
