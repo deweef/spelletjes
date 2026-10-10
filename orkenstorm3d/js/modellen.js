@@ -305,13 +305,48 @@ function kenneyKasteel() {
   return g;
 }
 
+function zetIn(g, n, x, y, z, rot = 0, schaal = 1) {
+  const m = K.stuk(n); m.position.set(x, y, z); m.rotation.y = rot; m.scale.setScalar(schaal); g.add(m); return m;
+}
+
+// Boerderij (2x2): schuurtje met hooi, akkertjes met plantjes, hekje
+function kenneyBoerderij() {
+  const g = new THREE.Group();
+  zetIn(g, 'forest/building-roof', -0.4, 0, -0.4, 0, 1.05);
+  g.add(bol(0.24, '#e8cf6a', -0.45, 0.16, -0.4, 0)); // hooiberg onder het dak
+  for (const [x, z] of [[0.48, -0.45], [0.48, 0.48], [-0.45, 0.48]]) {
+    zetIn(g, 'forest/patch-dirt', x, 0, z, 0, 0.95);
+    for (const [px, pz] of [[-0.22, -0.2], [0.18, -0.18], [-0.18, 0.2], [0.2, 0.2]]) zetIn(g, 'forest/plant', x + px, 0.06, z + pz, (px + pz) * 3, 0.9);
+  }
+  zetIn(g, 'forest/fence', -0.45, 0, 0.98, 0, 0.85); zetIn(g, 'forest/fence', 0.48, 0, 0.98, 0, 0.85);
+  zetIn(g, 'forest/fence', 0.98, 0, 0.48, Math.PI / 2, 0.85); zetIn(g, 'forest/fence', 0.98, 0, -0.45, Math.PI / 2, 0.85);
+  return g;
+}
+
+// Kazerne (3x3): legerkamp met wachttoren, houten muur, tent, kruisboog en schietschijf
+function kenneyKazerne() {
+  const g = new THREE.Group();
+  zetIn(g, 'castle/tower-square-base', -1, 0, -1); zetIn(g, 'castle/tower-slant-roof', -1, 1, -1);
+  zetIn(g, 'castle/wall-narrow-wood', 0, 0, -1); zetIn(g, 'castle/wall-narrow-wood', 1, 0, -1);
+  zetIn(g, 'castle/flag-banner-long', 0.5, 0, -1.45, Math.PI / 2, 0.7);
+  zetIn(g, 'forest/tent', 0.45, 0, -0.1, 0, 1.2);
+  zetIn(g, 'castle/siege-ballista', -0.75, 0.13, 0.55, 0.4, 0.62);
+  zetIn(g, 'forest/target', 0.95, 0, 0.85, -0.3, 1.1);
+  return g;
+}
+
+const BOUW = { kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne };
+const modelVoor = (k, w, h) => (K.klaar && BOUW[k] ? BOUW[k]() : MODEL[k] ? MODEL[k]() : doos(w * 0.8, 1, h * 0.8, STEEN, 0, 0.5, 0));
+
 export function maakGebouw(k, w, h) {
   const g = new THREE.Group();
-  const model = K.klaar && k == 'kasteel' ? kenneyKasteel() : MODEL[k] ? MODEL[k]() : doos(w * 0.8, 1, h * 0.8, STEEN, 0, 0.5, 0);
+  const model = modelVoor(k, w, h);
   g.add(model);
   const steiger = new THREE.Group();
-  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) steiger.add(cil(0.035, 0.035, 1.3, '#c9a26b', x * (w / 2 - 0.15), 0.65, z * (h / 2 - 0.15), 5));
-  for (const y of [0.45, 1.0]) {
+  if (K.klaar) { // houten stutten van Kenney langs voor- en achterkant
+    for (const z of [-1, 1]) for (let x = -(w - 1) / 2; x <= (w - 1) / 2; x++) zetIn(steiger, 'dungeon/wood-support', x, 0, z * (h / 2 - 0.15), 0, 0.95);
+  } else for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) steiger.add(cil(0.035, 0.035, 1.3, '#c9a26b', x * (w / 2 - 0.15), 0.65, z * (h / 2 - 0.15), 5));
+  if (!K.klaar) for (const y of [0.45, 1.0]) {
     steiger.add(doos(w - 0.2, 0.04, 0.08, '#c9a26b', 0, y, h / 2 - 0.15));
     steiger.add(doos(0.08, 0.04, h - 0.2, '#c9a26b', w / 2 - 0.15, y, 0));
   }
@@ -326,7 +361,7 @@ export function maakGebouw(k, w, h) {
 // Doorzichtige kopie voor het kiezen van een bouwplek
 export function maakSchaduw(k, w, h) {
   const g = new THREE.Group();
-  const model = MODEL[k]();
+  const model = modelVoor(k, w, h);
   const doorzicht = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, depthWrite: false });
   model.traverse((o) => { if (o.isMesh) { o.material = doorzicht; o.castShadow = false; } });
   g.add(model);
@@ -338,6 +373,7 @@ export function maakSchaduw(k, w, h) {
 
 // ---------- goudmijn (2 bij 2) ----------
 export function maakMijn() {
+  if (K.klaar) return kenneyMijn();
   const g = new THREE.Group();
   const rots = [[-0.5, 0.35, -0.45, 0.55], [0.4, 0.3, -0.5, 0.5], [0, 0.55, -0.25, 0.6], [-0.65, 0.2, 0.2, 0.35], [0.65, 0.22, 0.15, 0.38], [0, 0.25, -0.75, 0.4]];
   rots.forEach(([x, y, z, r], i) => { const s = steen(r, i % 2 ? '#8f8a84' : '#a39d95', x, y, z); s.rotation.set(i, i * 2, 0); g.add(s); });
@@ -354,6 +390,31 @@ export function maakMijn() {
   g.add(steen(0.09, '#f7c932', 0.55, 0.25, 0.7));
   for (const x of [0.43, 0.67]) { const wiel = cil(0.06, 0.06, 0.26, '#3a2a1c', x, 0.06, 0.7, 8); wiel.rotation.x = Math.PI / 2; g.add(wiel); }
   return { g, goud };
+}
+
+function kenneyMijn() {
+  const g = new THREE.Group();
+  zetIn(g, 'dungeon/rocks', 0, 0, -0.15, 0, 1.9);
+  zetIn(g, 'survival/rock-c', -0.55, 0.3, -0.5, 0.5, 1.5);
+  zetIn(g, 'survival/rock-b', 0.5, 0.25, -0.55, 2, 1.4);
+  zetIn(g, 'survival/rock-a', -0.7, 0, 0.45, 1, 1.2);
+  zetIn(g, 'survival/rock-a', 0.1, 0.75, -0.4, 3, 1.1);
+  g.add(doos(0.5, 0.55, 0.3, '#1d1813', 0, 0.27, 0.55)); // donkere ingang
+  zetIn(g, 'dungeon/wood-support', 0, 0, 0.7, 0, 0.7);
+  zetIn(g, 'dungeon/chest', 0.62, 0.05, 0.62, -0.5, 0.75);
+  const goud = new THREE.Group();
+  for (const [x, y, z] of [[-0.45, 0.85, -0.3], [0.35, 0.7, -0.4], [0.05, 1.2, -0.35], [-0.65, 0.4, 0.35], [0.55, 0.55, -0.1], [0.2, 0.95, -0.65]]) {
+    const st = steen(0.09, '#f7c932', x, y, z); st.castShadow = false; goud.add(st);
+  }
+  const munt = zetIn(goud, 'dungeon/coin', 0.62, 0.32, 0.62, 0.3, 0.6); munt.rotation.x = -0.6;
+  g.add(goud);
+  return { g, goud };
+}
+
+// pijl van Kenney (wijst langs +z), of een staafje
+export function maakPijl() {
+  if (K.klaar) { const p = K.stuk('forest/weapon-arrow'); p.scale.setScalar(0.9); return p; }
+  return new THREE.Mesh(geo('pijl', () => new THREE.CylinderGeometry(0.012, 0.012, 0.35, 4).rotateX(Math.PI / 2)), new THREE.MeshBasicMaterial({ color: 0x5a3b20 }));
 }
 
 // ---------- vormen voor bomen en wolken (voor InstancedMesh) ----------

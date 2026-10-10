@@ -398,8 +398,6 @@ function syncWereld(nu) {
   w.mesh.instanceMatrix.needsUpdate = true;
 }
 
-const pijlGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.35, 4).rotateX(Math.PI / 2);
-const pijlMat = new THREE.MeshBasicMaterial({ color: 0x5a3b20 });
 const ringGeo = new THREE.RingGeometry(0.2, 0.28, 24).rotateX(-Math.PI / 2);
 const deeltjeGeo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
 
@@ -409,7 +407,7 @@ function syncEffecten() {
     gezien.add(f);
     let m = fxMesh.get(f);
     if (!m) {
-      if (f.arrow) m = new THREE.Mesh(pijlGeo, pijlMat);
+      if (f.arrow) m = M.maakPijl();
       else if (f.ring) m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: f.ring, transparent: true }));
       else if (f.grave) m = M.kenneyKlaar() ? new THREE.Group() : M.maakGraf(f.grave); // Kenney-mannetjes vallen zelf om
       else m = new THREE.Mesh(deeltjeGeo, M.mat(f.c || '#7a6a5a'));

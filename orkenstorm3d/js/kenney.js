@@ -9,10 +9,15 @@ const LIJST = [
   'dungeon/character-human', 'dungeon/character-orc', 'dungeon/weapon-sword', 'dungeon/weapon-spear', 'dungeon/shield-round',
   'forest/character-archer', 'forest/weapon-bow', 'forest/tree', 'forest/tree-high',
   'castle/tower-square-base', 'castle/tower-square-mid', 'castle/tower-square-mid-windows', 'castle/tower-square-roof',
-  'castle/tower-square-top-roof-high', 'castle/wall', 'castle/wall-doorway', 'castle/gate', 'castle/flag',
+  'castle/tower-square-top-roof-high', 'castle/wall', 'castle/gate', 'castle/flag',
   'castle/tree-large', 'castle/tree-small', 'castle/tree-trunk',
-  'survival/tool-axe', 'survival/tool-hammer', 'survival/tool-pickaxe',
+  'survival/tool-axe',
   'characters/wheelchair',
+  // boerderij, kazerne, mijn, steigers en pijlen
+  'forest/building-roof', 'forest/patch-dirt', 'forest/plant', 'forest/fence', 'forest/tent', 'forest/target', 'forest/weapon-arrow',
+  'castle/tower-slant-roof', 'castle/wall-narrow-wood', 'castle/siege-ballista', 'castle/flag-banner-long',
+  'dungeon/wood-support', 'dungeon/rocks', 'dungeon/chest', 'dungeon/coin',
+  'survival/rock-a', 'survival/rock-b', 'survival/rock-c',
 ];
 
 const glb = {};

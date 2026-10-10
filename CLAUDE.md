@@ -39,7 +39,8 @@ Opbouw:
 - `js/spel.js`: de spelregels (paden, werkers, bouwen, trainen, vechten, golven, winnen/verliezen).
   Posities van mannetjes in pixels (32 per tegel), net als in 2D, zodat regels makkelijk over te nemen zijn.
 - `js/modellen.js`: de 3D-modellen. Gebruikt de Kenney-modellen als die geladen zijn, anders de eigen
-  blokjesmodellen (reserve). Boerderij, kazerne en mijn zijn nog zelfgemaakt.
+  blokjesmodellen (reserve). Gebouwen worden in elkaar gezet uit losse Kenney-stukken (`BOUW` in
+  modellen.js: kasteel, boerderij, kazerne; plus `kenneyMijn`, steigers en pijlen).
 - `js/kenney.js`: laadt de Kenney-modellen uit `assets/` (lijst `LIJST`) en maakt mannetjes met botten
   en animaties (idle, walk, attack-melee-right, interact-right, holding-left, emote-yes, die,
   wheelchair-sit, wheelchair-move-forward, ...). Spullen hangen aan de botten `arm-left`/`arm-right`/`head`/`torso`.
@@ -84,8 +85,13 @@ vanuit de cloudomgeving niet bereikbaar. Gebruik de bestanden uit `Models/GLB fo
 wat het spel echt gebruikt naar `orkenstorm3d/assets/<pakket>/`, samen met `Textures/colormap.png` van dat
 pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe modellen ook in `LIJST` in
 `js/kenney.js`.
+- Stijl: houd het bij de vrolijke, effen gekleurde pakketten (castle-kit, mini-forest, mini-dungeon,
+  survival-kit, ...). De retro-fantasy-kit heeft fotoachtige stenen en donkere daken en past daar niet bij.
 - Al gebruikt: mannetjes (dungeon: mens, ork; forest: boogschutter), wapens, bijl (survival), rolstoel
-  (characters), bomen (forest, castle) en het kasteel (castle-kit: torens, muren, poort, vlag).
-- Nog te doen: boerderij en kazerne uit retro-fantasy-kit, goudmijn, torens, orkenkamp (survival-kit).
+  (characters), bomen (forest, castle), kasteel (castle-kit), boerderij (forest: schuurtje, akkers, hek),
+  kazerne (castle-kit toren, houten muur, ballista, banier; forest tent en schietschijf), goudmijn
+  (dungeon rotsen, stut, kist, munt; survival rotsen), steigers (dungeon wood-support), pijlen (forest).
+- Nog te doen (voor latere levels): wachttoren, orkenhut/orkenkamp en orkentoren (survival-kit tenten,
+  kampvuur), skeletten en graven (graveyard-kit), grotgangen (modular-cave-kit), ridder en genezer.
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.
 - "Modellen: Kenney.nl" staat op het titelscherm.
