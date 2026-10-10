@@ -335,7 +335,35 @@ function kenneyKazerne() {
   return g;
 }
 
-const BOUW = { kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne };
+// Wachttoren (2x2): zeshoekige toren met deur en blauw puntdak
+function kenneyToren() {
+  const g = new THREE.Group();
+  zetIn(g, 'castle/tower-hexagon-base', 0, 0, 0, 0, 1.5);
+  zetIn(g, 'castle/tower-hexagon-mid', 0, 1.31 * 1.5, 0, 0, 1.5);
+  zetIn(g, 'castle/tower-hexagon-roof', 0, 1.77 * 1.5, 0, 0, 1.5);
+  return g;
+}
+
+// Orkenhut (2x2): tentdoek met kampvuur, palissade en een rode orkenvlag
+function kenneyOrkhut() {
+  const g = new THREE.Group();
+  zetIn(g, 'survival/tent-canvas', -0.1, 0, -0.2, 0.3, 2.6);
+  zetIn(g, 'survival/campfire-pit', 0.45, 0, 0.55, 0, 2.2);
+  for (const [x, z, r] of [[-0.95, -0.5, Math.PI / 2], [-0.95, 0.5, Math.PI / 2], [-0.5, -0.95, 0], [0.5, -0.95, 0], [0.95, -0.5, Math.PI / 2]]) zetIn(g, 'survival/fence-fortified', x, 0, z, r, 2);
+  g.add(vlag('#7a1e1e', 0.7, 0, -0.6));
+  return g;
+}
+
+const BOUW = { kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut };
+
+// brug over één tegel water (loopt van noord naar zuid)
+export function maakBrug() {
+  if (K.klaar) { const b = K.stuk('forest/bridge'); b.rotation.y = Math.PI / 2; b.scale.set(1.3, 0.6, 1.3); b.position.y = -0.05; return b; }
+  const g = new THREE.Group();
+  g.add(doos(0.8, 0.08, 1.0, '#8a5a2b', 0, 0.06, 0));
+  for (const x of [-0.42, 0.42]) g.add(doos(0.05, 0.25, 1.0, '#6b4226', x, 0.15, 0));
+  return g;
+}
 const modelVoor = (k, w, h) => (K.klaar && BOUW[k] ? BOUW[k]() : MODEL[k] ? MODEL[k]() : doos(w * 0.8, 1, h * 0.8, STEEN, 0, 0.5, 0));
 
 export function maakGebouw(k, w, h) {

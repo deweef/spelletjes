@@ -26,12 +26,15 @@ vrolijk, eerlijk en niet eng.
 - Test in een browser voordat je klaar meldt, en let op fouten in de console. In de cloudomgeving:
   start `python3 -m http.server` in de hoofdmap en gebruik Playwright met Chromium
   (`chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })`
-  zodat WebGL werkt). Orkenstorm 3D zet `window.__test = { G, update, camera }` klaar om de spelstatus
-  te lezen en de tijd vooruit te spoelen.
+  zodat WebGL werkt). Orkenstorm 3D zet `window.__test = { G, update, camera, controls, uMesh, kies }` klaar om
+  de spelstatus te lezen en de tijd vooruit te spoelen. Wacht na het starten van een level een paar seconden
+  voordat je schermposities uitrekent: de camera schuift in de trage testbrowser nog even na.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
-De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp) is speelbaar; de andere levels uit
-`orkenstorm.html` moeten nog.
+De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp) en level 2 (De orks komen eraan) zijn
+speelbaar; levels 3 t/m 6 uit `orkenstorm.html` moeten nog (namen in `BINNENKORT` in `js/data.js`).
+Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
+`LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
 
 Opbouw:
 - `index.html`: de pagina, opmaak en menu's (titel, uitleg per level, einde, pauze).
@@ -77,6 +80,7 @@ Besturing:
   (voor aanraken), Loslaten, en per soort ✕ om ze uit de keuze te halen. Links slepen: camera draaien.
   Rechts slepen: schuiven. Scrollen: zoomen. Pijltjes/WASD: schuiven.
 - Toetsen: P = pauze, Escape = selectie loslaten. Rechts klikken tijdens bouwen = stoppen met bouwen.
+- Bouwen met de muis gebeurt precies waar de schaduw staat (ook als de camera nog naschuift).
 
 ### Kenney-modellen
 De Kenney-pakketten (CC0) staan als zip in de centrale map `bronnen/` (zie `bronnen/LEESMIJ.md` voor welk
@@ -90,8 +94,10 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
 - Al gebruikt: mannetjes (dungeon: mens, ork; forest: boogschutter), wapens, bijl (survival), rolstoel
   (characters), bomen (forest, castle), kasteel (castle-kit), boerderij (forest: schuurtje, akkers, hek),
   kazerne (castle-kit toren, houten muur, ballista, banier; forest tent en schietschijf), goudmijn
-  (dungeon rotsen, stut, kist, munt; survival rotsen), steigers (dungeon wood-support), pijlen (forest).
-- Nog te doen (voor latere levels): wachttoren, orkenhut/orkenkamp en orkentoren (survival-kit tenten,
-  kampvuur), skeletten en graven (graveyard-kit), grotgangen (modular-cave-kit), ridder en genezer.
+  (dungeon rotsen, stut, kist, munt; survival rotsen), steigers (dungeon wood-support), pijlen (forest),
+  wachttoren (castle-kit zeshoekige toren), orkenhut (survival tentdoek, kampvuur, palissade),
+  bruggen (forest bridge, op tegels `=`).
+- Nog te doen (voor latere levels): orkentoren, gevangenis, skeletten en graven (graveyard-kit),
+  grotgangen (modular-cave-kit), stal, ridder, genezer, rovers en de abdij.
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.
 - "Modellen: Kenney.nl" staat op het titelscherm.

@@ -78,7 +78,7 @@ function tekenGrond() {
   for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) {
     const t = G.map[y][x], v = r();
     let kleur;
-    if (t == 'W') kleur = '#3a7bbf';
+    if (t == 'W' || t == '=') kleur = '#3a7bbf';
     else if (t == 'M') kleur = '#8d8170';
     else if (t == 'T') kleur = v < 0.5 ? '#4d7a33' : '#517f36';
     else if (t == 's') kleur = '#7d6a45';
@@ -89,9 +89,9 @@ function tekenGrond() {
   }
   // zandrand langs het water
   for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) {
-    if (G.map[y][x] == 'W') continue;
+    if (G.map[y][x] == 'W' || G.map[y][x] == '=') continue;
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      if (G.map[y + dy] && G.map[y + dy][x + dx] == 'W') {
+      if (G.map[y + dy] && (G.map[y + dy][x + dx] == 'W' || G.map[y + dy][x + dx] == '=')) {
         c.fillStyle = '#d9c78c';
         c.fillRect(x * S + (dx == 1 ? S - 4 : 0), y * S + (dy == 1 ? S - 4 : 0), dx ? 4 : S, dy ? 4 : S);
       }
@@ -123,7 +123,8 @@ function bouwWereld() {
 
   // water
   const waterTegels = [];
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'W') waterTegels.push([x, y]);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'W' || G.map[y][x] == '=') waterTegels.push([x, y]);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == '=') { const br = M.maakBrug(); br.position.x = x + 0.5; br.position.z = y + 0.5; wereld.add(br); }
   if (waterTegels.length) {
     const water = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
       new THREE.MeshLambertMaterial({ color: '#4a9be0', transparent: true, opacity: 0.85 }), waterTegels.length);
@@ -324,7 +325,7 @@ function syncGebouwen(nu) {
       m = M.maakGebouw(b.k, b.w, b.h);
       m.g.position.set(b.x + b.w / 2, 0, b.y + b.h / 2);
       m.g.userData.pick = { bld: b };
-      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = b.k == 'kasteel' ? 3.1 : 2.0; m.g.add(m.balk);
+      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8 }[b.k] || 2.0; m.g.add(m.balk);
       scene.add(m.g); bMesh.set(b.id, m); pickables.push(m.g);
     }
     m.g.visible = b.side == 'h' || isExp(b.x, b.y);
@@ -414,7 +415,7 @@ function syncEffecten() {
       fxMesh.set(f, m); scene.add(m);
     }
     if (f.arrow) {
-      const p = 1 - f.l / 12, h0 = f.hoog ? 1.8 : 0.5;
+      const p = 1 - f.l / 12, h0 = f.hoog ? 3.0 : 0.5;
       const x = wx(f.x + (f.tx - f.x) * p), z = wz(f.y + (f.ty - f.y) * p), y = h0 + (0.4 - h0) * p + Math.sin(p * Math.PI) * 0.5;
       m.position.set(x, y, z); m.lookAt(wx(f.tx), 0.4, wz(f.ty));
     } else if (f.ring) {
@@ -599,7 +600,7 @@ function vulPaneel() {
   const u = G.sel.length == 1 ? G.sel[0] : null, b = G.selB;
   if (u) { if (st) st.textContent = statusTekst(u); if (hp) hp.style.width = (u.hp / u.max * 100) + '%'; }
   if (b) {
-    if (st) st.textContent = b.done ? (b.q.length ? 'traint ' + UNIT[b.q[0]].n.toLowerCase() : BLD[b.k].food ? 'geeft voedsel voor ' + BLD[b.k].food : '') : 'wordt gebouwd: ' + Math.floor(b.prog * 100) + '%';
+    if (st) st.textContent = b.done ? (b.q.length ? 'traint ' + UNIT[b.q[0]].n.toLowerCase() : BLD[b.k].food ? 'geeft voedsel voor ' + BLD[b.k].food : b.k == 'toren' ? 'schiet op orks in de buurt' : '') : 'wordt gebouwd: ' + Math.floor(b.prog * 100) + '%';
     if (hp) hp.style.width = (b.hp / b.max * 100) + '%';
     if (qb && b.q.length) qb.style.width = (b.qp / UNIT[b.q[0]].time * 100) + '%';
   }
@@ -612,8 +613,9 @@ function tekenBalk() {
   $('voedsel').textContent = f.use + '/' + f.cap;
   $('voedsel').parentElement.classList.toggle('vol', f.use >= f.cap);
   if (G.L) {
-    const bf = Math.min(4, S.count('boerderij')), kz = Math.min(1, S.count('kazerne'));
-    $('doel').innerHTML = `Doel: boerderijen <b>${bf}/4</b> · kazerne <b>${kz}/1</b>`;
+    let tekst = 'Doel: ' + G.L.voortgang(S);
+    if (G.L.waves && S.huts() > 0) tekst += ` · volgende aanval over <b>${Math.max(0, Math.ceil((G.nextWave - G.t) / 60))}s</b>`;
+    $('doel').innerHTML = tekst;
   }
   const m = $('melding');
   if (G.msgT > 0 && G.msg) { m.textContent = G.msg; m.classList.add('zichtbaar'); } else m.classList.remove('zichtbaar');
@@ -625,7 +627,9 @@ function toon(id) { for (const s of ['titel', 'brief', 'einde']) $(s).hidden = s
 function tekenTitel() {
   toon('titel');
   const lijst = $('levels');
-  lijst.innerHTML = LEVELS.map((l, i) => `<button class="level" data-lvl="${i}">${i + 1}. ${esc(l.naam)}${i < G.unlocked - 1 ? ' ✓' : ''}</button>`).join('') +
+  lijst.innerHTML = LEVELS.map((l, i) => i < G.unlocked
+    ? `<button class="level" data-lvl="${i}">${i + 1}. ${esc(l.naam)}${i < G.unlocked - 1 ? ' ✓' : ''}</button>`
+    : `<button class="level" disabled>${i + 1}. ${esc(l.naam)} <small>win eerst level ${i}</small></button>`).join('') +
     BINNENKORT.map((n, i) => `<button class="level" disabled>${LEVELS.length + i + 1}. ${esc(n)} <small>komt nog</small></button>`).join('');
   lijst.querySelectorAll('[data-lvl]').forEach((el) => el.onclick = () => { unlock(); primeVoice(); sClick(); start(+el.dataset.lvl); });
   $('moeilijk').innerHTML = DIFF.map((d, i) => `<button data-diff="${i}" class="${G.diff == i ? 'actief' : ''}">${d.n}</button>`).join('');
@@ -651,7 +655,7 @@ $('beginknop').onclick = () => { unlock(); primeVoice(); G.state = 'spel'; toon(
 function eindScherm() {
   const won = G.state == 'gewonnen';
   $('eindtitel').textContent = won ? 'Gewonnen!' : 'Verloren';
-  $('eindtekst').textContent = won ? (G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : 'Knap gedaan! Level 2 in 3D komt binnenkort.') : G.lostMsg;
+  $('eindtekst').textContent = won ? (G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : 'Knap gedaan! Level ' + (G.lvl + 2) + ' in 3D komt binnenkort.') : G.lostMsg;
   $('volgende').hidden = !(won && G.lvl + 1 < LEVELS.length);
   $('opnieuw').textContent = won ? 'Nog een keer' : 'Opnieuw proberen';
   toon('einde');
@@ -688,4 +692,4 @@ $('laden').hidden = true;
 loadLevel(0); G.state = 'titel'; bouwWereld();
 tekenTitel();
 requestAnimationFrame(frame);
-window.__test = { G, update, camera, uMesh }; // handig om te testen
+window.__test = { G, update, camera, controls, uMesh, kies }; // handig om te testen

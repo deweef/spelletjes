@@ -18,6 +18,9 @@ const LIJST = [
   'castle/tower-slant-roof', 'castle/wall-narrow-wood', 'castle/siege-ballista', 'castle/flag-banner-long',
   'dungeon/wood-support', 'dungeon/rocks', 'dungeon/chest', 'dungeon/coin',
   'survival/rock-a', 'survival/rock-b', 'survival/rock-c',
+  // level 2: wachttoren, orkenhut, bruggen
+  'castle/tower-hexagon-base', 'castle/tower-hexagon-mid', 'castle/tower-hexagon-roof',
+  'survival/tent-canvas', 'survival/campfire-pit', 'survival/fence-fortified', 'forest/bridge',
 ];
 
 const glb = {};

@@ -440,7 +440,7 @@ export function startPlace(k, touch) {
 export function canPlace(k, x, y) {
   const d = BLD[k];
   for (let j = y; j < y + d.h; j++) for (let i = x; i < x + d.w; i++) {
-    if (!isExp(i, j) || blocked(i, j)) return false;
+    if (!isExp(i, j) || blocked(i, j) || G.map[j][i] == '=') return false;
     if (G.units.some((u) => u.side == 'o' && tileOf(u)[0] == i && tileOf(u)[1] == j)) return false;
   }
   return true;
@@ -503,7 +503,7 @@ export function klik(p) {
       say(canPlace(G.place.k, bx, by) ? 'Tik nog een keer op de schaduw om te bouwen.' : 'Daar kan het niet: kies een vrije plek die je al ontdekt hebt.', 240);
       sClick(); return;
     }
-    if (onGhost) { bx = G.place.x; by = G.place.y; }
+    if (onGhost || (!p.touch && G.place.x >= 0)) { bx = G.place.x; by = G.place.y; } // met de muis: precies waar de schaduw staat
     if (!canPlace(G.place.k, bx, by)) { say('Daar kan het niet: kies een vrije plek die je al ontdekt hebt.'); sNee(); return; }
     pay(d.cost);
     const b = addBld(G.place.k, bx, by, 0);
