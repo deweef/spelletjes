@@ -2,8 +2,8 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from '../lib/OrbitControls.js';
-import { UNIT, BLD, DIFF, LEVELS, BINNENKORT } from './data.js';
-import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S } from './spel.js';
+import { UNIT, BLD, DIFF, LEVELS, BINNENKORT, LAND } from './data.js';
+import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg } from './spel.js';
 import * as M from './modellen.js';
 import { unlock, primeVoice, stemAan, zetStem, sClick, loadVoices, VOX } from './geluid.js';
 
@@ -231,7 +231,7 @@ function syncMannetjes(nu) {
     gezien.add(u.id);
     let m = uMesh.get(u.id);
     if (!m) {
-      m = M.maakMannetje(u.k, u.side);
+      m = M.maakMannetje(u.k, u.side, u.voice && u.voice.lang);
       m.g.scale.multiplyScalar(1.3);
       m.balk = maakBalk(0.5); m.balk.position.y = 1.05; m.g.add(m.balk);
       m.px = u.x; m.py = u.y; m.rot = u.side == 'o' ? 0 : Math.PI; m.loop = 0;
@@ -256,7 +256,9 @@ function syncMannetjes(nu) {
     m.loop = beweegt ? m.loop + 0.28 : m.loop * 0.8;
     const sw = beweegt ? Math.sin(m.loop) * 0.6 : 0;
     m.p.beenL.rotation.x = sw; m.p.beenR.rotation.x = -sw;
-    m.p.armL.rotation.x = -sw * 0.7;
+    // thee drinken of pizza uitdelen met links
+    const linksDoel = u.thee > 0 ? -2.3 : u.deel > 0 ? -1.3 : -sw * 0.7;
+    m.p.armL.rotation.x += (linksDoel - m.p.armL.rotation.x) * 0.3;
     m.lijf.position.y = beweegt ? Math.abs(Math.sin(m.loop)) * 0.03 : 0;
     // zwaaien met bijl/zwaard
     if (u.swing > 0) m.p.armR.rotation.x = -Math.sin((12 - u.swing) / 12 * Math.PI) * 1.7 - 0.3;
@@ -430,16 +432,41 @@ function kies(cx, cy) {
 }
 
 let neer = null;
+const kader = $('kader');
+// Shift (of Ctrl) + slepen met links: rechthoek om mannetjes trekken in plaats van de camera draaien
 renderer.domElement.addEventListener('pointerdown', (e) => {
   unlock(); primeVoice();
-  neer = { x: e.clientX, y: e.clientY, mod: e.ctrlKey || e.metaKey || e.shiftKey, type: e.pointerType, knop: e.button };
-});
+  const mod = e.ctrlKey || e.metaKey || e.shiftKey;
+  neer = { x: e.clientX, y: e.clientY, mod, type: e.pointerType, knop: e.button, kader: mod && e.button == 0 && e.pointerType == 'mouse' && G.state == 'spel' && !G.place };
+  if (neer.kader) controls.enabled = false;
+}, true);
 renderer.domElement.addEventListener('pointermove', (e) => {
   if (G.place && e.pointerType == 'mouse' && G.state == 'spel') { zetRay(e.clientX, e.clientY); const g = grondTegel(); if (g) muisBouw(g.x, g.y); }
+  if (neer && neer.kader && Math.hypot(e.clientX - neer.x, e.clientY - neer.y) > 6) {
+    Object.assign(kader.style, { left: Math.min(e.clientX, neer.x) + 'px', top: Math.min(e.clientY, neer.y) + 'px', width: Math.abs(e.clientX - neer.x) + 'px', height: Math.abs(e.clientY - neer.y) + 'px' });
+    kader.hidden = false;
+  }
 });
+function eindKader(e, d) { // geeft true als er een rechthoek getrokken is
+  controls.enabled = true; kader.hidden = true;
+  if (Math.hypot(e.clientX - d.x, e.clientY - d.y) <= 6) return false; // gewone Ctrl/Shift-klik
+  const neer = d;
+  const x1 = Math.min(e.clientX, neer.x), x2 = Math.max(e.clientX, neer.x), y1 = Math.min(e.clientY, neer.y), y2 = Math.max(e.clientY, neer.y);
+  const r = renderer.domElement.getBoundingClientRect();
+  const binnen = G.units.filter((u) => {
+    const m = uMesh.get(u.id); if (!m || !m.g.visible) return false;
+    v3.set(wx(u.x), 0.5, wz(u.y)).project(camera);
+    const sx = r.left + (v3.x + 1) / 2 * r.width, sy = r.top + (1 - v3.y) / 2 * r.height;
+    return sx >= x1 && sx <= x2 && sy >= y1 && sy <= y2;
+  });
+  kiesGroep(binnen, false); tekenPaneel(true);
+  return true;
+}
+addEventListener('pointerup', (e) => { if (neer && neer.kader) { eindKader(e, neer); neer = null; } }); // losgelaten buiten het spelveld
 renderer.domElement.addEventListener('pointerup', (e) => {
   if (!neer) return;
   const d = neer; neer = null;
+  if (d.kader && eindKader(e, d)) return;
   if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) return; // dat was slepen
   if (d.knop == 2) { if (G.place) { G.place = null; G.msgT = 0; } return; }
   if (d.knop != 0) return;
@@ -488,18 +515,21 @@ const prijs = (c) => `<span class="prijs">${c[0] ? `<i class="goud"></i>${c[0]}`
 let paneelSleutel = '';
 function tekenPaneel(forceer) {
   const sel = G.sel, b = G.selB, ws = sel.filter((u) => u.k == 'werker');
-  const sleutel = JSON.stringify([sel.map((u) => u.id), b && b.id, b && b.done, b && b.q, G.place && G.place.k, G.L && G.L.bouw.map((k) => canAfford(BLD[k].cost)),
+  const sleutel = JSON.stringify([G.multi, sel.map((u) => u.id), b && b.id, b && b.done, b && b.q, G.place && G.place.k, G.L && G.L.bouw.map((k) => canAfford(BLD[k].cost)),
     ['werker', 'soldaat', 'boog'].map((k) => canAfford(UNIT[k].cost))]);
   if (!forceer && sleutel == paneelSleutel) return vulPaneel();
   paneelSleutel = sleutel;
   const p = $('paneel');
   let h = '';
+  const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
+  h += `<div class="kiesbalk"><button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button><button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
   if (sel.length == 1) {
-    const u = sel[0];
+    const u = sel[0], l = LAND[u.voice && u.voice.lang];
     h += `<div class="kop"><b>${esc(UNIT[u.k].n)}</b><span id="pstatus"></span></div><div class="hp"><div id="php"></div></div>`;
+    if (l) h += `<div class="land"><b>${esc(l.n)}</b>${u.k == 'werker' ? ` met ${esc(l.ding)}: ${esc(l.effect.charAt(0).toLowerCase() + l.effect.slice(1))}` : ''}</div>`;
   } else if (sel.length > 1) {
     const tel = {}; for (const u of sel) tel[u.k] = (tel[u.k] || 0) + 1;
-    h += `<div class="kop"><b>${sel.length} gekozen</b><span>${Object.entries(tel).map(([k, n]) => n + ' ' + UNIT[k].n.toLowerCase() + (n > 1 ? (k == 'werker' ? 's' : k == 'boog' ? 's' : 'en') : '')).join(', ')}</span></div>`;
+    h += `<div class="kop"><b>${sel.length} gekozen</b></div><div class="groep">${Object.entries(tel).map(([k, n]) => `<button data-weg="${k}" title="Haal ze uit de keuze">${esc(meervoud(k, n))} <span>✕</span></button>`).join('')}</div>`;
   }
   if (ws.length && G.L) {
     h += '<div class="knoppen">' + G.L.bouw.map((k) => `<button data-bouw="${k}" class="${canAfford(BLD[k].cost) ? '' : 'duur'} ${G.place && G.place.k == k ? 'actief' : ''}">Bouw ${esc(BLD[k].n.toLowerCase())}${prijs(BLD[k].cost)}</button>`).join('') + '</div>';
@@ -512,8 +542,12 @@ function tekenPaneel(forceer) {
       if (b.q.length) h += `<div class="rij">${b.q.map((k, i) => `<span class="${i ? '' : 'nu'}">${esc(UNIT[k].n)}${i ? '' : '<i id="qbalk"></i>'}</span>`).join('')}</div>`;
     }
   }
-  if (!h) h = '<div class="tip">Klik op een mannetje of gebouw.<br>Ctrl- of Shift-klik: meer mannetjes kiezen.</div>';
+  if (!sel.length && !b) h += '<div class="tip">Klik op een mannetje of gebouw.<br>Ctrl/Shift-klik: meer kiezen of weer weghalen.<br>Shift + slepen: een rechthoek om mannetjes trekken.</div>';
   p.innerHTML = h;
+  p.querySelectorAll('[data-alle]').forEach((el) => el.onclick = () => { unlock(); kiesAlle(el.dataset.alle == '1'); tekenPaneel(true); });
+  p.querySelector('[data-meer]').onclick = () => { G.multi = !G.multi; sClick(); if (G.multi) { G.msg = isTouch ? 'Tik op meer mannetjes om ze toe te voegen of weg te halen.' : 'Klik op meer mannetjes om ze toe te voegen of weg te halen (of houd Ctrl ingedrukt).'; G.msgT = 200; } tekenPaneel(true); };
+  const los = p.querySelector('[data-los]'); if (los) los.onclick = () => { stopKeuze(); sClick(); tekenPaneel(true); };
+  p.querySelectorAll('[data-weg]').forEach((el) => el.onclick = () => { haalWeg(el.dataset.weg); tekenPaneel(true); });
   p.querySelectorAll('[data-bouw]').forEach((el) => el.onclick = () => { unlock(); startPlace(el.dataset.bouw, isTouch); tekenPaneel(true); });
   p.querySelectorAll('[data-train]').forEach((el) => el.onclick = () => { unlock(); if (G.selB) train(G.selB, el.dataset.train); tekenPaneel(true); });
   vulPaneel();
@@ -556,7 +590,7 @@ function tekenTitel() {
   $('moeilijk').querySelectorAll('button').forEach((el) => el.onclick = () => { zetMoeilijkheid(+el.dataset.diff); sClick(); tekenTitel(); });
   $('stemknop').textContent = 'Stemmen: ' + (stemAan() ? 'aan' : 'uit');
   loadVoices();
-  $('stemmen').textContent = 'Stemmen op dit toestel: ' + ['nl', 'en', 'de'].map((l) => l.toUpperCase() + (VOX[l] ? ' ✓' : ' ✗')).join('   ');
+  $('stemmen').textContent = 'Stemmen op dit toestel: ' + ['nl', 'en', 'de', 'it'].map((l) => l.toUpperCase() + (VOX[l] ? ' ✓' : ' ✗')).join('   ');
 }
 $('stemknop').onclick = () => { zetStem(!stemAan()); tekenTitel(); };
 
@@ -567,6 +601,7 @@ function start(i) {
   $('briefniveau').textContent = 'Level ' + (i + 1) + ' · ' + DIFF[G.diff].n;
   $('brieftekst').innerHTML = G.L.brief.map((r) => `<p>${esc(r)}</p>`).join('');
   $('briefdoel').textContent = 'Doel: ' + G.L.doel;
+  $('brieflanden').textContent = 'Je werkers komen uit Nederland, Engeland, Duitsland en Italië. Klik op een werker om te zien wat hij extra kan!';
   toon('brief');
 }
 $('beginknop').onclick = () => { unlock(); primeVoice(); G.state = 'spel'; toon(null); zetPauze(false); tekenPaneel(true); };

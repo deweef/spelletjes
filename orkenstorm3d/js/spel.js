@@ -3,14 +3,14 @@
 // gebouwen staan op tegels (x, y = linkerbovenhoek). De 3D-weergave rekent dat om.
 
 import { UNIT, BLD, DIFF, LEVELS } from './data.js';
-import { unitSay, speak, pick, nieuweStem, sHorn, sDone, sChop, sGold, sHout, sHit, sArrow, sBuild, sClick, sNee, sWin, noise } from './geluid.js';
+import { unitSay, speak, pick, nieuweStem, nieuweZak, sHorn, sDone, sChop, sGold, sHout, sHit, sArrow, sBuild, sClick, sNee, sWin, noise } from './geluid.js';
 
 export const T = 32;
 
 export const G = {
   state: 'titel', lvl: 0, L: null, map: null, MW: 0, MH: 0, trees: {}, mineG: {}, units: [], blds: [], explored: null,
   res: { goud: 0, hout: 0 }, sel: [], selB: null, place: null, msg: '', msgT: 0, t: 0, fx: [], nextWave: 0, waveN: 0,
-  lastAlert: -999, poke: { id: -1, n: 0, t: 0 }, unlocked: 1, paused: false, diff: 1, lostMsg: '', uid: 1,
+  lastAlert: -999, poke: { id: -1, n: 0, t: 0 }, multi: false, unlocked: 1, paused: false, diff: 1, lostMsg: '', uid: 1,
   levelVersie: 0, mapVersie: 0,
 };
 try { G.unlocked = +localStorage.getItem('orkenstorm3d_lvl') || 1; } catch (e) {}
@@ -35,7 +35,8 @@ export function loadLevel(i) {
     if (G.map[y][x] == 'M') { const k = minesKey(x, y); if (!(k in G.mineG)) G.mineG[k] = 2000; }
   }
   const D = DIFF[G.diff];
-  G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = [];
+  G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false;
+  nieuweZak();
   G.res = { goud: Math.round(L.goud * D.res / 10) * 10, hout: Math.round(L.hout * D.res / 10) * 10 };
   G.t = 0; G.waveN = 0; G.nextWave = L.waves ? Math.round(L.waves.first * D.wave) : 0; G.paused = false;
   G.explored = Array.from({ length: G.MH }, () => Array(G.MW).fill(false));
@@ -193,6 +194,20 @@ function nearestTree(x, y) {
 }
 function hall() { return G.blds.find((b) => b.k == 'kasteel' && b.done); }
 
+// Elke werker heeft door zijn land iets extra's (zie LAND in data.js)
+export const land = (u) => u.voice && u.voice.lang;
+function pizzaPauze(u) { // Italiaan deelt pizza uit: geneest mannetjes vlakbij
+  if ((G.t + u.id * 37) % 180) return;
+  const ziek = G.units.filter((o) => o.side == 'h' && o.hp < o.max && dist(o, u) < 2.2 * T);
+  if (!ziek.length) return;
+  for (const o of ziek) {
+    o.hp = Math.min(o.max, o.hp + 4);
+    for (let i = 0; i < 5; i++) G.fx.push({ x: o.x + (Math.random() - 0.5) * 14, y: o.y + (Math.random() - 0.5) * 14, vx: (Math.random() - 0.5) * 0.4, vy: -0.8 - Math.random() * 0.6, h: 10, l: 35, c: '#9ef08a' });
+  }
+  u.deel = 40;
+  if (Math.random() < 0.3) unitSay(u, 'extra');
+}
+
 export function update() {
   G.t++;
   const L = G.L;
@@ -222,6 +237,8 @@ export function update() {
     const d = UNIT[u.k];
     if (u.cd > 0) u.cd--;
     if (u.side == 'o') orcBrain(u);
+    else if (u.k == 'werker' && land(u) == 'it') pizzaPauze(u);
+    if (u.deel > 0) u.deel--;
     else if (u.st == 'idle' && u.k != 'werker') { const e = nearestEnemy(u, d.sight * T); if (e) cmdAttack(u, e); }
     if (u.st == 'move') { if (!u.path || moveAlong(u)) { u.st = 'idle'; u.path = null; } }
     else if (u.st == 'attack') {
@@ -304,17 +321,25 @@ function workerBrain(u) {
     if (!b || !alive(b) || b.done) { nextBuild(u); return; }
     if (targetDist(u, b) > T * 0.8) { if (!u.path || !u.path.length) { if (!goTo(u, ringAround(b.x, b.y, b.w, b.h))) { u.st = 'idle'; return; } } moveAlong(u); return; }
     u.path = null; u.bezig = b;
-    b.prog += 1 / BLD[b.k].time; b.hp = Math.min(b.max, b.hp + b.max / BLD[b.k].time);
+    const tempo = land(u) == 'de' ? 1.3 : 1;
+    b.prog += tempo / BLD[b.k].time; b.hp = Math.min(b.max, b.hp + tempo * b.max / BLD[b.k].time);
     if (G.t % 30 == 0) { u.swing = 12; sBuild(); }
-    if (b.prog >= 1) { b.done = true; b.hp = b.max; sDone(); say(BLD[b.k].n + ' is klaar!', 100); nextBuild(u); }
+    if (b.prog >= 1) { b.done = true; b.hp = b.max; sDone(); say(BLD[b.k].n + ' is klaar!', 100); if (land(u) == 'de' && Math.random() < 0.5) setTimeout(() => unitSay(u, 'extra'), 700); nextBuild(u); }
     return;
   }
   // hout of goud terugbrengen
   if (u.carry) {
     if (!h) { u.st = 'idle'; return; }
     if (targetDist(u, h) > T * 0.8) { if (!u.path || !u.path.length) { if (!goTo(u, ringAround(h.x, h.y, h.w, h.h))) { u.st = 'idle'; return; } } moveAlong(u); return; }
-    G.res[u.carry] += 10; if (u.carry == 'goud') sGold(); else sHout();
+    const extra = u.carry == 'goud' && land(u) == 'nl' ? 2 : 0;
+    G.res[u.carry] += 10 + extra; if (u.carry == 'goud') sGold(); else sHout();
+    if (extra && Math.random() < 0.15) unitSay(u, 'extra');
     u.carry = null; u.path = null; return;
+  }
+  if (land(u) == 'en') { // af en toe theepauze
+    if (u.thee > 0) { u.thee--; u.path = null; return; }
+    if (u.theeKlok === undefined) u.theeKlok = 1800 + Math.random() * 1200;
+    if (!u.inMine && --u.theeKlok <= 0) { u.theeKlok = 2400 + Math.random() * 1200; u.thee = 150; u.hidden = false; unitSay(u, 'extra'); return; }
   }
   if (u.st == 'wood') {
     let [tx, ty] = u.tg;
@@ -331,7 +356,7 @@ function workerBrain(u) {
     }
     u.path = null; u.kijk = { x: tx * T + T / 2, y: ty * T + T / 2 }; u.work = (u.work || 0) + 1;
     if (u.work % 30 == 0) { sChop(); u.swing = 12; G.hak = { k: tx + ',' + ty, t: G.t }; }
-    if (u.work >= 150) {
+    if (u.work >= (land(u) == 'en' ? 115 : 150)) {
       u.work = 0; G.trees[tx + ',' + ty] -= 10;
       if (G.trees[tx + ',' + ty] <= 0) { G.map[ty][tx] = 's'; G.mapVersie++; }
       u.carry = 'hout';
@@ -395,7 +420,25 @@ export function muisBouw(gx, gy) {
   G.place.x = gx - Math.floor((d.w - 1) / 2); G.place.y = gy - Math.floor((d.h - 1) / 2);
 }
 
-export function stopKeuze() { G.place = null; G.sel = []; G.selB = null; }
+export function stopKeuze() { G.place = null; G.sel = []; G.selB = null; G.multi = false; }
+
+// knoppen "Alle werkers" en "Alle soldaten"
+export function kiesAlle(soldaten) {
+  if (G.state != 'spel') return;
+  G.selB = null; G.place = null;
+  G.sel = G.units.filter((u) => u.side == 'h' && (soldaten ? u.k != 'werker' : u.k == 'werker'));
+  if (G.sel.length) { sClick(); unitSay(G.sel[0], 'samen'); } else say(soldaten ? 'Je hebt nog geen soldaten. Bouw een kazerne!' : 'Je hebt geen werkers. Train ze in het kasteel.');
+}
+// een rechthoek over de mannetjes getrokken
+export function kiesGroep(lijst, erbij) {
+  const eigen = lijst.filter((u) => u.side == 'h');
+  if (!eigen.length) return;
+  G.selB = null; G.place = null;
+  G.sel = erbij ? [...new Set([...G.sel, ...eigen])] : eigen;
+  sClick(); unitSay(eigen[0], eigen.length > 1 ? 'samen' : eigen[0].k == 'werker' ? 'werker' : 'krijger');
+}
+// één soort uit de keuze halen
+export function haalWeg(k) { G.sel = G.sel.filter((u) => u.k != k); if (!G.sel.length) G.multi = false; sClick(); }
 
 function assignBuild(w, b) {
   if (w.st == 'build' && w.tg && alive(w.tg) && !w.tg.done && w.tg != b) { (w.bq = w.bq || []).push(b); return; }
@@ -451,7 +494,7 @@ export function klik(p) {
     return;
   }
   if (hitU && hitU.side == 'h') {
-    if (p.mod && G.sel.length) {
+    if ((p.mod || G.multi) && G.sel.length) {
       G.selB = null;
       if (G.sel.includes(hitU)) G.sel = G.sel.filter((s) => s != hitU);
       else { G.sel.push(hitU); unitSay(hitU, hitU.k == 'werker' ? 'werker' : 'krijger'); }
@@ -492,6 +535,7 @@ export function klik(p) {
 }
 
 export function statusTekst(u) {
+  if (u.thee > 0) return 'drinkt een kopje thee';
   if (u.hidden) return 'is in de mijn';
   if (u.carry) return u.carry == 'goud' ? 'brengt goud naar het kasteel' : 'brengt hout naar het kasteel';
   return { idle: 'staat te wachten', move: 'loopt', wood: 'hakt hout', gold: 'gaat goud halen', build: 'bouwt', attack: 'valt aan', raid: 'valt aan' }[u.st] || '';

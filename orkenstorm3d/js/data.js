@@ -76,5 +76,13 @@ export const LEVELS = [
   },
 ];
 
+// Waar de mannetjes vandaan komen: wat ze vasthouden en wat werkers extra kunnen
+export const LAND = {
+  nl: { n: 'Nederlander', ding: 'een kaasje', effect: 'Zuinig: brengt 2 goud extra mee uit de mijn' },
+  en: { n: 'Engelsman', ding: 'een kopje thee', effect: 'Hakt sneller hout, maar houdt af en toe theepauze' },
+  de: { n: 'Duitser', ding: 'een pul', effect: 'Grondig: bouwt sneller' },
+  it: { n: 'Italiaan', ding: 'een pizza', effect: 'Deelt pizza uit: geneest gewonde mannetjes vlakbij' },
+};
+
 // Levels uit de 2D-versie die nog naar 3D moeten
 export const BINNENKORT = ['De orks komen eraan', 'De gevangen werkers', 'De Donkere Mijnen', 'Het Woud van Elwynn', 'De belegerde abdij'];

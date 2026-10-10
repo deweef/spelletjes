@@ -50,8 +50,8 @@ export const stemAan = () => voiceOn;
 export function zetStem(aan) { voiceOn = aan; try { localStorage.setItem('orkenstorm_stem', aan ? 'aan' : 'uit'); } catch (e) {} }
 
 let lastSpeak = 0;
-const LANGS = { nl: 'nl-NL', en: 'en-GB', de: 'de-DE' };
-export const VOX = { nl: null, en: null, de: null };
+const LANGS = { nl: 'nl-NL', en: 'en-GB', de: 'de-DE', it: 'it-IT' };
+export const VOX = { nl: null, en: null, de: null, it: null };
 let voicePrimed = false;
 
 export function loadVoices() {
@@ -62,6 +62,7 @@ export function loadVoices() {
   VOX.nl = find('nl-nl', 'nl-be') || vs.find((v) => L(v).startsWith('nl')) || null;
   VOX.en = find('en-gb', 'en-us', 'en-au', 'en-ie') || vs.find((v) => L(v).startsWith('en')) || null;
   VOX.de = find('de-de', 'de-at', 'de-ch') || vs.find((v) => L(v).startsWith('de')) || null;
+  VOX.it = find('it-it', 'it-ch') || vs.find((v) => L(v).startsWith('it')) || null;
 }
 if ('speechSynthesis' in window) {
   loadVoices();
@@ -94,26 +95,36 @@ const VOICES = {
     prik: ['Stop poking me!', 'Hey! That tickles!'], bouw: ['Building it now!', 'Work, work!'], hout: ['Chopping wood!', 'To the forest!'], goud: ['To the mine!', 'Gold, gold!'], samen: ['All ready!'] },
   de: { werker: ['Ja?', 'Zu Diensten!', 'Was soll ich tun?', 'Jawohl?'], krijger: ['Bereit zum Kampf!', 'Jawohl, Herr!', 'Für den König!'], boog: ['Bogen bereit!', 'Ich sehe alles!', 'Ja?'],
     werkerGo: ['Ich mache es!', 'Sofort!', 'Jawohl!'], krijgerGo: ['Unterwegs!', 'Verstanden!', 'Jawohl!'], aanval: ['Angriff!', 'Vorwärts!', 'Für den König!'], werkerAanval: ['Äh... na gut!', 'Muss das sein?'],
-    prik: ['Hör auf mich zu stupsen!', 'He! Das kitzelt!'], bouw: ['Ich baue!', 'An die Arbeit!'], hout: ['Holz hacken!', 'Ab in den Wald!'], goud: ['Zur Mine!', 'Gold suchen!'], samen: ['Alle bereit!'] },
+    prik: ['Hör auf mich zu stupsen!', 'He! Das kitzelt!'], bouw: ['Ich baue!', 'An die Arbeit!'], hout: ['Holz hacken!', 'Ab in den Wald!'], goud: ['Zur Mine!', 'Gold suchen!'], samen: ['Alle bereit!'],
+    extra: ['Wunderbar!', 'Gründlich gebaut!', 'Fertig!'] },
+  it: { werker: ['Sì?', 'Pronto!', 'Che cosa faccio?', 'Eccomi!'], krijger: ['Pronto per la battaglia!', 'Sì, signore!', 'Per il re!'], boog: ['Arco pronto!', 'Vedo tutto!', 'Sì?'],
+    werkerGo: ['Subito!', 'Vado!', 'Va bene!'], krijgerGo: ['Andiamo!', 'Capito!', 'Sì!'], aanval: ["All'attacco!", 'Avanti!', 'Per il re!'], werkerAanval: ['Ehm... va bene!', 'Devo proprio?'],
+    prik: ['Basta toccarmi!', 'Mamma mia, che fastidio!'], bouw: ['Costruisco!', 'Al lavoro!'], hout: ['Taglio la legna!', 'Al bosco!'], goud: ['Alla miniera!', 'Oro, oro!'], samen: ['Tutti pronti!'],
+    extra: ['Pizza per tutti!', 'Mamma mia!', 'Mangia, mangia!'] },
 };
+VOICES.nl.extra = ['Zuinig, hè!', 'Weer wat extra goud!', 'Lekker kaasje!'];
+VOICES.en.extra = ['Tea time!', 'Lovely cup of tea!', 'Splendid!'];
 
 export const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
-// elke stem is voor 1/3 Nederlands, Engels of Duits (als het toestel die stem heeft)
-export function pickLang() {
-  loadVoices();
-  const ok = ['nl', 'en', 'de'].filter((l) => VOX[l]);
-  if (!ok.length) return pick(['nl', 'nl', 'en', 'de']);
-  return pick(ok);
+// Elk mannetje komt uit Nederland, Engeland, Duitsland of Italië: om de beurt uit een geschudde zak,
+// zodat de landen eerlijk verdeeld zijn (en niet toevallig iedereen Duits is).
+export const LANDEN = ['nl', 'en', 'de', 'it'];
+let zak = [];
+export function nieuwLand() {
+  if (!zak.length) { zak = [...LANDEN]; for (let i = zak.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [zak[i], zak[j]] = [zak[j], zak[i]]; } }
+  return zak.pop();
 }
+export function nieuweZak() { zak = []; }
 
 export function nieuweStem(k) {
-  return { lang: pickLang(), pitch: k == 'werker' ? 0.9 + Math.random() * 0.8 : 0.45 + Math.random() * 0.7 };
+  return { lang: nieuwLand(), pitch: k == 'werker' ? 0.9 + Math.random() * 0.8 : 0.45 + Math.random() * 0.7 };
 }
 
+// Een mannetje praat altijd zijn eigen taal. Heeft het toestel die stem niet, dan leest de standaardstem
+// de zin voor (met een grappig accent).
 export function unitSay(u, key) {
   if (!u) return;
-  if (u.voice && !VOX[u.voice.lang] && Object.values(VOX).some(Boolean)) u.voice.lang = pickLang();
   if (!u.voice) u.voice = nieuweStem(u.k);
   const v = VOICES[u.voice.lang];
   speak(pick(v[key] || v.werker), u.voice.pitch, u.voice.lang);

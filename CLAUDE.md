@@ -39,20 +39,31 @@ Opbouw:
 - `js/spel.js`: de spelregels (paden, werkers, bouwen, trainen, vechten, golven, winnen/verliezen).
   Posities van mannetjes in pixels (32 per tegel), net als in 2D, zodat regels makkelijk over te nemen zijn.
 - `js/modellen.js`: de 3D-modellen. Nu zelfgemaakt van blokjes en kegels.
-- `js/geluid.js`: geluidjes en stemmen (Nederlands/Engels/Duits, elk 1/3).
+- `js/geluid.js`: geluidjes en stemmen. Elk mannetje komt uit Nederland, Engeland, Duitsland of Italië
+  (om de beurt uit een geschudde zak, dus eerlijk verdeeld) en praat altijd zijn eigen taal.
 - `js/main.js`: 3D-weergave, camera, muis/toetsen, bovenbalk en paneel.
 - `lib/`: three.js r160 (`three.module.js`) en `OrbitControls.js`, lokaal (geen CDN) zodat het offline
   werkt. Blijf bij deze versie; nieuwe three-onderdelen ook uit r160 halen (npm: `three@0.160.0`).
 - Kleuren: r160 doet het kleurbeheer zelf (sRGB). Geef kleuren gewoon als hex op; alleen
   canvas-texturen krijgen `texture.colorSpace = THREE.SRGBColorSpace`.
 
+Landen (eigen aan de 3D-versie, zie `LAND` in `js/data.js`): werkers houden iets uit hun land vast en
+kunnen iets extra's:
+- Nederlander, kaasje: zuinig, brengt 2 goud extra mee per vracht.
+- Engelsman, kopje thee: hakt sneller hout, maar houdt af en toe theepauze.
+- Duitser, pul: grondig, bouwt sneller.
+- Italiaan, pizza: deelt pizza uit en geneest gewonde mannetjes vlakbij.
+
 Spelregels: neem ze over uit `orkenstorm.html`: werkers hakken hout en halen goud, boerderijen geven
 voedsel, kasteel/kazerne/stal trainen eenheden met een wachtrij, torens schieten, orks vallen in golven
 aan, moeilijkheid Makkelijk/Normaal/Moeilijk, de levels en hun doelen, wolken over onontdekt gebied.
+Stemmen zijn wel anders dan in 2D: daar Nederlands/Engels/Duits, hier ook Italiaans (zie hierboven).
 
 Besturing:
 - Laptop eerst (dit is de pc-versie), maar het moet op een telefoon niet crashen.
-- Linkermuis: kiezen en opdrachten geven. Ctrl/Shift-klik: meer kiezen. Links slepen: camera draaien.
+- Linkermuis: kiezen en opdrachten geven. Ctrl/Shift-klik: meer kiezen of weer weghalen. Shift + slepen:
+  rechthoek om mannetjes trekken. Knoppen in het paneel: Alle werkers, Alle soldaten, Meer kiezen
+  (voor aanraken), Loslaten, en per soort ✕ om ze uit de keuze te halen. Links slepen: camera draaien.
   Rechts slepen: schuiven. Scrollen: zoomen. Pijltjes/WASD: schuiven.
 - Toetsen: P = pauze, Escape = selectie loslaten. Rechts klikken tijdens bouwen = stoppen met bouwen.
 

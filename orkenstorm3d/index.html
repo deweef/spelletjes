@@ -13,7 +13,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#0b0d16;color:var(--pe
 #wereld{position:fixed;inset:0}
 #wereld canvas{display:block}
 [hidden]{display:none!important}
-.terug{position:fixed;z-index:30;top:calc(8px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);border:1.5px solid var(--rand);color:var(--perkament);font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none}
+.terug{position:fixed;z-index:60;top:calc(8px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);border:1.5px solid var(--rand);color:var(--perkament);font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none}
 .terug:focus-visible,button:focus-visible{outline:2px solid var(--perkament);outline-offset:2px}
 button{font:inherit;color:inherit;cursor:pointer}
 
@@ -75,6 +75,16 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
 .label{display:inline-block;background:#c0462f;color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .tekstknop{background:none;border:0;color:#d9c49a;text-decoration:underline;font-size:13px;margin-top:6px}
 #pauze .kaart{width:auto}
+.kiesbalk{display:flex;flex-wrap:wrap;gap:5px;margin:-2px 0 8px}
+.kiesbalk button,.groep button{background:#3a2d20;border:1px solid rgba(246,223,168,.3);border-radius:7px;padding:4px 8px;font-size:12.5px;font-weight:700}
+.kiesbalk button:hover,.groep button:hover{border-color:var(--goud)}
+.kiesbalk button.actief{background:#2f6b2c;border-color:#7dff7a}
+.groep{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}
+.groep span{color:#ff9a8a;margin-left:3px}
+.land{font-size:12.5px;color:#d9c49a;margin:-2px 0 4px;line-height:1.4}
+.land b{color:var(--perkament)}
+#kader{position:fixed;z-index:25;border:1.5px solid #7dff7a;background:rgba(125,255,122,.12);pointer-events:none}
+#brieflanden{font-size:13.5px;color:#d9c49a;margin:8px 0 0;line-height:1.4}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.js"}}</script>
 </head>
@@ -94,9 +104,10 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
   </div>
   <div id="melding"></div>
   <div id="paneel"></div>
+  <div id="kader" hidden></div>
   <div id="hulp">
     <b>Links klikken</b>: kiezen en opdrachten geven<br>
-    <b>Ctrl/Shift-klik</b>: meer kiezen<br>
+    <b>Ctrl/Shift-klik</b>: meer kiezen · <b>Shift+slepen</b>: rechthoek<br>
     <b>Links slepen</b>: draaien · <b>Rechts slepen</b>: schuiven<br>
     <b>Scrollen</b>: zoomen · <b>Pijltjes/WASD</b>: schuiven<br>
     <b>P</b>: pauze · <b>Esc</b>: loslaten
@@ -121,6 +132,7 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
     <h2 id="briefnaam"></h2>
     <div id="brieftekst"></div>
     <p id="briefdoel"></p>
+    <p id="brieflanden"></p>
     <button id="beginknop" class="groot goud">Begin!</button>
   </div>
 </div>

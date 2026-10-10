@@ -43,7 +43,7 @@ const KLEDING = {
   speerork: { romp: '#7a5530', broek: '#3e2d1c', huid: '#6aab45' },
 };
 
-export function maakMannetje(k, side) {
+export function maakMannetje(k, side, land) {
   const kl = KLEDING[k] || KLEDING.werker;
   const huid = kl.huid || HUID;
   const g = new THREE.Group();
@@ -77,6 +77,8 @@ export function maakMannetje(k, side) {
     // lading: blok hout of goudklomp
     p.hout = cil(0.06, 0.06, 0.34, '#8b5a2b', 0, 0.5, -0.16, 7); p.hout.rotation.z = Math.PI / 2; lijf.add(p.hout);
     p.goud = steen(0.08, '#f2c53d', 0, 0.48, -0.15); lijf.add(p.goud);
+    // iets uit zijn land in de linkerhand
+    if (LANDDING[land]) { const d = LANDDING[land](); d.position.set(0, -0.27, 0.07); d.scale.setScalar(1.4); p.armL.add(d); p.ding = d; }
   } else if (k == 'soldaat') {
     lijf.add(cil(0.125, 0.13, 0.1, '#9aa3ad', 0, 0.75, 0, 10));
     lijf.add(kegel(0.13, 0.1, '#9aa3ad', 0, 0.85, 0, 10));
@@ -116,6 +118,40 @@ export function maakMannetje(k, side) {
   p.ring.position.y = 0.02; p.ring.visible = false; g.add(p.ring);
   return { g, lijf, p };
 }
+
+// Wat werkers uit hun land meenemen
+const LANDDING = {
+  it() { // pizza
+    const g = new THREE.Group();
+    g.add(cil(0.13, 0.13, 0.025, '#e2b065', 0, 0, 0.06, 14));
+    g.add(cil(0.11, 0.11, 0.03, '#d2412c', 0, 0.002, 0.06, 14));
+    for (const [x, z] of [[0.05, 0.02], [-0.04, 0.05], [0.0, -0.05], [-0.06, -0.02], [0.06, 0.09], [-0.01, 0.12]]) g.add(cil(0.022, 0.022, 0.035, '#8a1f1a', x, 0.005, 0.06 + z - 0.04, 8));
+    for (const [x, z] of [[0.02, 0.07], [-0.07, 0.07], [0.07, -0.0]]) g.add(doos(0.03, 0.036, 0.03, '#f4e7b0', x, 0.005, z));
+    g.rotation.x = 0.15; return g;
+  },
+  nl() { // kaasje
+    const g = new THREE.Group();
+    g.add(cil(0.09, 0.09, 0.07, '#f2c230', 0, 0, 0.05, 12));
+    g.add(cil(0.092, 0.092, 0.02, '#e3a91c', 0, 0, 0.05, 12));
+    return g;
+  },
+  de() { // pul met schuim
+    const g = new THREE.Group();
+    g.add(cil(0.048, 0.044, 0.13, '#e8a524', 0, 0.06, 0.05, 10));
+    g.add(bol(0.05, '#fffbe8', 0, 0.13, 0.05, 1));
+    const oor = mesh(geo('oor', () => new THREE.TorusGeometry(0.03, 0.01, 4, 8, Math.PI)), '#f3c45a');
+    oor.rotation.z = -Math.PI / 2; oor.position.set(0.048, 0.06, 0.05); g.add(oor);
+    return g;
+  },
+  en() { // kopje thee op een schoteltje
+    const g = new THREE.Group();
+    g.add(cil(0.07, 0.07, 0.012, '#ffffff', 0, 0, 0.05, 12));
+    g.add(cil(0.045, 0.035, 0.06, '#ffffff', 0, 0.035, 0.05, 10));
+    g.add(cil(0.04, 0.04, 0.005, '#9a5b2a', 0, 0.064, 0.05, 10));
+    g.add(doos(0.012, 0.03, 0.03, '#ffffff', 0.05, 0.035, 0.05));
+    return g;
+  },
+};
 
 // ---------- gebouwen ----------
 const STEEN = '#bdb6aa', STEEN2 = '#9a9387', HOUT = '#8b5a2b', DONKER = '#2b2420';
