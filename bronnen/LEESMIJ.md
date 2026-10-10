@@ -20,6 +20,7 @@ Uploaden: in GitHub **Add file → Upload files**, een paar zips per keer (max. 
 | modular-cave-kit | Orkenstorm 3D (De Donkere Mijnen) | grotgangen voor de mijn |
 | pirate-kit | Piratenbluf 3D | schip, kanonnen, schatkist, palmbomen |
 | food-kit | Koekjesschuiver 3D | koekjes en ander lekkers |
+| train-kit | later, bijvoorbeeld een treinspel | treinen, rails, stationnetjes |
 
 Niet nodig: prototype-kit (grijze testblokken), blocky-characters (moderne poppetjes, passen niet),
-hexagon-kit, train-kit, modular-dungeon-kit (mini-dungeon en modular-cave-kit zijn genoeg).
+hexagon-kit, modular-dungeon-kit (mini-dungeon en modular-cave-kit zijn genoeg).
