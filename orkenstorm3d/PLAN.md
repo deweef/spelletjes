@@ -1,5 +1,7 @@
 # Plan Orkenstorm 3D en de site (afgesproken met Marcel)
 
+Doelgroep: gezin met tieners (14+); humor mag stout zijn (zie CLAUDE.md).
+
 Volgorde van bouwen:
 
 ## 1. Naam en voortgang per speler (op de startpagina)
@@ -18,7 +20,9 @@ Volgorde van bouwen:
   - iemand moet plassen achter een boom ("Ga maar vast!") en komt niet terug (mag van Marcel)
   - iemand ziet een eekhoorn en rent erachteraan
   - Fransman eet zijn stokbrood op en krijgt buikpijn
-  - Duitser wordt duizelig van zijn pul en zwalkt terug ("Hik!") - luchtig houden, familiespel
+  - Duitser wordt dronken van zijn bier en zwalkt zigzaggend terug ("Hik! Prost!")
+  - Nederlander steekt een "kruidensigaretje" op, krijgt de slappe lach in een groen wolkje, eet van de
+    vreetkick zijn hele kaasje op en loopt giechelend de verkeerde kant op
   - Engelsman gaat eerst thee drinken, Italiaan blijft bij zijn pizza
 - Daarna een tekstkaart die naar het volgende level leidt. Ideeën per overgang:
   - intro level 1: de koning geeft je een stukje land

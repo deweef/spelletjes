@@ -2,8 +2,9 @@
 
 ## Wat dit is
 Een familie-app met browserspelletjes, gehost via GitHub Pages op https://deweef.github.io/spelletjes/.
-Alles in het Nederlands (teksten, knoppen, uitleg). De spelers zijn een gezin met kinderen: houd het
-vrolijk, eerlijk en niet eng.
+Alles in het Nederlands (teksten, knoppen, uitleg). De spelers zijn een gezin met tieners (14+): vrolijk en
+eerlijk, en de humor mag best stout (knipogen naar bier, blowen, plassen in het bos). Niet grof of gemeen, en
+bedenk dat de site openbaar is.
 
 ## Hoe de site werkt (niet kapotmaken)
 - `index.html` is de startpagina. Hij leest `spellen.json` en toont per spel een tegel. Onderaan staat
