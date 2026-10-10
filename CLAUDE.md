@@ -69,7 +69,8 @@ Besturing:
 
 ### Kenney-modellen (nog te doen)
 Het plan is de zelfgemaakte modellen te vervangen door Kenney-pakketten (CC0). kenney.nl is vanuit de
-cloudomgeving niet bereikbaar: de zips moeten in `orkenstorm3d/bronnen/` geüpload worden. Gebruik dan de
+cloudomgeving niet bereikbaar: alle Kenney-zips staan in de centrale map `bronnen/` (zie `bronnen/LEESMIJ.md`
+voor welk pakket bij welk spel hoort; zips die in de hoofdmap geüpload worden, daarheen verplaatsen). Gebruik dan de
 bestanden uit `Models/GLB format/` plus de bijbehorende `Textures/`-map en kopieer alleen wat het spel
 echt gebruikt naar `orkenstorm3d/assets/`. GLTFLoader en SkeletonUtils komen uit three r160
 (`examples/jsm/`).
