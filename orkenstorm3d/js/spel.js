@@ -58,6 +58,7 @@ function addUnit(k, tx, ty) {
   const d = UNIT[k], hm = d.side == 'o' ? DIFF[G.diff].hp : 1;
   const u = { id: G.uid++, voice: d.side == 'h' ? nieuweStem(k) : null, k, side: d.side, x: tx * T + T / 2, y: ty * T + T / 2,
     hp: Math.round(d.hp * hm), max: Math.round(d.hp * hm), st: 'idle', path: null, cd: 0, carry: null, swing: 0 };
+  if (d.side == 'h' && Math.random() < 1 / 6) u.rolstoel = true; // af en toe rijdt er iemand in een rolstoel
   G.units.push(u); return u;
 }
 
@@ -192,6 +193,37 @@ function nearestTree(x, y) {
   }
   return best;
 }
+// Nieuwe mannetjes komen op het vakje naast het gebouw waar nog het minst staat (liefst aan de voorkant)
+function vrijePlek(b) {
+  let best = null, bs = 1e9;
+  for (const k of ringAround(b.x, b.y, b.w, b.h)) {
+    const [x, y] = k.split(',').map(Number);
+    const n = G.units.filter((u) => tileOf(u)[0] == x && tileOf(u)[1] == y).length;
+    const score = n * 10 + (y >= b.y + b.h ? 0 : 1) + Math.abs(x - (b.x + (b.w - 1) / 2)) * 0.1;
+    if (score < bs) { bs = score; best = [x, y]; }
+  }
+  return best;
+}
+
+// Mannetjes die niets te doen hebben schuiven zachtjes opzij, zodat ze niet in elkaar staan
+function uitElkaar() {
+  const us = G.units;
+  for (let i = 0; i < us.length; i++) {
+    const a = us[i]; if (a.hidden) continue;
+    for (let j = i + 1; j < us.length; j++) {
+      const b = us[j]; if (b.hidden) continue;
+      const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+      if (d >= 16) continue;
+      const nx = d > 0.01 ? dx / d : Math.cos(i + j), ny = d > 0.01 ? dy / d : Math.sin(i + j), duw = (16 - d) * 0.06;
+      for (const [u, f] of [[a, -1], [b, 1]]) {
+        if (u.st != 'idle' || (u.path && u.path.length)) continue; // alleen wie niets te doen heeft schuift opzij
+        const x = u.x + nx * duw * f, y = u.y + ny * duw * f;
+        if (!blocked(Math.floor(x / T), Math.floor(y / T))) { u.x = x; u.y = y; }
+      }
+    }
+  }
+}
+
 function hall() { return G.blds.find((b) => b.k == 'kasteel' && b.done); }
 
 // Elke werker heeft door zijn land iets extra's (zie LAND in data.js)
@@ -217,8 +249,8 @@ export function update() {
     if (b.q.length) {
       b.qp++; const k = b.q[0];
       if (b.qp >= UNIT[k].time) {
-        const ring = [...ringAround(b.x, b.y, b.w, b.h)];
-        if (ring.length) { const [x, y] = ring[Math.floor(ring.length / 2)].split(',').map(Number); addUnit(k, x, y); sDone(); say(UNIT[k].n + ' is klaar!', 90); }
+        const plek = vrijePlek(b);
+        if (plek) { addUnit(k, plek[0], plek[1]); sDone(); say(UNIT[k].n + ' is klaar!', 90); }
         b.q.shift(); b.qp = 0;
       }
     }
@@ -265,6 +297,7 @@ export function update() {
     } else if (u.st == 'wood' || u.st == 'gold' || u.st == 'build') workerBrain(u);
     if (u.swing > 0) u.swing--;
   }
+  uitElkaar();
   // golven (vanaf level 2)
   if (L.waves && S.huts() > 0 && G.t >= G.nextWave) {
     G.nextWave = G.t + Math.round(L.waves.every * DIFF[G.diff].wave); G.waveN++;
@@ -377,7 +410,7 @@ function workerBrain(u) {
       return;
     }
     if (targetDist(u, { x: mx, y: my, w: 2, h: 2 }) > T * 0.8) { if (!u.path || !u.path.length) { if (!goTo(u, ringAround(mx, my, 2, 2))) { u.st = 'idle'; return; } } moveAlong(u); return; }
-    u.path = null; u.inMine = 100; u.hidden = true;
+    u.path = null; u.inMine = land(u) == 'fr' ? 60 : 100; u.hidden = true;
   }
 }
 

@@ -57,7 +57,7 @@ const wx = (px) => px / T, wz = (py) => py / T;
 // ---------- de wereld van een level opbouwen ----------
 let wereld = null, gebouwdVersie = -1, kaartVersie = -1;
 let grond = null, grondCanvas = null, grondTex = null;
-let bomen = null; // { stam, kruin1, kruin2, stronk, keys: [], weg: [] }
+let bomen = null; // { keys, basis, lagen (per soort de InstancedMeshes), stronken, weg, schud }
 let wolken = null; // { mesh, schaal: Float32Array, pos: [] }
 const mijnen = []; // { key, goud }
 const pickables = [];
@@ -103,6 +103,7 @@ function tekenGrond() {
 function bouwWereld() {
   if (wereld) { scene.remove(wereld); gooiWeg(wereld); }
   for (const [, m] of uMesh) scene.remove(m.g); uMesh.clear();
+  for (const m of stervend) scene.remove(m.g); stervend.length = 0;
   for (const [, m] of bMesh) scene.remove(m.g); bMesh.clear();
   for (const [, m] of fxMesh) scene.remove(m); fxMesh.clear();
   wereld = new THREE.Group(); scene.add(wereld);
@@ -141,30 +142,34 @@ function bouwWereld() {
     if (r() < 0.75) sier.push([x, y]);
   }
   const alle = [...keys.map((k) => k.split(',').map(Number)), ...sier];
-  const n = alle.length;
-  const stamGeo = M.boomStam(), k1 = M.boomKruin1(), k2 = M.boomKruin2();
-  const stam = new THREE.InstancedMesh(stamGeo, new THREE.MeshLambertMaterial({ color: '#7a5230', flatShading: true }), n);
-  const kruin1 = new THREE.InstancedMesh(k1, new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }), n);
-  const kruin2 = new THREE.InstancedMesh(k2, new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }), n);
-  const strk = new THREE.InstancedMesh(M.stronk(), new THREE.MeshLambertMaterial({ color: '#8b6a40', flatShading: true }), keys.length || 1);
+  // elke boom krijgt een soort; per soort en per deel één InstancedMesh
+  const soorten = M.boomSoorten();
+  const perSoort = soorten.map(() => []);
   const basis = [];
-  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), kl = new THREE.Color();
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3();
   alle.forEach(([x, y], i) => {
-    const s = 0.85 + r() * 0.4;
+    const si = Math.floor(r() * soorten.length), s = 0.85 + r() * 0.35;
     ps.set(x + 0.5 + (r() - 0.5) * 0.25, 0, y + 0.5 + (r() - 0.5) * 0.25);
     q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), r() * 6.28);
-    sc.set(s, s * (0.9 + r() * 0.3), s);
-    m4.compose(ps, q, sc);
-    stam.setMatrixAt(i, m4); kruin1.setMatrixAt(i, m4); kruin2.setMatrixAt(i, m4);
-    basis.push({ p: ps.clone(), q: q.clone(), s: sc.clone() });
-    kl.setHSL(0.27 + r() * 0.07, 0.45 + r() * 0.15, 0.27 + r() * 0.08);
-    kruin1.setColorAt(i, kl); kl.offsetHSL(0, 0, 0.05); kruin2.setColorAt(i, kl);
-    if (i < keys.length) { m4.compose(ps, q, new THREE.Vector3(0, 0, 0)); strk.setMatrixAt(i, m4); }
+    sc.set(s, s * (0.9 + r() * 0.25), s);
+    basis.push({ p: ps.clone(), q: q.clone(), s: sc.clone(), si, idx: perSoort[si].length });
+    perSoort[si].push(i);
   });
-  for (const im of [stam, kruin1, kruin2]) { im.castShadow = true; im.receiveShadow = true; im.userData = { eigenGeo: 1, eigenMat: 1, bomen: keys }; wereld.add(im); }
-  strk.userData = { eigenGeo: 1, eigenMat: 1 }; strk.castShadow = true; wereld.add(strk);
-  pickables.push(stam, kruin1, kruin2);
-  bomen = { stam, kruin1, kruin2, strk, keys, basis, weg: new Array(keys.length).fill(false), schud: new Float32Array(keys.length) };
+  const lagen = soorten.map((delen, si) => delen.map((d) => {
+    const im = new THREE.InstancedMesh(d.geo, d.mat, Math.max(1, perSoort[si].length));
+    im.count = perSoort[si].length;
+    perSoort[si].forEach((i, j) => { const b = basis[i]; m4.compose(b.p, b.q, b.s); im.setMatrixAt(j, m4); });
+    im.castShadow = true; im.receiveShadow = true;
+    im.userData = { bomen: perSoort[si].map((i) => (i < keys.length ? keys[i] : null)) };
+    wereld.add(im); pickables.push(im);
+    return im;
+  }));
+  const stronken = M.stronkDelen().map((d) => {
+    const im = new THREE.InstancedMesh(d.geo, d.mat, Math.max(1, keys.length));
+    m4.makeScale(0, 0, 0); for (let i = 0; i < keys.length; i++) im.setMatrixAt(i, m4);
+    im.castShadow = true; wereld.add(im); return im;
+  });
+  bomen = { keys, basis, lagen, stronken, weg: new Array(keys.length).fill(false), schud: new Float32Array(keys.length) };
 
   // goudmijnen
   for (const key in G.mineG) {
@@ -179,6 +184,7 @@ function bouwWereld() {
   const r2 = rnd(23);
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) wpos.push({ x, y, ox: (r2() - 0.5) * 0.4, oz: (r2() - 0.5) * 0.4, s: 1 + r2() * 0.5, h: 1.7 + r2() * 0.6, f: r2() * 6.28 });
   const wm = new THREE.InstancedMesh(M.wolk(), new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }), wpos.length);
+  const kl = new THREE.Color();
   wpos.forEach((w, i) => { kl.setHSL(0.6, 0.15, 0.9 + r2() * 0.1); wm.setColorAt(i, kl); });
   wm.userData = { eigenGeo: 1, eigenMat: 1 };
   wereld.add(wm);
@@ -231,7 +237,7 @@ function syncMannetjes(nu) {
     gezien.add(u.id);
     let m = uMesh.get(u.id);
     if (!m) {
-      m = M.maakMannetje(u.k, u.side, u.voice && u.voice.lang);
+      m = M.maakMannetje(u.k, u.side, u.voice && u.voice.lang, u.rolstoel);
       m.g.scale.multiplyScalar(1.3);
       m.balk = maakBalk(0.5); m.balk.position.y = 1.05; m.g.add(m.balk);
       m.px = u.x; m.py = u.y; m.rot = u.side == 'o' ? 0 : Math.PI; m.loop = 0;
@@ -252,7 +258,50 @@ function syncMannetjes(nu) {
       m.rot += d * 0.25; m.g.rotation.y = m.rot;
     }
     m.px = u.x; m.py = u.y;
-    // lopen
+    const gekozen = G.sel.includes(u);
+    if (m.kenney) animeer(m, u, beweegt, gekozen);
+    else poppetje(m, u, beweegt);
+    if (m.p.hout) { m.p.hout.visible = u.carry == 'hout'; m.p.goud.visible = u.carry == 'goud'; }
+    m.p.ring.visible = gekozen;
+    m.gekozen = gekozen;
+    m.balk.visible = gekozen || u.hp < u.max;
+    if (m.balk.visible) zetBalk(m.balk, u.hp / u.max, u.side);
+  }
+  for (const [id, m] of uMesh) if (!gezien.has(id)) {
+    uMesh.delete(id);
+    if (m.kenney && m.acties.die) { // eerst omvallen, dan weg
+      m.balk.visible = false; m.p.ring.visible = false;
+      speel(m, 'die', true); m.weg = nu + 1600; stervend.push(m);
+    } else scene.remove(m.g);
+  }
+  for (let i = stervend.length - 1; i >= 0; i--) if (nu > stervend[i].weg) { scene.remove(stervend[i].g); stervend.splice(i, 1); }
+}
+
+// Kenney-animaties: lopen, rusten, hakken/bouwen/vechten, theedrinken en "ja!" als je hem kiest
+function speel(m, naam, eenmaal) {
+  const a = m.acties[naam]; if (!a) return;
+  if (m.huidig === a && !eenmaal) return;
+  a.reset();
+  a.setLoop(eenmaal ? THREE.LoopOnce : THREE.LoopRepeat, eenmaal ? 1 : Infinity);
+  a.clampWhenFinished = !!eenmaal;
+  a.fadeIn(0.15).play();
+  if (m.huidig && m.huidig !== a) m.huidig.fadeOut(0.15);
+  m.huidig = a;
+  m.eenmaalTot = eenmaal ? performance.now() + a.getClip().duration * 1000 * 0.9 : 0;
+}
+function animeer(m, u, beweegt, gekozen) {
+  const nu = performance.now();
+  if (u.rolstoel) { speel(m, beweegt ? 'wheelchair-move-forward' : 'wheelchair-sit'); return; }
+  if (u.swing > (m.vorigeSwing || 0)) speel(m, u.st == 'build' ? 'interact-right' : 'attack-melee-right', true);
+  m.vorigeSwing = u.swing;
+  if (gekozen && !m.gekozen && !beweegt && u.st == 'idle') speel(m, 'emote-yes', true);
+  if (nu < m.eenmaalTot) return;
+  if (u.thee > 0 || u.deel > 0) speel(m, 'holding-left');
+  else speel(m, beweegt ? 'walk' : 'idle');
+}
+
+// eigen blokjespoppetje (als de Kenney-modellen niet geladen zijn)
+function poppetje(m, u, beweegt) {
     m.loop = beweegt ? m.loop + 0.28 : m.loop * 0.8;
     const sw = beweegt ? Math.sin(m.loop) * 0.6 : 0;
     m.p.beenL.rotation.x = sw; m.p.beenR.rotation.x = -sw;
@@ -263,14 +312,8 @@ function syncMannetjes(nu) {
     // zwaaien met bijl/zwaard
     if (u.swing > 0) m.p.armR.rotation.x = -Math.sin((12 - u.swing) / 12 * Math.PI) * 1.7 - 0.3;
     else m.p.armR.rotation.x = beweegt ? sw * 0.7 : 0;
-    if (m.p.hout) { m.p.hout.visible = u.carry == 'hout'; m.p.goud.visible = u.carry == 'goud'; }
-    const gekozen = G.sel.includes(u);
-    m.p.ring.visible = gekozen;
-    m.balk.visible = gekozen || u.hp < u.max;
-    if (m.balk.visible) zetBalk(m.balk, u.hp / u.max, u.side);
-  }
-  for (const [id, m] of uMesh) if (!gezien.has(id)) { scene.remove(m.g); uMesh.delete(id); }
 }
+const stervend = [];
 
 function syncGebouwen(nu) {
   const gezien = new Set();
@@ -309,6 +352,11 @@ function syncGebouwen(nu) {
   } else if (schaduw) schaduw.g.visible = false;
 }
 
+function zetBoom(i, m) {
+  const b = bomen.basis[i];
+  for (const im of bomen.lagen[b.si]) { im.setMatrixAt(b.idx, m); im.instanceMatrix.needsUpdate = true; }
+}
+
 function syncWereld(nu) {
   // omgehakte bomen weghalen
   if (kaartVersie != G.mapVersie) {
@@ -316,10 +364,9 @@ function syncWereld(nu) {
     bomen.keys.forEach((k, i) => {
       if (!bomen.weg[i] && !(G.trees[k] > 0)) {
         bomen.weg[i] = true;
-        tmpM.compose(bomen.basis[i].p, bomen.basis[i].q, tmpS.set(0, 0, 0));
-        bomen.stam.setMatrixAt(i, tmpM); bomen.kruin1.setMatrixAt(i, tmpM); bomen.kruin2.setMatrixAt(i, tmpM);
-        tmpM.compose(bomen.basis[i].p, bomen.basis[i].q, tmpS.set(1, 1, 1)); bomen.strk.setMatrixAt(i, tmpM);
-        for (const im of [bomen.stam, bomen.kruin1, bomen.kruin2, bomen.strk]) im.instanceMatrix.needsUpdate = true;
+        const b = bomen.basis[i];
+        zetBoom(i, tmpM.compose(b.p, b.q, tmpS.set(0, 0, 0)));
+        for (const im of bomen.stronken) { im.setMatrixAt(i, tmpM.compose(b.p, b.q, tmpS.set(1, 1, 1))); im.instanceMatrix.needsUpdate = true; }
       }
     });
     tekenGrond();
@@ -329,16 +376,13 @@ function syncWereld(nu) {
     bomen.laatsteHak = G.hak.t;
     const i = bomen.keys.indexOf(G.hak.k); if (i >= 0) bomen.schud[i] = 1;
   }
-  let schudde = false;
   bomen.schud.forEach((s, i) => {
     if (s <= 0 || bomen.weg[i]) return;
-    const nieuw = Math.max(0, s - 0.06); bomen.schud[i] = nieuw; schudde = true;
+    const nieuw = Math.max(0, s - 0.06); bomen.schud[i] = nieuw;
     const b = bomen.basis[i];
     tmpQ.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.sin(nieuw * 20) * 0.08 * nieuw).premultiply(b.q);
-    tmpM.compose(b.p, tmpQ, b.s);
-    bomen.stam.setMatrixAt(i, tmpM); bomen.kruin1.setMatrixAt(i, tmpM); bomen.kruin2.setMatrixAt(i, tmpM);
+    zetBoom(i, tmpM.compose(b.p, tmpQ, b.s));
   });
-  if (schudde) for (const im of [bomen.stam, bomen.kruin1, bomen.kruin2]) im.instanceMatrix.needsUpdate = true;
   // lege mijn: geen goud meer te zien
   for (const m of mijnen) m.goud.visible = G.mineG[m.key] > 0;
   // wolken trekken weg waar je komt
@@ -367,7 +411,7 @@ function syncEffecten() {
     if (!m) {
       if (f.arrow) m = new THREE.Mesh(pijlGeo, pijlMat);
       else if (f.ring) m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: f.ring, transparent: true }));
-      else if (f.grave) m = M.maakGraf(f.grave);
+      else if (f.grave) m = M.kenneyKlaar() ? new THREE.Group() : M.maakGraf(f.grave); // Kenney-mannetjes vallen zelf om
       else m = new THREE.Mesh(deeltjeGeo, M.mat(f.c || '#7a6a5a'));
       fxMesh.set(f, m); scene.add(m);
     }
@@ -526,7 +570,7 @@ function tekenPaneel(forceer) {
   if (sel.length == 1) {
     const u = sel[0], l = LAND[u.voice && u.voice.lang];
     h += `<div class="kop"><b>${esc(UNIT[u.k].n)}</b><span id="pstatus"></span></div><div class="hp"><div id="php"></div></div>`;
-    if (l) h += `<div class="land"><b>${esc(l.n)}</b>${u.k == 'werker' ? ` met ${esc(l.ding)}: ${esc(l.effect.charAt(0).toLowerCase() + l.effect.slice(1))}` : ''}</div>`;
+    if (l) h += `<div class="land"><b>${esc(l.n)}</b>${u.k == 'werker' ? ` met ${esc(l.ding)}: ${esc(l.effect.charAt(0).toLowerCase() + l.effect.slice(1))}` : ''}${u.rolstoel ? ' · rijdt in een rolstoel' : ''}</div>`;
   } else if (sel.length > 1) {
     const tel = {}; for (const u of sel) tel[u.k] = (tel[u.k] || 0) + 1;
     h += `<div class="kop"><b>${sel.length} gekozen</b></div><div class="groep">${Object.entries(tel).map(([k, n]) => `<button data-weg="${k}" title="Haal ze uit de keuze">${esc(meervoud(k, n))} <span>✕</span></button>`).join('')}</div>`;
@@ -590,7 +634,7 @@ function tekenTitel() {
   $('moeilijk').querySelectorAll('button').forEach((el) => el.onclick = () => { zetMoeilijkheid(+el.dataset.diff); sClick(); tekenTitel(); });
   $('stemknop').textContent = 'Stemmen: ' + (stemAan() ? 'aan' : 'uit');
   loadVoices();
-  $('stemmen').textContent = 'Stemmen op dit toestel: ' + ['nl', 'en', 'de', 'it'].map((l) => l.toUpperCase() + (VOX[l] ? ' ✓' : ' ✗')).join('   ');
+  $('stemmen').textContent = 'Stemmen op dit toestel: ' + ['nl', 'en', 'de', 'it', 'fr'].map((l) => l.toUpperCase() + (VOX[l] ? ' ✓' : ' ✗')).join('   ');
 }
 $('stemknop').onclick = () => { zetStem(!stemAan()); tekenTitel(); };
 
@@ -601,7 +645,7 @@ function start(i) {
   $('briefniveau').textContent = 'Level ' + (i + 1) + ' · ' + DIFF[G.diff].n;
   $('brieftekst').innerHTML = G.L.brief.map((r) => `<p>${esc(r)}</p>`).join('');
   $('briefdoel').textContent = 'Doel: ' + G.L.doel;
-  $('brieflanden').textContent = 'Je werkers komen uit Nederland, Engeland, Duitsland en Italië. Klik op een werker om te zien wat hij extra kan!';
+  $('brieflanden').textContent = 'Je mannetjes komen uit Nederland, Engeland, Duitsland, Italië en Frankrijk. Klik op een werker om te zien wat hij extra kan!';
   toon('brief');
 }
 $('beginknop').onclick = () => { unlock(); primeVoice(); G.state = 'spel'; toon(null); zetPauze(false); tekenPaneel(true); };
@@ -634,12 +678,16 @@ function frame(nu) {
   controls.autoRotate = G.state == 'titel';
   camSchuif(); controls.update(); camBinnenKaart();
   syncWereld(nu); syncGebouwen(nu); syncMannetjes(nu); syncEffecten();
+  if (!G.paused) { const ds = dt / 1000; for (const [, m] of uMesh) if (m.mixer) m.mixer.update(ds); for (const m of stervend) m.mixer.update(ds); }
   renderer.render(scene, camera);
   if (G.state == 'spel' && nu - hudT > 100) { hudT = nu; tekenBalk(); tekenPaneel(false); }
 }
 
 // titelscherm met level 1 op de achtergrond
+// eerst de Kenney-modellen laden; lukt dat niet, dan de eigen blokjesmodellen
+try { await M.laadKenney(); } catch (e) { console.warn('Kenney-modellen niet geladen, ik gebruik de eigen modellen.', e); }
+$('laden').hidden = true;
 loadLevel(0); G.state = 'titel'; bouwWereld();
 tekenTitel();
 requestAnimationFrame(frame);
-window.__test = { G, update, camera }; // handig om te testen
+window.__test = { G, update, camera, uMesh }; // handig om te testen

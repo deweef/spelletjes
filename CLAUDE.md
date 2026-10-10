@@ -38,8 +38,13 @@ Opbouw:
 - `js/data.js`: eenheden, gebouwen, moeilijkheden en levels (overgenomen uit `orkenstorm.html`).
 - `js/spel.js`: de spelregels (paden, werkers, bouwen, trainen, vechten, golven, winnen/verliezen).
   Posities van mannetjes in pixels (32 per tegel), net als in 2D, zodat regels makkelijk over te nemen zijn.
-- `js/modellen.js`: de 3D-modellen. Nu zelfgemaakt van blokjes en kegels.
-- `js/geluid.js`: geluidjes en stemmen. Elk mannetje komt uit Nederland, Engeland, Duitsland of Italië
+- `js/modellen.js`: de 3D-modellen. Gebruikt de Kenney-modellen als die geladen zijn, anders de eigen
+  blokjesmodellen (reserve). Boerderij, kazerne en mijn zijn nog zelfgemaakt.
+- `js/kenney.js`: laadt de Kenney-modellen uit `assets/` (lijst `LIJST`) en maakt mannetjes met botten
+  en animaties (idle, walk, attack-melee-right, interact-right, holding-left, emote-yes, die,
+  wheelchair-sit, wheelchair-move-forward, ...). Spullen hangen aan de botten `arm-left`/`arm-right`/`head`/`torso`.
+- `assets/<pakket>/`: alleen de Kenney-modellen die het spel gebruikt, met per pakket `Textures/colormap.png`.
+- `js/geluid.js`: geluidjes en stemmen. Elk mannetje komt uit Nederland, Engeland, Duitsland, Italië of Frankrijk
   (om de beurt uit een geschudde zak, dus eerlijk verdeeld) en praat altijd zijn eigen taal.
 - `js/main.js`: 3D-weergave, camera, muis/toetsen, bovenbalk en paneel.
 - `lib/`: three.js r160 (`three.module.js`) en `OrbitControls.js`, lokaal (geen CDN) zodat het offline
@@ -53,11 +58,16 @@ kunnen iets extra's:
 - Engelsman, kopje thee: hakt sneller hout, maar houdt af en toe theepauze.
 - Duitser, pul: grondig, bouwt sneller.
 - Italiaan, pizza: deelt pizza uit en geneest gewonde mannetjes vlakbij.
+- Fransman, stokbrood: is maar kort in de goudmijn.
+Af en toe (1 op 6) rijdt een mannetje in een rolstoel; dat is alleen voor de lol. Idee voor later: de
+genezer op krukken (`aid-crutch` uit mini-characters).
 
 Spelregels: neem ze over uit `orkenstorm.html`: werkers hakken hout en halen goud, boerderijen geven
 voedsel, kasteel/kazerne/stal trainen eenheden met een wachtrij, torens schieten, orks vallen in golven
 aan, moeilijkheid Makkelijk/Normaal/Moeilijk, de levels en hun doelen, wolken over onontdekt gebied.
-Stemmen zijn wel anders dan in 2D: daar Nederlands/Engels/Duits, hier ook Italiaans (zie hierboven).
+Stemmen zijn wel anders dan in 2D: daar Nederlands/Engels/Duits, hier ook Italiaans en Frans (zie hierboven).
+Nieuwe mannetjes verschijnen op het vrijste vakje naast het gebouw, en mannetjes die niets doen schuiven
+uit elkaar (`vrijePlek` en `uitElkaar` in `spel.js`).
 
 Besturing:
 - Laptop eerst (dit is de pc-versie), maar het moet op een telefoon niet crashen.
@@ -67,17 +77,15 @@ Besturing:
   Rechts slepen: schuiven. Scrollen: zoomen. Pijltjes/WASD: schuiven.
 - Toetsen: P = pauze, Escape = selectie loslaten. Rechts klikken tijdens bouwen = stoppen met bouwen.
 
-### Kenney-modellen (nog te doen)
-Het plan is de zelfgemaakte modellen te vervangen door Kenney-pakketten (CC0). kenney.nl is vanuit de
-cloudomgeving niet bereikbaar: alle Kenney-zips staan in de centrale map `bronnen/` (zie `bronnen/LEESMIJ.md`
-voor welk pakket bij welk spel hoort; zips die in de hoofdmap geüpload worden, daarheen verplaatsen). Gebruik dan de
-bestanden uit `Models/GLB format/` plus de bijbehorende `Textures/`-map en kopieer alleen wat het spel
-echt gebruikt naar `orkenstorm3d/assets/`. GLTFLoader en SkeletonUtils komen uit three r160
-(`examples/jsm/`).
-- Mini Forest: bomen, rotsen, tenten, boogschutter.
-- Mini Dungeon: character-human (werker/soldaat), character-orc, wapens, kisten.
-- Retro Fantasy Kit: kasteelmuren, torens, poorten, daken, hekken.
-- Blocky Characters: moderne figuurtjes, passen niet in de middeleeuwse stijl; niet gebruiken.
-- De modellen zijn 1x1x1 blokken; schaal 1.6 voor gebouwen en mannetjes werkt goed.
-- Vervang de functies in `js/modellen.js` (maakMannetje, maakGebouw, maakMijn, bomen) zodat de rest
-  van het spel niet hoeft te veranderen, en zet dan "Modellen: Kenney.nl" klein in het spel.
+### Kenney-modellen
+De Kenney-pakketten (CC0) staan als zip in de centrale map `bronnen/` (zie `bronnen/LEESMIJ.md` voor welk
+pakket bij welk spel hoort; zips die in de hoofdmap geüpload worden, daarheen verplaatsen). kenney.nl is
+vanuit de cloudomgeving niet bereikbaar. Gebruik de bestanden uit `Models/GLB format/` en kopieer alleen
+wat het spel echt gebruikt naar `orkenstorm3d/assets/<pakket>/`, samen met `Textures/colormap.png` van dat
+pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe modellen ook in `LIJST` in
+`js/kenney.js`.
+- Al gebruikt: mannetjes (dungeon: mens, ork; forest: boogschutter), wapens, bijl (survival), rolstoel
+  (characters), bomen (forest, castle) en het kasteel (castle-kit: torens, muren, poort, vlag).
+- Nog te doen: boerderij en kazerne uit retro-fantasy-kit, goudmijn, torens, orkenkamp (survival-kit).
+- Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.
+- "Modellen: Kenney.nl" staat op het titelscherm.

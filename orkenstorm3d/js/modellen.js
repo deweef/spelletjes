@@ -4,6 +4,9 @@
 // Eén tegel is 1 bij 1 in de 3D-wereld. Voorkant van een model = richting +z.
 
 import * as THREE from 'three';
+import * as K from './kenney.js';
+export { laad as laadKenney } from './kenney.js';
+export const kenneyKlaar = () => K.klaar;
 
 const mats = {};
 export function mat(c) { return mats[c] || (mats[c] = new THREE.MeshLambertMaterial({ color: c, flatShading: true })); }
@@ -43,7 +46,8 @@ const KLEDING = {
   speerork: { romp: '#7a5530', broek: '#3e2d1c', huid: '#6aab45' },
 };
 
-export function maakMannetje(k, side, land) {
+export function maakMannetje(k, side, land, rolstoel) {
+  if (K.klaar) return kenneyMannetje(k, side, land, rolstoel);
   const kl = KLEDING[k] || KLEDING.werker;
   const huid = kl.huid || HUID;
   const g = new THREE.Group();
@@ -119,6 +123,53 @@ export function maakMannetje(k, side, land) {
   return { g, lijf, p };
 }
 
+function keuzering(side) {
+  const r = new THREE.Mesh(geo('ring', () => new THREE.RingGeometry(0.24, 0.3, 24).rotateX(-Math.PI / 2)),
+    new THREE.MeshBasicMaterial({ color: side == 'o' ? 0xe0574c : 0x7dff7a, transparent: true, opacity: 0.9 }));
+  r.position.y = 0.02; r.visible = false; return r;
+}
+
+// Kenney-mannetje: echte animaties, spullen vast aan de botten (arm-left, arm-right, head, torso).
+// Het model is 0.76 hoog; de armen staan in de rustpose opzij (rechterarm naar -x).
+function kenneyMannetje(k, side, land, rolstoel) {
+  const f = K.figuur(k);
+  const g = new THREE.Group(), lijf = new THREE.Group();
+  g.add(lijf); lijf.add(f.model);
+  const ork = side == 'o';
+  lijf.scale.setScalar(ork ? 1.2 : 1.1);
+  const armR = f.bot('arm-right'), armL = f.bot('arm-left'), hoofd = f.bot('head'), romp = f.bot('torso');
+  const p = { ring: keuzering(side) };
+  const inHand = (arm, ding, links) => { // ding staat rechtop (+y); in de hand wijst het naar voren
+    const h = new THREE.Group(); h.position.set(links ? 0.23 : -0.23, -0.01, 0.02);
+    ding.rotation.x = Math.PI / 2; h.add(ding); arm.add(h); return h;
+  };
+  if (k == 'werker') {
+    const bijl = K.stuk('survival/tool-axe'); bijl.scale.setScalar(1.3); inHand(armR, bijl);
+    const hoed = kegel(0.26, 0.13, '#e0c068', 0, 0.42, 0, 10); hoed.scale.set(1, 1, 0.9); hoofd.add(hoed);
+    p.hout = cil(0.05, 0.05, 0.3, '#8b5a2b', 0, 0.14, -0.15, 7); p.hout.rotation.z = Math.PI / 2; romp.add(p.hout);
+    p.goud = steen(0.06, '#f2c53d', 0, 0.14, -0.15); romp.add(p.goud);
+    if (LANDDING[land]) { const d = LANDDING[land](); d.scale.setScalar(1.7); p.ding = inHand(armL, d, true); d.rotation.set(0, 0, 0); }
+  } else if (k == 'soldaat') {
+    inHand(armR, K.stuk('dungeon/weapon-sword'));
+    const schild = K.stuk('dungeon/shield-round'); schild.scale.setScalar(0.8);
+    const h = new THREE.Group(); h.position.set(0.2, 0, 0.06); h.add(schild); armL.add(h);
+    const helm = new THREE.Group();
+    helm.add(cil(0.21, 0.22, 0.12, '#9aa3ad', 0, 0.36, 0, 10)); helm.add(kegel(0.22, 0.12, '#9aa3ad', 0, 0.48, 0, 10));
+    hoofd.add(helm);
+  } else if (k == 'boog') {
+    const boog = K.stuk('forest/weapon-bow'); const h = new THREE.Group(); h.position.set(0.23, 0, 0.02); boog.rotation.x = -0.2; h.add(boog); armL.add(h);
+  } else if (k == 'ork') {
+    const bijl = K.stuk('survival/tool-axe'); bijl.scale.setScalar(1.5); inHand(armR, bijl);
+  } else if (k == 'speerork') {
+    inHand(armR, K.stuk('dungeon/weapon-spear'));
+  }
+  if (rolstoel) {
+    f.model.add(K.stuk('characters/wheelchair'));
+  }
+  g.add(p.ring);
+  return { g, lijf, p, mixer: f.mixer, acties: f.acties, kenney: true };
+}
+
 // Wat werkers uit hun land meenemen
 const LANDDING = {
   it() { // pizza
@@ -141,6 +192,12 @@ const LANDDING = {
     g.add(bol(0.05, '#fffbe8', 0, 0.13, 0.05, 1));
     const oor = mesh(geo('oor', () => new THREE.TorusGeometry(0.03, 0.01, 4, 8, Math.PI)), '#f3c45a');
     oor.rotation.z = -Math.PI / 2; oor.position.set(0.048, 0.06, 0.05); g.add(oor);
+    return g;
+  },
+  fr() { // stokbrood
+    const g = new THREE.Group();
+    const brood = cil(0.035, 0.035, 0.42, '#d9a352', 0, 0.12, 0.05, 8); brood.rotation.z = 0.25; g.add(brood);
+    for (let i = -1; i <= 1; i++) { const sn = doos(0.04, 0.012, 0.03, '#f3dca0', 0.02 + i * 0.025, 0.12 + i * 0.1, 0.085); sn.rotation.z = 0.25 + 0.6; g.add(sn); }
     return g;
   },
   en() { // kopje thee op een schoteltje
@@ -236,9 +293,21 @@ const MODEL = {
 };
 
 // Gebouw met steigers (zichtbaar zolang het gebouwd wordt) en een keuzevlak eronder
+// Kasteel van 3x3 tegels uit de Castle Kit: vier hoektorens, muren, poort en een hoge donjon
+function kenneyKasteel() {
+  const g = new THREE.Group();
+  const zet = (n, x, y, z, rot = 0) => { const m = K.stuk('castle/' + n); m.position.set(x, y, z); m.rotation.y = rot; g.add(m); return m; };
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { zet('tower-square-base', x, 0, z); zet('tower-square-mid', x, 1, z); zet('tower-square-roof', x, 2, z); }
+  zet('wall', 0, 0, -1); zet('wall', -1, 0, 0, Math.PI / 2); zet('wall', 1, 0, 0, Math.PI / 2);
+  zet('wall', 0, 0, 1); zet('gate', 0, 0, 1.5, Math.PI / 2);
+  zet('tower-square-base', 0, 0, 0); zet('tower-square-mid-windows', 0, 1, 0); zet('tower-square-mid', 0, 2, 0); zet('tower-square-top-roof-high', 0, 3, 0);
+  zet('flag', 0.3, 4.2, 0);
+  return g;
+}
+
 export function maakGebouw(k, w, h) {
   const g = new THREE.Group();
-  const model = MODEL[k] ? MODEL[k]() : doos(w * 0.8, 1, h * 0.8, STEEN, 0, 0.5, 0);
+  const model = K.klaar && k == 'kasteel' ? kenneyKasteel() : MODEL[k] ? MODEL[k]() : doos(w * 0.8, 1, h * 0.8, STEEN, 0, 0.5, 0);
   g.add(model);
   const steiger = new THREE.Group();
   for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) steiger.add(cil(0.035, 0.035, 1.3, '#c9a26b', x * (w / 2 - 0.15), 0.65, z * (h / 2 - 0.15), 5));
@@ -288,6 +357,15 @@ export function maakMijn() {
 }
 
 // ---------- vormen voor bomen en wolken (voor InstancedMesh) ----------
+// Boomsoorten voor de InstancedMesh: elke soort is een lijst delen { geo, mat }
+let soortenCache = null;
+export function boomSoorten() {
+  if (soortenCache) return soortenCache;
+  if (K.klaar) soortenCache = ['forest/tree', 'forest/tree-high', 'castle/tree-large', 'castle/tree-small', 'forest/tree'].map((n) => K.delen(n));
+  else soortenCache = [[{ geo: boomStam(), mat: mat('#7a5230') }, { geo: boomKruin1(), mat: mat('#4e8a3a') }, { geo: boomKruin2(), mat: mat('#5a9a44') }]];
+  return soortenCache;
+}
+export function stronkDelen() { return K.klaar ? K.delen('castle/tree-trunk') : [{ geo: stronk(), mat: mat('#8b6a40') }]; }
 export const boomStam = () => new THREE.CylinderGeometry(0.07, 0.1, 0.42, 6).translate(0, 0.21, 0);
 export const boomKruin1 = () => new THREE.ConeGeometry(0.44, 0.75, 7).translate(0, 0.72, 0);
 export const boomKruin2 = () => new THREE.ConeGeometry(0.32, 0.6, 7).translate(0, 1.08, 0);

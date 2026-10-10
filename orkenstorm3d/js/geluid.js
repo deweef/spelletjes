@@ -50,8 +50,8 @@ export const stemAan = () => voiceOn;
 export function zetStem(aan) { voiceOn = aan; try { localStorage.setItem('orkenstorm_stem', aan ? 'aan' : 'uit'); } catch (e) {} }
 
 let lastSpeak = 0;
-const LANGS = { nl: 'nl-NL', en: 'en-GB', de: 'de-DE', it: 'it-IT' };
-export const VOX = { nl: null, en: null, de: null, it: null };
+const LANGS = { nl: 'nl-NL', en: 'en-GB', de: 'de-DE', it: 'it-IT', fr: 'fr-FR' };
+export const VOX = { nl: null, en: null, de: null, it: null, fr: null };
 let voicePrimed = false;
 
 export function loadVoices() {
@@ -63,6 +63,7 @@ export function loadVoices() {
   VOX.en = find('en-gb', 'en-us', 'en-au', 'en-ie') || vs.find((v) => L(v).startsWith('en')) || null;
   VOX.de = find('de-de', 'de-at', 'de-ch') || vs.find((v) => L(v).startsWith('de')) || null;
   VOX.it = find('it-it', 'it-ch') || vs.find((v) => L(v).startsWith('it')) || null;
+  VOX.fr = find('fr-fr', 'fr-be', 'fr-ca', 'fr-ch') || vs.find((v) => L(v).startsWith('fr')) || null;
 }
 if ('speechSynthesis' in window) {
   loadVoices();
@@ -102,14 +103,18 @@ const VOICES = {
     prik: ['Basta toccarmi!', 'Mamma mia, che fastidio!'], bouw: ['Costruisco!', 'Al lavoro!'], hout: ['Taglio la legna!', 'Al bosco!'], goud: ['Alla miniera!', 'Oro, oro!'], samen: ['Tutti pronti!'],
     extra: ['Pizza per tutti!', 'Mamma mia!', 'Mangia, mangia!'] },
 };
+VOICES.fr = { werker: ['Oui?', 'À votre service!', 'Que dois-je faire?', 'Oui, monsieur?'], krijger: ['Prêt pour la bataille!', 'Oui, mon capitaine!', 'Pour le roi!'], boog: ['Arc prêt!', 'Je vois tout!', 'Oui?'],
+  werkerGo: ["J'y vais!", 'Tout de suite!', "D'accord!"], krijgerGo: ['En route!', 'Compris!', 'Oui!'], aanval: ["À l'attaque!", 'En avant!', 'Pour le roi!'], werkerAanval: ['Euh... bon, d\'accord!', 'Vraiment?'],
+  prik: ['Arrêtez de me pousser!', 'Oh là là!'], bouw: ['Je construis!', 'Au travail!'], hout: ['Je coupe du bois!', 'À la forêt!'], goud: ['À la mine!', "De l'or!"], samen: ['Tous prêts!'],
+  extra: ['Oh là là, de l\'or!', 'Magnifique!', 'Bon appétit!'] };
 VOICES.nl.extra = ['Zuinig, hè!', 'Weer wat extra goud!', 'Lekker kaasje!'];
 VOICES.en.extra = ['Tea time!', 'Lovely cup of tea!', 'Splendid!'];
 
 export const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
-// Elk mannetje komt uit Nederland, Engeland, Duitsland of Italië: om de beurt uit een geschudde zak,
+// Elk mannetje komt uit Nederland, Engeland, Duitsland, Italië of Frankrijk: om de beurt uit een geschudde zak,
 // zodat de landen eerlijk verdeeld zijn (en niet toevallig iedereen Duits is).
-export const LANDEN = ['nl', 'en', 'de', 'it'];
+export const LANDEN = ['nl', 'en', 'de', 'it', 'fr'];
 let zak = [];
 export function nieuwLand() {
   if (!zak.length) { zak = [...LANDEN]; for (let i = zak.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [zak[i], zak[j]] = [zak[j], zak[i]]; } }
