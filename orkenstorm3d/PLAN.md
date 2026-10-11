@@ -4,7 +4,7 @@ Doelgroep: gezin met tieners (14+); humor mag stout zijn (zie CLAUDE.md).
 
 Volgorde van bouwen:
 
-## 1. Naam en voortgang per speler (op de startpagina)
+## 1. Naam en voortgang per speler (op de startpagina) — KLAAR
 - Startpagina vraagt "Wie speelt er?": knoppen met bestaande namen + "Nieuwe speler".
 - Naam en voortgang bewaard in localStorage, per naam (gedeelde laptop: ieder eigen voortgang).
 - Elk spel kan de naam gebruiken (bv. "Goed gedaan, Sanne!"). Orkenstorm 3D bewaart gewonnen levels en
@@ -33,7 +33,7 @@ Volgorde van bouwen:
   - 5 → 6: bode rent binnen: "De abdij wordt belegerd!"; alleen de ridders zijn snel genoeg
 - Alleen eigen namen en teksten, niets uit Warcraft.
 
-## 3. Startpagina: twee blokken
+## 3. Startpagina: twee blokken — KLAAR
 - "Spellen voor de telefoon" (2D) en "3D-spellen voor de pc".
 - Op een telefoon staat het 2D-blok bovenaan, op een laptop het 3D-blok. Marcel past het aan als het niet bevalt.
 

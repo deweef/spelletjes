@@ -34,6 +34,23 @@ h1{font:bold clamp(44px,11vw,76px)/.95 Georgia,"Times New Roman",serif;color:var
 .stand{display:inline-block;margin-top:10px;font-size:12.5px;color:var(--goud)}
 .concept{display:inline-block;margin:0 0 6px;padding:2px 8px;border-radius:6px;background:#c0462f;color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .status{margin-top:26px;font-size:13px;color:var(--zacht);min-height:1.4em}
+.blok{margin:0 0 30px}
+.blok h2.kop{font:bold 26px/1.1 Georgia,"Times New Roman",serif;color:var(--licht);margin:0 0 4px}
+.blok .uitleg{color:var(--zacht);font-size:14px;margin:0 0 14px}
+#wie{background:rgba(255,255,255,.06);border:1px solid rgba(255,226,168,.22);border-radius:16px;padding:14px 16px;margin:0 0 26px}
+#wie .vraag{font:bold 20px Georgia,serif;color:var(--licht);margin:0 0 10px}
+#wie .hoi{margin:0;font-size:17px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#wie .hoi b{color:var(--goud)}
+.namen{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.naam{display:inline-flex;border-radius:999px;overflow:hidden;border:1px solid rgba(255,226,168,.35)}
+.naam button{background:rgba(255,226,168,.12);color:var(--maan);border:0;font:inherit;padding:8px 14px;cursor:pointer}
+.naam button.weg{padding:8px 10px;color:#ffb3a8;background:rgba(0,0,0,.15)}
+.naam button:hover{background:rgba(255,226,168,.25)}
+#nieuw{display:flex;gap:8px;flex-wrap:wrap}
+#nieuw input{flex:1 1 180px;min-width:0;font:inherit;padding:9px 12px;border-radius:10px;border:1px solid rgba(255,226,168,.35);background:rgba(0,0,0,.25);color:var(--maan)}
+.knop{font:inherit;font-weight:700;padding:9px 16px;border-radius:10px;border:0;background:var(--goud);color:#2a1a08;cursor:pointer}
+.knop.licht{background:rgba(255,226,168,.15);color:var(--maan);font-weight:600}
+.overslaan{background:none;border:0;color:var(--zacht);text-decoration:underline;font:inherit;font-size:13px;cursor:pointer;margin-top:8px;padding:0}
 @media (prefers-reduced-motion:reduce){.spel{transition:none}}
 </style>
 </head>
@@ -41,18 +58,49 @@ h1{font:bold clamp(44px,11vw,76px)/.95 Georgia,"Times New Roman",serif;color:var
 <main>
   <h1>Spelletjes</h1>
   <p class="sub">Kies een spel. Alles werkt ook zonder internet, als je de app één keer met internet hebt geopend.</p>
-  <ul class="lijst" id="lijst"></ul>
+  <section id="wie"></section>
+  <div id="blokken"></div>
   <p class="status" id="status"></p>
 </main>
 <script>
 // Reservelijst voor als spellen.json niet te laden is
-const RESERVE=[{"naam": "Kasteelsprong", "omschrijving": "Ren over de kasteelmuur, spring over rotsen, duik onder pijlen door en luid de klok.", "bestand": "kasteelsprong.html", "plaatje": "kasteelsprong.jpg", "stand": "liggend"}, {"naam": "Koekjesschuiver", "omschrijving": "Laat koekjes op de schuifplank vallen, vind de koekjesfiguren en verdien Koekie-badges.", "bestand": "koekjesschuiver.html", "plaatje": "koekjesschuiver.jpg", "stand": "staand"}, {"naam": "Kikkersprong", "omschrijving": "Help de kikkers over de polderweg en de sloot naar hun huisje. Pas op voor tractoren en duikende blaadjes.", "bestand": "kikkersprong.html", "plaatje": "kikkersprong.jpg", "stand": "staand"}, {"naam": "Skirun", "omschrijving": "Ski de berg af tussen bomen door, pak de poortjes, doe trucjes op de schans en blijf de boze sneeuwbal voor.", "bestand": "skirun.html", "plaatje": "skirun.jpg", "stand": "staand"}, {"naam": "Piratenbluf", "omschrijving": "Het dobbelspel van de piraten: bied, bluf en roep 'Leugenaar!' tegen drie zeerovers en een brutale papegaai.", "bestand": "piratenbluf.html", "plaatje": "piratenbluf.jpg", "stand": "staand"}, {"naam": "Orkenstorm", "omschrijving": "Bouw een dorp, hak hout, haal goud uit de mijn, train soldaten en verjaag de orks onder de wolken vandaan.", "bestand": "orkenstorm.html", "plaatje": "orkenstorm.jpg", "stand": "staand"}, {"naam": "Orkenstorm 3D", "omschrijving": "Orkenstorm in 3D, voor op de pc. Bouw je dorp met boerderijen en een kazerne, draai en zoom de camera rond je kasteel.", "bestand": "orkenstorm3d/index.html", "plaatje": "orkenstorm3d.jpg", "stand": "liggend", "concept": true}];
+const RESERVE=[{"naam": "Kasteelsprong", "omschrijving": "Ren over de kasteelmuur, spring over rotsen, duik onder pijlen door en luid de klok.", "bestand": "kasteelsprong.html", "plaatje": "kasteelsprong.jpg", "stand": "liggend"}, {"naam": "Koekjesschuiver", "omschrijving": "Laat koekjes op de schuifplank vallen, vind de koekjesfiguren en verdien Koekie-badges.", "bestand": "koekjesschuiver.html", "plaatje": "koekjesschuiver.jpg", "stand": "staand"}, {"naam": "Kikkersprong", "omschrijving": "Help de kikkers over de polderweg en de sloot naar hun huisje. Pas op voor tractoren en duikende blaadjes.", "bestand": "kikkersprong.html", "plaatje": "kikkersprong.jpg", "stand": "staand"}, {"naam": "Skirun", "omschrijving": "Ski de berg af tussen bomen door, pak de poortjes, doe trucjes op de schans en blijf de boze sneeuwbal voor.", "bestand": "skirun.html", "plaatje": "skirun.jpg", "stand": "staand"}, {"naam": "Piratenbluf", "omschrijving": "Het dobbelspel van de piraten: bied, bluf en roep 'Leugenaar!' tegen drie zeerovers en een brutale papegaai.", "bestand": "piratenbluf.html", "plaatje": "piratenbluf.jpg", "stand": "staand"}, {"naam": "Orkenstorm", "omschrijving": "Bouw een dorp, hak hout, haal goud uit de mijn, train soldaten en verjaag de orks onder de wolken vandaan.", "bestand": "orkenstorm.html", "plaatje": "orkenstorm.jpg", "stand": "staand"}, {"naam": "Orkenstorm 3D", "omschrijving": "Orkenstorm in 3D, voor op de pc. Bouw je dorp met boerderijen en een kazerne, draai en zoom de camera rond je kasteel.", "bestand": "orkenstorm3d/index.html", "plaatje": "orkenstorm3d.jpg", "stand": "liggend", "concept": true, "soort": "3d"}];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-async function laad(){let lijst;try{lijst=await (await fetch('spellen.json',{cache:'no-cache'})).json()}catch(e){lijst=RESERVE}
- document.getElementById('lijst').innerHTML=lijst.map(s=>`<li><a class="spel" href="${esc(s.bestand)}">
+const tegel=s=>`<li><a class="spel" href="${esc(s.bestand)}">
    ${s.plaatje?`<img src="${esc(s.plaatje)}" alt="" loading="lazy">`:''}
-   <div class="tekst">${s.concept?'<span class="concept">Concept, nog in de maak</span>':''}<h2>${esc(s.naam)}</h2><p>${esc(s.omschrijving||'')}</p>${s.stand?`<span class="stand">${s.concept&&s.stand=='liggend'?'Het best op de pc':s.stand=='liggend'?'Telefoon liggend houden':'Telefoon rechtop houden'}</span>`:''}</div></a></li>`).join('');
+   <div class="tekst">${s.concept?'<span class="concept">Concept, nog in de maak</span>':''}<h2>${esc(s.naam)}</h2><p>${esc(s.omschrijving||'')}</p>${s.stand?`<span class="stand">${s.concept&&s.stand=='liggend'?'Het best op de pc':s.stand=='liggend'?'Telefoon liggend houden':'Telefoon rechtop houden'}</span>`:''}</div></a></li>`;
+// Twee blokken: op een telefoon of tablet de 2D-spellen bovenaan, op een laptop de 3D-spellen
+async function laad(){let lijst;try{lijst=await (await fetch('spellen.json',{cache:'no-cache'})).json()}catch(e){lijst=RESERVE}
+ const blok=(titel,uitleg,spellen)=>spellen.length?`<section class="blok"><h2 class="kop">${titel}</h2><p class="uitleg">${uitleg}</p><ul class="lijst">${spellen.map(tegel).join('')}</ul></section>`:'';
+ const twee=blok('Spellen voor telefoon en tablet','Snel even spelen, ook onderweg.',lijst.filter(s=>s.soort!='3d'));
+ const drie=blok('3D-spellen voor de pc','Met muis en toetsenbord, op een groot scherm.',lijst.filter(s=>s.soort=='3d'));
+ const opTelefoon=matchMedia('(pointer: coarse)').matches||innerWidth<800;
+ document.getElementById('blokken').innerHTML=opTelefoon?twee+drie:drie+twee;
  return lijst}
+
+// ---------- wie speelt er? ----------
+// De namen staan in localStorage 'spelers', de huidige speler in 'speler'. Spellen lezen 'speler'
+// om de voortgang per naam te bewaren (bijvoorbeeld 'orkenstorm3d_lvl:Sanne').
+const opslag={lees(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},zet(k,v){try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}};
+let spelers=[];try{spelers=JSON.parse(opslag.lees('spelers','[]'))||[]}catch(e){spelers=[]}
+let huidig=opslag.lees('speler',''),kiezen=!huidig;
+function bewaarSpelers(){opslag.zet('spelers',JSON.stringify(spelers))}
+function tekenWie(){const w=document.getElementById('wie');
+ if(huidig&&!kiezen){w.innerHTML=`<p class="hoi"><span>Hoi <b>${esc(huidig)}</b>! Veel plezier.</span> <button class="knop licht" id="wissel">Andere speler</button></p>`;
+  document.getElementById('wissel').onclick=()=>{kiezen=true;tekenWie()};return}
+ w.innerHTML=`<p class="vraag">Wie speelt er?</p>
+  ${spelers.length?`<div class="namen">${spelers.map((n,i)=>`<span class="naam"><button data-i="${i}">${esc(n)}</button><button class="weg" data-weg="${i}" title="${esc(n)} verwijderen" aria-label="${esc(n)} verwijderen">✕</button></span>`).join('')}</div>`:''}
+  <form id="nieuw"><input id="naamveld" maxlength="20" placeholder="${spelers.length?'Of typ een nieuwe naam':'Typ je naam'}" autocomplete="off"><button class="knop">Spelen</button></form>
+  ${huidig?'<button class="overslaan" id="terug">Toch verder als '+esc(huidig)+'</button>':''}`;
+ w.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>kies(spelers[+b.dataset.i]));
+ w.querySelectorAll('[data-weg]').forEach(b=>b.onclick=()=>{const n=spelers[+b.dataset.weg];if(!confirm(n+' verwijderen? De voortgang van '+n+' gaat dan verloren.'))return;
+  spelers.splice(+b.dataset.weg,1);bewaarSpelers();
+  try{for(const k of Object.keys(localStorage))if(k.endsWith(':'+n))localStorage.removeItem(k)}catch(e){}
+  if(huidig==n){huidig='';opslag.zet('speler',null)}tekenWie()});
+ document.getElementById('nieuw').onsubmit=e=>{e.preventDefault();const n=document.getElementById('naamveld').value.trim().replace(/\s+/g,' ');if(n)kies(n)};
+ const t=document.getElementById('terug');if(t)t.onclick=()=>{kiezen=false;tekenWie()}}
+function kies(n){if(!spelers.includes(n)){spelers.push(n);bewaarSpelers()}huidig=n;opslag.zet('speler',n);kiezen=false;tekenWie()}
+tekenWie();
 async function offlineCheck(lijst){const st=document.getElementById('status');
  if(!('serviceWorker' in navigator)||location.protocol=='file:'){st.textContent='';return}
  try{await navigator.serviceWorker.register('sw.js');const reg=await navigator.serviceWorker.ready;if(reg.active)reg.active.postMessage('bewaar');

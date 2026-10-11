@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from '../lib/OrbitControls.js';
 import { UNIT, BLD, DIFF, LEVELS, BINNENKORT, LAND } from './data.js';
-import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg } from './spel.js';
+import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler } from './spel.js';
 import * as M from './modellen.js';
 import { unlock, primeVoice, stemAan, zetStem, sClick, loadVoices, VOX } from './geluid.js';
 
@@ -680,6 +680,7 @@ function tekenTitel() {
   lijst.querySelectorAll('[data-lvl]').forEach((el) => el.onclick = () => { unlock(); primeVoice(); sClick(); start(+el.dataset.lvl); });
   $('moeilijk').innerHTML = DIFF.map((d, i) => `<button data-diff="${i}" class="${G.diff == i ? 'actief' : ''}">${d.n}</button>`).join('');
   $('moeilijk').querySelectorAll('button').forEach((el) => el.onclick = () => { zetMoeilijkheid(+el.dataset.diff); sClick(); tekenTitel(); });
+  $('spelernaam').textContent = speler() ? `Speler: ${speler()}` : 'Kies je naam op de startpagina om je voortgang te bewaren.';
   $('stemknop').textContent = 'Stemmen: ' + (stemAan() ? 'aan' : 'uit');
   loadVoices();
   $('stemmen').textContent = 'Stemmen op dit toestel: ' + ['nl', 'en', 'de', 'it', 'fr'].map((l) => l.toUpperCase() + (VOX[l] ? ' ✓' : ' ✗')).join('   ');
@@ -700,7 +701,7 @@ $('beginknop').onclick = () => { unlock(); primeVoice(); G.state = 'spel'; toon(
 
 function eindScherm() {
   const won = G.state == 'gewonnen';
-  $('eindtitel').textContent = won ? 'Gewonnen!' : 'Verloren';
+  $('eindtitel').textContent = won ? (speler() ? `Goed gedaan, ${speler()}!` : 'Gewonnen!') : (speler() ? `Helaas, ${speler()}…` : 'Verloren');
   $('eindtekst').textContent = won ? (G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : 'Knap gedaan! Level ' + (G.lvl + 2) + ' in 3D komt binnenkort.') : G.lostMsg;
   $('volgende').hidden = !(won && G.lvl + 1 < LEVELS.length);
   $('opnieuw').textContent = won ? 'Nog een keer' : 'Opnieuw proberen';

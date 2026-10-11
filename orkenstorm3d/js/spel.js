@@ -13,10 +13,18 @@ export const G = {
   lastAlert: -999, poke: { id: -1, n: 0, t: 0 }, multi: false, unlocked: 1, paused: false, diff: 1, lostMsg: '', uid: 1,
   levelVersie: 0, mapVersie: 0, freed: true,
 };
-try { G.unlocked = +localStorage.getItem('orkenstorm3d_lvl') || 1; } catch (e) {}
-try { const d = localStorage.getItem('orkenstorm3d_diff'); if (d !== null) G.diff = +d; } catch (e) {}
+// Voortgang per speler (de naam kies je op de startpagina). Zonder eigen voortgang begin je met wat er al
+// op dit toestel stond, zodat er niets verloren gaat.
+let spelerNaam = '';
+try { spelerNaam = localStorage.getItem('speler') || ''; } catch (e) {}
+export const speler = () => spelerNaam;
+const sleutel = (k) => (spelerNaam ? `${k}:${spelerNaam}` : k);
+function lees(k) { try { const v = localStorage.getItem(sleutel(k)); return v !== null ? v : localStorage.getItem(k); } catch (e) { return null; } }
+function bewaar(k, v) { try { localStorage.setItem(sleutel(k), v); } catch (e) {} }
+G.unlocked = +lees('orkenstorm3d_lvl') || 1;
+{ const d = lees('orkenstorm3d_diff'); if (d !== null) G.diff = +d; }
 
-export function zetMoeilijkheid(i) { G.diff = i; try { localStorage.setItem('orkenstorm3d_diff', i); } catch (e) {} }
+export function zetMoeilijkheid(i) { G.diff = i; bewaar('orkenstorm3d_diff', i); }
 
 export function say(m, d = 120) { G.msg = m; G.msgT = d; }
 
@@ -371,7 +379,7 @@ export function update() {
   if (!G.freed && !G.units.some((u) => u.side == 'h')) { G.lostMsg = 'Je hele leger is verslagen...'; G.state = 'verloren'; sHorn(); return; }
   if (L.win(S)) {
     G.state = 'gewonnen'; G.unlocked = Math.max(G.unlocked, G.lvl + 2);
-    try { localStorage.setItem('orkenstorm3d_lvl', G.unlocked); } catch (e) {}
+    bewaar('orkenstorm3d_lvl', G.unlocked);
     sWin(); speak(pick(['Overwinning!', 'Victory!', 'Sieg!']), 1, 'nl');
   }
 }

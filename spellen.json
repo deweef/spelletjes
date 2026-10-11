@@ -47,6 +47,7 @@
     "bestand": "orkenstorm3d/index.html",
     "plaatje": "orkenstorm3d.jpg",
     "stand": "liggend",
-    "concept": true
+    "concept": true,
+    "soort": "3d"
   }
 ]

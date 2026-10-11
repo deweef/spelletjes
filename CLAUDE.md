@@ -18,6 +18,12 @@ bedenk dat de site openbaar is.
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een
   rood label "Concept, nog in de maak" bij. Haal het weg als het spel af is.
+- De startpagina vraagt "Wie speelt er?". Namen staan in localStorage `spelers` (JSON-lijst), de huidige
+  speler in `speler`. Spellen bewaren voortgang per naam als `<sleutel>:<naam>` (Orkenstorm 3D:
+  `orkenstorm3d_lvl:Sanne`), met de oude sleutel zonder naam als beginwaarde. Verwijder je een speler, dan
+  verdwijnen alle sleutels die op `:<naam>` eindigen.
+- De spellen staan in twee blokken: 2D (telefoon en tablet) en 3D (pc, `"soort": "3d"` in spellen.json).
+  Op een aanraakscherm of smal scherm staat 2D bovenaan, anders 3D.
 - Elk spel heeft linksboven een terugknop `<a class="terug" href="./">‹</a>` (in een submap: `href="../"`).
 
 ## Werkwijze
