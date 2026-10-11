@@ -78,6 +78,17 @@ export const LEVELS = [
     huts: [],
     win: (s) => s.count('boerderij') >= 4 && s.count('kazerne') >= 1,
     voortgang: (s) => `boerderijen <b>${Math.min(4, s.count('boerderij'))}/4</b> · kazerne <b>${Math.min(1, s.count('kazerne'))}/1</b>`,
+    tussen: { // het filmpje naar level 2
+      uitgang: [10, 0],
+      begin: 'Het basiskamp staat! Een paar werkers en soldaten willen dieper het bos in…',
+      eind: 'Van de groep die vertrok, kwam maar een handjevol aan.',
+      kaart: [
+        'Het groepje dat wél aankwam, trok dieper het bos in.',
+        'Bij een rivier bouwden ze een nieuw kamp: een kasteel, een kazerne en twee boerderijtjes.',
+        'Maar aan de overkant van de rivier wonen orks…',
+        'Aan jou de taak om het kamp verder uit te breiden!',
+      ],
+    },
   },
   {
     naam: 'De orks komen eraan',

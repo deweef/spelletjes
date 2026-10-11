@@ -64,6 +64,12 @@ Opbouw:
 - `js/geluid.js`: geluidjes en stemmen. Elk mannetje komt uit Nederland, Engeland, Duitsland, Italië of Frankrijk
   (om de beurt uit een geschudde zak, dus eerlijk verdeeld) en praat altijd zijn eigen taal.
 - `js/main.js`: 3D-weergave, camera, muis/toetsen, bovenbalk en paneel.
+- `js/tussen.js`: tussenstukjes na het winnen ("Verder met het verhaal"). Gegevens per level in data.js als
+  `tussen: { uitgang, begin, eind, kaart }`. Een groepje eigen mannetjes loopt naar `uitgang`; onderweg
+  krijgen een paar van hen een grap uit `GRAPPEN` (enkel, plassen, eekhoorn, en per land voor werkers),
+  elke grap hooguit één keer en er komt altijd minstens één aan. Tekstwolkjes in de eigen taal, verteller
+  in het Nederlands, knop Overslaan, daarna een tekstkaart en de uitleg van het volgende level. Mannetjes
+  krijgen daarvoor `u.pose` (animatie), `u.tempo` (snelheid), `u.zigzag` (dronken) en `u.hidden` (weg).
 - `lib/`: three.js r160 (`three.module.js`) en `OrbitControls.js`, lokaal (geen CDN) zodat het offline
   werkt. Blijf bij deze versie; nieuwe three-onderdelen ook uit r160 halen (npm: `three@0.160.0`).
 - Kleuren: r160 doet het kleurbeheer zelf (sRGB). Geef kleuren gewoon als hex op; alleen

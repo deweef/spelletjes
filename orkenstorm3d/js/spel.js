@@ -51,7 +51,7 @@ export function loadLevel(i) {
     if (G.map[y][x] == 'M') { const k = minesKey(x, y); if (!(k in G.mineG)) G.mineG[k] = 2000; }
   }
   const D = DIFF[G.diff];
-  G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false;
+  G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false; G.tussen = false;
   nieuweZak();
   G.res = { goud: Math.round(L.goud * D.res / 10) * 10, hout: Math.round(L.hout * D.res / 10) * 10 };
   G.t = 0; G.waveN = 0; G.nextWave = L.waves ? Math.round(L.waves.first * D.wave) : 0; G.paused = false;
@@ -151,7 +151,7 @@ function goTo(u, goals) {
 }
 function moveAlong(u) {
   if (!u.path || !u.path.length) return true;
-  const [tx, ty] = u.path[0], gx = tx * T + T / 2, gy = ty * T + T / 2, dx = gx - u.x, dy = gy - u.y, d = Math.hypot(dx, dy), sp = UNIT[u.k].spd;
+  const [tx, ty] = u.path[0], gx = tx * T + T / 2, gy = ty * T + T / 2, dx = gx - u.x, dy = gy - u.y, d = Math.hypot(dx, dy), sp = UNIT[u.k].spd * (u.tempo || 1);
   if (blocked(tx, ty) && u.path.length > 1) { u.path = null; return false; }
   if (d <= sp) { u.x = gx; u.y = gy; u.path.shift(); return !u.path.length; }
   u.x += dx / d * sp; u.y += dy / d * sp; return false;
@@ -327,7 +327,7 @@ export function update() {
     else if (u.side == 'n') { gevangenRidder(u); continue; }
     else if (u.k == 'werker' && land(u) == 'it') pizzaPauze(u);
     else if (u.k == 'genezer') genezen(u);
-    if (u.side == 'h' && u.st == 'idle' && u.k != 'werker' && u.k != 'genezer') { const e = nearestEnemy(u, d.sight * T); if (e) cmdAttack(u, e); }
+    if (u.side == 'h' && !G.tussen && u.st == 'idle' && u.k != 'werker' && u.k != 'genezer') { const e = nearestEnemy(u, d.sight * T); if (e) cmdAttack(u, e); }
     if (u.st == 'move') { if (!u.path || moveAlong(u)) { u.st = 'idle'; u.path = null; } }
     else if (u.st == 'attack') {
       const tg = u.tg;
@@ -354,6 +354,7 @@ export function update() {
     if (u.swing > 0) u.swing--;
   }
   uitElkaar();
+  if (G.tussen) { for (const f of G.fx) { f.l--; if (f.vx !== undefined) { f.x += f.vx; f.h -= f.vy; f.vy += 0.05; } } G.fx = G.fx.filter((f) => f.l > 0); return; } // tijdens een tussenstukje: alleen lopen
   // golven (vanaf level 2)
   if (L.waves && S.huts() > 0 && G.t >= G.nextWave) {
     G.nextWave = G.t + Math.round(L.waves.every * DIFF[G.diff].wave); G.waveN++;
@@ -513,6 +514,15 @@ export function muisBouw(gx, gy) {
   if (!G.place) return;
   const d = BLD[G.place.k];
   G.place.x = gx - Math.floor((d.w - 1) / 2); G.place.y = gy - Math.floor((d.h - 1) / 2);
+}
+
+// Voor de tussenstukjes: een mannetje ergens heen laten lopen, en klaarzetten voor het filmpje
+export function stuur(u, tx, ty) { cmdMove(u, tx, ty); }
+export function klaarVoorFilmpje() {
+  G.tussen = true; G.sel = []; G.selB = null; G.place = null; G.msgT = 0;
+  G.units = G.units.filter((u) => u.side == 'h');
+  for (const u of G.units) { u.st = 'idle'; u.path = null; u.tg = null; u.carry = null; u.hidden = false; u.inMine = 0; u.thee = 0; u.job = null; u.bq = []; }
+  for (const r of G.explored) r.fill(true); // de mist trekt op
 }
 
 export function stopKeuze() { G.place = null; G.sel = []; G.selB = null; G.multi = false; }

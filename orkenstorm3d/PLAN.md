@@ -11,7 +11,7 @@ Volgorde van bouwen:
   moeilijkheid per naam.
 - Beperking: per toestel; delen tussen toestellen (overzetcode of online opslag) is voor later.
 
-## 2. Tussenstukjes tussen de levels (eerst 1 → 2 als proef)
+## 2. Tussenstukjes tussen de levels — 1 → 2 KLAAR (proef), de rest nog te doen
 - Na het winnen een filmpje van 20-30 seconden in de 3D-wereld van het gewonnen level, met knop "Overslaan".
 - Nodig: tekstwolkjes boven mannetjes en een script dat mannetjes laat lopen en praten.
 - Een groepje van de eigen mannetjes van de speler loopt naar de rand van de kaart. Onderweg grappige

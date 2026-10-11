@@ -75,6 +75,16 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
 .label{display:inline-block;background:#c0462f;color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .tekstknop{background:none;border:0;color:#d9c49a;text-decoration:underline;font-size:13px;margin-top:6px}
 #pauze .kaart{width:auto}
+/* tussenstukje */
+#tussen{position:fixed;inset:0;z-index:35;pointer-events:none}
+#verteller{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(760px,92vw);background:rgba(15,11,7,.82);border:1px solid var(--rand);border-radius:12px;padding:12px 18px;font:italic 18px/1.4 Georgia,serif;text-align:center;color:var(--perkament)}
+#verteller.nieuw{animation:inloop .5s ease}
+@keyframes inloop{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+#overslaan{position:absolute;right:12px;top:calc(12px + env(safe-area-inset-top));pointer-events:auto;background:rgba(20,15,10,.75);border:1px solid var(--rand);border-radius:9px;padding:7px 14px;font-weight:700;font-size:14px}
+.wolkje{position:absolute;transform:translate(-50%,-100%);background:#fffaf0;color:#2a1a08;border-radius:14px;padding:7px 12px;font:600 15px/1.25 system-ui,sans-serif;max-width:240px;text-align:center;box-shadow:0 3px 10px rgba(0,0,0,.35);animation:plop .25s ease}
+.wolkje::after{content:'';position:absolute;left:50%;bottom:-8px;margin-left:-8px;border:8px solid transparent;border-top-color:#fffaf0;border-bottom:0}
+@keyframes plop{from{transform:translate(-50%,-100%) scale(.6);opacity:0}to{transform:translate(-50%,-100%) scale(1);opacity:1}}
+#tussentekst p{margin:6px 0;line-height:1.5;font-size:16px}
 .kiesbalk{display:flex;flex-wrap:wrap;gap:5px;margin:-2px 0 8px}
 .kiesbalk button,.groep button{background:#3a2d20;border:1px solid rgba(246,223,168,.3);border-radius:7px;padding:4px 8px;font-size:12.5px;font-weight:700}
 .kiesbalk button:hover,.groep button:hover{border-color:var(--goud)}
@@ -147,6 +157,20 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
     <button id="volgende" class="groot goud">Volgend level</button>
     <button id="opnieuw" class="groot">Opnieuw</button>
     <button id="naarmenu" class="groot">Naar het menu</button>
+  </div>
+</div>
+
+<div id="tussen" hidden>
+  <div id="wolkjes"></div>
+  <div id="verteller"></div>
+  <button id="overslaan">Overslaan ›</button>
+</div>
+
+<div id="tussenkaart" class="scherm" hidden>
+  <div class="kaart">
+    <h2>Ondertussen…</h2>
+    <div id="tussentekst"></div>
+    <button id="tussenverder" class="groot goud">Verder</button>
   </div>
 </div>
 

@@ -6,6 +6,7 @@ import { UNIT, BLD, DIFF, LEVELS, BINNENKORT, LAND } from './data.js';
 import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler } from './spel.js';
 import * as M from './modellen.js';
 import { unlock, primeVoice, stemAan, zetStem, sClick, loadVoices, VOX } from './geluid.js';
+import * as Tussen from './tussen.js';
 
 const $ = (id) => document.getElementById(id);
 const isTouch = matchMedia('(pointer: coarse)').matches;
@@ -292,6 +293,7 @@ function syncMannetjes(nu) {
     const [tx, ty] = tileOf(u);
     m.g.visible = !u.hidden && (u.side == 'h' || isExp(tx, ty));
     m.g.position.set(wx(u.x), 0, wz(u.y));
+    if (u.zigzag) { const z = Math.sin(nu / 220) * 0.35; m.g.position.x += Math.cos(m.rot) * z; m.g.position.z -= Math.sin(m.rot) * z; m.g.rotation.z = Math.sin(nu / 300) * 0.15; } // dronken
     const dx = u.x - m.px, dy = u.y - m.py, beweegt = Math.abs(dx) + Math.abs(dy) > 0.05;
     let doel = null;
     if (beweegt) doel = Math.atan2(dx, dy);
@@ -336,6 +338,7 @@ function speel(m, naam, eenmaal) {
 }
 function animeer(m, u, beweegt, gekozen) {
   const nu = performance.now();
+  if (u.pose) { speel(m, u.pose); return; } // in een tussenstukje: zitten, buikpijn, ...
   if (u.captive) { speel(m, 'sit'); return; } // Sir Lodewijk zit gevangen
   if (u.rolstoel) { speel(m, beweegt ? 'wheelchair-move-forward' : 'wheelchair-sit'); return; }
   if (u.swing > (m.vorigeSwing || 0)) speel(m, u.st == 'build' ? 'interact-right' : 'attack-melee-right', true);
@@ -446,6 +449,7 @@ function syncWereld(nu) {
 
 const ringGeo = new THREE.RingGeometry(0.2, 0.28, 24).rotateX(-Math.PI / 2);
 const deeltjeGeo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
+const rookGeo = new THREE.IcosahedronGeometry(0.2, 1);
 
 function syncEffecten() {
   const gezien = new Set();
@@ -455,6 +459,7 @@ function syncEffecten() {
     if (!m) {
       if (f.arrow) m = M.maakPijl();
       else if (f.ring) m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: f.ring, transparent: true }));
+      else if (f.rook) m = new THREE.Mesh(rookGeo, new THREE.MeshBasicMaterial({ color: 0x9be07a, transparent: true, opacity: 0.75, depthWrite: false }));
       else if (f.grave) m = M.kenneyKlaar() ? new THREE.Group() : M.maakGraf(f.grave); // Kenney-mannetjes vallen zelf om
       else m = new THREE.Mesh(deeltjeGeo, M.mat(f.c || '#7a6a5a'));
       fxMesh.set(f, m); scene.add(m);
@@ -465,6 +470,9 @@ function syncEffecten() {
       m.position.set(x, y, z); m.lookAt(wx(f.tx), 0.4, wz(f.ty));
     } else if (f.ring) {
       m.position.set(wx(f.x), 0.04, wz(f.y)); const s = 1 + (20 - f.l) / 20; m.scale.set(s, 1, s); m.material.opacity = f.l / 20;
+    } else if (f.rook) { // groen wolkje dat opstijgt en groter wordt
+      const leeftijd = 1 - f.l / 70;
+      m.position.set(wx(f.x) + leeftijd * 0.3, 0.9 + leeftijd * 1.4, wz(f.y)); m.scale.setScalar(0.8 + leeftijd * 2.6); m.material.opacity = 0.75 * (1 - leeftijd);
     } else if (f.grave) {
       m.position.set(wx(f.x), 0, wz(f.y)); m.visible = f.grave == 'h' || isExp(...tileOf(f));
       if (f.l < 20) m.scale.setScalar(f.l / 20);
@@ -472,7 +480,7 @@ function syncEffecten() {
       m.position.set(wx(f.x), Math.max(0.04, f.h / T + 0.4), wz(f.y)); m.rotation.x += 0.1; m.rotation.y += 0.13;
     }
   }
-  for (const [f, m] of fxMesh) if (!gezien.has(f)) { scene.remove(m); if (f.ring) m.material.dispose(); fxMesh.delete(f); }
+  for (const [f, m] of fxMesh) if (!gezien.has(f)) { scene.remove(m); if (f.ring || f.rook) m.material.dispose(); fxMesh.delete(f); }
 }
 
 // ---------- muis en aanraken ----------
@@ -688,6 +696,7 @@ function tekenTitel() {
 $('stemknop').onclick = () => { zetStem(!stemAan()); tekenTitel(); };
 
 function start(i) {
+  Tussen.stop();
   loadLevel(i);
   bouwWereld();
   $('briefnaam').textContent = G.L.naam;
@@ -704,26 +713,37 @@ function eindScherm() {
   $('eindtitel').textContent = won ? (speler() ? `Goed gedaan, ${speler()}!` : 'Gewonnen!') : (speler() ? `Helaas, ${speler()}…` : 'Verloren');
   $('eindtekst').textContent = won ? (G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : 'Knap gedaan! Level ' + (G.lvl + 2) + ' in 3D komt binnenkort.') : G.lostMsg;
   $('volgende').hidden = !(won && G.lvl + 1 < LEVELS.length);
+  $('volgende').textContent = G.L.tussen ? 'Verder met het verhaal' : 'Volgend level';
   $('opnieuw').textContent = won ? 'Nog een keer' : 'Opnieuw proberen';
   toon('einde');
 }
-$('volgende').onclick = () => start(G.lvl + 1);
+$('volgende').onclick = () => (G.L.tussen ? speelTussen() : start(G.lvl + 1));
+
+// het tussenstukje naar het volgende level, in de wereld van het level dat je net gewonnen hebt
+function speelTussen() {
+  toon(null); G.state = 'tussen';
+  const r = () => renderer.domElement.getBoundingClientRect();
+  const scherm = (x, y, z) => { const v = new THREE.Vector3(x, y, z).project(camera), b = r(); return { x: b.left + (v.x + 1) / 2 * b.width, y: b.top + (1 - v.y) / 2 * b.height }; };
+  Tussen.start({ scene, camera, controls, scherm }, G.L.tussen, () => start(G.lvl + 1));
+}
 $('opnieuw').onclick = () => start(G.lvl);
-$('naarmenu').onclick = () => { G.state = 'titel'; tekenTitel(); };
-$('menuknop').onclick = () => { G.state = 'titel'; zetPauze(false); tekenTitel(); };
+$('naarmenu').onclick = () => { Tussen.stop(); G.state = 'titel'; tekenTitel(); };
+$('menuknop').onclick = () => { Tussen.stop(); G.state = 'titel'; zetPauze(false); tekenTitel(); };
 
 // ---------- de lus ----------
 let acc = 0, vorige = performance.now(), hudT = 0, eindGetoond = false;
 function frame(nu) {
   requestAnimationFrame(frame);
-  const dt = Math.min(100, nu - vorige); vorige = nu;
-  if (G.state == 'spel' && !G.paused) {
-    acc += dt; let n = 0;
-    while (acc >= 1000 / 60 && n < 5) { update(); acc -= 1000 / 60; n++; if (G.state != 'spel') break; }
+  const echt = Math.min(250, nu - vorige), dt = Math.min(100, echt); vorige = nu;
+  const loopt = (G.state == 'spel' && !G.paused) || G.state == 'tussen';
+  if (loopt) {
+    const st = G.state; acc += dt; let n = 0;
+    while (acc >= 1000 / 60 && n < 5) { update(); acc -= 1000 / 60; n++; if (G.state != st) break; }
     if (n == 5) acc = 0;
   } else acc = 0;
   if ((G.state == 'gewonnen' || G.state == 'verloren') && !eindGetoond) { eindGetoond = true; setTimeout(eindScherm, 900); }
   if (G.state == 'spel') eindGetoond = false;
+  if (G.state == 'tussen') Tussen.tik(echt / 1000);
   controls.autoRotate = G.state == 'titel';
   camSchuif(); controls.update(); camBinnenKaart();
   syncWereld(nu); syncGebouwen(nu); syncMannetjes(nu); syncEffecten();
