@@ -26,6 +26,10 @@ bedenk dat de site openbaar is.
   `stuw`/`stuwKracht`) zijn klaar. Volgorde in `FIGUREN` = van makkelijk naar
   moeilijk (roodborstje, meeuw, hommel, kip, kraai, papegaai, pinguïn); elk dier speel je vrij met 20, 25, 30, ...
   punten met het dier ervoor (`nodig`/`open`; wie al een record heeft met een dier houdt het open).
+  Grote tocht (knop bovenaan, `tocht`): alle dieren achter elkaar vanaf het Roodborstje; finishvlag bij 20, 25, 30, ...
+  punten (`doelTocht`, pinguïn heeft geen finish), punten tellen op (`totaal`), elke 25 punten een extra vogeltje
+  (`geraakt`: leven eraf, 100 beelden onkwetsbaar), beste tocht in `fladderfeest_tocht:<naam>`; een finish telt ook als
+  record van dat dier en speelt het volgende vrij.
   Een nieuw dier = regel in `FIGUREN`, deuntje in `MUZIEK`, wereld in `WERELDEN`, plaatje in `tekenDier()`. Elke wereld staat in `WERELDEN` (achtergrond,
   grond, hindernis, bonus, wat er valt, het figuur). `fladderfeest.html#tegel` tekent het plaatje voor de startpagina.
   Muziek: per figuur een eigen deuntje in `MUZIEK` (zelf gecomponeerd, Web Audio, geen bestanden), knopje

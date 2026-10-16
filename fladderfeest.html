@@ -253,7 +253,7 @@ function stopMuziek(woe) {
     o.connect(g).connect(ac.destination); o.start(t); lfo.start(t); o.stop(t + 1); lfo.stop(t + 1);
   }
 }
-function zorgMuziek() { if (staat == 'menu' || staat == 'klaar' || staat == 'spel') startMuziek(); }
+function zorgMuziek() { if (staat == 'menu' || staat == 'klaar' || staat == 'spel' || staat == 'finish') startMuziek(); }
 function wisselMuziek() {
   muziekAan = !muziekAan; try { localStorage.setItem('fladderfeest_muziek', muziekAan ? '1' : '0'); } catch (e) {}
   if (muziekAan) { unlock(); zorgMuziek(); } else stopMuziek(false);
@@ -303,9 +303,15 @@ let fig = FIGUREN[0];
 let vogel, palen, score, frietjes, snelheid, afstand, beeld = 0, schuif = 0, doodT = 0, tekstje = '', nieuwRecord = false, vallend = null;
 const knoppen = []; // klikbare vlakken in het huidige scherm
 
+// De Grote tocht: alle dieren achter elkaar. Bij elk dier ligt de finish op 20, 25, 30, ... punten (de
+// pinguïn heeft geen finish), de punten tellen op en elke 25 punten levert een extra vogeltje (leven) op.
+let tocht = null, finish = null, onkw = 0, melding = null, vuurwerk = [];
+const doelTocht = () => (tocht && tocht.i < FIGUREN.length - 1 ? nodig(tocht.i + 1) : 0);
+const totaal = () => (tocht ? tocht.totaal + score : score);
 let vrijgespeeld = null, veren = [], juich = 0, wind = null, volgendeWind = 0;
+function startTocht() { stopMuziek(false); tocht = { i: 0, totaal: 0, levens: 0, volgendLeven: 25 }; fig = FIGUREN[0]; nieuwSpel(); }
 function nieuwSpel() {
-  vrijgespeeld = null;
+  vrijgespeeld = null; finish = null; onkw = 0; melding = null; vuurwerk = [];
   veren = [];
   vogel = { x: W * 0.28, y: H * 0.42, vy: 0, flapT: 0, hoek: 0 };
   palen = []; score = 0; frietjes = 0; snelheid = 2.3; afstand = 215; nieuwRecord = false; vallend = null;
@@ -344,8 +350,8 @@ addEventListener('keydown', (e) => {
   if (e.code == 'Space' || e.code == 'ArrowUp' || e.code == 'Enter') {
     e.preventDefault();
     if (staat == 'klaar' || staat == 'spel') flap();
-    else if (staat == 'over' && doodT > 40) nieuwSpel();
-    else if (staat == 'menu') { fig = FIGUREN[0]; nieuwSpel(); }
+    else if (staat == 'over' && doodT > 40) { if (tocht) startTocht(); else nieuwSpel(); }
+    else if (staat == 'menu') { tocht = null; fig = FIGUREN[0]; nieuwSpel(); }
   }
   if (e.code == 'Escape' && staat != 'menu') { staat = 'menu'; zorgMuziek(); }
   if (e.code == 'KeyM') wisselMuziek();
@@ -362,8 +368,20 @@ const PAAL = 56, STRAAL = 12;
 
 function stap() {
   beeld++; if (juich > 0) juich--;
+  if (melding && --melding.t <= 0) melding = null;
+  for (const v of vuurwerk) { v.x += v.vx; v.y += v.vy; v.vy += 0.04; v.vx *= 0.98; v.l--; }
+  vuurwerk = vuurwerk.filter((v) => v.l > 0);
   if (staat == 'menu' || staat == 'klaar') { schuif += 1.2; return; }
+  if (staat == 'finish') { // vrij vliegen door de finish, met vuurwerk; daarna het volgende dier
+    schuif += snelheid; doodT++;
+    for (const p of palen) p.x -= snelheid;
+    if (finish) finish.x -= snelheid;
+    vogel.vy += (H * 0.4 - vogel.y) * 0.004 - vogel.vy * 0.05; vogel.y += vogel.vy; vogel.flapT = beeld % 24 < 12 ? 12 - beeld % 24 : 0;
+    if (doodT > 170) volgendeEtappe();
+    return;
+  }
   if (staat == 'spel') {
+    if (onkw > 0) onkw--;
     schuif += snelheid;
     vogel.vy = Math.min(fig.max, vogel.vy + fig.zwaarte);
     if (fig.wind && score >= 3) { // windvlagen: eerst een waarschuwing, dan anderhalve seconde duwen
@@ -380,16 +398,22 @@ function stap() {
     if (vogel.y < 10) { vogel.y = 10; vogel.vy = Math.max(0, vogel.vy); }
     for (const p of palen) {
       p.x -= snelheid;
-      if (!p.voorbij && p.x + PAAL < vogel.x) { p.voorbij = true; score++; sPunt(); juich = 24; snelheid = Math.min(3.3, 2.3 + score * 0.025); }
-      if (p.friet && !p.friet.weg && Math.hypot(p.x + PAAL / 2 - vogel.x, p.friet.y - vogel.y) < 22) { p.friet.weg = true; frietjes++; score++; sHap(); }
+      if (!p.voorbij && p.x + PAAL < vogel.x) { p.voorbij = true; score++; sPunt(); juich = 24; extraLeven(); snelheid = Math.min(3.3, 2.3 + score * 0.025); }
+      if (p.friet && !p.friet.weg && Math.hypot(p.x + PAAL / 2 - vogel.x, p.friet.y - vogel.y) < 22) { p.friet.weg = true; frietjes++; score++; sHap(); extraLeven(); }
       const boven = p.midden - p.gat / 2, onder = p.midden + p.gat / 2;
       const ins = wereld().smal || 0; // smallere steel onder de bloem (tulp)
-      if (botst(vogel.x, vogel.y, STRAAL, p.x, -50, PAAL, boven + 50) || botst(vogel.x, vogel.y, STRAAL, p.x, onder, PAAL, 34) || botst(vogel.x, vogel.y, STRAAL, p.x + ins, onder + 34, PAAL - 2 * ins, GROND - onder)) return dood();
+      if (onkw <= 0 && (botst(vogel.x, vogel.y, STRAAL, p.x, -50, PAAL, boven + 50) || botst(vogel.x, vogel.y, STRAAL, p.x, onder, PAAL, 34) || botst(vogel.x, vogel.y, STRAAL, p.x + ins, onder + 34, PAAL - 2 * ins, GROND - onder))) return geraakt();
     }
     palen = palen.filter((p) => p.x > -PAAL - 10);
     const laatste = palen[palen.length - 1];
-    if (laatste && laatste.x < W - afstand) nieuwePaal(laatste.x + afstand + Math.random() * 30);
-    if (vogel.y + STRAAL >= GROND) { vogel.y = GROND - STRAAL; return dood(); }
+    const doel = doelTocht(), nogTeGaan = palen.filter((p) => !p.voorbij).length;
+    if (doel && score + nogTeGaan >= doel) { if (!finish && laatste) finish = { x: laatste.x + afstand, voorbij: false }; } // genoeg palen: daarna de finish
+    else if (laatste && laatste.x < W - afstand) nieuwePaal(laatste.x + afstand + Math.random() * 30);
+    if (finish) { finish.x -= snelheid; if (!finish.voorbij && finish.x + 10 < vogel.x && score >= doel) return finishBereikt(); }
+    if (vogel.y + STRAAL >= GROND) {
+      if (onkw > 0) { vogel.y = GROND - STRAAL - 1; vogel.vy = fig.flap; }
+      else { vogel.y = GROND - STRAAL; return geraakt(); }
+    }
   } else if (staat == 'dood' || staat == 'over') {
     doodT++;
     if (vogel.y + STRAAL < GROND) { vogel.vy = Math.min(10, vogel.vy + 0.5); vogel.y = Math.min(GROND - STRAAL, vogel.y + vogel.vy); }
@@ -398,6 +422,12 @@ function stap() {
     veren = veren.filter((v) => v.l > 0);
     if (staat == 'dood' && doodT > 45) {
       staat = 'over'; doodT = 0;
+      if (tocht) { // einde van de tocht: beste tocht bewaren
+        const t = totaal(); tocht.nieuw = t > record('tocht'); if (tocht.nieuw) zetRecord('tocht', t);
+        if (score > record(fig.id)) zetRecord(fig.id, score);
+        if (t >= 25) sMedaille();
+        return;
+      }
       const i = FIGUREN.indexOf(fig), volgende = FIGUREN[i + 1], wasDicht = volgende && !open(i + 1);
       if (score > record(fig.id)) { nieuwRecord = record(fig.id) > 0 || score > 0; zetRecord(fig.id, score); }
       vrijgespeeld = wasDicht && open(i + 1) ? volgende : null;
@@ -405,6 +435,35 @@ function stap() {
       if (medaille(score)) sMedaille();
     }
   }
+}
+
+function meld(tekst, kleur = '#ffe14d') { melding = { tekst, kleur, t: 100 }; }
+function extraLeven() {
+  if (!tocht || totaal() < tocht.volgendLeven) return;
+  tocht.levens++; tocht.volgendLeven += 25; meld('+1 vogeltje!', '#7dff7a'); setTimeout(sMedaille, 100);
+}
+// geraakt: in de tocht kost dat een extra vogeltje (als je er een hebt), anders is het afgelopen
+function geraakt() {
+  if (!tocht || tocht.levens <= 0) return dood();
+  tocht.levens--; onkw = 100; sBots(); meld('Vogeltje kwijt! Nog ' + tocht.levens + ' over', '#ff9a8a');
+  const p = palen.find((q) => q.x + PAAL > vogel.x - 20);
+  vogel.y = p ? p.midden : H * 0.42; vogel.vy = 0;
+}
+function finishBereikt() {
+  finish.voorbij = true; staat = 'finish'; doodT = 0; sMedaille(); setTimeout(sMedaille, 400);
+  const i = tocht.i, volgende = FIGUREN[i + 1], wasDicht = !open(i + 1);
+  if (score > record(fig.id)) zetRecord(fig.id, score); // een finish telt ook als record, en speelt het volgende dier vrij
+  meld(wasDicht && open(i + 1) ? 'Vrijgespeeld: ' + volgende.naam + '!' : 'Finish!');
+  for (let k = 0; k < 5; k++) setTimeout(() => knal(W * (0.2 + Math.random() * 0.6), 80 + Math.random() * 200), k * 300);
+}
+function knal(x, y) {
+  const kl = ['#ff3c78', '#ffe14d', '#50c8ff', '#7dff7a', '#ff9a2a', '#c080ff'][Math.floor(Math.random() * 6)];
+  for (let i = 0; i < 26; i++) { const a = Math.random() * 7, v = 1 + Math.random() * 3; vuurwerk.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: 60 + Math.random() * 30, kl }); }
+  snd(200 + Math.random() * 200, 0.3, 'sawtooth', 0.03, 60); ruis(0.4, 0.06, 'highpass', 3000);
+}
+function volgendeEtappe() {
+  tocht.totaal += score; tocht.i++;
+  stopMuziek(false); fig = FIGUREN[tocht.i]; nieuwSpel();
 }
 
 function dood() {
@@ -1474,11 +1533,20 @@ function knop(x, y, w, h, t, kleur, doe) {
 function menu() {
   ctx.fillStyle = 'rgba(15,40,70,.28)'; ctx.fillRect(0, 0, W, H);
   const golf = Math.sin(beeld * 0.05) * 3;
-  tekst('Fladderfeest', W / 2, 62 + golf, 40, '#ffe14d', 'center', '#1d3b57');
-  tekst('Kies wie er gaat fladderen', W / 2, 100, 15);
+  tekst('Fladderfeest', W / 2, 52 + golf, 38, '#ffe14d', 'center', '#1d3b57');
+  // de Grote tocht
+  const bt = record('tocht');
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; rrect(24, 86, W - 48, 46, 14); ctx.fill();
+  const tg = ctx.createLinearGradient(0, 82, 0, 124); tg.addColorStop(0, '#ffb43a'); tg.addColorStop(1, '#e8762a');
+  ctx.fillStyle = tg; rrect(24, 82, W - 48, 46, 14); ctx.fill(); ctx.strokeStyle = '#fff3c8'; ctx.lineWidth = 2; ctx.stroke();
+  for (let k = 0; k < 4; k++) for (let j = 0; j < 2; j++) { ctx.fillStyle = (k + j) % 2 ? '#fff' : '#222'; ctx.fillRect(36 + k * 6, 93 + j * 6, 6, 6); ctx.fillRect(W - 60 + k * 6, 93 + j * 6, 6, 6); } // finishvlaggetjes
+  tekst('Grote tocht', W / 2, 98, 20, '#fff', 'center', 'rgba(0,0,0,.3)');
+  tekst(bt ? 'Beste tocht: ' + bt + ' punten' : 'Alle dieren achter elkaar', W / 2, 117, 12, '#fff8e0', 'center', null);
+  knoppen.push({ x: 24, y: 82, w: W - 48, h: 46, doe: startTocht });
+  tekst('of kies één dier', W / 2, 144, 13);
   const kw = (W - 58) / 2, kh = 100;
   FIGUREN.forEach((f, i) => {
-    let x = 24 + (i % 2) * (kw + 10), y = 116 + Math.floor(i / 2) * (kh + 8);
+    let x = 24 + (i % 2) * (kw + 10), y = 156 + Math.floor(i / 2) * (kh + 8);
     if (i == FIGUREN.length - 1 && i % 2 == 0) x = (W - kw) / 2; // laatste alleen in het midden
     const vrij = f.klaar && open(i);
     ctx.fillStyle = vrij ? 'rgba(255,255,255,.93)' : 'rgba(255,255,255,.5)'; rrect(x, y, kw, kh, 16); ctx.fill();
@@ -1492,7 +1560,7 @@ function menu() {
     if (vrij) {
       const r = record(f.id), m = medaille(r, f);
       tekst('Record ' + r + (m ? ' · ' + m[1] : ''), cx, y + 88, 11, '#c0792a', 'center', null);
-      knoppen.push({ x, y, w: kw, h: kh, doe: () => { if (fig != f) stopMuziek(false); fig = f; nieuwSpel(); } });
+      knoppen.push({ x, y, w: kw, h: kh, doe: () => { if (fig != f) stopMuziek(false); tocht = null; fig = f; nieuwSpel(); } });
     } else {
       const uitleg = !f.klaar ? 'Komt nog!' : '🔒 ' + nodig(i) + ' met ' + FIGUREN[i - 1].naam;
       tekst(uitleg, cx, y + 88, f.klaar ? 10 : 11, '#d6453b', 'center', null);
@@ -1503,8 +1571,8 @@ function menu() {
       } });
     }
   });
-  if (tekstje && beeld - doodT < 150 && staat == 'menu') tekst(tekstje, W / 2, H - 28, 15, '#fff');
-  else tekst(speler ? 'Speler: ' + speler : 'Kies je naam op de startpagina voor je eigen record', W / 2, H - 28, speler ? 16 : 12);
+  if (tekstje && beeld - doodT < 150 && staat == 'menu') tekst(tekstje, W / 2, H - 22, 15, '#fff');
+  else tekst(speler ? 'Speler: ' + speler : 'Kies je naam op de startpagina voor je eigen record', W / 2, H - 22, speler ? 16 : 12);
 }
 // een dier met zijn bonus erbij, voor het beginscherm
 function tekenDier(id, x, y, fl, s) {
@@ -1518,11 +1586,44 @@ function tekenDier(id, x, y, fl, s) {
 }
 
 function scorebord() {
+  if (tocht) {
+    tekst(String(totaal()), W / 2, 66, 50, '#fff', 'center', '#1d3b57');
+    const doel = doelTocht();
+    tekst(staat == 'finish' ? 'Gehaald!' : doel ? (score >= doel ? 'Op naar de finish!' : '🏁 nog ' + (doel - score)) : 'Eindsprint: zo ver mogelijk!', W / 2, 106, 15, '#fff', 'center', '#1d3b57');
+    for (let k = 0; k < FIGUREN.length; k++) { // waar ben je in de tocht
+      ctx.fillStyle = k < tocht.i ? '#7dff7a' : k == tocht.i ? '#ffe14d' : 'rgba(255,255,255,.45)';
+      ctx.beginPath(); ctx.arc(W / 2 + (k - 3) * 16, 128, k == tocht.i ? 5.5 : 4, 0, 7); ctx.fill();
+    }
+    for (let k = 0; k < Math.min(tocht.levens, 8); k++) veer(W / 2 - (Math.min(tocht.levens, 8) - 1) * 8 + k * 16, 148, -0.6);
+    if (tocht.levens > 8) tekst('x' + tocht.levens, W / 2 + 76, 148, 13, '#fff', 'left', '#1d3b57');
+    return;
+  }
   tekst(String(score), W / 2, 70, 52, '#fff', 'center', '#1d3b57');
   if (frietjes) { wereld().bonus(W / 2 - 14, 122, 0); tekst('x' + frietjes, W / 2 + 2, 116, 16, '#fff', 'left', '#1d3b57'); }
 }
 
+function eindschermTocht() {
+  const a = Math.min(1, doodT / 15); ctx.globalAlpha = a;
+  const x = 34, y = 140, w = W - 68, h = 320, t = totaal();
+  ctx.fillStyle = 'rgba(255,248,230,.96)'; rrect(x, y, w, h, 20); ctx.fill();
+  ctx.strokeStyle = '#e8762a'; ctx.lineWidth = 4; ctx.stroke();
+  tekst(tekstje, W / 2, y + 30, 16, '#d6453b', 'center', null);
+  tekst('Grote tocht', W / 2, y + 60, 15, '#4d6478', 'center', null);
+  tekst(String(t), W / 2, y + 98, 46, '#1d3b57', 'center', null);
+  tekst('punten', W / 2, y + 128, 14, '#4d6478', 'center', null);
+  if (tocht.nieuw && t > 0) tekst('Je beste tocht ooit!', W / 2, y + 156, 19, '#ffe14d', 'center', '#c0792a');
+  else tekst('Beste tocht: ' + record('tocht'), W / 2, y + 156, 15, '#c0792a', 'center', null);
+  tekst('Je kwam tot ' + fig.naam + ' (' + (tocht.i + 1) + ' van ' + FIGUREN.length + ')', W / 2, y + 188, 14, '#1d3b57', 'center', null);
+  for (let k = 0; k < FIGUREN.length; k++) { ctx.fillStyle = k < tocht.i ? '#3fae5a' : k == tocht.i ? '#e8762a' : '#d8d0c0'; ctx.beginPath(); ctx.arc(W / 2 + (k - 3) * 22, y + 214, 7, 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  if (doodT > 25) {
+    knop(x + 14, y + h - 62, w / 2 - 20, 46, 'Nog een tocht', '#3fae5a', startTocht);
+    knop(x + w / 2 + 6, y + h - 62, w / 2 - 20, 46, 'Menu', '#3f8fd8', () => { staat = 'menu'; tocht = null; tekstje = ''; zorgMuziek(); });
+  }
+}
+
 function eindscherm() {
+  if (tocht) return eindschermTocht();
   const a = Math.min(1, doodT / 15);
   ctx.globalAlpha = a;
   const x = 34, y = 150, w = W - 68, h = 300;
@@ -1555,6 +1656,14 @@ function eindscherm() {
   }
 }
 
+// de finish: twee palen met een geblokte vlag ertussen en een geblokte streep
+function finishVlag(x) {
+  ctx.fillStyle = '#ddd'; ctx.fillRect(x - 4, 40, 6, GROND - 40); ctx.fillRect(x + 34, 40, 6, GROND - 40);
+  for (let k = 0; k < 6; k++) for (let j = 0; j < 3; j++) { ctx.fillStyle = (k + j) % 2 ? '#fff' : '#222'; ctx.fillRect(x + 2 + k * 5.4, 40 + j * 7 + Math.sin(beeld * 0.15 + k * 0.6) * 2, 5.4, 7); }
+  ctx.globalAlpha = 0.35; for (let j = 0; j * 12 < GROND - 64; j++) { ctx.fillStyle = j % 2 ? '#fff' : '#222'; ctx.fillRect(x + 14, 64 + j * 12, 8, 12); } ctx.globalAlpha = 1;
+  tekst('FINISH', x + 18, 32, 14, '#ffe14d', 'center', '#c0392b');
+}
+
 function muziekKnop() { // rechtsboven: muziek aan of uit
   const x = W - 46, y = 8;
   ctx.fillStyle = 'rgba(0,0,0,.28)'; rrect(x, y, 38, 38, 19); ctx.fill();
@@ -1580,6 +1689,7 @@ function teken() {
       if (p.friet && !p.friet.weg) wd.bonus(p.x + PAAL / 2, p.friet.y + Math.sin(beeld * 0.1 + p.nr) * 3 + 8);
     }
   }
+  if (finish && staat != 'menu') finishVlag(finish.x);
   wd.grond();
   if (staat == 'menu') { menu(); muziekKnop(); return; }
   if (vallend) wd.valt(vallend.x, vallend.y, vallend.r);
@@ -1587,9 +1697,14 @@ function teken() {
   const zweef = staat == 'klaar' ? Math.sin(beeld * 0.08) * 8 : 0;
   let hoek = staat == 'klaar' ? 0 : Math.max(-0.45, Math.min(1.3, vogel.vy * 0.09));
   if (fig.id == 'hommel') hoek = staat == 'dood' ? doodT * 0.28 : staat == 'over' ? 0 : hoek * 0.6; // tolt naar beneden
-  wd.held(vogel.x, vogel.y + zweef, hoek, staat == 'klaar' ? (beeld % 30 < 12 ? 12 - beeld % 30 : 0) : vogel.flapT, 1, staat == 'dood' || staat == 'over');
+  if (!(onkw > 0 && beeld % 8 < 4)) wd.held(vogel.x, vogel.y + zweef, hoek, staat == 'klaar' ? (beeld % 30 < 12 ? 12 - beeld % 30 : 0) : vogel.flapT, 1, staat == 'dood' || staat == 'over');
+  if (staat == 'klaar' && tocht) {
+    tekst('Grote tocht · dier ' + (tocht.i + 1) + ' van ' + FIGUREN.length, W / 2, 104, 16, '#fff');
+    if (tocht.totaal) tekst('Totaal tot nu toe: ' + tocht.totaal, W / 2, 168, 15, '#fff');
+  }
   if (staat == 'klaar') {
-    tekst(fig.naam, W / 2, 120, 32, '#ffe14d');
+    tekst(fig.naam, W / 2, 134, 32, '#ffe14d');
+    if (tocht) tekst(doelTocht() ? 'Finish bij ' + doelTocht() + ' punten' : 'Laatste dier: vlieg zo ver als je kunt!', W / 2, H * 0.6 - 30, 16, '#ffe14d');
     tekst('Tik om te fladderen!', W / 2, H * 0.6, 22);
     tekst('Vlieg tussen ' + fig.palen + ' door', W / 2, H * 0.6 + 32, 15);
     tekst('en pik onderweg wat ' + fig.bonus[1] + ' mee', W / 2, H * 0.6 + 54, 15);
@@ -1599,7 +1714,11 @@ function teken() {
     ctx.fillRect(W / 2 - 4, H * 0.6 + 76 + t, 8, 24);
   }
   if (wind && staat == 'spel') windStrepen();
-  if (staat == 'spel' || staat == 'dood') scorebord();
+  if (staat == 'spel' || staat == 'dood' || staat == 'finish') scorebord();
+  for (const v of vuurwerk) { ctx.globalAlpha = Math.min(1, v.l / 30); ctx.fillStyle = v.kl; ctx.fillRect(v.x - 1.5, v.y - 1.5, 3, 3); }
+  ctx.globalAlpha = 1;
+  if (staat == 'finish') { tekst('FINISH!', W / 2, H * 0.3, 44, '#ffe14d', 'center', '#c0392b'); if (doodT > 60) tekst('Op naar: ' + FIGUREN[tocht.i + 1].naam, W / 2, H * 0.3 + 46, 18, '#fff'); }
+  if (melding && staat != 'over') { ctx.globalAlpha = Math.min(1, melding.t / 20); tekst(melding.tekst, W / 2, staat == 'finish' ? H * 0.3 + 80 : 186, 18, melding.kleur, 'center', '#1d3b57'); ctx.globalAlpha = 1; }
   if (staat == 'over') eindscherm();
   muziekKnop();
 }
@@ -1628,7 +1747,7 @@ function lus(nu) {
 document.addEventListener('visibilitychange', () => { vorige = performance.now(); });
 if (TEGEL) { document.querySelector('.terug').hidden = true; tegelPlaatje(); }
 else { nieuwSpel(); staat = 'menu'; requestAnimationFrame(lus); }
-window.__test = { get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
+window.__test = { get tocht() { return tocht; }, get finish() { return finish; }, startTocht, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
 </script>
 </body>
 </html>
