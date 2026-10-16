@@ -287,7 +287,7 @@ function syncMannetjes(nu) {
     if (!m) {
       m = M.maakMannetje(u.k, u.side, u.voice && u.voice.lang, u.rolstoel);
       m.g.scale.multiplyScalar(1.3);
-      m.balk = maakBalk(0.5); m.balk.position.y = 1.05; m.g.add(m.balk);
+      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : u.k == 'orkbaas' ? 1.4 : 1.05; m.g.add(m.balk);
       m.px = u.x; m.py = u.y; m.rot = u.side == 'o' ? 0 : Math.PI; m.loop = 0;
       m.g.rotation.y = m.rot;
       scene.add(m.g); uMesh.set(u.id, m);
@@ -308,13 +308,20 @@ function syncMannetjes(nu) {
     }
     m.px = u.x; m.py = u.y;
     const gekozen = G.sel.includes(u);
+    if (m.paard) { // galopperen: de benen kruiselings, het lijf deint mee
+      m.loop = beweegt ? (m.loop || 0) + 0.32 : (m.loop || 0) * 0.8;
+      const sw = beweegt ? Math.sin(m.loop) * 0.7 : 0;
+      m.paard.benen.forEach((b, i) => { b.rotation.x = (i == 0 || i == 3) ? sw : -sw; });
+      m.paard.lijf.position.y = beweegt ? Math.abs(Math.sin(m.loop)) * 0.05 : 0;
+      m.lijf.position.y = (m.kenney ? 0.38 : 0.36) + m.paard.lijf.position.y;
+    }
     if (m.voertuig) { if (u.swing > 0) m.lijf.rotation.x = -Math.sin((12 - u.swing) / 12 * Math.PI) * 0.25; else m.lijf.rotation.x = 0; m.lijf.position.y = beweegt ? Math.abs(Math.sin(nu / 90)) * 0.02 : 0; }
     else if (m.kenney) animeer(m, u, beweegt, gekozen);
     else poppetje(m, u, beweegt);
     if (m.p.hout) { m.p.hout.visible = u.carry == 'hout'; m.p.goud.visible = u.carry == 'goud'; }
     m.p.ring.visible = gekozen;
     m.gekozen = gekozen;
-    m.balk.visible = gekozen || u.hp < u.max;
+    m.balk.visible = !G.tussen && (gekozen || u.hp < u.max);
     if (m.balk.visible) zetBalk(m.balk, u.hp / u.max, u.side);
   }
   for (const [id, m] of uMesh) if (!gezien.has(id)) {
@@ -341,6 +348,12 @@ function speel(m, naam, eenmaal) {
 }
 function animeer(m, u, beweegt, gekozen) {
   const nu = performance.now();
+  if (m.paard) { // de ruiter zit, en zwaait met zijn zwaard als hij aanvalt
+    if (u.swing > (m.vorigeSwing || 0)) speel(m, 'attack-melee-right', true);
+    m.vorigeSwing = u.swing;
+    if (nu < m.eenmaalTot) return;
+    speel(m, u.pose == 'emote-yes' ? 'emote-yes' : 'wheelchair-sit'); return;
+  }
   if (u.pose) { speel(m, u.pose); return; } // in een tussenstukje: zitten, buikpijn, ...
   if (u.captive) { speel(m, 'sit'); return; } // Sir Lodewijk zit gevangen
   if (u.rolstoel) { speel(m, beweegt ? 'wheelchair-move-forward' : 'wheelchair-sit'); return; }
@@ -376,7 +389,7 @@ function syncGebouwen(nu) {
       m = M.maakGebouw(b.k, b.w, b.h);
       m.g.position.set(b.x + b.w / 2, 0, b.y + b.h / 2);
       m.g.userData.pick = { bld: b };
-      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4 }[b.k] || 2.0; m.g.add(m.balk);
+      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4 }[b.k] || 2.0; m.g.add(m.balk);
       scene.add(m.g); bMesh.set(b.id, m); pickables.push(m.g);
     }
     m.g.visible = b.side == 'h' || isExp(b.x, b.y);
@@ -646,12 +659,12 @@ let paneelSleutel = '';
 function tekenPaneel(forceer) {
   const sel = G.sel, b = G.selB, ws = sel.filter((u) => u.k == 'werker');
   const sleutel = JSON.stringify([G.multi, sel.map((u) => u.id), b && b.id, b && b.done, b && b.q, G.place && G.place.k, G.L && G.L.bouw.map((k) => canAfford(BLD[k].cost)),
-    ['werker', 'soldaat', 'boog', 'katapult'].map((k) => canAfford(UNIT[k].cost)), S.count('smederij'), S.count('houtzagerij')]);
+    ['werker', 'soldaat', 'boog', 'katapult', 'ridder'].map((k) => canAfford(UNIT[k].cost)), S.count('smederij'), S.count('houtzagerij')]);
   if (!forceer && sleutel == paneelSleutel) return vulPaneel();
   paneelSleutel = sleutel;
   const p = $('paneel');
   let h = '';
-  const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
+  const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters', ridder: 'ridders' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
   h += `<div class="kiesbalk">${G.L && G.L.dungeon ? '<button data-alle="groep">Hele groep</button>' : '<button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button>'}<button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
   if (sel.length == 1) {
     const u = sel[0], l = LAND[u.voice && u.voice.lang];

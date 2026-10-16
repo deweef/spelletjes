@@ -45,7 +45,8 @@ Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee
 startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
 
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
-werkers) en 4 (De Donkere Mijnen) zijn speelbaar; levels 5 en 6 uit `orkenstorm.html` moeten nog (namen in `BINNENKORT` in `js/data.js`).
+werkers), 4 (De Donkere Mijnen) en 5 (Het Woud van Wilgendaal) zijn speelbaar; level 6 uit `orkenstorm.html` moet nog
+(naam in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
 
@@ -141,8 +142,17 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   character-skeleton; genezer = mens op krukken (characters aid-crutch) met witte kap; Sir Lodewijk =
   mens met gouden helm en rode pluim (`held`, zit gevangen met de animatie `sit` tot je bij hem bent).
   Genezer en Sir Lodewijk rijden nooit in een rolstoel. Sir Lodewijk hoeft naast de trap te staan om te winnen.
-- Nog te doen (voor latere levels): orkentoren, stal, ridder, rovers, roverkamp en de abdij.
-- Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. Geef het in 3D een eigen naam.
+- Het Woud van Wilgendaal (level 5, kaart 36x40): ridder = mens met zilveren helm en blauwe pluim op een
+  zelfgemaakt blokjespaard (`maakPaard`/`opPaard` in modellen.js, er zit geen paard in de Kenney-pakketten;
+  de ruiter speelt `wheelchair-sit`, de paardenbenen galopperen in main.js). Rijdt nooit in een rolstoel.
+  Stal = forest schuurtje, graveyard hooibalen, hek, emmer en een paard. Orkentoren = forest building-structure
+  en building-platform met ladder en een speerwerper bovenop; schiet net als de wachttoren (`otowers`).
+  Orkenbaas = grote ork met hoornhelm. Orkenhutten hebben hier meer levens (`hutHp`).
+- Tussenstukje 4 → 5: Sir Lodewijk bedankt de groep (`held: 1`), grappen `schat` (schatkist) en `krukken`
+  (genezer raakt achter), `vertrek` = pas later weglopen omdat de trap vlakbij is, `zonder` = geen plassen
+  of eekhoorn onder de grond.
+- Nog te doen (voor latere levels): rovers, roverkamp en de abdij.
+- Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.
 - "Modellen: Kenney.nl" staat op het titelscherm.

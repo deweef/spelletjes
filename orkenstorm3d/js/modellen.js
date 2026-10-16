@@ -44,11 +44,14 @@ const KLEDING = {
   boog: { romp: '#3d7d3a', broek: '#4d3b2a' },
   ork: { romp: '#6b4a2b', broek: '#3e2d1c', huid: '#5f9e3c' },
   speerork: { romp: '#7a5530', broek: '#3e2d1c', huid: '#6aab45' },
+  orkbaas: { romp: '#3e2d1c', broek: '#2a1e14', huid: '#4f8a30' },
+  ridder: { romp: '#c9ced4', broek: '#3b3b48' },
 };
 
 export function maakMannetje(k, side, land, rolstoel) {
   if (k == 'katapult') return maakKatapult();
   if (K.klaar) return kenneyMannetje(k, side, land, rolstoel);
+  if (k == 'ridder') { const m = maakMannetje('soldaat', side, land, false); return opPaard(m, false); }
   const kl = KLEDING[k] || KLEDING.werker;
   const huid = kl.huid || HUID;
   const g = new THREE.Group();
@@ -99,13 +102,13 @@ export function maakMannetje(k, side, land, rolstoel) {
     const boog = mesh(geo('boog', () => new THREE.TorusGeometry(0.2, 0.014, 4, 12, Math.PI)), '#7a5230');
     boog.rotation.y = Math.PI / 2; boog.position.set(-0.02, -0.25, 0.05); p.armL.add(boog);
     lijf.add(cil(0.05, 0.05, 0.26, '#6b4a2b', 0.07, 0.48, -0.13, 6)); // pijlkoker
-  } else if (k == 'ork' || k == 'speerork') {
-    g.scale.setScalar(1.18);
+  } else if (k == 'ork' || k == 'speerork' || k == 'orkbaas') {
+    g.scale.setScalar(k == 'orkbaas' ? 1.5 : 1.18);
     lijf.add(doos(0.03, 0.05, 0.03, '#fffbe8', -0.05, 0.6, 0.1)); // slagtanden
     lijf.add(doos(0.03, 0.05, 0.03, '#fffbe8', 0.05, 0.6, 0.1));
     lijf.add(doos(0.17, 0.025, 0.02, '#c0392b', 0, 0.7, 0.11)); // boze wenkbrauwen
     lijf.add(doos(0.34, 0.12, 0.22, '#5a4a3a', 0, 0.52, 0)); // schouderstuk
-    if (k == 'ork') {
+    if (k != 'speerork') {
       const bijl = new THREE.Group();
       bijl.add(doos(0.035, 0.42, 0.035, '#5a3b20', 0, 0, 0.12));
       bijl.add(doos(0.02, 0.16, 0.16, '#7d858c', 0, 0.16, 0.22));
@@ -137,7 +140,7 @@ function kenneyMannetje(k, side, land, rolstoel) {
   const g = new THREE.Group(), lijf = new THREE.Group();
   g.add(lijf); lijf.add(f.model);
   const ork = side == 'o';
-  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : ork ? 1.2 : 1.1);
+  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : k == 'orkbaas' ? 1.6 : ork ? 1.2 : 1.1);
   const armR = f.bot('arm-right'), armL = f.bot('arm-left'), hoofd = f.bot('head'), romp = f.bot('torso');
   const p = { ring: keuzering(side) };
   const inHand = (arm, ding, links) => { // ding staat rechtop (+y); in de hand wijst het naar voren
@@ -177,12 +180,65 @@ function kenneyMannetje(k, side, land, rolstoel) {
     const bijl = K.stuk('survival/tool-axe'); bijl.scale.setScalar(1.5); inHand(armR, bijl);
   } else if (k == 'speerork') {
     inHand(armR, K.stuk('dungeon/weapon-spear'));
+  } else if (k == 'orkbaas') { // grote ork met hoorns op zijn helm en een flinke bijl
+    const bijl = K.stuk('survival/tool-axe'); bijl.scale.setScalar(2); inHand(armR, bijl);
+    const helm = new THREE.Group();
+    helm.add(cil(0.22, 0.24, 0.13, '#4a4038', 0, 0.36, 0, 10));
+    for (const x of [-1, 1]) { const h = kegel(0.05, 0.22, '#f2ead6', x * 0.22, 0.46, 0, 6); h.rotation.z = -x * 0.6; helm.add(h); }
+    hoofd.add(helm);
+    romp.add(doos(0.42, 0.1, 0.3, '#5a4a3a', 0, 0.28, 0)); // schouderstuk
+  } else if (k == 'ridder') { // ridder te paard: zilveren helm met blauwe pluim, zwaard en schild
+    inHand(armR, K.stuk('dungeon/weapon-sword'));
+    const schild = K.stuk('dungeon/shield-round'); schild.scale.setScalar(0.8);
+    const h = new THREE.Group(); h.position.set(0.2, 0, 0.06); h.add(schild); armL.add(h);
+    const helm = new THREE.Group();
+    helm.add(cil(0.21, 0.22, 0.14, '#d6dde3', 0, 0.36, 0, 10)); helm.add(kegel(0.22, 0.14, '#d6dde3', 0, 0.5, 0, 10));
+    helm.add(doos(0.05, 0.2, 0.2, '#2f5fb3', 0, 0.62, -0.04));
+    hoofd.add(helm);
+    g.add(p.ring);
+    return opPaard({ g, lijf, p, mixer: f.mixer, acties: f.acties, kenney: true }, true);
   }
   if (rolstoel) {
     f.model.add(K.stuk('characters/wheelchair'));
   }
   g.add(p.ring);
   return { g, lijf, p, mixer: f.mixer, acties: f.acties, kenney: true };
+}
+
+// Paard van blokjes (er zit geen paard in de Kenney-pakketten), in dezelfde effen stijl.
+// Voorkant = +z. De benen draaien vanuit de heup (p.benen) zodat ze kunnen galopperen.
+const PAARDKLEUR = ['#8b5a2b', '#6b4226', '#efe8dc', '#3a2c22', '#b07a45'];
+export function maakPaard(kleur) {
+  kleur = kleur || PAARDKLEUR[Math.floor(Math.random() * PAARDKLEUR.length)];
+  const manen = kleur == '#efe8dc' ? '#c9c2b6' : '#2b2018';
+  const g = new THREE.Group(), lijf = new THREE.Group(); g.add(lijf);
+  lijf.add(doos(0.28, 0.26, 0.62, kleur, 0, 0.5, 0));
+  const nek = doos(0.14, 0.32, 0.15, kleur, 0, 0.7, 0.3); nek.rotation.x = 0.5; lijf.add(nek);
+  const manen1 = doos(0.05, 0.3, 0.06, manen, 0, 0.74, 0.22); manen1.rotation.x = 0.5; lijf.add(manen1);
+  lijf.add(doos(0.13, 0.13, 0.28, kleur, 0, 0.84, 0.44)); // hoofd
+  lijf.add(doos(0.135, 0.06, 0.08, manen, 0, 0.81, 0.58)); // snuit
+  for (const x of [-0.04, 0.04]) lijf.add(kegel(0.025, 0.08, kleur, x, 0.94, 0.38, 4));
+  const staart = doos(0.06, 0.32, 0.07, manen, 0, 0.46, -0.34); staart.rotation.x = 0.35; lijf.add(staart);
+  lijf.add(doos(0.32, 0.13, 0.32, '#2f5fb3', 0, 0.62, -0.02)); // dekkleed van de koning
+  lijf.add(doos(0.33, 0.03, 0.33, '#e8c547', 0, 0.56, -0.02));
+  const benen = [];
+  for (const [x, z] of [[-0.09, 0.22], [0.09, 0.22], [-0.09, -0.22], [0.09, -0.22]]) {
+    const b = new THREE.Group(); b.position.set(x, 0.42, z);
+    b.add(doos(0.08, 0.38, 0.08, kleur, 0, -0.19, 0)); b.add(doos(0.085, 0.06, 0.09, '#2b2420', 0, -0.39, 0));
+    lijf.add(b); benen.push(b);
+  }
+  return { g, lijf, benen };
+}
+
+// zet een mannetje op een paard: het paard loopt, de ruiter zit
+function opPaard(m, kenney) {
+  const paard = maakPaard();
+  const g = new THREE.Group();
+  g.add(paard.g);
+  g.add(m.lijf); m.lijf.position.y = kenney ? 0.38 : 0.36; m.lijf.position.z = -0.03;
+  g.add(m.p.ring); m.p.ring.scale.setScalar(1.4);
+  m.g = g; m.paard = paard;
+  return m;
 }
 
 // Wat werkers uit hun land meenemen
@@ -307,6 +363,20 @@ const MODEL = {
   muur() { return doos(1, 0.9, 1, STEEN, 0, 0.45, 0); },
   smederij() { const g = new THREE.Group(); g.add(doos(1.2, 0.7, 1.0, '#8a7a6a', -0.2, 0.35, -0.2)); g.add(dak(1.3, 0.4, 1.1, '#5a4a3a', -0.2, 0.7, -0.2)); g.add(doos(0.3, 0.3, 0.2, '#6b6a65', 0.5, 0.15, 0.5)); return g; },
   houtzagerij() { const g = new THREE.Group(); g.add(doos(1.2, 0.6, 1.0, '#b08a5a', -0.2, 0.3, -0.2)); g.add(dak(1.3, 0.4, 1.1, '#7a5230', -0.2, 0.6, -0.2)); for (let i = 0; i < 3; i++) { const c = cil(0.1, 0.1, 0.8, HOUT, 0.55, 0.1 + i * 0.2, 0.4, 7); c.rotation.x = Math.PI / 2; g.add(c); } return g; },
+  stal() {
+    const g = new THREE.Group();
+    g.add(doos(1.8, 0.8, 1.4, '#a0703c', -0.4, 0.4, -0.5)); g.add(dak(1.95, 0.55, 1.6, '#8a2f2a', -0.4, 0.8, -0.5));
+    g.add(bol(0.25, '#e8cf6a', 0.7, 0.2, -0.6, 0));
+    for (let i = 0; i < 6; i++) g.add(doos(0.05, 0.3, 0.05, '#9b6b3a', -1.2 + i * 0.5, 0.15, 1.35));
+    return g;
+  },
+  orktoren() {
+    const g = new THREE.Group();
+    for (const [x, z] of [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]]) g.add(doos(0.12, 2.6, 0.12, '#5a3b20', x, 1.3, z));
+    g.add(doos(1.6, 0.12, 1.6, '#7a5230', 0, 2.6, 0));
+    g.add(vlag('#7a1e1e', 0.6, 2.6, -0.6));
+    return g;
+  },
   orkhut() {
     const g = new THREE.Group();
     g.add(kegel(0.9, 1.2, '#7a5a38', 0, 0.6, 0, 7));
@@ -431,7 +501,38 @@ function kenneyHoutzagerij() {
   return g;
 }
 
-const BOUW = { kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
+// Stal (3x3): grote schuur met hooi, een wei met een hek en een paard
+function kenneyStal() {
+  const g = new THREE.Group();
+  zetIn(g, 'forest/building-roof', -0.45, 0, -0.5, 0, 1.75);
+  zetIn(g, 'graveyard/hay-bale-bundled', -0.3, 0, 0.45, 0.2, 0.9);
+  zetIn(g, 'graveyard/hay-bale', -1.0, 0, 0.5, 1.4, 0.85); zetIn(g, 'graveyard/hay-bale', -0.95, 0.3, 0.45, 1.2, 0.85);
+  for (const x of [-0.5, 0.5]) zetIn(g, 'forest/fence', x + 0.5, 0, 1.42, 0, 0.9);
+  for (const z of [-0.45, 0.55]) zetIn(g, 'forest/fence', 1.42, 0, z + 0.4, Math.PI / 2, 0.9);
+  zetIn(g, 'survival/bucket', 0.55, 0, 0.35, 0, 1.6);
+  const paard = maakPaard('#8b5a2b'); paard.g.position.set(0.85, 0, 0.85); paard.g.rotation.y = -2.3; paard.g.scale.setScalar(1.3); g.add(paard.g);
+  g.add(vlag('#2f5fb3', 1.25, 0, -1.2));
+  return g;
+}
+
+// Orkentoren (2x2): houten uitkijktoren met een ladder, een speerwerper bovenop en een rode vlag
+function kenneyOrktoren() {
+  const g = new THREE.Group();
+  zetIn(g, 'forest/building-structure', 0, 0, 0, 0, 1.3);
+  zetIn(g, 'forest/building-structure', 0, 1.3, 0, 0.3, 1.2);
+  zetIn(g, 'forest/building-platform', 0, 2.5, 0, 0, 1.2);
+  const ladder = zetIn(g, 'forest/ladder', 0, 0, 0.75, 0, 1.3); ladder.scale.y = 2.5;
+  for (const [x, z] of [[-0.75, -0.75], [0.75, -0.75], [-0.75, 0.75], [0.75, 0.75]]) { const p = kegel(0.05, 0.45, '#e8e0c8', x, 3.25, z, 5); g.add(p); }
+  g.add(bol(0.1, '#e8e0c8', 0.6, 3.15, 0.75)); // schedeltje
+  const schutter = kenneyMannetje('speerork', 'o', null, false);
+  schutter.g.position.y = 2.5 + 0.55; schutter.g.scale.setScalar(1.15); schutter.p.ring.visible = false;
+  schutter.acties.idle.play();
+  g.add(schutter.g); g.userData.mixers = [schutter.mixer];
+  g.add(vlag('#7a1e1e', -0.7, 3.0, -0.7));
+  return g;
+}
+
+const BOUW = { stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
   muur: kenneyMuur, smederij: kenneySmederij, houtzagerij: kenneyHoutzagerij };
 
 // Katapult: een voertuig, geen mannetje. Bij een schot zwiept hij even naar achteren.

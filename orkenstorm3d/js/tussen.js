@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { G, T, stuur, plaats, klaarVoorFilmpje, blocked } from './spel.js';
 import { speak, sDone, sBuild } from './geluid.js';
+import * as K from './kenney.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -46,6 +47,18 @@ const GRAPPEN = {
     zin: { nl: 'Daar ga ik niet in, het is daar donker!', en: "I'm not going in there, it's dark!", de: 'Da geh ich nicht rein, da ist es dunkel!', it: 'Io lì non entro, è buio!', fr: "Je n'entre pas là-dedans, il fait noir!" },
     verteller: 'Eentje is bang in het donker en blijft liever buiten.',
     doe(u, f) { u.tempo = 1.4; f.naarHuis(u); },
+  },
+  schat: {
+    past: (u) => u.k != 'werker' && u.k != 'genezer',
+    zin: { nl: 'Een schatkist! Dit is allemaal van mij!', en: 'A treasure chest! It’s all mine!', de: 'Eine Schatztruhe! Alles meins!', it: 'Un tesoro! È tutto mio!', fr: 'Un trésor! Tout est à moi!' },
+    verteller: 'Eentje vindt een schatkist en wil niet meer mee. Rijk worden gaat voor.',
+    doe(u, f) { u.path = null; u.pose = 'interact-right'; f.kist(u); f.later(2.5, () => { u.pose = 'emote-yes'; }); },
+  },
+  krukken: {
+    past: (u) => u.k == 'genezer',
+    zin: { nl: 'Wacht even op mij! Op krukken gaat het niet zo snel…', en: 'Wait for me! Crutches are slow…', de: 'Wartet auf mich! Mit Krücken geht das nicht so schnell…', it: 'Aspettatemi! Con le stampelle non vado veloce…', fr: 'Attendez-moi! Avec des béquilles, ça ne va pas vite…' },
+    verteller: 'De genezer op krukken raakt achter. Hij komt later wel, zegt hij.',
+    doe(u, f) { u.tempo = 0.3; f.later(0.5, () => stuur(u, f.uitgang()[0], f.uitgang()[1])); },
   },
   // per land, alleen voor werkers
   nl: {
@@ -116,13 +129,16 @@ export function start(api, info, klaar) {
 function tocht(a, f, eigen) {
   const { info } = a;
   const soldaten = eigen.filter((u) => u.k != 'werker'), werkers = eigen.filter((u) => u.k == 'werker');
-  const groep = a.groep = [...soldaten.slice(0, 3), ...werkers.slice(0, Math.max(2, werkers.length - 1))].slice(0, 7);
+  const groep = a.groep = [...soldaten.slice(0, info.held ? 7 : 3), ...werkers.slice(0, Math.max(2, werkers.length - 1))].slice(0, 7);
+  const held = info.held && G.units.find((u) => u.k == 'held' && u.side == 'h');
   let start = 0;
-  if (info.spreker) { // eerst vertelt een werker iets
-    const s = werkers[werkers.length - 1] || eigen[0];
+  if (info.spreker) { // eerst vertelt iemand iets (een werker, of Sir Lodewijk)
+    const s = held || werkers[werkers.length - 1] || eigen[0];
     f.wolkje(s, info.spreker); f.zeg(s, info.spreker); start = 3;
   }
-  f.later(start, () => { for (const u of groep) { u.tempo = 1.25; stuur(u, a.uitgang[0], a.uitgang[1]); } });
+  // vertrek: meteen, of pas later (als de uitgang vlakbij is, eerst de grappen)
+  const weg = start + (info.vertrek || 0);
+  f.later(weg, () => { for (const u of groep) if (!info.vertrek || !a.bezet.has(u)) { u.tempo = 1.25; stuur(u, a.uitgang[0], a.uitgang[1]); } });
   // wie krijgt welke grap (er blijft altijd minstens één over die aankomt)
   const vrij = [...groep], plan = [];
   const neem = (soort) => { // elke grap hooguit één keer per filmpje
@@ -133,12 +149,18 @@ function tocht(a, f, eigen) {
   const eerst = info.grappen || ['enkel'];
   for (const g of eerst) neem(g);
   for (const l of landen) if (plan.length < 2) neem(l);
-  neem('plassen'); for (const l of landen) if (plan.length < 4) neem(l);
-  neem('eekhoorn');
+  const zonder = info.zonder || [];
+  if (!zonder.includes('plassen')) neem('plassen');
+  for (const l of landen) if (plan.length < 4) neem(l);
+  if (!zonder.includes('eekhoorn')) neem('eekhoorn');
   while (plan.length >= groep.length && plan.length) vrij.push(plan.pop()[0]);
-  a.aankomers = vrij;
+  a.aankomers = vrij; a.bezet = new Set(plan.map(([u]) => u));
+  if (held) { // Sir Lodewijk gaat voorop en komt altijd aan
+    groep.push(held);
+    f.later(weg + 1.5, () => a.aankomers.push(held)); // pas verdwijnen als hij echt op weg is
+  }
   f.verteller(info.begin);
-  plan.forEach(([u, soort], i) => f.later(start + 2.5 + i * 2.6, () => {
+  plan.forEach(([u, soort], i) => f.later(start + (info.vertrek ? 0.8 : 2.5) + i * 2.6, () => {
     const g = GRAPPEN[soort];
     const zin = g.zin[taal(u)] || g.zin.nl || Object.values(g.zin)[0];
     f.wolkje(u, zin); f.zeg(u, zin); f.verteller(g.verteller);
@@ -275,6 +297,7 @@ function hulpjes(a) {
     },
     zeg: (u, tekst) => speak(tekst, (u.voice && u.voice.pitch) || 1, taal(u), true),
     naarHuis: (u) => stuur(u, a.thuis[0], a.thuis[1]),
+    uitgang: () => a.uitgang,
     boomBij: (u) => { // een vrij vakje naast de dichtstbijzijnde boom
       const [x, y] = tegel(u); let best = null, bd = 1e9;
       for (const k in G.trees) if (G.trees[k] > 0) {
@@ -293,6 +316,13 @@ function hulpjes(a) {
       return [x, y];
     },
     rook: (u, sec) => { for (let i = 0; i < sec * 10; i++) f.later(i / 10, () => G.fx.push({ x: u.x + (Math.random() - 0.5) * 8, y: u.y + (Math.random() - 0.5) * 8, l: 70, rook: 1 })); },
+    kist: (u) => { // een schatkist vlak voor zijn voeten
+      let g;
+      if (K.klaar) { g = K.stuk('dungeon/chest'); g.scale.setScalar(1.6); }
+      else { g = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.3), new THREE.MeshLambertMaterial({ color: '#8b5a2b' })); g.position.y = 0.15; }
+      const h = new THREE.Group(); h.add(g); h.position.set(u.x / T + 0.45, 0, u.y / T + 0.1); h.rotation.y = -0.6;
+      a.api.scene.add(h); a.acteurs.push({ g: h, x: h.position.x, z: h.position.z, doel: [h.position.x, h.position.z], t: 0, stil: 1 });
+    },
     eekhoorn: (u, doel) => { // een klein bruin eekhoorntje dat voor hem uit rent
       const g = new THREE.Group();
       const bruin = new THREE.MeshLambertMaterial({ color: '#a0622d' });
@@ -322,7 +352,7 @@ export function tik(dt) {
   }
   // eekhoorn rent naar de rand
   for (const e of a.acteurs) {
-    if (!e.g) continue;
+    if (!e.g || e.stil) continue;
     const dx = e.doel[0] - e.x, dz = e.doel[1] - e.z, d = Math.hypot(dx, dz);
     if (d > 0.05) { const s = Math.min(d, dt * 2.6); e.x += dx / d * s; e.z += dz / d * s; e.g.rotation.y = Math.atan2(dx, dz); }
     e.t += dt; e.g.position.set(e.x, Math.abs(Math.sin(e.t * 14)) * 0.12, e.z);

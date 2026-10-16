@@ -29,7 +29,7 @@ Volgorde van bouwen:
   - 1 → 2: groep trekt het bos in, bouwt bij de rivier een kamp met kazerne en twee boerderijtjes
   - 2 → 3: feest, maar 's nachts overvallen orks Zonnedal en nemen alle werkers mee
   - 3 → 4: bevrijde werker vertelt over ridder Sir Lodewijk in de mijnen; klein groepje daalt af
-  - 4 → 5: Sir Lodewijk neemt je mee naar zijn buitenpost aan de rand van het woud
+  - 4 → 5: Sir Lodewijk neemt je mee naar zijn buitenpost aan de rand van het woud — KLAAR
   - 5 → 6: bode rent binnen: "De abdij wordt belegerd!"; alleen de ridders zijn snel genoeg
 - Alleen eigen namen en teksten, niets uit Warcraft.
 
@@ -38,7 +38,7 @@ Volgorde van bouwen:
 - Op een telefoon staat het 2D-blok bovenaan, op een laptop het 3D-blok. Marcel past het aan als het niet bevalt.
 
 ## 3b. Uit de nieuwe 2D-versie — KLAAR: goud in de mijn, muur, smederij, houtzagerij, katapult, stenen brug.
-   Nog over uit 2D: weg (vanaf level 8), stal/ridder (level 5), magiërstoren/tovenaar (level 10), levels 7-11.
+   Nog over uit 2D: weg (vanaf level 8), magiërstoren/tovenaar (level 10), levels 7-11.
 
-## 4. Daarna level 5 "Het Woud van Wilgendaal" (naam goedgekeurd) en level 6 (De belegerde abdij),
-   meteen met hun tussenstukjes.
+## 4. Level 5 "Het Woud van Wilgendaal" — KLAAR, met tussenstukje 4 → 5 en ridder, stal, orkentoren, orkenbaas.
+   Nog te doen: level 6 (De belegerde abdij) met tussenstukje 5 → 6 (bode: "De abdij wordt belegerd!").

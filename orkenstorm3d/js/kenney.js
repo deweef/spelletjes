@@ -26,6 +26,8 @@ const LIJST = [
   // level 4: de Donkere Mijnen
   // muur, smederij, houtzagerij, katapult
   'survival/workbench-anvil', 'survival/workbench-grind', 'survival/workbench', 'survival/resource-planks', 'survival/tree-log', 'survival/barrel', 'castle/siege-catapult',
+  // level 5: stal en orkentoren
+  'forest/building-structure', 'forest/building-platform', 'forest/ladder', 'graveyard/hay-bale', 'graveyard/hay-bale-bundled', 'survival/bucket',
   'graveyard/character-skeleton', 'graveyard/lantern-candle', 'dungeon/wall', 'dungeon/stairs', 'dungeon/barrel', 'dungeon/banner', 'characters/aid-crutch',
 ];
 
@@ -67,7 +69,7 @@ export function delen(n) {
 
 // een mannetje met botten en animaties (lopen, aanvallen, omvallen, rolstoel, ...)
 const FIGUUR = { werker: 'dungeon/character-human', soldaat: 'dungeon/character-human', genezer: 'dungeon/character-human', held: 'dungeon/character-human',
-  boog: 'forest/character-archer', ork: 'dungeon/character-orc', speerork: 'dungeon/character-orc', skelet: 'graveyard/character-skeleton' };
+  boog: 'forest/character-archer', ork: 'dungeon/character-orc', speerork: 'dungeon/character-orc', orkbaas: 'dungeon/character-orc', ridder: 'dungeon/character-human', skelet: 'graveyard/character-skeleton' };
 export function figuur(k) {
   const bron = glb[FIGUUR[k] || FIGUUR.werker];
   const model = SkeletonUtils.clone(bron.scene);

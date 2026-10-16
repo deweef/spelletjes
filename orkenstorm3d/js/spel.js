@@ -34,6 +34,7 @@ export function say(m, d = 120) { G.msg = m; G.msgT = d; }
 export const S = {
   count: (k) => G.blds.filter((b) => b.k == k && b.done).length,
   huts: () => G.blds.filter((b) => b.k == 'orkhut').length,
+  towers: () => G.blds.filter((b) => b.k == 'orktoren').length,
   orcs: () => G.units.filter((u) => u.side == 'o').length,
   vrij: () => G.freed,
   heldVrij: () => G.units.some((u) => u.k == 'held' && u.side == 'h'),
@@ -61,7 +62,8 @@ export function loadLevel(i) {
   G.t = 0; G.waveN = 0; G.nextWave = L.waves ? Math.round(L.waves.first * D.wave) : 0; G.paused = false;
   G.explored = Array.from({ length: G.MH }, () => Array(G.MW).fill(false));
   for (const [k, x, y] of L.b) addBld(k, x, y, 1);
-  for (const [x, y] of L.huts) addBld('orkhut', x, y, 1);
+  for (const [x, y] of L.huts) { const h = addBld('orkhut', x, y, 1); if (L.hutHp) h.hp = h.max = L.hutHp; }
+  for (const [x, y] of L.otowers || []) addBld('orktoren', x, y, 1);
   G.freed = !L.kooi;
   for (const [x, y] of L.kooi || []) addBld('kooi', x, y, 1);
   for (const [k, x, y] of L.u) addUnit(k, x, y);
@@ -81,7 +83,7 @@ function addUnit(k, tx, ty) {
   const d = UNIT[k], hm = d.side == 'o' ? DIFF[G.diff].hp : 1;
   const u = { id: G.uid++, voice: d.side == 'h' ? nieuweStem(k) : null, k, side: d.side, x: tx * T + T / 2, y: ty * T + T / 2,
     hp: Math.round(d.hp * hm), max: Math.round(d.hp * hm), st: 'idle', path: null, cd: 0, carry: null, swing: 0 };
-  if (d.side == 'h' && k != 'genezer' && k != 'held' && Math.random() < 1 / 6) u.rolstoel = true; // af en toe rijdt er iemand in een rolstoel
+  if (d.side == 'h' && k != 'genezer' && k != 'held' && k != 'ridder' && Math.random() < 1 / 6) u.rolstoel = true; // af en toe rijdt er iemand in een rolstoel
   G.units.push(u); return u;
 }
 
@@ -312,12 +314,12 @@ export function update() {
         b.q.shift(); b.qp = 0;
       }
     }
-    if (b.k == 'toren' && b.done) {
+    if ((b.k == 'toren' || b.k == 'orktoren') && b.done && !G.tussen) {
       const D = BLD[b.k];
       if (b.cd > 0) b.cd--;
       else {
-        const c = center(b), tg = G.units.filter((u) => u.side != b.side && !u.hidden).find((u) => dist(u, c) < D.rng);
-        if (tg) { b.cd = D.cd; G.fx.push({ x: c.x, y: c.y, tx: tg.x, ty: tg.y, l: 24, l0: 24, arrow: 1, hoog: 1 }); damage(tg, D.dmg, null); sArrow(); }
+        const c = center(b), tg = G.units.filter((u) => u.side != b.side && u.side != 'n' && !u.hidden).find((u) => dist(u, c) < D.rng);
+        if (tg) { b.cd = D.cd; G.fx.push({ x: c.x, y: c.y, tx: tg.x, ty: tg.y, l: 24, l0: 24, arrow: 1, hoog: 1 }); damage(tg, D.dmg, b.side == 'o' ? { side: 'o' } : null); sArrow(); }
       }
     }
   }
@@ -640,7 +642,7 @@ export function klik(p) {
       for (const u of G.sel) cmdAttack(u, enemy);
       sClick(); unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerAanval' : 'aanval');
       G.fx.push({ x: enemy.w ? center(enemy).x : enemy.x, y: enemy.w ? center(enemy).y : enemy.y, l: 20, ring: '#e0574c' });
-    } else { G.selB = null; G.sel = []; say(enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
+    } else { G.selB = null; G.sel = []; say(enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
     return;
   }
   if (hitU && hitU.side == 'n') { say('Sir Lodewijk! Stuur iemand naar hem toe om hem te bevrijden.', 150); return; }
