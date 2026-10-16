@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from '../lib/OrbitControls.js';
 import { UNIT, BLD, DIFF, LEVELS, BINNENKORT, LAND } from './data.js';
-import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler } from './spel.js';
+import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler, introGezien, zetIntroGezien } from './spel.js';
 import * as M from './modellen.js';
 import { unlock, primeVoice, stemAan, zetStem, sClick, loadVoices, VOX } from './geluid.js';
 import * as Tussen from './tussen.js';
@@ -383,7 +383,7 @@ function syncGebouwen(nu) {
     m.steiger.visible = !b.done;
     m.model.scale.y = b.done ? 1 : 0.12 + 0.88 * b.prog;
     m.keus.visible = G.selB == b;
-    m.balk.visible = G.selB == b || b.hp < b.max;
+    m.balk.visible = !G.tussen && (G.selB == b || b.hp < b.max);
     if (m.balk.visible) zetBalk(m.balk, b.hp / b.max, b.side);
     m.model.traverse((o) => { if (o.userData.vlag) o.rotation.y = Math.sin(nu / 300 + b.id) * 0.3; });
   }
@@ -729,17 +729,20 @@ function tekenTitel() {
 }
 $('stemknop').onclick = () => { zetStem(!stemAan()); tekenTitel(); };
 
-function start(i) {
+function start(i, film) {
   Tussen.stop();
   loadLevel(i);
   bouwWereld();
+  if (G.L.intro && (film || !introGezien(i))) { zetIntroGezien(i); speelIntro(i); return; }
   $('briefnaam').textContent = G.L.naam;
   $('briefniveau').textContent = 'Level ' + (i + 1) + ' · ' + DIFF[G.diff].n;
   $('brieftekst').innerHTML = G.L.brief.map((r) => `<p>${esc(r)}</p>`).join('');
   $('briefdoel').textContent = 'Doel: ' + G.L.doel;
   $('brieflanden').textContent = 'Je mannetjes komen uit Nederland, Engeland, Duitsland, Italië en Frankrijk. Klik op een werker om te zien wat hij extra kan!';
+  $('filmknop').hidden = !G.L.intro;
   toon('brief');
 }
+$('filmknop').onclick = () => { unlock(); primeVoice(); sClick(); start(G.lvl, true); };
 $('beginknop').onclick = () => { unlock(); primeVoice(); G.state = 'spel'; toon(null); zetPauze(false); tekenPaneel(true); };
 
 function eindScherm() {
@@ -753,11 +756,17 @@ function eindScherm() {
 }
 $('volgende').onclick = () => (G.L.tussen ? speelTussen() : start(G.lvl + 1));
 
+// het beginfilmpje; daarna begint het level opnieuw met de vaste beginsituatie
+function speelIntro(i) {
+  toon(null); G.state = 'tussen';
+  Tussen.intro({ scene, camera, controls, scherm }, G.L.intro, () => { startNaFilm(i); });
+}
+function startNaFilm(i) { const L = LEVELS[i]; const oud = L.intro; L.intro = null; start(i); L.intro = oud; }
+
 // het tussenstukje naar het volgende level, in de wereld van het level dat je net gewonnen hebt
+function scherm(x, y, z) { const v = new THREE.Vector3(x, y, z).project(camera), b = renderer.domElement.getBoundingClientRect(); return { x: b.left + (v.x + 1) / 2 * b.width, y: b.top + (1 - v.y) / 2 * b.height }; }
 function speelTussen() {
   toon(null); G.state = 'tussen';
-  const r = () => renderer.domElement.getBoundingClientRect();
-  const scherm = (x, y, z) => { const v = new THREE.Vector3(x, y, z).project(camera), b = r(); return { x: b.left + (v.x + 1) / 2 * b.width, y: b.top + (1 - v.y) / 2 * b.height }; };
   const dag = { hemel: hemel.intensity, zon: zon.intensity, lucht: scene.background.clone() }, nachtKleur = new THREE.Color('#141a33');
   const nacht = (f) => { // 0 = dag, 1 = nacht
     hemel.intensity = dag.hemel * (1 - 0.7 * f); zon.intensity = dag.zon * (1 - 0.85 * f);

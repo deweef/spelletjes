@@ -22,6 +22,9 @@ const sleutel = (k) => (spelerNaam ? `${k}:${spelerNaam}` : k);
 function lees(k) { try { const v = localStorage.getItem(sleutel(k)); return v !== null ? v : localStorage.getItem(k); } catch (e) { return null; } }
 function bewaar(k, v) { try { localStorage.setItem(sleutel(k), v); } catch (e) {} }
 G.unlocked = +lees('orkenstorm3d_lvl') || 1;
+// het beginfilmpje van een level speelt vanzelf alleen de eerste keer
+export const introGezien = (i) => lees('orkenstorm3d_intro' + i) == '1';
+export const zetIntroGezien = (i) => bewaar('orkenstorm3d_intro' + i, '1');
 { const d = lees('orkenstorm3d_diff'); if (d !== null) G.diff = +d; }
 
 export function zetMoeilijkheid(i) { G.diff = i; bewaar('orkenstorm3d_diff', i); }

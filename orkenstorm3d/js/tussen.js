@@ -4,7 +4,7 @@
 
 import * as THREE from 'three';
 import { G, T, stuur, plaats, klaarVoorFilmpje, blocked } from './spel.js';
-import { speak } from './geluid.js';
+import { speak, sDone, sBuild } from './geluid.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -197,6 +197,74 @@ function overval(a, f, eigen, kasteel) {
   f.later(19, () => { f.verteller(info.eind); const s = soldaten[0]; if (s) { s.pose = null; f.wolkje(s, 'Huh? Waar is iedereen?'); } });
 }
 
+// ---------- het beginfilmpje van een level (level 1: aankomst en het kasteel bouwen) ----------
+const MOOI = { nl: 'Dit is een mooie plek om te bouwen!', en: 'What a lovely spot to build!', de: 'Hier ist ein schöner Ort zum Bauen!', it: 'Che bel posto per costruire!', fr: 'Quel bel endroit pour construire!' };
+const ORKS = { nl: 'Hmm… daar in het bos zitten orks.', en: 'Hmm… there are orcs in those woods.', de: 'Hmm… da im Wald sind Orks.', it: 'Mmm… in quel bosco ci sono gli orchi.', fr: 'Hmm… il y a des orques dans ces bois.' };
+const BEGIN = { nl: 'Kom op, laten we beginnen!', en: "Right, let's get started!", de: 'Los, fangen wir an!', it: 'Forza, cominciamo!', fr: 'Allez, on commence!' };
+const WACHT = { nl: 'Ik hou wel de wacht…', en: "I'll keep watch…", de: 'Ich halte Wache…', it: 'Io faccio la guardia…', fr: 'Je monte la garde…' };
+// een grapje per land voor de werker die niet als eerste begint
+const BOUWGRAP = {
+  nl: { zin: 'Kan het niet een tikkie goedkoper?', verteller: 'De Nederlander vraagt meteen of het kasteel niet wat goedkoper kan.' },
+  en: { zin: "Tea first. One doesn't build on an empty stomach.", verteller: 'De Engelsman begint natuurlijk eerst met een kopje thee.', zit: 3.5 },
+  de: { zin: 'Ein Bier zum Richtfest! Prost!', verteller: 'Bij een nieuw huis hoort een biertje, vindt de Duitser. Hij proost alvast op het kasteel.' },
+  it: { zin: 'E la pizzeria, dove la mettiamo?', verteller: 'De Italiaan wil eerst weten waar de pizzeria komt.' },
+  fr: { zin: "Ce château n'est pas assez chic…", verteller: 'De Fransman vindt het kasteel niet chic genoeg.' },
+};
+
+export function intro(api, info, klaar) {
+  G.tussen = true; G.sel = []; G.selB = null; G.place = null; G.msgT = 0;
+  const kasteel = G.blds.find((b) => b.k == 'kasteel');
+  const eigen = G.units.filter((u) => u.side == 'h');
+  const werkers = eigen.filter((u) => u.k == 'werker'), soldaten = eigen.filter((u) => u.k != 'werker');
+  const [bx, by] = info.van;
+  // iedereen begint bij de ingang van de kaart en het kasteel moet nog gebouwd worden
+  eigen.forEach((u, i) => { u.x = (bx + 0.5) * T + (i % 2) * 8; u.y = (by + 0.5) * T + i * 6; u.st = 'idle'; u.path = null; u.hidden = false; });
+  if (kasteel) { kasteel.done = false; kasteel.prog = 0; kasteel.hp = 1; }
+  const a = actief = { api, info, klaar: () => { stop(); klaar(); }, t: 0, taken: [], wolkjes: [], acteurs: [], groep: eigen, aankomers: [], thuis: info.naar, uitgang: [-99, -99], kaart: false };
+  const f = hulpjes(a);
+  const zeg = (u, lijst) => { if (!u) return; const z = lijst[taal(u)] || lijst.nl; f.wolkje(u, z); f.zeg(u, z); };
+  f.verteller(info.begin);
+  eigen.forEach((u, i) => f.later(0.3 + i * 0.4, () => { u.tempo = 1.1; stuur(u, info.naar[0] + (i % 3), info.naar[1] + Math.floor(i / 3)); }));
+  const [w1, w2] = werkers, s = soldaten[0];
+  f.later(4.5, () => { zeg(w1, MOOI); w1 && (w1.pose = 'emote-yes'); });
+  f.later(7, () => { if (w1) w1.pose = null; zeg(s, ORKS); f.verteller(info.orks); });
+  f.later(9.5, () => {
+    zeg(w1, BEGIN); f.verteller(info.bouw);
+    // de werkers lopen naar het kasteel en gaan aan de slag
+    werkers.forEach((w, i) => stuur(w, kasteel.x + kasteel.w, kasteel.y + i * 2));
+    if (s) { stuur(s, kasteel.x + kasteel.w + 1, kasteel.y - 1); }
+  });
+  // de grap van de tweede werker
+  const grap = w2 && BOUWGRAP[taal(w2)];
+  f.later(12, () => {
+    if (s) { zeg(s, WACHT); }
+    if (grap) { f.wolkje(w2, grap.zin); f.zeg(w2, grap.zin); f.verteller(grap.verteller); if (grap.zit) { w2.path = null; w2.pose = 'sit'; a.zit = w2; } }
+  });
+  f.later(14.5, () => { if (s) { s.pose = 'sit'; f.wolkje(s, 'Zzz…'); } });
+  if (grap && grap.zit) f.later(12 + grap.zit, () => { w2.pose = null; a.zit = null; });
+  a.elkBeeld = (dt) => { // het kasteel groeit zolang er werkers bij staan
+    if (!kasteel || kasteel.done || a.t < 10) return;
+    const bij = werkers.filter((w) => w != a.zit && Math.hypot(w.x - (kasteel.x + kasteel.w / 2) * T, w.y - (kasteel.y + kasteel.h / 2) * T) < 2.6 * T && (!w.path || !w.path.length));
+    for (const w of werkers) if (w != a.zit && w.pose != 'sit') w.pose = bij.includes(w) ? 'interact-right' : null;
+    if (!bij.length) return;
+    kasteel.prog = Math.min(1, kasteel.prog + bij.length * dt / 10);
+    kasteel.hp = Math.max(1, Math.round(kasteel.max * kasteel.prog));
+    if (Math.random() < 0.03) sBuild();
+    if (kasteel.prog >= 1) {
+      kasteel.done = true; kasteel.hp = kasteel.max; sDone();
+      for (const w of werkers) w.pose = 'emote-yes';
+      if (s) s.pose = null;
+      f.verteller(info.eind);
+      if (taal(w2 || {}) == 'de' && grap) { f.wolkje(w2, 'Prost! Hik!'); w2.zigzag = true; }
+      f.later(4, () => toonKaart(a));
+    }
+  };
+  // voor als het in een trage browser langer duurt
+  f.later(info.duur || 30, () => toonKaart(a));
+  $('hud').hidden = true; $('tussen').hidden = false;
+  $('overslaan').onclick = () => toonKaart(a);
+}
+
 function hulpjes(a) {
   const f = {
     later: (sec, fn) => a.taken.push({ op: a.t + sec, fn }),
@@ -243,7 +311,7 @@ export function tik(dt) {
   const a = actief; if (!a || a.kaart) return;
   a.t += dt;
   for (const k of a.taken.filter((k) => a.t >= k.op)) { a.taken.splice(a.taken.indexOf(k), 1); k.fn(); }
-  if (a.elkBeeld) a.elkBeeld();
+  if (a.elkBeeld) a.elkBeeld(dt);
   // wie bij de uitgang is, verdwijnt het bos in
   for (const u of a.aankomers) if (!u.hidden && Math.hypot(u.x / T - a.uitgang[0] - 0.5, u.y / T - a.uitgang[1] - 0.5) < 1.6) u.hidden = true;
   // tekstwolkjes
@@ -274,6 +342,7 @@ export function tik(dt) {
 function toonKaart(a) {
   if (a.kaart) return;
   a.kaart = true;
+  if (!a.info.kaart) { a.klaar(); return; } // beginfilmpje: meteen door naar de uitleg
   for (const w of a.wolkjes) w.el.remove();
   $('tussen').hidden = true;
   $('tussentekst').innerHTML = a.info.kaart.map((r) => `<p>${esc(r)}</p>`).join('');
