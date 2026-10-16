@@ -30,6 +30,11 @@ bedenk dat de site openbaar is.
   punten (`doelTocht`, pinguïn heeft geen finish), punten tellen op (`totaal`), elke 25 punten een extra vogeltje
   (`geraakt`: leven eraf, 100 beelden onkwetsbaar), beste tocht in `fladderfeest_tocht:<naam>`; een finish telt ook als
   record van dat dier en speelt het volgende vrij.
+  Gewoon / Met streken (knop op het beginscherm, `streken`, onthouden in `fladderfeest_streken`): records per modus
+  (`fladderfeest_<dier>_streken:<naam>`, ook de tocht), vrijspelen telt beide modi. Streken vanaf 3 punten (`strekenStap`,
+  `tekenStreken`): roodborst sneeuwbui (`bui`), meeuw patatdieven en papegaai kanonskogels (`gevaren`, met een rood !
+  vooraf), hommel windvlagen (alleen met streken), kip schuivende hooibalen en kraai dansende versterkers (`p.amp`),
+  pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links).
   Een nieuw dier = regel in `FIGUREN`, deuntje in `MUZIEK`, wereld in `WERELDEN`, plaatje in `tekenDier()`. Elke wereld staat in `WERELDEN` (achtergrond,
   grond, hindernis, bonus, wat er valt, het figuur). `fladderfeest.html#tegel` tekent het plaatje voor de startpagina.
   Muziek: per figuur een eigen deuntje in `MUZIEK` (zelf gecomponeerd, Web Audio, geen bestanden), knopje
