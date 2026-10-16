@@ -144,6 +144,17 @@ export const LEVELS = [
     waves: { first: 7200, every: 5400 },
     win: (s) => s.huts() == 0 && s.orcs() == 0,
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b> · orks nog <b>${s.orcs()}</b>`,
+    tussen: { // het filmpje naar level 3: feest, nacht en de overval
+      soort: 'overval', duur: 26,
+      begin: 'De orks zijn verslagen! Dat moet gevierd worden…',
+      eind: 'De soldaten werden pas wakker toen het al te laat was.',
+      kaart: [
+        'Na het feest sliep het hele dorp als een blok.',
+        'Die nacht overvielen de orks het dorp Zonnedal en namen alle werkers mee.',
+        'Ze zitten opgesloten in een gevangenis, ergens in het noorden onder de wolken.',
+        'Je hebt alleen je soldaten en boogschutters nog. Ga ze halen!',
+      ],
+    },
   },
   {
     naam: 'De gevangen werkers',
@@ -197,6 +208,19 @@ export const LEVELS = [
     waves: { first: 10800, every: 7200 },
     win: (s) => s.vrij() && s.huts() == 0 && s.count('boerderij') >= 2,
     voortgang: (s) => `werkers <b>${s.vrij() ? 'bevrijd ✓' : 'gevangen'}</b> · boerderijen <b>${Math.min(2, s.count('boerderij'))}/2</b> · orkenhut nog <b>${s.huts()}</b>`,
+    tussen: { // het filmpje naar level 4: op zoek naar de ridder in de mijnen
+      uitgang: [10, 22],
+      spreker: 'In het orkenkamp zag ik een ridder met een gouden helm. Ze brachten hem naar de Donkere Mijnen!',
+      begin: 'Een groepje dapperen gaat op zoek naar de ridder…',
+      grappen: ['donker', 'enkel'],
+      eind: 'Uiteindelijk daalde maar een klein groepje af in de mijnen.',
+      kaart: [
+        'De ridder heet Sir Lodewijk, en hij zit al weken gevangen diep onder de grond.',
+        'Een klein groepje soldaten en boogschutters daalt af in de Donkere Mijnen.',
+        'Er gaat ook een genezer mee. Op krukken, maar hij is er wel!',
+        'De rest blijft boven om het dorp te bewaken.',
+      ],
+    },
   },
   {
     naam: 'De Donkere Mijnen', dungeon: 1,

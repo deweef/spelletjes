@@ -758,7 +758,12 @@ function speelTussen() {
   toon(null); G.state = 'tussen';
   const r = () => renderer.domElement.getBoundingClientRect();
   const scherm = (x, y, z) => { const v = new THREE.Vector3(x, y, z).project(camera), b = r(); return { x: b.left + (v.x + 1) / 2 * b.width, y: b.top + (1 - v.y) / 2 * b.height }; };
-  Tussen.start({ scene, camera, controls, scherm }, G.L.tussen, () => start(G.lvl + 1));
+  const dag = { hemel: hemel.intensity, zon: zon.intensity, lucht: scene.background.clone() }, nachtKleur = new THREE.Color('#141a33');
+  const nacht = (f) => { // 0 = dag, 1 = nacht
+    hemel.intensity = dag.hemel * (1 - 0.7 * f); zon.intensity = dag.zon * (1 - 0.85 * f);
+    scene.background.copy(dag.lucht).lerp(nachtKleur, f); scene.fog.color.copy(scene.background);
+  };
+  Tussen.start({ scene, camera, controls, scherm, nacht }, G.L.tussen, () => start(G.lvl + 1));
 }
 $('opnieuw').onclick = () => start(G.lvl);
 $('naarmenu').onclick = () => { Tussen.stop(); G.state = 'titel'; tekenTitel(); };

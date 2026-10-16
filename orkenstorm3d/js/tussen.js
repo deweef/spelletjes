@@ -3,7 +3,7 @@
 // tekstkaart naar het volgende level. De gegevens per overgang staan bij het level in data.js (`tussen`).
 
 import * as THREE from 'three';
-import { G, T, stuur, klaarVoorFilmpje, blocked } from './spel.js';
+import { G, T, stuur, plaats, klaarVoorFilmpje, blocked } from './spel.js';
 import { speak } from './geluid.js';
 
 const $ = (id) => document.getElementById(id);
@@ -40,6 +40,12 @@ const GRAPPEN = {
       u.tempo = 1.7; stuur(u, doel[0], doel[1]);
       f.later(4.5, () => { u.hidden = true; });
     },
+  },
+  donker: {
+    past: (u) => u.k != 'werker',
+    zin: { nl: 'Daar ga ik niet in, het is daar donker!', en: "I'm not going in there, it's dark!", de: 'Da geh ich nicht rein, da ist es dunkel!', it: 'Io lì non entro, è buio!', fr: "Je n'entre pas là-dedans, il fait noir!" },
+    verteller: 'Eentje is bang in het donker en blijft liever buiten.',
+    doe(u, f) { u.tempo = 1.4; f.naarHuis(u); },
   },
   // per land, alleen voor werkers
   nl: {
@@ -98,12 +104,25 @@ export function start(api, info, klaar) {
   const eigen = G.units.filter((u) => u.side == 'h' && u.k != 'held');
   const kasteel = G.blds.find((b) => b.k == 'kasteel');
   const thuis = kasteel ? [kasteel.x + 1, kasteel.y + kasteel.h] : tegel(eigen[0]);
-  // de groep: soldaten eerst, dan werkers; een paar werkers blijven thuis
-  const soldaten = eigen.filter((u) => u.k != 'werker'), werkers = eigen.filter((u) => u.k == 'werker');
-  const groep = [...soldaten.slice(0, 3), ...werkers.slice(0, Math.max(2, werkers.length - 1))].slice(0, 7);
-  const uitgang = info.uitgang;
-  for (const u of groep) { u.tempo = 1.25; stuur(u, uitgang[0], uitgang[1]); }
+  const a = actief = { api, info, klaar, t: 0, taken: [], wolkjes: [], acteurs: [], groep: eigen, aankomers: [], thuis, uitgang: info.uitgang || [0, 0], kaart: false };
+  const f = hulpjes(a);
+  if (info.soort == 'overval') overval(a, f, eigen, kasteel); else tocht(a, f, eigen);
+  f.later(info.duur || 24, () => toonKaart(a));
+  $('hud').hidden = true; $('tussen').hidden = false;
+  $('overslaan').onclick = () => toonKaart(a);
+}
 
+// Een groepje trekt verder; onderweg krijgen een paar van hen een grap
+function tocht(a, f, eigen) {
+  const { info } = a;
+  const soldaten = eigen.filter((u) => u.k != 'werker'), werkers = eigen.filter((u) => u.k == 'werker');
+  const groep = a.groep = [...soldaten.slice(0, 3), ...werkers.slice(0, Math.max(2, werkers.length - 1))].slice(0, 7);
+  let start = 0;
+  if (info.spreker) { // eerst vertelt een werker iets
+    const s = werkers[werkers.length - 1] || eigen[0];
+    f.wolkje(s, info.spreker); f.zeg(s, info.spreker); start = 3;
+  }
+  f.later(start, () => { for (const u of groep) { u.tempo = 1.25; stuur(u, a.uitgang[0], a.uitgang[1]); } });
   // wie krijgt welke grap (er blijft altijd minstens één over die aankomt)
   const vrij = [...groep], plan = [];
   const neem = (soort) => { // elke grap hooguit één keer per filmpje
@@ -111,24 +130,71 @@ export function start(api, info, klaar) {
     const g = GRAPPEN[soort]; const i = vrij.findIndex(g.past); if (i < 0) return; plan.push([vrij.splice(i, 1)[0], soort]);
   };
   const landen = ['nl', 'de', 'fr', 'en', 'it'].sort(() => Math.random() - 0.5);
-  neem('enkel'); for (const l of landen) if (plan.length < 2) neem(l);
+  const eerst = info.grappen || ['enkel'];
+  for (const g of eerst) neem(g);
+  for (const l of landen) if (plan.length < 2) neem(l);
   neem('plassen'); for (const l of landen) if (plan.length < 4) neem(l);
   neem('eekhoorn');
   while (plan.length >= groep.length && plan.length) vrij.push(plan.pop()[0]);
-
-  const a = actief = { api, info, klaar, t: 0, taken: [], wolkjes: [], acteurs: [], groep, aankomers: vrij, thuis, uitgang, kaart: false };
-  const f = hulpjes(a);
+  a.aankomers = vrij;
   f.verteller(info.begin);
-  plan.forEach(([u, soort], i) => f.later(2.5 + i * 2.6, () => {
+  plan.forEach(([u, soort], i) => f.later(start + 2.5 + i * 2.6, () => {
     const g = GRAPPEN[soort];
     const zin = g.zin[taal(u)] || g.zin.nl || Object.values(g.zin)[0];
     f.wolkje(u, zin); f.zeg(u, zin); f.verteller(g.verteller);
     g.doe(u, f);
   }));
-  f.later(16, () => f.verteller(info.eind));
-  f.later(24, () => toonKaart(a));
-  $('hud').hidden = true; $('tussen').hidden = false;
-  $('overslaan').onclick = () => toonKaart(a);
+  f.later(start + 16, () => f.verteller(info.eind));
+}
+
+// Feest in het dorp, het wordt nacht, iedereen slaapt, en de orks voeren de werkers mee
+const FEEST = { nl: 'Gezellig! Proost!', en: 'Cheers, mates!', de: 'Prost! Noch eine Runde!', it: 'Salute! Che festa!', fr: 'Vive la fête!' };
+const HELP = { nl: 'Help! Laat me los!', en: 'Help! Let go of me!', de: 'Hilfe! Lass mich los!', it: 'Aiuto! Lasciami!', fr: 'Au secours! Lâche-moi!' };
+function overval(a, f, eigen, kasteel) {
+  const { info, api } = a;
+  const werkers = eigen.filter((u) => u.k == 'werker'), soldaten = eigen.filter((u) => u.k != 'werker');
+  // iedereen komt bij het kasteel
+  const k = kasteel || { x: tegel(eigen[0])[0], y: tegel(eigen[0])[1], w: 1, h: 1 };
+  eigen.forEach((u, i) => { u.tempo = 1.3; stuur(u, k.x - 1 + (i % 6), k.y + k.h + 1 + Math.floor(i / 6)); });
+  f.verteller(info.begin);
+  eigen.slice(0, 5).forEach((u, i) => f.later(1.5 + i * 0.9, () => { const z = FEEST[taal(u)] || FEEST.nl; u.pose = 'emote-yes'; f.wolkje(u, z); f.zeg(u, z); }));
+  f.later(6.5, () => {
+    f.verteller('Het werd laat… en één voor één vielen ze in slaap.');
+    for (const u of eigen) { u.pose = 'sit'; u.path = null; }
+  });
+  for (let i = 0; i <= 20; i++) f.later(6.5 + i * 0.1, () => api.nacht && api.nacht(i / 20));
+  f.later(7.5, () => { for (const u of soldaten.slice(0, 2)) f.wolkje(u, 'Zzz…'); });
+  // de orks komen
+  // de orks komen van een vrij plekje zo'n 12 vakjes boven het dorp
+  let rand = [Math.floor(G.MW / 2), 1];
+  zoek: for (let y = Math.max(1, k.y - 12); y < k.y; y++) for (let d = 0; d < G.MW; d++) for (const x of [k.x + 4 + d, k.x + 4 - d]) {
+    if (x > 0 && x < G.MW - 1 && !blocked(x, y) && !blocked(x + 1, y)) { rand = [x, y]; break zoek; }
+  }
+  f.later(8.5, () => {
+    f.verteller('Toen slopen de orks het dorp in…');
+    werkers.forEach((w, i) => {
+      const [wx, wy] = tegel(w);
+      const o = plaats(i % 3 == 2 ? 'speerork' : 'ork', rand[0], rand[1]);
+      o.x += (i % 3 - 1) * 10; o.y += Math.floor(i / 3) * 10;
+      o.tempo = 2.1; stuur(o, wx, wy); o.rover = w;
+      a.acteurs.push({ ork: o });
+    });
+  });
+  // wie bij zijn werker is, neemt hem mee
+  a.elkBeeld = () => {
+    for (const ac of a.acteurs) {
+      const o = ac.ork; if (!o || ac.mee) continue;
+      const w = o.rover;
+      if (Math.hypot(o.x - w.x, o.y - w.y) < 1.4 * T) {
+        ac.mee = true; w.pose = null;
+        const z = HELP[taal(w)] || HELP.nl; f.wolkje(w, z); f.zeg(w, z);
+        stuur(o, rand[0], rand[1]); stuur(w, rand[0], rand[1]); o.tempo = 1.7; w.tempo = 1.7;
+        a.aankomers.push(o, w);
+      }
+    }
+  };
+  a.uitgang = rand;
+  f.later(19, () => { f.verteller(info.eind); const s = soldaten[0]; if (s) { s.pose = null; f.wolkje(s, 'Huh? Waar is iedereen?'); } });
 }
 
 function hulpjes(a) {
@@ -177,6 +243,7 @@ export function tik(dt) {
   const a = actief; if (!a || a.kaart) return;
   a.t += dt;
   for (const k of a.taken.filter((k) => a.t >= k.op)) { a.taken.splice(a.taken.indexOf(k), 1); k.fn(); }
+  if (a.elkBeeld) a.elkBeeld();
   // wie bij de uitgang is, verdwijnt het bos in
   for (const u of a.aankomers) if (!u.hidden && Math.hypot(u.x / T - a.uitgang[0] - 0.5, u.y / T - a.uitgang[1] - 0.5) < 1.6) u.hidden = true;
   // tekstwolkjes
@@ -187,6 +254,7 @@ export function tik(dt) {
   }
   // eekhoorn rent naar de rand
   for (const e of a.acteurs) {
+    if (!e.g) continue;
     const dx = e.doel[0] - e.x, dz = e.doel[1] - e.z, d = Math.hypot(dx, dz);
     if (d > 0.05) { const s = Math.min(d, dt * 2.6); e.x += dx / d * s; e.z += dz / d * s; e.g.rotation.y = Math.atan2(dx, dz); }
     e.t += dt; e.g.position.set(e.x, Math.abs(Math.sin(e.t * 14)) * 0.12, e.z);
@@ -216,7 +284,7 @@ function toonKaart(a) {
 export function stop() {
   const a = actief; if (!a) return;
   for (const w of a.wolkjes) w.el.remove();
-  for (const e of a.acteurs) a.api.scene.remove(e.g);
+  for (const e of a.acteurs) if (e.g) a.api.scene.remove(e.g);
   $('tussen').hidden = true; $('tussenkaart').hidden = true;
   actief = null; G.tussen = false;
 }

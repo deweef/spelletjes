@@ -324,7 +324,7 @@ export function update() {
     const d = UNIT[u.k];
     if (u.cd > 0) u.cd--;
     if (u.deel > 0) u.deel--;
-    if (u.side == 'o') orcBrain(u);
+    if (u.side == 'o') { if (!G.tussen) orcBrain(u); }
     else if (u.side == 'n') { gevangenRidder(u); continue; }
     else if (u.k == 'werker' && land(u) == 'it') pizzaPauze(u);
     else if (u.k == 'genezer') genezen(u);
@@ -553,6 +553,7 @@ export function muisBouw(gx, gy) {
 
 // Voor de tussenstukjes: een mannetje ergens heen laten lopen, en klaarzetten voor het filmpje
 export function stuur(u, tx, ty) { cmdMove(u, tx, ty); }
+export function plaats(k, tx, ty) { return addUnit(k, tx, ty); } // een mannetje neerzetten (tussenstukje)
 export function klaarVoorFilmpje() {
   G.tussen = true; G.sel = []; G.selB = null; G.place = null; G.msgT = 0;
   G.units = G.units.filter((u) => u.side == 'h');
