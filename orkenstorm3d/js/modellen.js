@@ -361,7 +361,14 @@ function kenneyToren() {
   const g = new THREE.Group();
   zetIn(g, 'castle/tower-hexagon-base', 0, 0, 0, 0, 1.5);
   zetIn(g, 'castle/tower-hexagon-mid', 0, 1.31 * 1.5, 0, 0, 1.5);
-  zetIn(g, 'castle/tower-hexagon-roof', 0, 1.77 * 1.5, 0, 0, 1.5);
+  // het dak staat op palen, met een boogschutter op de uitkijk eronder
+  const dakY = 1.77 * 1.5 + 0.75;
+  for (let i = 0; i < 4; i++) { const h = i * Math.PI / 2 + Math.PI / 4; g.add(cil(0.04, 0.04, 0.8, '#7a5230', Math.cos(h) * 0.48, 1.77 * 1.5 + 0.38, Math.sin(h) * 0.48, 6)); }
+  zetIn(g, 'castle/tower-hexagon-roof', 0, dakY, 0, 0, 1.5);
+  const schutter = kenneyMannetje('boog', 'h', null, false);
+  schutter.g.position.y = 1.31 * 1.5 + 0.12; schutter.g.scale.setScalar(1.1); schutter.p.ring.visible = false;
+  schutter.acties['holding-left'].play();
+  g.add(schutter.g); g.userData.mixers = [schutter.mixer];
   return g;
 }
 

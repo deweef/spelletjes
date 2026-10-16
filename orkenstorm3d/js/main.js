@@ -219,7 +219,9 @@ function bouwWereld() {
     const [x, y] = key.split(',').map(Number);
     const m = M.maakMijn(); m.g.position.set(x + 1, 0, y + 1);
     m.g.userData.pick = { mijn: [x, y] };
-    wereld.add(m.g); pickables.push(m.g); mijnen.push({ key, goud: m.goud });
+    wereld.add(m.g); pickables.push(m.g);
+    const bord = maakBordje(); bord.position.set(x + 1, 2.1, y + 1); wereld.add(bord);
+    mijnen.push({ key, goud: m.goud, bord, waarde: null });
   }
 
   if (kerker) bouwKerker(wereld);
@@ -401,6 +403,24 @@ function syncGebouwen(nu) {
   } else if (schaduw) schaduw.g.visible = false;
 }
 
+function maakBordje() {
+  const c = document.createElement('canvas'); c.width = 128; c.height = 48;
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  s.scale.set(1.1, 0.41, 1); s.renderOrder = 12; s.userData.canvas = c;
+  return s;
+}
+function tekenBordje(s, goud, rood) {
+  const c = s.userData.canvas, g = c.getContext('2d');
+  g.clearRect(0, 0, c.width, c.height);
+  g.fillStyle = rood ? 'rgba(170,35,25,.9)' : 'rgba(20,12,4,.78)';
+  g.beginPath(); g.roundRect(4, 4, 120, 40, 18); g.fill();
+  g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(28, 24, 10, 0, 7); g.fill();
+  g.fillStyle = '#ffe9a0'; g.font = 'bold 26px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(String(goud), 76, 25);
+  s.material.map.needsUpdate = true;
+}
+
 function zetBoom(i, m) {
   const b = bomen.basis[i];
   for (const im of bomen.lagen[b.si]) { im.setMatrixAt(b.idx, m); im.instanceMatrix.needsUpdate = true; }
@@ -433,7 +453,14 @@ function syncWereld(nu) {
     zetBoom(i, tmpM.compose(b.p, tmpQ, b.s));
   });
   // lege mijn: geen goud meer te zien
-  for (const m of mijnen) m.goud.visible = G.mineG[m.key] > 0;
+  for (const m of mijnen) {
+    m.goud.visible = G.mineG[m.key] > 0;
+    // bordje met hoeveel goud er nog in zit; knippert rood als de mijn bijna leeg is
+    const [mx, my] = m.key.split(',').map(Number), knipper = G.bijnaLeeg && G.bijnaLeeg[m.key] && Math.floor(nu / 400) % 2;
+    m.bord.visible = G.mineG[m.key] > 0 && isExp(mx, my) && G.state != 'tussen';
+    const waarde = G.mineG[m.key] + (knipper ? 'r' : '');
+    if (m.bord.visible && waarde != m.waarde) { m.waarde = waarde; tekenBordje(m.bord, G.mineG[m.key], knipper); }
+  }
   // wolken trekken weg waar je komt
   const w = wolken, tq = new THREE.Quaternion();
   for (let i = 0; i < w.pos.length; i++) {
@@ -465,7 +492,8 @@ function syncEffecten() {
       fxMesh.set(f, m); scene.add(m);
     }
     if (f.arrow) {
-      const p = 1 - f.l / 12, h0 = f.hoog ? 3.0 : 0.5;
+      const p = 1 - f.l / (f.l0 || 12), h0 = f.hoog ? 2.6 : 0.5;
+      if (f.hoog) m.scale.setScalar(1.8); // pijlen van de toren: groter, zodat je ze ziet
       const x = wx(f.x + (f.tx - f.x) * p), z = wz(f.y + (f.ty - f.y) * p), y = h0 + (0.4 - h0) * p + Math.sin(p * Math.PI) * 0.5;
       m.position.set(x, y, z); m.lookAt(wx(f.tx), 0.4, wz(f.ty));
     } else if (f.ring) {

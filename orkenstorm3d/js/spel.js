@@ -48,8 +48,9 @@ export function loadLevel(i) {
   G.map = L.map.map((r) => r.split('')); G.trees = {}; G.mineG = {};
   for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) {
     if (G.map[y][x] == 'T') G.trees[x + ',' + y] = 30;
-    if (G.map[y][x] == 'M') { const k = minesKey(x, y); if (!(k in G.mineG)) G.mineG[k] = 2000; }
+    if (G.map[y][x] == 'M') { const k = minesKey(x, y); if (!(k in G.mineG)) G.mineG[k] = (L.mineCap && L.mineCap[k]) || 2000; }
   }
+  G.mineMax = { ...G.mineG }; G.bijnaLeeg = {};
   const D = DIFF[G.diff];
   G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false; G.tussen = false;
   nieuweZak();
@@ -313,7 +314,7 @@ export function update() {
       if (b.cd > 0) b.cd--;
       else {
         const c = center(b), tg = G.units.filter((u) => u.side != b.side && !u.hidden).find((u) => dist(u, c) < D.rng);
-        if (tg) { b.cd = D.cd; G.fx.push({ x: c.x, y: c.y, tx: tg.x, ty: tg.y, l: 12, arrow: 1, hoog: 1 }); damage(tg, D.dmg, null); sArrow(); }
+        if (tg) { b.cd = D.cd; G.fx.push({ x: c.x, y: c.y, tx: tg.x, ty: tg.y, l: 24, l0: 24, arrow: 1, hoog: 1 }); damage(tg, D.dmg, null); sArrow(); }
       }
     }
   }
@@ -459,12 +460,22 @@ function workerBrain(u) {
     return;
   }
   if (u.st == 'gold') {
-    const k = u.tg, [mx, my] = k.split(',').map(Number);
-    if (!(G.mineG[k] > 0)) { u.st = 'idle'; say('De mijn is leeg!', 100); return; }
+    let k = u.tg;
+    if (!(G.mineG[k] > 0)) { // mijn leeg: naar de dichtstbijzijnde mijn die nog goud heeft
+      const [ux, uy] = tileOf(u);
+      const nk = Object.keys(G.mineG).filter((m) => G.mineG[m] > 0 && isExp(...m.split(',').map(Number)))
+        .sort((a, b) => { const [ax, ay] = a.split(',').map(Number), [bx, by] = b.split(',').map(Number); return (ax - ux) ** 2 + (ay - uy) ** 2 - ((bx - ux) ** 2 + (by - uy) ** 2); })[0];
+      if (!nk) { u.st = 'idle'; say('Alle bekende goudmijnen zijn leeg. Zoek een nieuwe mijn onder de wolken!', 200); return; }
+      u.tg = k = nk; u.path = null;
+      if (G.t - (G.mijnMelding || -999) > 300) { G.mijnMelding = G.t; say('De mijn is leeg: de werkers lopen naar de volgende mijn.', 180); }
+    }
+    const [mx, my] = k.split(',').map(Number);
     if (u.inMine) {
       u.inMine--;
       if (u.inMine == 0) {
         G.mineG[k] -= 10; u.carry = 'goud';
+        if (G.mineG[k] <= Math.min(300, G.mineMax[k] * 0.2) && G.mineG[k] > 0 && !G.bijnaLeeg[k]) { G.bijnaLeeg[k] = G.t; say('Een goudmijn raakt bijna leeg (' + G.mineG[k] + ' goud over)!', 200); snd(440, 0.2, 'triangle', 0.05, 330); }
+        if (G.mineG[k] <= 0) { say('Een goudmijn is uitgeput.', 150); noise(0.4, 0.08, 300); }
         const ring = [...ringAround(mx, my, 2, 2)];
         if (ring.length) { const [x, y] = ring[0].split(',').map(Number); u.x = x * T + T / 2; u.y = y * T + T / 2; }
         u.hidden = false;
@@ -612,6 +623,11 @@ export function klik(p) {
     const ws = G.sel.filter((u) => u.k == 'werker');
     if (!hitB.done && ws.length) { for (const w of ws) { w.bq = []; w.st = 'idle'; assignBuild(w, hitB); } say('De werker gaat verder met bouwen.', 100); sClick(); return; }
     G.sel = []; G.selB = hitB; sClick(); return;
+  }
+  // klik op een mijn zonder werkers: hoeveel goud zit er nog in?
+  if (p.tx >= 0 && G.map[p.ty][p.tx] == 'M' && isExp(p.tx, p.ty) && !G.sel.some((u) => u.k == 'werker')) {
+    const k = minesKey(p.tx, p.ty); G.selB = null;
+    say(G.mineG[k] > 0 ? 'Goudmijn: nog ' + G.mineG[k] + ' goud' : 'Deze goudmijn is leeg.', 150); sClick(); return;
   }
   if (!G.sel.length) { G.selB = null; return; }
   const { tx, ty } = p;
