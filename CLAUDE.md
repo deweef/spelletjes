@@ -13,7 +13,11 @@ bedenk dat de site openbaar is.
   uit `spellen.json`; alle andere bestanden (zoals de JS en modellen van Orkenstorm 3D) worden bewaard
   zodra ze een keer met internet geladen zijn. Niet aanpassen tenzij nodig.
 - Elk 2D-spel is één los HTML-bestand in de hoofdmap (kasteelsprong, koekjesschuiver, kikkersprong,
-  skirun, piratenbluf, orkenstorm). Laat die ongemoeid tenzij erom gevraagd wordt.
+  skirun, piratenbluf, orkenstorm, fladderfeest). Laat die ongemoeid tenzij erom gevraagd wordt.
+- Fladderfeest (`fladderfeest.html`, in de stijl van Flappy Bird, met eigen naam en plaatjes): beginscherm met
+  drie figuren, elk een eigen wereld en record per speler (`fladderfeest_<figuur>:<naam>`). Patatmeeuw (strand)
+  is klaar; Fladderkip (boerderij, zwaar) en Hommelbrom (bollenveld, licht, wind) komen nog (`klaar: false` in
+  `FIGUREN`). `fladderfeest.html#tegel` tekent het plaatje voor de startpagina.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een

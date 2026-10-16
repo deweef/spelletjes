@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Fladderfeest</title>
+<style>
+html,body{margin:0;height:100%;background:linear-gradient(#5fb8e8 50%,#e8c97a 50%);overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+canvas{display:block;touch-action:none}
+.terug{position:fixed;z-index:10;top:calc(6px + env(safe-area-inset-top));left:calc(6px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.6);color:#fff;font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.terug:focus-visible{outline:2px solid #fff;outline-offset:2px}
+</style>
+</head>
+<body>
+<a class="terug" href="./" aria-label="Terug naar de spellen">‹</a>
+<div id="wrap"><canvas id="c"></canvas></div>
+<script>
+// Fladderfeest: tik om te fladderen en vlieg tussen de palen door.
+// Drie figuren met elk een eigen wereld: Patatmeeuw (strand), Fladderkip (boerderij), Hommelbrom (bollenveld).
+// Alles in "punten" van een scherm van 360 bij 640; het canvas schaalt mee met het scherm.
+const TEGEL = location.hash == '#tegel'; // voor het plaatje op de startpagina (640x400)
+const W = TEGEL ? 640 : 360, H = TEGEL ? 400 : 640, GROND = H - 80;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+function fit() { const s = Math.min(innerWidth / W, innerHeight / H); cv.style.width = W * s + 'px'; cv.style.height = H * s + 'px'; }
+addEventListener('resize', fit); fit();
+
+// ---------- speler en records (per naam, zie de startpagina) ----------
+let speler = ''; try { speler = localStorage.getItem('speler') || ''; } catch (e) {}
+const sleutel = (f) => 'fladderfeest_' + f + (speler ? ':' + speler : '');
+function record(f) { try { return +localStorage.getItem(sleutel(f)) || 0; } catch (e) { return 0; } }
+function zetRecord(f, n) { try { localStorage.setItem(sleutel(f), n); } catch (e) {} }
+
+// ---------- geluid ----------
+let ac = null;
+function unlock() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state != 'running') ac.resume(); } catch (e) {} }
+function snd(f, d, type = 'square', v = 0.05, slide = 0, delay = 0) {
+  if (!ac) return;
+  try {
+    const o = ac.createOscillator(), g = ac.createGain(), n = ac.currentTime + delay;
+    o.type = type; o.frequency.setValueAtTime(f, n); if (slide) o.frequency.exponentialRampToValueAtTime(slide, n + d);
+    g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(0.001, n + d);
+    o.connect(g).connect(ac.destination); o.start(n); o.stop(n + d + 0.02);
+  } catch (e) {}
+}
+const sFlap = () => snd(300, 0.08, 'triangle', 0.05, 520);
+const sPunt = () => { snd(880, 0.08, 'square', 0.03); snd(1320, 0.12, 'square', 0.03, 0, 0.06); };
+const sHap = () => { snd(500, 0.05, 'square', 0.04, 300); snd(700, 0.08, 'triangle', 0.05, 0, 0.06); };
+const sKrijs = () => { snd(1400, 0.25, 'sawtooth', 0.05, 700); snd(1300, 0.35, 'sawtooth', 0.04, 500, 0.22); };
+const sBots = () => snd(140, 0.2, 'square', 0.06, 60);
+const sMedaille = () => [660, 880, 1046, 1318].forEach((f, i) => snd(f, 0.2, 'triangle', 0.06, 0, i * 0.09));
+
+// ---------- de figuren ----------
+// zwaarte: hoe snel hij valt, flap: hoe hard hij omhoog gaat
+const FIGUREN = [
+  { id: 'meeuw', naam: 'Patatmeeuw', wereld: 'Het strand', zwaarte: 0.36, flap: -6.4, max: 8.5, klaar: true, bonus: 'frietjes',
+    au: ['Krijs! Mijn patat!', 'Wie zet daar nou een paal neer?', 'Krijs! Dat deed pijn.', 'Meeuwen kunnen echt niet tegen palen.', 'Mijn frietje! Nééé!'] },
+  { id: 'kip', naam: 'Fladderkip', wereld: 'De boerderij', klaar: false },
+  { id: 'hommel', naam: 'Hommelbrom', wereld: 'Het bollenveld', klaar: false },
+];
+const MEDAILLES = [[100, 'Patatkoning', '#b9f2ff'], [50, 'Goud', '#ffd34d'], [25, 'Zilver', '#d6dde3'], [10, 'Brons', '#d08a4a']];
+const medaille = (n) => MEDAILLES.find(([m]) => n >= m);
+
+// ---------- spelstatus ----------
+let staat = 'menu'; // menu, klaar (wacht op eerste tik), spel, dood, over
+let fig = FIGUREN[0];
+let vogel, palen, score, frietjes, snelheid, afstand, beeld = 0, schuif = 0, doodT = 0, tekstje = '', nieuwRecord = false, vallend = null;
+const knoppen = []; // klikbare vlakken in het huidige scherm
+
+function nieuwSpel() {
+  vogel = { x: W * 0.28, y: H * 0.42, vy: 0, flapT: 0, hoek: 0 };
+  palen = []; score = 0; frietjes = 0; snelheid = 2.3; afstand = 215; nieuwRecord = false; vallend = null;
+  staat = 'klaar';
+}
+
+// gat tussen de palen: in het begin ruim, langzaam krapper
+const gat = () => Math.max(132, 178 - score * 1.1);
+function nieuwePaal(x) {
+  const g = gat(), marge = 70;
+  const midden = marge + g / 2 + Math.random() * (GROND - 2 * marge - g);
+  const p = { x, midden, gat: g, voorbij: false, nr: 1 + Math.floor(Math.random() * 99) };
+  // af en toe een frietje in het gat
+  if (palen.length && Math.random() < 0.35) p.friet = { y: midden + (Math.random() - 0.5) * (g * 0.4), weg: false };
+  palen.push(p);
+}
+
+function flap() {
+  unlock();
+  if (staat == 'klaar') { staat = 'spel'; nieuwePaal(W + 60); }
+  if (staat != 'spel') return;
+  vogel.vy = fig.flap; vogel.flapT = 12; sFlap();
+}
+
+// ---------- invoer ----------
+function naarSpel(x, y) { return { x: (x - cv.getBoundingClientRect().left) / cv.getBoundingClientRect().width * W, y: (y - cv.getBoundingClientRect().top) / cv.getBoundingClientRect().height * H }; }
+cv.addEventListener('pointerdown', (e) => {
+  e.preventDefault(); unlock();
+  const p = naarSpel(e.clientX, e.clientY);
+  for (const k of knoppen) if (p.x > k.x && p.x < k.x + k.w && p.y > k.y && p.y < k.y + k.h) { k.doe(); return; }
+  if (staat == 'klaar' || staat == 'spel') flap();
+});
+addEventListener('keydown', (e) => {
+  if (e.code == 'Space' || e.code == 'ArrowUp' || e.code == 'Enter') {
+    e.preventDefault();
+    if (staat == 'klaar' || staat == 'spel') flap();
+    else if (staat == 'over' && doodT > 40) nieuwSpel();
+    else if (staat == 'menu') { fig = FIGUREN[0]; nieuwSpel(); }
+  }
+  if (e.code == 'Escape' && staat != 'menu') staat = 'menu';
+});
+document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
+document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false });
+
+// ---------- spelregels (60 keer per seconde) ----------
+function botst(cx, cy, r, x, y, w, h) {
+  const nx = Math.max(x, Math.min(cx, x + w)), ny = Math.max(y, Math.min(cy, y + h));
+  return (cx - nx) ** 2 + (cy - ny) ** 2 < r * r;
+}
+const PAAL = 56, STRAAL = 12;
+
+function stap() {
+  beeld++;
+  if (staat == 'menu' || staat == 'klaar') { schuif += 1.2; return; }
+  if (staat == 'spel') {
+    schuif += snelheid;
+    vogel.vy = Math.min(fig.max, vogel.vy + fig.zwaarte);
+    vogel.y += vogel.vy;
+    if (vogel.flapT > 0) vogel.flapT--;
+    if (vogel.y < 10) { vogel.y = 10; vogel.vy = Math.max(0, vogel.vy); }
+    for (const p of palen) {
+      p.x -= snelheid;
+      if (!p.voorbij && p.x + PAAL < vogel.x) { p.voorbij = true; score++; sPunt(); snelheid = Math.min(3.3, 2.3 + score * 0.025); }
+      if (p.friet && !p.friet.weg && Math.hypot(p.x + PAAL / 2 - vogel.x, p.friet.y - vogel.y) < 22) { p.friet.weg = true; frietjes++; score++; sHap(); }
+      const boven = p.midden - p.gat / 2, onder = p.midden + p.gat / 2;
+      if (botst(vogel.x, vogel.y, STRAAL, p.x, -50, PAAL, boven + 50) || botst(vogel.x, vogel.y, STRAAL, p.x, onder, PAAL, GROND - onder)) return dood();
+    }
+    palen = palen.filter((p) => p.x > -PAAL - 10);
+    const laatste = palen[palen.length - 1];
+    if (laatste && laatste.x < W - afstand) nieuwePaal(laatste.x + afstand + Math.random() * 30);
+    if (vogel.y + STRAAL >= GROND) { vogel.y = GROND - STRAAL; return dood(); }
+  } else if (staat == 'dood' || staat == 'over') {
+    doodT++;
+    if (vogel.y + STRAAL < GROND) { vogel.vy = Math.min(10, vogel.vy + 0.5); vogel.y = Math.min(GROND - STRAAL, vogel.y + vogel.vy); }
+    if (vallend) { vallend.vy += 0.3; vallend.y = Math.min(GROND - 4, vallend.y + vallend.vy); vallend.r += 0.15; }
+    if (staat == 'dood' && doodT > 45) {
+      staat = 'over'; doodT = 0;
+      if (score > record(fig.id)) { nieuwRecord = record(fig.id) > 0 || score > 0; zetRecord(fig.id, score); }
+      if (medaille(score)) sMedaille();
+    }
+  }
+}
+
+function dood() {
+  staat = 'dood'; doodT = 0; sBots(); setTimeout(sKrijs, 150);
+  vogel.vy = -5;
+  vallend = { x: vogel.x + 14, y: vogel.y, vy: -3, r: 0 }; // het frietje valt uit zijn snavel
+  tekstje = fig.au[Math.floor(Math.random() * fig.au.length)];
+}
+
+// ---------- tekenen ----------
+function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+function tekst(t, x, y, grootte, kleur = '#fff', uitlijn = 'center', rand = '#1d3b57') {
+  ctx.font = `bold ${grootte}px "Trebuchet MS", Verdana, sans-serif`; ctx.textAlign = uitlijn; ctx.textBaseline = 'middle';
+  if (rand) { ctx.lineWidth = Math.max(3, grootte / 6); ctx.strokeStyle = rand; ctx.lineJoin = 'round'; ctx.strokeText(t, x, y); }
+  ctx.fillStyle = kleur; ctx.fillText(t, x, y);
+}
+
+function wolk(x, y, s) {
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  ctx.beginPath(); ctx.arc(x, y, 16 * s, 0, 7); ctx.arc(x + 18 * s, y - 8 * s, 20 * s, 0, 7); ctx.arc(x + 40 * s, y, 15 * s, 0, 7); ctx.rect(x, y - 2 * s, 40 * s, 17 * s); ctx.fill();
+}
+
+function strandhuisje(x, y, kleur) {
+  ctx.fillStyle = kleur; ctx.fillRect(x, y - 30, 30, 30);
+  ctx.fillStyle = '#fff'; for (let i = 0; i < 3; i++) ctx.fillRect(x + 4 + i * 9, y - 30, 4, 30);
+  ctx.fillStyle = '#7a4a2a'; ctx.beginPath(); ctx.moveTo(x - 4, y - 30); ctx.lineTo(x + 15, y - 44); ctx.lineTo(x + 34, y - 30); ctx.fill();
+  ctx.fillStyle = '#5a3a20'; ctx.fillRect(x + 11, y - 16, 8, 16);
+}
+
+function achtergrond() {
+  const horizon = GROND - 120;
+  const lucht = ctx.createLinearGradient(0, 0, 0, horizon);
+  lucht.addColorStop(0, '#5fb8e8'); lucht.addColorStop(1, '#c9ecff');
+  ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, horizon + 2);
+  ctx.fillStyle = '#ffe58a'; ctx.beginPath(); ctx.arc(W - 70, 80, 30, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,229,138,.35)'; ctx.beginPath(); ctx.arc(W - 70, 80, 42, 0, 7); ctx.fill();
+  for (let i = 0; i < 4; i++) { const x = ((i * 170 - schuif * 0.15) % (W + 200) + W + 200) % (W + 200) - 100; wolk(x, 60 + (i * 53) % 130, 0.8 + (i % 2) * 0.4); }
+  // zee met golfjes en een bootje
+  const zee = ctx.createLinearGradient(0, horizon, 0, GROND - 40);
+  zee.addColorStop(0, '#2f86c4'); zee.addColorStop(1, '#5ec0d8');
+  ctx.fillStyle = zee; ctx.fillRect(0, horizon, W, 90);
+  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 2;
+  for (let r = 0; r < 4; r++) for (let i = -1; i < W / 40 + 1; i++) {
+    const x = i * 40 - ((schuif * (0.3 + r * 0.1)) % 40), y = horizon + 14 + r * 18;
+    ctx.beginPath(); ctx.arc(x + 10, y, 8, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+  }
+  const bx = W + 60 - ((schuif * 0.25) % (W + 160));
+  ctx.fillStyle = '#7a4a2a'; ctx.beginPath(); ctx.moveTo(bx - 22, horizon + 4); ctx.lineTo(bx + 22, horizon + 4); ctx.lineTo(bx + 15, horizon + 13); ctx.lineTo(bx - 15, horizon + 13); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(bx, horizon - 26); ctx.lineTo(bx, horizon + 2); ctx.lineTo(bx + 18, horizon + 2); ctx.fill();
+  // vuurtoren in de verte
+  const vx = W - ((schuif * 0.2 + 120) % (W + 260)) + 100;
+  ctx.fillStyle = '#fff'; ctx.fillRect(vx, horizon - 50, 14, 50);
+  ctx.fillStyle = '#d6453b'; for (let i = 0; i < 3; i++) ctx.fillRect(vx, horizon - 50 + i * 17, 14, 8);
+  ctx.fillStyle = '#333'; ctx.fillRect(vx - 2, horizon - 58, 18, 8);
+  // achterste strook strand met strandhuisjes
+  ctx.fillStyle = '#f1dca2'; ctx.fillRect(0, GROND - 40, W, 40);
+  const kleuren = ['#e65a4f', '#3f8fd8', '#4fb36a', '#f2b23a', '#a865d0'];
+  for (let i = -1; i < W / 70 + 2; i++) {
+    const k = Math.floor((schuif * 0.6) / 70);
+    strandhuisje(i * 70 - ((schuif * 0.6) % 70), GROND - 4, kleuren[((i + k) % 5 + 5) % 5]);
+  }
+}
+
+function grond() {
+  ctx.fillStyle = '#e8c97a'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#c9a75a'; ctx.fillRect(0, GROND, W, 5);
+  ctx.fillStyle = '#d9b866';
+  for (let i = -1; i < W / 24 + 1; i++) { const x = i * 24 - (schuif % 24); ctx.fillRect(x, GROND + 14 + (i % 3) * 14, 6, 3); }
+  // schelpjes
+  for (let i = -1; i < W / 90 + 1; i++) {
+    const x = i * 90 - (schuif % 90) + 30;
+    ctx.fillStyle = '#fff2e0'; ctx.beginPath(); ctx.arc(x, GROND + 40, 5, Math.PI, 0); ctx.fill();
+  }
+}
+
+// paal: rood-wit gestreept met een houten kop; witte vlekjes van andere meeuwen op de kop
+function paal(x, y, h, vanBoven, nr) {
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x + 4, y, PAAL - 8, h); ctx.clip();
+  ctx.fillStyle = '#fff'; ctx.fillRect(x, y, PAAL, h);
+  ctx.fillStyle = '#d6453b';
+  for (let s = -PAAL; s < h + PAAL; s += 36) { ctx.beginPath(); ctx.moveTo(x, y + s); ctx.lineTo(x + PAAL, y + s - 20); ctx.lineTo(x + PAAL, y + s - 2); ctx.lineTo(x, y + s + 18); ctx.fill(); }
+  ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(x + PAAL - 16, y, 12, h);
+  ctx.restore();
+  const ky = vanBoven ? y + h - 18 : y;
+  ctx.fillStyle = '#8a5a2b'; rrect(x - 2, ky, PAAL + 4, 18, 4); ctx.fill();
+  ctx.fillStyle = '#6b4226'; ctx.fillRect(x - 2, ky + (vanBoven ? 0 : 13), PAAL + 4, 5);
+  if (!vanBoven) {
+    ctx.fillStyle = '#fff'; for (const [dx, r] of [[12, 4], [30, 3], [42, 5]]) { ctx.beginPath(); ctx.arc(x + dx, ky + 1, r, Math.PI, 0); ctx.fill(); ctx.fillRect(x + dx - 1, ky, 2, 5 + r); }
+    // strandpaalnummer
+    ctx.fillStyle = '#fff'; rrect(x + 12, ky + 26, PAAL - 24, 18, 3); ctx.fill();
+    ctx.fillStyle = '#1d3b57'; ctx.font = 'bold 12px Verdana'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(nr, x + PAAL / 2, ky + 35);
+  }
+}
+
+function frietje(x, y, r = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(r);
+  ctx.fillStyle = '#f7d046';
+  for (const [dx, h] of [[-6, 14], [-2, 18], [2, 15], [6, 17]]) ctx.fillRect(dx - 1.5, -h, 3, h);
+  ctx.fillStyle = '#d6453b'; ctx.beginPath(); ctx.moveTo(-9, -6); ctx.lineTo(9, -6); ctx.lineTo(7, 8); ctx.lineTo(-7, 8); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillRect(-4, -1, 8, 3);
+  ctx.restore();
+}
+
+// de meeuw: wit lijf, grijze vleugel, gele snavel met rood stipje
+function meeuw(x, y, hoek, flapT, s = 1, dood = false) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(s, s);
+  ctx.fillStyle = '#9aa3ad'; ctx.beginPath(); ctx.moveTo(-14, -2); ctx.lineTo(-26, -8); ctx.lineTo(-24, 4); ctx.fill(); // staart
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(0, 0, 17, 12, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#c8d0d8'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(12, -7, 9, 0, 7); ctx.fill(); // kop
+  ctx.fillStyle = '#f2b81d'; ctx.beginPath(); ctx.moveTo(19, -8); ctx.lineTo(31, -5); ctx.lineTo(19, -2); ctx.fill(); // snavel
+  ctx.fillStyle = '#d6453b'; ctx.beginPath(); ctx.arc(26, -4.5, 1.6, 0, 7); ctx.fill();
+  if (dood) { ctx.strokeStyle = '#222'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(12, -11); ctx.lineTo(17, -6); ctx.moveTo(17, -11); ctx.lineTo(12, -6); ctx.stroke(); }
+  else { ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(15, -9, 2.2, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(15.7, -9.6, 0.8, 0, 7); ctx.fill(); }
+  // vleugel: slaat omhoog bij een flap
+  const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
+  ctx.save(); ctx.translate(-2, -3); ctx.rotate(v);
+  ctx.fillStyle = '#9aa3ad'; ctx.beginPath(); ctx.ellipse(-4, 0, 13, 6, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2b2b2b'; ctx.beginPath(); ctx.ellipse(-14, 0, 4, 3.5, 0, 0, 7); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+
+// kleine plaatjes van de figuren die nog komen
+function kip(x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(0, 2, 16, 13, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#c96a2c'; ctx.beginPath(); ctx.ellipse(-6, 4, 9, 6, -0.3, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(10, -9, 8, 0, 7); ctx.fill();
+  ctx.fillStyle = '#e03a2f'; ctx.beginPath(); ctx.arc(8, -17, 3.5, 0, 7); ctx.arc(12, -18, 3.5, 0, 7); ctx.fill();
+  ctx.fillStyle = '#f2b81d'; ctx.beginPath(); ctx.moveTo(17, -10); ctx.lineTo(24, -8); ctx.lineTo(17, -6); ctx.fill();
+  ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(12, -10, 1.8, 0, 7); ctx.fill();
+  ctx.restore();
+}
+function hommel(x, y, s) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  ctx.fillStyle = 'rgba(220,240,255,.85)'; ctx.beginPath(); ctx.ellipse(-3, -14, 8, 11, -0.4, 0, 7); ctx.ellipse(5, -14, 7, 10, 0.4, 0, 7); ctx.fill();
+  ctx.fillStyle = '#f5c518'; ctx.beginPath(); ctx.ellipse(0, 0, 16, 12, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2b2b2b'; ctx.fillRect(-7, -11, 5, 22); ctx.fillRect(3, -11, 5, 22);
+  ctx.beginPath(); ctx.arc(14, -2, 7, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(16, -4, 2, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+function knop(x, y, w, h, t, kleur, doe) {
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; rrect(x, y + 4, w, h, 14); ctx.fill();
+  ctx.fillStyle = kleur; rrect(x, y, w, h, 14); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2; ctx.stroke();
+  tekst(t, x + w / 2, y + h / 2 + 1, 19, '#fff', 'center', 'rgba(0,0,0,.25)');
+  knoppen.push({ x, y, w, h, doe });
+}
+
+function menu() {
+  ctx.fillStyle = 'rgba(15,40,70,.28)'; ctx.fillRect(0, 0, W, H);
+  const golf = Math.sin(beeld * 0.05) * 4;
+  tekst('Fladderfeest', W / 2, 88 + golf, 44, '#ffe14d', 'center', '#1d3b57');
+  tekst('Kies wie er gaat fladderen', W / 2, 136, 17);
+  FIGUREN.forEach((f, i) => {
+    const y = 168 + i * 128, x = 26, w = W - 52, h = 112;
+    ctx.fillStyle = f.klaar ? 'rgba(255,255,255,.92)' : 'rgba(255,255,255,.55)'; rrect(x, y, w, h, 18); ctx.fill();
+    ctx.strokeStyle = f.klaar ? '#f2b81d' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
+    const bob = f.klaar ? Math.sin(beeld * 0.1 + i) * 4 : 0;
+    ctx.globalAlpha = f.klaar ? 1 : 0.5;
+    if (f.id == 'meeuw') { meeuw(x + 58, y + 56 + bob, -0.1, beeld % 40 < 12 ? 12 - beeld % 40 : 0, 1.6); frietje(x + 92, y + 82, 0.3); }
+    if (f.id == 'kip') kip(x + 56, y + 60, 1.7);
+    if (f.id == 'hommel') hommel(x + 56, y + 58, 1.7);
+    ctx.globalAlpha = 1;
+    tekst(f.naam, x + 112, y + 34, 22, f.klaar ? '#1d3b57' : '#4d6478', 'left', null);
+    tekst(f.wereld, x + 112, y + 60, 15, '#4d6478', 'left', null);
+    if (f.klaar) {
+      const r = record(f.id), m = medaille(r);
+      tekst('Record: ' + r + (m ? '  · ' + m[1] : ''), x + 112, y + 86, 15, '#c0792a', 'left', null);
+      knoppen.push({ x, y, w, h, doe: () => { fig = f; nieuwSpel(); } });
+    } else {
+      tekst('Komt nog!', x + 112, y + 86, 15, '#d6453b', 'left', null);
+      knoppen.push({ x, y, w, h, doe: () => { tekstje = f.naam + ' is nog in de maak.'; doodT = beeld; } });
+    }
+  });
+  if (tekstje && beeld - doodT < 120 && staat == 'menu') tekst(tekstje, W / 2, H - 52, 16, '#fff');
+  else tekst(speler ? 'Speler: ' + speler : 'Kies je naam op de startpagina voor je eigen record', W / 2, H - 52, speler ? 17 : 13);
+}
+
+function scorebord() {
+  tekst(String(score), W / 2, 70, 52, '#fff', 'center', '#1d3b57');
+  if (frietjes) { frietje(W - 50, 42, 0); tekst('x' + frietjes, W - 30, 40, 16, '#fff', 'left', '#1d3b57'); }
+}
+
+function eindscherm() {
+  const a = Math.min(1, doodT / 15);
+  ctx.globalAlpha = a;
+  const x = 34, y = 150, w = W - 68, h = 300;
+  ctx.fillStyle = 'rgba(255,248,230,.96)'; rrect(x, y, w, h, 20); ctx.fill();
+  ctx.strokeStyle = '#c0792a'; ctx.lineWidth = 4; ctx.stroke();
+  tekst(tekstje, W / 2, y + 34, 17, '#d6453b', 'center', null);
+  tekst('Punten', x + 70, y + 76, 15, '#4d6478', 'center', null);
+  tekst(String(score), x + 70, y + 110, 38, '#1d3b57', 'center', null);
+  tekst('Record', x + w - 70, y + 76, 15, '#4d6478', 'center', null);
+  tekst(String(record(fig.id)), x + w - 70, y + 110, 38, '#1d3b57', 'center', null);
+  if (nieuwRecord && score > 0) tekst('Nieuw record!', W / 2, y + 146, 20, '#ffe14d', 'center', '#c0792a');
+  const m = medaille(score);
+  if (m) {
+    ctx.fillStyle = m[2]; ctx.beginPath(); ctx.arc(W / 2 - 60, y + 186, 18, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#8a6a2a'; ctx.lineWidth = 2; ctx.stroke();
+    tekst('★', W / 2 - 60, y + 187, 18, '#fff', 'center', null);
+    tekst(m[1] + '!', W / 2 - 30, y + 187, 20, '#1d3b57', 'left', null);
+  } else {
+    const volgende = [...MEDAILLES].reverse().find(([n]) => n > score);
+    tekst('Nog ' + (volgende[0] - score) + ' voor ' + volgende[1].toLowerCase(), W / 2, y + 186, 16, '#4d6478', 'center', null);
+  }
+  if (frietjes) tekst(frietjes + (frietjes == 1 ? ' frietje' : ' frietjes') + ' gepikt', W / 2, y + 220, 14, '#c0792a', 'center', null);
+  ctx.globalAlpha = 1;
+  if (doodT > 25) {
+    knop(x + 14, y + h - 62, w / 2 - 20, 46, 'Nog een keer', '#3fae5a', nieuwSpel);
+    knop(x + w / 2 + 6, y + h - 62, w / 2 - 20, 46, 'Ander dier', '#3f8fd8', () => { staat = 'menu'; tekstje = ''; });
+  }
+}
+
+function teken() {
+  knoppen.length = 0;
+  achtergrond();
+  if (staat != 'menu') {
+    for (const p of palen) {
+      const boven = p.midden - p.gat / 2, onder = p.midden + p.gat / 2;
+      paal(p.x, -20, boven + 20, true, p.nr);
+      paal(p.x, onder, GROND - onder, false, p.nr);
+      if (p.friet && !p.friet.weg) frietje(p.x + PAAL / 2, p.friet.y + Math.sin(beeld * 0.1 + p.nr) * 3 + 8);
+    }
+  }
+  grond();
+  if (staat == 'menu') { menu(); return; }
+  if (vallend) frietje(vallend.x, vallend.y, vallend.r);
+  const zweef = staat == 'klaar' ? Math.sin(beeld * 0.08) * 8 : 0;
+  const hoek = staat == 'klaar' ? 0 : Math.max(-0.45, Math.min(1.3, vogel.vy * 0.09));
+  meeuw(vogel.x, vogel.y + zweef, hoek, staat == 'klaar' ? (beeld % 30 < 12 ? 12 - beeld % 30 : 0) : vogel.flapT, 1, staat == 'dood' || staat == 'over');
+  if (staat == 'klaar') {
+    tekst(fig.naam, W / 2, 120, 32, '#ffe14d');
+    tekst('Tik om te fladderen!', W / 2, H * 0.6, 22);
+    tekst('Vlieg tussen de palen door', W / 2, H * 0.6 + 32, 15);
+    tekst('en pik onderweg wat frietjes mee', W / 2, H * 0.6 + 54, 15);
+    // handje dat tikt
+    const t = (beeld % 60) < 10 ? 4 : 0;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(W / 2, H * 0.6 + 100 + t, 12, 0, 7); ctx.fill();
+    ctx.fillRect(W / 2 - 4, H * 0.6 + 76 + t, 8, 24);
+  }
+  if (staat == 'spel' || staat == 'dood') scorebord();
+  if (staat == 'over') eindscherm();
+}
+
+// het plaatje voor de startpagina (fladderfeest.html#tegel)
+function tegelPlaatje() {
+  schuif = 120; beeld = 3;
+  achtergrond();
+  palen = [{ x: 380, midden: 150, gat: 140, nr: 12 }, { x: 545, midden: 175, gat: 130, nr: 13 }];
+  for (const p of palen) { paal(p.x, -20, p.midden - p.gat / 2 + 20, true, p.nr); paal(p.x, p.midden + p.gat / 2, GROND - p.midden - p.gat / 2, false, p.nr); }
+  grond();
+  frietje(388, 170, 0); frietje(480, 255, 0.4);
+  meeuw(250, 175, -0.25, 6, 2.6);
+  kip(90, 300, 1.6); hommel(150, 270, 1.4);
+  tekst('Fladderfeest', 200, 70, 54, '#ffe14d', 'center', '#1d3b57');
+}
+
+// ---------- de lus ----------
+let acc = 0, vorige = performance.now();
+function lus(nu) {
+  requestAnimationFrame(lus);
+  acc += Math.min(100, nu - vorige); vorige = nu;
+  while (acc >= 1000 / 60) { stap(); acc -= 1000 / 60; }
+  teken();
+}
+document.addEventListener('visibilitychange', () => { vorige = performance.now(); });
+if (TEGEL) { document.querySelector('.terug').hidden = true; tegelPlaatje(); }
+else { nieuwSpel(); staat = 'menu'; requestAnimationFrame(lus); }
+window.__test = { get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
+</script>
+</body>
+</html>
