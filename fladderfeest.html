@@ -68,6 +68,7 @@ function ruis(d, v, filter, freq, delay = 0) { // ruis voor drums en bekkens
 const sKraa = () => { snd(1800, 0.7, 'sine', 0.03, 2600); ruis(1.2, 0.08, 'highpass', 5000); snd(700, 0.18, 'sawtooth', 0.06, 420, 0.5); snd(650, 0.25, 'sawtooth', 0.06, 380, 0.75); };
 const sWind = () => ruis(1.4, 0.05, 'bandpass', 600);
 const sBrom = () => { snd(180, 0.6, 'sawtooth', 0.05, 70); snd(185, 0.6, 'square', 0.02, 75); };
+const sPiep = () => { snd(2200, 0.08, 'sine', 0.05, 2600); snd(2000, 0.1, 'sine', 0.05, 1500, 0.12); snd(1600, 0.25, 'sine', 0.04, 900, 0.26); };
 const sMedaille = () => [660, 880, 1046, 1318].forEach((f, i) => snd(f, 0.2, 'triangle', 0.06, 0, i * 0.09));
 
 // ---------- muziek (zelf gecomponeerd, de browser speelt het; knopje rechtsboven of toets M) ----------
@@ -93,6 +94,16 @@ const MUZIEK = {
       76, -1, 74, 71, 67, -1, 71, 74,  76, -1, -1, -1, -1, 0, 0, 0,
     ],
     akkoorden: [[40], [43], [45], [40], [36], [38], [40], [40]],
+  },
+  roodborst: { // speeldoosje: hoge, tinkelende noten
+    tempo: 92, stijl: 'speeldoos',
+    melodie: [
+      74, -1, 78, -1, 81, -1, 78, -1,   79, -1, 76, -1, 74, -1, 71, -1,
+      73, -1, 76, -1, 81, -1, 79, 78,   78, -1, -1, -1, 74, -1, -1, 0,
+      79, -1, 83, -1, 81, -1, 79, -1,   78, -1, 74, -1, 78, -1, 81, -1,
+      79, 78, 76, -1, 73, -1, 76, -1,   74, -1, -1, -1, -1, -1, 0, 0,
+    ],
+    akkoorden: [[50, 54, 57], [43, 47, 50], [45, 49, 52], [50, 54, 57], [43, 47, 50], [50, 54, 57], [45, 49, 52], [50, 54, 57]],
   },
   hommel: { // draaiorgelwals in driekwartsmaat
     tempo: 150, stijl: 'wals', maat: 6,
@@ -146,11 +157,18 @@ function speelStap(i, t) {
   const mz = MUZIEK[fig.id], mel = mz.melodie, n = mel[i], d = achtste();
   if (n > 0) {
     let len = 1; while (mel[(i + len) % mel.length] == -1) len++;
-    if (mz.stijl == 'wals') { noot(n, t, d * len * 0.9, 'square', 0.016); noot(n + 12, t, d * len * 0.85, 'sine', 0.03); noot(n + 19, t, d * len * 0.5, 'sine', 0.006); }
+    if (mz.stijl == 'speeldoos') { noot(n + 12, t, 0.7, 'sine', 0.06); noot(n + 24, t, 0.25, 'sine', 0.015); }
+    else if (mz.stijl == 'wals') { noot(n, t, d * len * 0.9, 'square', 0.016); noot(n + 12, t, d * len * 0.85, 'sine', 0.03); noot(n + 19, t, d * len * 0.5, 'sine', 0.006); }
     else if (mz.stijl == 'rock') { noot(n, t, d * len * 0.95, 'sawtooth', 0.02, gitaar()); noot(n + 0.1, t, d * len * 0.95, 'square', 0.006); }
     else { noot(n, t, d * len * 0.95, 'square', 0.022); noot(n + 12, t, d * len * 0.6, 'triangle', 0.012); }
   }
   const maat = mz.maat || 8, ak = mz.akkoorden[Math.floor(i / maat) % mz.akkoorden.length], tel = i % maat;
+  if (mz.stijl == 'speeldoos') { // gebroken akkoorden, zacht en hoog
+    const rol = [ak[0], ak[1], ak[2], ak[1]];
+    noot(rol[tel % 4] + 24, t, 0.5, 'sine', 0.025);
+    if (tel == 0) noot(ak[0] + 12, t, 0.9, 'sine', 0.04);
+    return;
+  }
   if (mz.stijl == 'wals') { // hoem-pa-pa, met een orgelpijp-achtige melodie
     if (tel == 0) noot(ak[0] - 12, t, d * 1.8, 'triangle', 0.1);
     if (tel == 2 || tel == 4) for (const a of ak) noot(a + 12, t, d * 0.8, 'square', 0.007);
@@ -220,6 +238,10 @@ const FIGUREN = [
     bonus: ['plectrum', 'plectrums'], top: 'Rockster', palen: 'de versterkers',
     au: ['Kraa! Mijn kuif!', 'Rock-’n-roll… au.', 'Die versterker stond te hard.', 'Kraa! Waar is mijn zonnebril?', 'Encore? Nee, even niet.', 'Ik had oordopjes moeten nemen.'] },
   // de hommel is licht: zweeft langzaam, kleine flapjes, en af en toe duwt een windvlaag hem omhoog of omlaag
+  // het roodborstje: lief en vergevingsgezind, met wat ruimere gaten
+  { id: 'roodborst', naam: 'Roodborstje', wereld: 'De wintertuin', zwaarte: 0.32, flap: -5.9, max: 7.8, klaar: true, ruimer: 14,
+    bonus: ['besje', 'besjes'], top: 'Winterwonder', palen: 'de vogelhuisjes en ijspegels',
+    au: ['Piep! Au…', 'Brrr, mijn pootjes zijn bevroren.', 'Even opwarmen bij de kachel.', 'Piep! Ik wil een knuffel.', 'Was dat nou een ijspegel?', 'Mijn sjaaltje zit scheef.'] },
   { id: 'hommel', naam: 'Hommelbrom', wereld: 'Het bollenveld', zwaarte: 0.25, flap: -5.0, max: 6.2, klaar: true, wind: true,
     bonus: ['nectardruppel', 'nectardruppels'], top: 'Bijenkoningin', palen: 'de tulpen en molenwieken',
     au: ['Bzzz… au!', 'Brom! Wie zette die tulp daar?', 'Ik ben een hommel, geen helikopter.', 'Bzzz… even uitrusten in een tulp.', 'Die wind! Dat was niet eerlijk.', 'Mijn vleugeltjes zijn moe.'] },
@@ -243,7 +265,7 @@ function nieuwSpel() {
 }
 
 // gat tussen de palen: in het begin ruim, langzaam krapper
-const gat = () => Math.max(132, 178 - score * 1.1);
+const gat = () => Math.max(132, 178 - score * 1.1) + (fig.ruimer || 0);
 function nieuwePaal(x) {
   const g = gat(), marge = 70;
   const midden = marge + g / 2 + Math.random() * (GROND - 2 * marge - g);
@@ -332,9 +354,10 @@ function stap() {
 }
 
 function dood() {
-  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa, hommel: sBrom }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
+  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa, hommel: sBrom, roodborst: sPiep }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
   vogel.vy = -5;
   vallend = fig.id == 'kip' ? { x: vogel.x - 6, y: vogel.y + 8, vy: 0, r: 0 } // van schrik een ei
+    : fig.id == 'roodborst' ? { x: vogel.x + 10, y: vogel.y + 4, vy: -2, r: 0 } // een besje rolt weg
     : fig.id == 'hommel' ? { x: vogel.x + 4, y: vogel.y + 6, vy: 0, r: 0 } // zijn nectar druppelt eruit
     : fig.id == 'kraai' ? { x: vogel.x + 12, y: vogel.y - 8, vy: -4, r: 0 } // zijn zonnebril vliegt eraf
     : { x: vogel.x + 14, y: vogel.y, vy: -3, r: 0 }; // het frietje valt uit zijn snavel
@@ -683,12 +706,105 @@ function versterkers(x, y, h, vanBoven) {
   ctx.fillStyle = '#222'; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(x + 8 + i * 10, y + 5, 2.5, 0, 7); ctx.fill(); }
 }
 
+// ---------- de wintertuin (Roodborstje) ----------
+function roodborstje(x, y, hoek, flapT, s = 1, dood = false) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(s, s);
+  ctx.fillStyle = '#7a5a3a'; ctx.beginPath(); ctx.moveTo(-10, -3); ctx.lineTo(-20, -12); ctx.lineTo(-18, 0); ctx.fill(); // staartje omhoog
+  ctx.beginPath(); ctx.arc(0, 0, 13, 0, 7); ctx.fill(); // rond bruin lijfje
+  ctx.fillStyle = '#ef6a3a'; ctx.beginPath(); ctx.ellipse(5, 2, 9, 9, 0, 0, 7); ctx.fill(); // oranjerode borst
+  ctx.fillStyle = '#efe6dc'; ctx.beginPath(); ctx.ellipse(1, 9, 8, 4, 0, 0, 7); ctx.fill(); // wit buikje
+  ctx.fillStyle = '#c8302f'; ctx.fillRect(-2, -6, 14, 4); ctx.fillStyle = '#fff'; ctx.fillRect(2, -6, 2, 4); ctx.fillRect(7, -6, 2, 4); // sjaaltje
+  ctx.fillStyle = '#c8302f'; ctx.save(); ctx.translate(-1, -3); ctx.rotate(0.5 + Math.sin(beeld * 0.2) * 0.2); ctx.fillRect(-2, 0, 4, 10); ctx.restore();
+  ctx.fillStyle = '#3a2a1c'; ctx.beginPath(); ctx.moveTo(12, -3); ctx.lineTo(18, -2); ctx.lineTo(12, 0); ctx.fill(); // snaveltje
+  if (dood) { ctx.strokeStyle = '#222'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(6, -11); ctx.lineTo(10, -7); ctx.moveTo(10, -11); ctx.lineTo(6, -7); ctx.stroke(); }
+  else { ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(8, -8, 2.3, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(8.8, -8.8, 0.8, 0, 7); ctx.fill(); }
+  ctx.fillStyle = 'rgba(255,140,150,.6)'; ctx.beginPath(); ctx.arc(11, -2, 1.8, 0, 7); ctx.fill(); // blosje
+  const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
+  ctx.save(); ctx.translate(-3, -1); ctx.rotate(v);
+  ctx.fillStyle = '#6a4a2c'; ctx.beginPath(); ctx.ellipse(-4, 0, 9, 5, 0, 0, 7); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+function besjes(x, y) {
+  ctx.strokeStyle = '#5a3a20'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x - 4, y - 3); ctx.moveTo(x, y - 12); ctx.lineTo(x + 4, y - 2); ctx.moveTo(x, y - 12); ctx.lineTo(x, y); ctx.stroke();
+  ctx.fillStyle = '#4f8a3a'; ctx.beginPath(); ctx.ellipse(x + 4, y - 13, 5, 2.5, -0.4, 0, 7); ctx.fill();
+  for (const [dx, dy] of [[-4, -2], [4, -1], [0, 1]]) { ctx.fillStyle = '#d42a3a'; ctx.beginPath(); ctx.arc(x + dx, y + dy, 3.6, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(x + dx - 1, y + dy - 1.2, 1, 0, 7); ctx.fill(); }
+}
+function huisjeSneeuw(x, y, k) {
+  ctx.fillStyle = k; ctx.fillRect(x, y - 26, 34, 26);
+  ctx.fillStyle = '#6a3a2a'; ctx.beginPath(); ctx.moveTo(x - 4, y - 26); ctx.lineTo(x + 17, y - 44); ctx.lineTo(x + 38, y - 26); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(x - 4, y - 26); ctx.lineTo(x + 17, y - 44); ctx.lineTo(x + 38, y - 26); ctx.lineTo(x + 32, y - 29); ctx.lineTo(x + 17, y - 40); ctx.lineTo(x + 2, y - 29); ctx.fill();
+  ctx.fillStyle = '#ffd56a'; ctx.fillRect(x + 6, y - 18, 8, 8); ctx.fillRect(x + 20, y - 18, 8, 8); // warm licht
+  ctx.fillStyle = '#6a3a2a'; ctx.fillRect(x + 24, y - 44, 5, 10);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(x + 27 + Math.sin(beeld * 0.03 + i) * 3, y - 50 - i * 8 - (beeld * 0.3 % 8), 3 + i, 0, 7); ctx.fill(); } // rook
+}
+function kerstboompje(x, y, s) {
+  ctx.fillStyle = '#2f6a3f';
+  for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - (14 - i * 3) * s, y - i * 10 * s); ctx.lineTo(x, y - (22 + i * 10) * s); ctx.lineTo(x + (14 - i * 3) * s, y - i * 10 * s); ctx.fill(); }
+  ctx.fillStyle = '#fff'; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - 6 * s, y - (14 + i * 10) * s); ctx.lineTo(x, y - (22 + i * 10) * s); ctx.lineTo(x + 6 * s, y - (14 + i * 10) * s); ctx.fill(); }
+}
+function achtergrondWinter() {
+  const lucht = ctx.createLinearGradient(0, 0, 0, GROND);
+  lucht.addColorStop(0, '#7f9fd0'); lucht.addColorStop(0.6, '#d8c8e8'); lucht.addColorStop(1, '#f8dcd8');
+  ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, GROND);
+  for (let i = 0; i < 3; i++) { const x = ((i * 200 - schuif * 0.12) % (W + 200) + W + 200) % (W + 200) - 100; wolk(x, 70 + i * 45, 0.9); }
+  ctx.fillStyle = '#eef3fb'; // besneeuwde heuvels
+  for (let i = -1; i < W / 170 + 2; i++) { const x = i * 170 - ((schuif * 0.2) % 170); ctx.beginPath(); ctx.ellipse(x + 85, GROND - 60, 120, 50, 0, Math.PI, 0); ctx.fill(); }
+  const kl = ['#c9553a', '#3f6fa8', '#d8a03a', '#6a8a4a'];
+  for (let i = -1; i < W / 140 + 2; i++) {
+    const x = i * 140 - ((schuif * 0.35) % 140), k = Math.floor((schuif * 0.35) / 140) + i;
+    huisjeSneeuw(x + 20, GROND - 50, kl[((k % 4) + 4) % 4]); kerstboompje(x + 90, GROND - 50, 1.1); kerstboompje(x + 115, GROND - 54, 0.8);
+  }
+  ctx.fillStyle = '#f4f7fc'; ctx.fillRect(0, GROND - 52, W, 52);
+  for (let i = -1; i < W / 60 + 2; i++) { const x = i * 60 - ((schuif * 0.6) % 60); kerstboompje(x + 30, GROND - 6, 0.9); }
+}
+function sneeuw() { // vlokjes die voor alles langs dwarrelen
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  for (let i = 0; i < 46; i++) {
+    const sp = 0.4 + (i % 5) * 0.15, x = ((i * 73 + Math.sin(beeld * 0.02 + i) * 14 - schuif * 0.5 * sp) % W + W) % W, y = ((i * 131 + beeld * sp) % H);
+    ctx.beginPath(); ctx.arc(x, y, 1.2 + (i % 3) * 0.7, 0, 7); ctx.fill();
+  }
+}
+function grondWinter() {
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#dfe8f5';
+  for (let i = -1; i < W / 50 + 1; i++) { const x = i * 50 - (schuif % 50); ctx.beginPath(); ctx.ellipse(x + 25, GROND + 4, 30, 6, 0, 0, Math.PI); ctx.fill(); }
+  ctx.fillStyle = '#c9d6ea';
+  for (let i = -1; i < W / 36 + 1; i++) { const x = i * 36 - (schuif % 36); ctx.fillRect(x + 6, GROND + 30 + (i % 2) * 12, 4, 2); ctx.fillRect(x + 14, GROND + 30 + (i % 2) * 12, 4, 2); } // pootafdrukjes
+  sneeuw();
+}
+// onder: een vogelhuisje op een paal; boven: een tak vol sneeuw met ijspegels
+function vogelhuisje(x, y, h, nr) {
+  const cx = x + PAAL / 2;
+  ctx.fillStyle = '#7a5230'; ctx.fillRect(cx - 7, y + 34, 14, h); ctx.fillStyle = '#5a3b20'; ctx.fillRect(cx + 2, y + 34, 5, h);
+  const kl = ['#d8574a', '#4a7ac8', '#e8b84a', '#5aa86a'][nr % 4];
+  ctx.fillStyle = kl; rrect(x + 2, y + 10, PAAL - 4, 30, 3); ctx.fill();
+  ctx.fillStyle = '#3a2a1c'; ctx.beginPath(); ctx.arc(cx, y + 24, 6, 0, 7); ctx.fill(); // rond gaatje
+  ctx.fillStyle = '#7a5230'; ctx.fillRect(cx - 1, y + 31, 2, 6);
+  ctx.fillStyle = '#6a3a2a'; ctx.beginPath(); ctx.moveTo(x - 4, y + 12); ctx.lineTo(cx, y - 6); ctx.lineTo(x + PAAL + 4, y + 12); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(x - 6, y + 12); ctx.lineTo(cx, y - 9); ctx.lineTo(x + PAAL + 6, y + 12); ctx.quadraticCurveTo(x + PAAL - 8, y + 6, cx, y + 2); ctx.quadraticCurveTo(x + 8, y + 6, x - 6, y + 12); ctx.fill(); // sneeuw op het dak
+}
+function ijstak(x, y, h) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 6, y, PAAL + 12, h + 30); ctx.clip();
+  const ijs = ctx.createLinearGradient(x, 0, x + PAAL, 0); ijs.addColorStop(0, '#cfeaf8'); ijs.addColorStop(0.5, '#ffffff'); ijs.addColorStop(1, '#a8d4ee');
+  ctx.fillStyle = ijs; rrect(x + 4, y, PAAL - 8, h - 8, 6); ctx.fill(); // bevroren waterval
+  ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2; for (let j = y; j < y + h; j += 28) { ctx.beginPath(); ctx.moveTo(x + 14, j); ctx.lineTo(x + 18, j + 18); ctx.stroke(); }
+  ctx.restore();
+  ctx.fillStyle = '#5a3b20'; rrect(x - 4, y + h - 16, PAAL + 8, 12, 5); ctx.fill(); // tak
+  ctx.fillStyle = '#fff'; rrect(x - 6, y + h - 20, PAAL + 12, 7, 4); ctx.fill();
+  ctx.fillStyle = '#d8f0ff'; // ijspegels
+  for (let i = 0; i < 6; i++) { const ix = x + 2 + i * 10, l = 8 + ((i * 7 + 3) % 5) * 2; ctx.beginPath(); ctx.moveTo(ix, y + h - 5); ctx.lineTo(ix + 6, y + h - 5); ctx.lineTo(ix + 3, y + h - 5 + l); ctx.fill(); }
+}
+
 // per figuur: lucht en achtergrond, grond, hindernis, bonus, wat er valt als je af bent, en het figuur zelf
 const WERELDEN = {
   meeuw: { achter: () => achtergrond(), grond: () => grond(), paal: (x, y, h, b, nr) => paal(x, y, h, b, nr), bonus: (x, y, r) => frietje(x, y, r),
     valt: (x, y, r) => frietje(x, y, r), held: (x, y, h, f, s, d) => meeuw(x, y, h, f, s, d) },
   kraai: { achter: achtergrondFestival, grond: grondFestival, paal: (x, y, h, b) => versterkers(x, y, h, b), bonus: (x, y, r) => plectrum(x, y - 4, r),
     valt: (x, y, r) => zonnebril(x, y, r), held: (x, y, h, f, s, d) => kraai(x, y, h, f, s, d), body: 'linear-gradient(#0d0820 50%,#1d1824 50%)' },
+  roodborst: { achter: achtergrondWinter, grond: grondWinter, paal: (x, y, h, b, nr) => (b ? ijstak(x, y, h) : vogelhuisje(x, y, h, nr)),
+    smal: 18, bonus: (x, y) => besjes(x, y - 4), valt: (x, y) => besjes(x, y), held: (x, y, h, f, s, d) => roodborstje(x, y, h, f, s * 1.1, d),
+    body: 'linear-gradient(#7f9fd0 50%,#ffffff 50%)' },
   hommel: { achter: achtergrondBollen, grond: grondBollen, paal: (x, y, h, b, nr) => (b ? molenwiek(x, y, h) : reuzentulp(x, y, h, TULPKLEUR[nr % 5])),
     smal: 12, bonus: (x, y) => nectar(x, y - 4), valt: (x, y) => nectar(x, y), held: (x, y, h, f, s, d) => hommel(x, y, s, h, d) },
   kip: { achter: achtergrondBoerderij, grond: grondBoerderij, paal: (x, y, h, b) => hooibalen(x, y, h, b), bonus: (x, y, r) => mais(x, y - 6, r),
@@ -798,6 +914,96 @@ function windStrepen() {
   if (wind.t < 70) tekst(wind.op < 0 ? 'Windvlaag! ⇧' : 'Windvlaag! ⇩', W / 2, 160, 20, '#fff', 'center', '#2a6a9a');
 }
 
+// ---------- de wintertuin (Roodborstje) ----------
+function roodborstje(x, y, hoek, flapT, s = 1, dood = false) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(s, s);
+  ctx.fillStyle = '#7a5a3a'; ctx.beginPath(); ctx.moveTo(-10, -3); ctx.lineTo(-20, -12); ctx.lineTo(-18, 0); ctx.fill(); // staartje omhoog
+  ctx.beginPath(); ctx.arc(0, 0, 13, 0, 7); ctx.fill(); // rond bruin lijfje
+  ctx.fillStyle = '#ef6a3a'; ctx.beginPath(); ctx.ellipse(5, 2, 9, 9, 0, 0, 7); ctx.fill(); // oranjerode borst
+  ctx.fillStyle = '#efe6dc'; ctx.beginPath(); ctx.ellipse(1, 9, 8, 4, 0, 0, 7); ctx.fill(); // wit buikje
+  ctx.fillStyle = '#c8302f'; ctx.fillRect(-2, -6, 14, 4); ctx.fillStyle = '#fff'; ctx.fillRect(2, -6, 2, 4); ctx.fillRect(7, -6, 2, 4); // sjaaltje
+  ctx.fillStyle = '#c8302f'; ctx.save(); ctx.translate(-1, -3); ctx.rotate(0.5 + Math.sin(beeld * 0.2) * 0.2); ctx.fillRect(-2, 0, 4, 10); ctx.restore();
+  ctx.fillStyle = '#3a2a1c'; ctx.beginPath(); ctx.moveTo(12, -3); ctx.lineTo(18, -2); ctx.lineTo(12, 0); ctx.fill(); // snaveltje
+  if (dood) { ctx.strokeStyle = '#222'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(6, -11); ctx.lineTo(10, -7); ctx.moveTo(10, -11); ctx.lineTo(6, -7); ctx.stroke(); }
+  else { ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(8, -8, 2.3, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(8.8, -8.8, 0.8, 0, 7); ctx.fill(); }
+  ctx.fillStyle = 'rgba(255,140,150,.6)'; ctx.beginPath(); ctx.arc(11, -2, 1.8, 0, 7); ctx.fill(); // blosje
+  const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
+  ctx.save(); ctx.translate(-3, -1); ctx.rotate(v);
+  ctx.fillStyle = '#6a4a2c'; ctx.beginPath(); ctx.ellipse(-4, 0, 9, 5, 0, 0, 7); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
+function besjes(x, y) {
+  ctx.strokeStyle = '#5a3a20'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(x, y - 12); ctx.lineTo(x - 4, y - 3); ctx.moveTo(x, y - 12); ctx.lineTo(x + 4, y - 2); ctx.moveTo(x, y - 12); ctx.lineTo(x, y); ctx.stroke();
+  ctx.fillStyle = '#4f8a3a'; ctx.beginPath(); ctx.ellipse(x + 4, y - 13, 5, 2.5, -0.4, 0, 7); ctx.fill();
+  for (const [dx, dy] of [[-4, -2], [4, -1], [0, 1]]) { ctx.fillStyle = '#d42a3a'; ctx.beginPath(); ctx.arc(x + dx, y + dy, 3.6, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(x + dx - 1, y + dy - 1.2, 1, 0, 7); ctx.fill(); }
+}
+function huisjeSneeuw(x, y, k) {
+  ctx.fillStyle = k; ctx.fillRect(x, y - 26, 34, 26);
+  ctx.fillStyle = '#6a3a2a'; ctx.beginPath(); ctx.moveTo(x - 4, y - 26); ctx.lineTo(x + 17, y - 44); ctx.lineTo(x + 38, y - 26); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(x - 4, y - 26); ctx.lineTo(x + 17, y - 44); ctx.lineTo(x + 38, y - 26); ctx.lineTo(x + 32, y - 29); ctx.lineTo(x + 17, y - 40); ctx.lineTo(x + 2, y - 29); ctx.fill();
+  ctx.fillStyle = '#ffd56a'; ctx.fillRect(x + 6, y - 18, 8, 8); ctx.fillRect(x + 20, y - 18, 8, 8); // warm licht
+  ctx.fillStyle = '#6a3a2a'; ctx.fillRect(x + 24, y - 44, 5, 10);
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(x + 27 + Math.sin(beeld * 0.03 + i) * 3, y - 50 - i * 8 - (beeld * 0.3 % 8), 3 + i, 0, 7); ctx.fill(); } // rook
+}
+function kerstboompje(x, y, s) {
+  ctx.fillStyle = '#2f6a3f';
+  for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - (14 - i * 3) * s, y - i * 10 * s); ctx.lineTo(x, y - (22 + i * 10) * s); ctx.lineTo(x + (14 - i * 3) * s, y - i * 10 * s); ctx.fill(); }
+  ctx.fillStyle = '#fff'; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(x - 6 * s, y - (14 + i * 10) * s); ctx.lineTo(x, y - (22 + i * 10) * s); ctx.lineTo(x + 6 * s, y - (14 + i * 10) * s); ctx.fill(); }
+}
+function achtergrondWinter() {
+  const lucht = ctx.createLinearGradient(0, 0, 0, GROND);
+  lucht.addColorStop(0, '#7f9fd0'); lucht.addColorStop(0.6, '#d8c8e8'); lucht.addColorStop(1, '#f8dcd8');
+  ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, GROND);
+  for (let i = 0; i < 3; i++) { const x = ((i * 200 - schuif * 0.12) % (W + 200) + W + 200) % (W + 200) - 100; wolk(x, 70 + i * 45, 0.9); }
+  ctx.fillStyle = '#eef3fb'; // besneeuwde heuvels
+  for (let i = -1; i < W / 170 + 2; i++) { const x = i * 170 - ((schuif * 0.2) % 170); ctx.beginPath(); ctx.ellipse(x + 85, GROND - 60, 120, 50, 0, Math.PI, 0); ctx.fill(); }
+  const kl = ['#c9553a', '#3f6fa8', '#d8a03a', '#6a8a4a'];
+  for (let i = -1; i < W / 140 + 2; i++) {
+    const x = i * 140 - ((schuif * 0.35) % 140), k = Math.floor((schuif * 0.35) / 140) + i;
+    huisjeSneeuw(x + 20, GROND - 50, kl[((k % 4) + 4) % 4]); kerstboompje(x + 90, GROND - 50, 1.1); kerstboompje(x + 115, GROND - 54, 0.8);
+  }
+  ctx.fillStyle = '#f4f7fc'; ctx.fillRect(0, GROND - 52, W, 52);
+  for (let i = -1; i < W / 60 + 2; i++) { const x = i * 60 - ((schuif * 0.6) % 60); kerstboompje(x + 30, GROND - 6, 0.9); }
+}
+function sneeuw() { // vlokjes die voor alles langs dwarrelen
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  for (let i = 0; i < 46; i++) {
+    const sp = 0.4 + (i % 5) * 0.15, x = ((i * 73 + Math.sin(beeld * 0.02 + i) * 14 - schuif * 0.5 * sp) % W + W) % W, y = ((i * 131 + beeld * sp) % H);
+    ctx.beginPath(); ctx.arc(x, y, 1.2 + (i % 3) * 0.7, 0, 7); ctx.fill();
+  }
+}
+function grondWinter() {
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#dfe8f5';
+  for (let i = -1; i < W / 50 + 1; i++) { const x = i * 50 - (schuif % 50); ctx.beginPath(); ctx.ellipse(x + 25, GROND + 4, 30, 6, 0, 0, Math.PI); ctx.fill(); }
+  ctx.fillStyle = '#c9d6ea';
+  for (let i = -1; i < W / 36 + 1; i++) { const x = i * 36 - (schuif % 36); ctx.fillRect(x + 6, GROND + 30 + (i % 2) * 12, 4, 2); ctx.fillRect(x + 14, GROND + 30 + (i % 2) * 12, 4, 2); } // pootafdrukjes
+  sneeuw();
+}
+// onder: een vogelhuisje op een paal; boven: een tak vol sneeuw met ijspegels
+function vogelhuisje(x, y, h, nr) {
+  const cx = x + PAAL / 2;
+  ctx.fillStyle = '#7a5230'; ctx.fillRect(cx - 7, y + 34, 14, h); ctx.fillStyle = '#5a3b20'; ctx.fillRect(cx + 2, y + 34, 5, h);
+  const kl = ['#d8574a', '#4a7ac8', '#e8b84a', '#5aa86a'][nr % 4];
+  ctx.fillStyle = kl; rrect(x + 2, y + 10, PAAL - 4, 30, 3); ctx.fill();
+  ctx.fillStyle = '#3a2a1c'; ctx.beginPath(); ctx.arc(cx, y + 24, 6, 0, 7); ctx.fill(); // rond gaatje
+  ctx.fillStyle = '#7a5230'; ctx.fillRect(cx - 1, y + 31, 2, 6);
+  ctx.fillStyle = '#6a3a2a'; ctx.beginPath(); ctx.moveTo(x - 4, y + 12); ctx.lineTo(cx, y - 6); ctx.lineTo(x + PAAL + 4, y + 12); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(x - 6, y + 12); ctx.lineTo(cx, y - 9); ctx.lineTo(x + PAAL + 6, y + 12); ctx.quadraticCurveTo(x + PAAL - 8, y + 6, cx, y + 2); ctx.quadraticCurveTo(x + 8, y + 6, x - 6, y + 12); ctx.fill(); // sneeuw op het dak
+}
+function ijstak(x, y, h) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 6, y, PAAL + 12, h + 30); ctx.clip();
+  const ijs = ctx.createLinearGradient(x, 0, x + PAAL, 0); ijs.addColorStop(0, '#cfeaf8'); ijs.addColorStop(0.5, '#ffffff'); ijs.addColorStop(1, '#a8d4ee');
+  ctx.fillStyle = ijs; rrect(x + 4, y, PAAL - 8, h - 8, 6); ctx.fill(); // bevroren waterval
+  ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2; for (let j = y; j < y + h; j += 28) { ctx.beginPath(); ctx.moveTo(x + 14, j); ctx.lineTo(x + 18, j + 18); ctx.stroke(); }
+  ctx.restore();
+  ctx.fillStyle = '#5a3b20'; rrect(x - 4, y + h - 16, PAAL + 8, 12, 5); ctx.fill(); // tak
+  ctx.fillStyle = '#fff'; rrect(x - 6, y + h - 20, PAAL + 12, 7, 4); ctx.fill();
+  ctx.fillStyle = '#d8f0ff'; // ijspegels
+  for (let i = 0; i < 6; i++) { const ix = x + 2 + i * 10, l = 8 + ((i * 7 + 3) % 5) * 2; ctx.beginPath(); ctx.moveTo(ix, y + h - 5); ctx.lineTo(ix + 6, y + h - 5); ctx.lineTo(ix + 3, y + h - 5 + l); ctx.fill(); }
+}
+
 // per figuur: lucht en achtergrond,
 
 function knop(x, y, w, h, t, kleur, doe) {
@@ -814,25 +1020,26 @@ function menu() {
   tekst('Fladderfeest', W / 2, 88 + golf, 44, '#ffe14d', 'center', '#1d3b57');
   tekst('Kies wie er gaat fladderen', W / 2, 136, 17);
   FIGUREN.forEach((f, i) => {
-    const y = 156 + i * 100, x = 26, w = W - 52, h = 90;
+    const y = 150 + i * 82, x = 26, w = W - 52, h = 74;
     ctx.fillStyle = f.klaar ? 'rgba(255,255,255,.92)' : 'rgba(255,255,255,.55)'; rrect(x, y, w, h, 18); ctx.fill();
     ctx.strokeStyle = f.klaar ? '#f2b81d' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
     const bob = f.klaar ? Math.sin(beeld * 0.1 + i) * 4 : 0;
     ctx.globalAlpha = f.klaar ? 1 : 0.5;
     const fl = beeld % 40 < 12 ? 12 - beeld % 40 : 0;
-    if (f.id == 'meeuw') { meeuw(x + 54, y + 44 + bob, -0.1, fl, 1.35); frietje(x + 84, y + 70, 0.3); }
-    if (f.id == 'kip') { kip(x + 52, y + 46 + bob, 1.4, 0, fl); mais(x + 82, y + 72, 0.5); }
-    if (f.id == 'kraai') { kraai(x + 52, y + 46 + bob, -0.1, fl, 1.35); plectrum(x + 84, y + 70, 0.3); }
-    if (f.id == 'hommel') { hommel(x + 52, y + 46 + bob, 1.4, 0); nectar(x + 84, y + 72); }
+    if (f.id == 'meeuw') { meeuw(x + 50, y + 36 + bob, -0.1, fl, 1.15); frietje(x + 78, y + 58, 0.3); }
+    if (f.id == 'kip') { kip(x + 48, y + 38 + bob, 1.15, 0, fl); mais(x + 76, y + 60, 0.5); }
+    if (f.id == 'kraai') { kraai(x + 48, y + 40 + bob, -0.1, fl, 1.1); plectrum(x + 78, y + 58, 0.3); }
+    if (f.id == 'hommel') { hommel(x + 48, y + 40 + bob, 1.15, 0); nectar(x + 78, y + 60); }
+    if (f.id == 'roodborst') { roodborstje(x + 48, y + 40 + bob, 0, fl, 1.25); besjes(x + 78, y + 58); }
     ctx.globalAlpha = 1;
-    tekst(f.naam, x + 108, y + 26, 21, f.klaar ? '#1d3b57' : '#4d6478', 'left', null);
-    tekst(f.wereld, x + 108, y + 49, 14, '#4d6478', 'left', null);
+    tekst(f.naam, x + 100, y + 21, 19, f.klaar ? '#1d3b57' : '#4d6478', 'left', null);
+    tekst(f.wereld, x + 100, y + 40, 13, '#4d6478', 'left', null);
     if (f.klaar) {
       const r = record(f.id), m = medaille(r, f);
-      tekst('Record: ' + r + (m ? '  · ' + m[1] : ''), x + 108, y + 71, 14, '#c0792a', 'left', null);
+      tekst('Record: ' + r + (m ? '  · ' + m[1] : ''), x + 100, y + 58, 13, '#c0792a', 'left', null);
       knoppen.push({ x, y, w, h, doe: () => { if (fig != f) stopMuziek(false); fig = f; nieuwSpel(); } });
     } else {
-      tekst('Komt nog!', x + 108, y + 71, 14, '#d6453b', 'left', null);
+      tekst('Komt nog!', x + 100, y + 58, 13, '#d6453b', 'left', null);
       knoppen.push({ x, y, w, h, doe: () => { tekstje = f.naam + ' is nog in de maak.'; doodT = beeld; } });
     }
   });
