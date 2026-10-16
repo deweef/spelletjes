@@ -18,6 +18,9 @@ bedenk dat de site openbaar is.
   drie figuren, elk een eigen wereld en record per speler (`fladderfeest_<figuur>:<naam>`). Patatmeeuw (strand)
   is klaar; Fladderkip (boerderij, zwaar) en Hommelbrom (bollenveld, licht, wind) komen nog (`klaar: false` in
   `FIGUREN`). `fladderfeest.html#tegel` tekent het plaatje voor de startpagina.
+  Muziek: per figuur een eigen deuntje in `MUZIEK` (zelf gecomponeerd, Web Audio, geen bestanden), knopje
+  rechtsboven of toets M, onthouden in `fladderfeest_muziek`. Meeuw = zeemansliedje met hoempa; kip = boerendeuntje
+  met getokkel; hommel = draaiorgelwals.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een
