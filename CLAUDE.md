@@ -20,15 +20,18 @@ bedenk dat de site openbaar is.
   (rockfestival bij nacht, versterkers en truss met spots, plectrums, rockmuziek met vervormde gitaar en drums)
   en Hommelbrom (bollenveld, licht, windvlagen vanaf 3 punten, reuzentulpen en molenwieken, nectar, draaiorgelwals
   in 3/4 met `maat: 6`) en Roodborstje
-  (wintertuin met sneeuw, vogelhuisjes en ijspegels, besjes, speeldoosmuziek, iets ruimere gaten via `ruimer`) zijn
-  klaar. Volgorde in `FIGUREN` = van makkelijk naar
+  (wintertuin met sneeuw, vogelhuisjes en ijspegels, besjes, speeldoosmuziek, iets ruimere gaten via `ruimer`), Piratenpapegaai
+  (piratenzee bij zonsondergang, masten met zeil en rumtonnen, goudstukken, accordeon in 6/8, krappere gaten) en
+  Jetpackpinguïn (Zuidpool met zuiderlicht, ijsbergen, visjes, synthmuziek; een tik geeft een korte raketduw via
+  `stuw`/`stuwKracht`) zijn klaar. Volgorde in `FIGUREN` = van makkelijk naar
   moeilijk (roodborstje, meeuw, hommel, kip, kraai, papegaai, pinguïn); elk dier speel je vrij met 20, 25, 30, ...
   punten met het dier ervoor (`nodig`/`open`; wie al een record heeft met een dier houdt het open).
   Een nieuw dier = regel in `FIGUREN`, deuntje in `MUZIEK`, wereld in `WERELDEN`, plaatje in `tekenDier()`. Elke wereld staat in `WERELDEN` (achtergrond,
   grond, hindernis, bonus, wat er valt, het figuur). `fladderfeest.html#tegel` tekent het plaatje voor de startpagina.
   Muziek: per figuur een eigen deuntje in `MUZIEK` (zelf gecomponeerd, Web Audio, geen bestanden), knopje
   rechtsboven of toets M, onthouden in `fladderfeest_muziek`. Meeuw = zeemansliedje met hoempa; kip = boerendeuntje
-  met getokkel; kraai = rock (`stijl: 'rock'`); roodborstje = speeldoos; hommel = draaiorgelwals.
+  met getokkel; kraai = rock (`stijl: 'rock'`); roodborstje = speeldoos; hommel = draaiorgelwals;
+  papegaai = accordeon; pinguïn = synth.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een
