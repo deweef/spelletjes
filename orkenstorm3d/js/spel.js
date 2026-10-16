@@ -328,7 +328,10 @@ export function update() {
     else if (u.side == 'n') { gevangenRidder(u); continue; }
     else if (u.k == 'werker' && land(u) == 'it') pizzaPauze(u);
     else if (u.k == 'genezer') genezen(u);
-    if (u.side == 'h' && !G.tussen && u.st == 'idle' && u.k != 'werker' && u.k != 'genezer') { const e = nearestEnemy(u, d.sight * T); if (e) cmdAttack(u, e); }
+    if (u.side == 'h' && !G.tussen && u.st == 'idle' && u.k != 'werker' && u.k != 'genezer') {
+      const e = (u.k == 'katapult' && G.blds.find((b) => b.side == 'o' && targetDist(u, b) < d.sight * T && isExp(b.x, b.y))) || nearestEnemy(u, d.sight * T);
+      if (e) cmdAttack(u, e);
+    }
     if (u.st == 'move') { if (!u.path || moveAlong(u)) { u.st = 'idle'; u.path = null; } }
     else if (u.st == 'attack') {
       const tg = u.tg;
@@ -339,11 +342,25 @@ export function update() {
         if (u.cd <= 0) {
           u.cd = d.cd; u.swing = 12;
           const tx = tg.w ? center(tg).x : tg.x, ty = tg.w ? center(tg).y : tg.y;
-          if (d.rng > 40) { G.fx.push({ x: u.x, y: u.y, tx, ty, l: 12, arrow: 1 }); sArrow(); } else sHit();
-          damage(tg, d.dmg, u);
+          if (d.splash) { // katapult: steen die alles in de buurt raakt, gebouwen extra hard
+            G.fx.push({ x: u.x, y: u.y, tx, ty, l: 40, rock: 1 }); noise(0.3, 0.08, 300);
+            const geraakt = [...G.units.filter((e) => e.side != u.side && e.side != 'n' && Math.hypot(e.x - tx, e.y - ty) < 36), ...G.blds.filter((b) => b.side != u.side && targetDist({ x: tx, y: ty }, b) < 36)];
+            for (const e of geraakt) if (e.hp > 0) damage(e, d.dmg * (e.w ? d.bld || 1 : 1), u);
+          } else {
+            if (d.rng > 40) { G.fx.push({ x: u.x, y: u.y, tx, ty, l: 12, arrow: 1 }); sArrow(); } else sHit();
+            damage(tg, d.dmg, u);
+          }
         }
       } else {
-        if (!u.path || --u.repath <= 0) { u.repath = 30; goTo(u, attackGoals(tg)); }
+        if (!u.path || --u.repath <= 0) {
+          u.repath = 30;
+          if (!goTo(u, attackGoals(tg))) { // geen weg: dan maar door de dichtstbijzijnde muur heen
+            const wk = u.side == 'h' ? 'orkmuur' : 'muur', doel = tg.w ? center(tg) : tg;
+            const wl = G.blds.filter((b) => b.k == wk).sort((a, c) => targetDist(u, a) + targetDist(doel, a) - (targetDist(u, c) + targetDist(doel, c)))[0];
+            if (wl && wl != tg && goTo(u, attackGoals(wl))) { u.tg = wl; u.fail = 0; }
+            else if (++u.fail > 2) { u.fail = 0; u.st = 'idle'; u.tg = null; u.path = null; continue; }
+          } else u.fail = 0;
+        }
         if (u.path && u.path.length) moveAlong(u);
         else {
           const cx = tg.w ? Math.max(tg.x * T, Math.min((tg.x + tg.w) * T, u.x)) : tg.x, cy = tg.w ? Math.max(tg.y * T, Math.min((tg.y + tg.h) * T, u.y)) : tg.y;
@@ -396,7 +413,13 @@ function orcBrain(u) {
   if (e) { cmdAttack(u, e); return; }
   if (u.raid) {
     const h = hall(); if (!h) return;
-    if (u.st != 'raid' || !u.path) { u.st = 'raid'; if (!u.path || !u.path.length) goTo(u, ringAround(h.x, h.y, h.w, h.h)); }
+    if (u.st != 'raid' || !u.path) {
+      u.st = 'raid';
+      if ((!u.path || !u.path.length) && !goTo(u, ringAround(h.x, h.y, h.w, h.h))) { // muren in de weg: sla het dichtstbijzijnde gebouw
+        const w = G.blds.filter((b) => b.side == 'h').sort((a, c) => targetDist(u, a) - targetDist(u, c))[0];
+        if (w) { cmdAttack(u, w); return; }
+      }
+    }
     if (u.path && moveAlong(u)) cmdAttack(u, h);
     return;
   }
@@ -493,6 +516,7 @@ function pay(c) { G.res.goud -= c[0]; G.res.hout -= c[1]; }
 
 export function train(b, k) {
   const c = UNIT[k].cost;
+  if (UNIT[k].needs && !UNIT[k].needs.every((n) => S.count(n))) { say('Bouw eerst een smederij en een houtzagerij.'); sNee(); return; }
   if (k == 'werker' && !G.freed) { say('Er zijn geen werkers meer in het dorp: bevrijd eerst de gevangenen!'); sNee(); return; }
   if (b.q.length >= 5) { say('De wachtrij is vol (5).'); return; }
   if (!canAfford(c)) { say('Niet genoeg goud of hout.'); sNee(); return; }
@@ -581,18 +605,24 @@ export function klik(p) {
     const d = BLD[G.place.k];
     let bx = gx - Math.floor((d.w - 1) / 2), by = gy - Math.floor((d.h - 1) / 2);
     const onGhost = G.place.x >= 0 && gx >= G.place.x && gx < G.place.x + d.w && gy >= G.place.y && gy < G.place.y + d.h;
-    if (p.touch && !onGhost) {
+    const los = G.place.k == 'muur'; // muurstukken zet je met één tik neer, zonder schaduw te verschuiven
+    if (p.touch && !onGhost && !los) {
       G.place.x = bx; G.place.y = by;
       say(canPlace(G.place.k, bx, by) ? 'Tik nog een keer op de schaduw om te bouwen.' : 'Daar kan het niet: kies een vrije plek die je al ontdekt hebt.', 240);
       sClick(); return;
     }
-    if (onGhost || (!p.touch && G.place.x >= 0)) { bx = G.place.x; by = G.place.y; } // met de muis: precies waar de schaduw staat
+    if (!los && (onGhost || (!p.touch && G.place.x >= 0))) { bx = G.place.x; by = G.place.y; } // met de muis: precies waar de schaduw staat
     if (!canPlace(G.place.k, bx, by)) { say('Daar kan het niet: kies een vrije plek die je al ontdekt hebt.'); sNee(); return; }
     pay(d.cost);
     const b = addBld(G.place.k, bx, by, 0);
     const ws = G.sel.filter((u) => u.k == 'werker');
     for (const w of ws) assignBuild(w, b);
     const queued = ws.some((w) => w.bq && w.bq.includes(b));
+    if (G.place.k == 'muur' && canAfford(d.cost)) { // muur: meteen door met het volgende stuk
+      G.place = { k: 'muur', x: -1, y: -1 }; sBuild();
+      say(p.touch ? 'Tik op meer plekken voor muurstukken. Escape of rechts klikken = klaar.' : 'Klik op meer plekken voor muurstukken. Escape of rechts klikken = klaar.', 200);
+      return;
+    }
     G.place = null;
     say(queued ? 'Komt op de lijst: eerst wordt het vorige gebouw afgemaakt.' : ws.length ? 'De werker gaat bouwen.' : 'Kies een werker en klik op het gebouw om het af te bouwen.', 120);
     if (ws[0]) unitSay(ws[0], 'bouw');

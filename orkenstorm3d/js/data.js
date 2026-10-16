@@ -9,6 +9,7 @@ export const UNIT = {
   genezer: { n: 'Genezer', hp: 30, dmg: 2, rng: 22, cd: 60, spd: 1, sight: 4, side: 'h' },
   held: { n: 'Sir Lodewijk', hp: 140, dmg: 12, rng: 22, cd: 45, spd: 1.05, sight: 5, side: 'h' },
   skelet: { n: 'Skelet', hp: 45, dmg: 7, rng: 22, cd: 55, spd: 0.85, sight: 4, side: 'o' },
+  katapult: { n: 'Katapult', hp: 90, dmg: 40, rng: 210, cd: 160, spd: 0.55, sight: 6, side: 'h', cost: [250, 120], time: 900, from: ['kazerne'], needs: ['smederij', 'houtzagerij'], splash: 1, bld: 1.8 },
   speerork: { n: 'Speerwerper', hp: 35, dmg: 6, rng: 110, cd: 75, spd: 0.9, sight: 5, side: 'o' },
 };
 
@@ -17,6 +18,9 @@ export const BLD = {
   boerderij: { n: 'Boerderij', w: 2, h: 2, hp: 120, food: 4, cost: [50, 30], time: 600, side: 'h' },
   kazerne: { n: 'Kazerne', w: 3, h: 3, hp: 250, cost: [100, 60], time: 900, side: 'h' },
   toren: { n: 'Toren', w: 2, h: 2, hp: 150, cost: [80, 50], time: 700, side: 'h', dmg: 7, rng: 160, cd: 70 },
+  muur: { n: 'Muur', w: 1, h: 1, hp: 200, cost: [20, 10], time: 160, side: 'h' },
+  smederij: { n: 'Smederij', w: 2, h: 2, hp: 200, cost: [100, 60], time: 700, side: 'h' },
+  houtzagerij: { n: 'Houtzagerij', w: 2, h: 2, hp: 200, cost: [80, 80], time: 700, side: 'h' },
   orkhut: { n: 'Orkenhut', w: 2, h: 2, hp: 250, side: 'o' },
   kooi: { n: 'Gevangenis', w: 2, h: 2, hp: 200, side: 'o' },
 };
@@ -100,7 +104,7 @@ export const LEVELS = [
       'en vernietig de orkenhutten.',
     ],
     doel: 'Vernietig de orkenhutten en versla alle orks',
-    goud: 200, hout: 150, bouw: ['boerderij', 'kazerne', 'toren'],
+    goud: 200, hout: 150, bouw: ['boerderij', 'kazerne', 'toren', 'muur', 'smederij', 'houtzagerij'],
     map: [
       'TTTTTTTTTTTTTTTTTTTTTTTT',
       'TTTTTT............TTTTTT',

@@ -116,7 +116,16 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   kazerne (castle-kit toren, houten muur, ballista, banier; forest tent en schietschijf), goudmijn
   (dungeon rotsen, stut, kist, munt; survival rotsen), steigers (dungeon wood-support), pijlen (forest),
   wachttoren (castle-kit zeshoekige toren), orkenhut (survival tentdoek, kampvuur, palissade),
-  bruggen (forest bridge, op tegels `=`).
+  bruggen (castle-kit bridge-straight, met een pijler in het midden; het wegdek ligt gelijk met de oever),
+  wachttoren met boogschutter onder een dak op palen, muur (castle wall), smederij (forest schuurtje,
+  survival aambeeld, tonnen, schoorsteen), houtzagerij (forest schuurtje, survival slijpsteen, planken,
+  boomstammen), katapult (castle siege-catapult; een voertuig zonder botten, `voertuig: true`).
+- Muur, smederij, houtzagerij en katapult (vanaf level 2, net als 2D): muurstukken plaats je achter elkaar
+  tot Escape; orks zonder weg slaan de dichtstbijzijnde muur kapot; de katapult (kazerne) vraagt eerst een
+  smederij én houtzagerij, schiet stenen met spatschade (gebouwen x1.8) en zoekt zelf vijandelijke gebouwen.
+- Goudmijnen: bordje met het resterende goud (rood knipperend als bijna leeg), werkers lopen vanzelf naar de
+  volgende mijn, `mineCap` per level.
+- Het uitlegvakje rechtsonder laat klikken door (`pointer-events: none`).
 - Gevangenis (level 3): dungeon wood-structure met castle metal-gate als tralies; de gevangen werkers zijn
   echte Kenney-mannetjes in het model (hun mixers staan in `model.userData.mixers`).
 - De Donkere Mijnen (level 4, `dungeon: 1`): dungeon wall op `#`/`t`, graveyard lantern-candle met

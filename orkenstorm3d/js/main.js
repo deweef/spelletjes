@@ -166,7 +166,7 @@ function bouwWereld() {
   // water
   const waterTegels = [];
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'W' || G.map[y][x] == '=') waterTegels.push([x, y]);
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == '=') { const br = M.maakBrug(); br.position.x = x + 0.5; br.position.z = y + 0.5; wereld.add(br); }
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == '=') { const br = M.maakBrug(G.map[y - 1] && G.map[y - 1][x] == '=' && G.map[y + 1] && G.map[y + 1][x] == '='); br.position.x = x + 0.5; br.position.z = y + 0.5; wereld.add(br); }
   if (waterTegels.length) {
     const water = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
       new THREE.MeshLambertMaterial({ color: '#4a9be0', transparent: true, opacity: 0.85 }), waterTegels.length);
@@ -308,7 +308,8 @@ function syncMannetjes(nu) {
     }
     m.px = u.x; m.py = u.y;
     const gekozen = G.sel.includes(u);
-    if (m.kenney) animeer(m, u, beweegt, gekozen);
+    if (m.voertuig) { if (u.swing > 0) m.lijf.rotation.x = -Math.sin((12 - u.swing) / 12 * Math.PI) * 0.25; else m.lijf.rotation.x = 0; m.lijf.position.y = beweegt ? Math.abs(Math.sin(nu / 90)) * 0.02 : 0; }
+    else if (m.kenney) animeer(m, u, beweegt, gekozen);
     else poppetje(m, u, beweegt);
     if (m.p.hout) { m.p.hout.visible = u.carry == 'hout'; m.p.goud.visible = u.carry == 'goud'; }
     m.p.ring.visible = gekozen;
@@ -375,7 +376,7 @@ function syncGebouwen(nu) {
       m = M.maakGebouw(b.k, b.w, b.h);
       m.g.position.set(b.x + b.w / 2, 0, b.y + b.h / 2);
       m.g.userData.pick = { bld: b };
-      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6 }[b.k] || 2.0; m.g.add(m.balk);
+      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4 }[b.k] || 2.0; m.g.add(m.balk);
       scene.add(m.g); bMesh.set(b.id, m); pickables.push(m.g);
     }
     m.g.visible = b.side == 'h' || isExp(b.x, b.y);
@@ -477,6 +478,7 @@ function syncWereld(nu) {
 const ringGeo = new THREE.RingGeometry(0.2, 0.28, 24).rotateX(-Math.PI / 2);
 const deeltjeGeo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
 const rookGeo = new THREE.IcosahedronGeometry(0.2, 1);
+const steenGeo = new THREE.DodecahedronGeometry(0.16, 0);
 
 function syncEffecten() {
   const gezien = new Set();
@@ -486,6 +488,7 @@ function syncEffecten() {
     if (!m) {
       if (f.arrow) m = M.maakPijl();
       else if (f.ring) m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: f.ring, transparent: true }));
+      else if (f.rock) m = new THREE.Mesh(steenGeo, M.mat('#8d867b'));
       else if (f.rook) m = new THREE.Mesh(rookGeo, new THREE.MeshBasicMaterial({ color: 0x9be07a, transparent: true, opacity: 0.75, depthWrite: false }));
       else if (f.grave) m = M.kenneyKlaar() ? new THREE.Group() : M.maakGraf(f.grave); // Kenney-mannetjes vallen zelf om
       else m = new THREE.Mesh(deeltjeGeo, M.mat(f.c || '#7a6a5a'));
@@ -498,6 +501,9 @@ function syncEffecten() {
       m.position.set(x, y, z); m.lookAt(wx(f.tx), 0.4, wz(f.ty));
     } else if (f.ring) {
       m.position.set(wx(f.x), 0.04, wz(f.y)); const s = 1 + (20 - f.l) / 20; m.scale.set(s, 1, s); m.material.opacity = f.l / 20;
+    } else if (f.rock) { // steen van de katapult: hoge boog
+      const p = 1 - f.l / 40;
+      m.position.set(wx(f.x + (f.tx - f.x) * p), 0.8 + Math.sin(p * Math.PI) * 2.6, wz(f.y + (f.ty - f.y) * p)); m.rotation.x += 0.2;
     } else if (f.rook) { // groen wolkje dat opstijgt en groter wordt
       const leeftijd = 1 - f.l / 70;
       m.position.set(wx(f.x) + leeftijd * 0.3, 0.9 + leeftijd * 1.4, wz(f.y)); m.scale.setScalar(0.8 + leeftijd * 2.6); m.material.opacity = 0.75 * (1 - leeftijd);
@@ -640,7 +646,7 @@ let paneelSleutel = '';
 function tekenPaneel(forceer) {
   const sel = G.sel, b = G.selB, ws = sel.filter((u) => u.k == 'werker');
   const sleutel = JSON.stringify([G.multi, sel.map((u) => u.id), b && b.id, b && b.done, b && b.q, G.place && G.place.k, G.L && G.L.bouw.map((k) => canAfford(BLD[k].cost)),
-    ['werker', 'soldaat', 'boog'].map((k) => canAfford(UNIT[k].cost))]);
+    ['werker', 'soldaat', 'boog', 'katapult'].map((k) => canAfford(UNIT[k].cost)), S.count('smederij'), S.count('houtzagerij')]);
   if (!forceer && sleutel == paneelSleutel) return vulPaneel();
   paneelSleutel = sleutel;
   const p = $('paneel');
@@ -661,8 +667,8 @@ function tekenPaneel(forceer) {
   if (b) {
     h += `<div class="kop"><b>${esc(BLD[b.k].n)}</b><span id="pstatus"></span></div><div class="hp"><div id="php"></div></div>`;
     if (b.done && b.side == 'h') {
-      const kan = Object.keys(UNIT).filter((k) => UNIT[k].from && UNIT[k].from.includes(b.k));
-      if (kan.length) h += '<div class="knoppen">' + kan.map((k) => `<button data-train="${k}" class="${canAfford(UNIT[k].cost) ? '' : 'duur'}">${esc(UNIT[k].n)}${prijs(UNIT[k].cost)}</button>`).join('') + '</div>';
+      const kan = Object.keys(UNIT).filter((k) => UNIT[k].from && UNIT[k].from.includes(b.k) && (k != 'katapult' || G.L.bouw.includes('smederij')));
+      if (kan.length) h += '<div class="knoppen">' + kan.map((k) => { const mist = UNIT[k].needs && !UNIT[k].needs.every((n) => S.count(n)); return `<button data-train="${k}" class="${!mist && canAfford(UNIT[k].cost) ? '' : 'duur'}">${esc(UNIT[k].n)}${mist ? '<span class="prijs">eerst smederij + houtzagerij</span>' : prijs(UNIT[k].cost)}</button>`; }).join('') + '</div>';
       if (b.q.length) h += `<div class="rij">${b.q.map((k, i) => `<span class="${i ? '' : 'nu'}">${esc(UNIT[k].n)}${i ? '' : '<i id="qbalk"></i>'}</span>`).join('')}</div>`;
     }
   }

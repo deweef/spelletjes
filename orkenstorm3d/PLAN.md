@@ -37,5 +37,8 @@ Volgorde van bouwen:
 - "Spellen voor de telefoon" (2D) en "3D-spellen voor de pc".
 - Op een telefoon staat het 2D-blok bovenaan, op een laptop het 3D-blok. Marcel past het aan als het niet bevalt.
 
+## 3b. Uit de nieuwe 2D-versie — KLAAR: goud in de mijn, muur, smederij, houtzagerij, katapult, stenen brug.
+   Nog over uit 2D: weg (vanaf level 8), stal/ridder (level 5), magiërstoren/tovenaar (level 10), levels 7-11.
+
 ## 4. Daarna level 5 (eigen naam, bv. "Het Woud van Wilgendaal") en level 6 (De belegerde abdij),
    meteen met hun tussenstukjes.

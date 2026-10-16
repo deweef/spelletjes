@@ -47,6 +47,7 @@ const KLEDING = {
 };
 
 export function maakMannetje(k, side, land, rolstoel) {
+  if (k == 'katapult') return maakKatapult();
   if (K.klaar) return kenneyMannetje(k, side, land, rolstoel);
   const kl = KLEDING[k] || KLEDING.werker;
   const huid = kl.huid || HUID;
@@ -303,6 +304,9 @@ const MODEL = {
     g.add(doos(1.8, 0.1, 1.8, HOUT, 0, 1.25, 0));
     return g;
   },
+  muur() { return doos(1, 0.9, 1, STEEN, 0, 0.45, 0); },
+  smederij() { const g = new THREE.Group(); g.add(doos(1.2, 0.7, 1.0, '#8a7a6a', -0.2, 0.35, -0.2)); g.add(dak(1.3, 0.4, 1.1, '#5a4a3a', -0.2, 0.7, -0.2)); g.add(doos(0.3, 0.3, 0.2, '#6b6a65', 0.5, 0.15, 0.5)); return g; },
+  houtzagerij() { const g = new THREE.Group(); g.add(doos(1.2, 0.6, 1.0, '#b08a5a', -0.2, 0.3, -0.2)); g.add(dak(1.3, 0.4, 1.1, '#7a5230', -0.2, 0.6, -0.2)); for (let i = 0; i < 3; i++) { const c = cil(0.1, 0.1, 0.8, HOUT, 0.55, 0.1 + i * 0.2, 0.4, 7); c.rotation.x = Math.PI / 2; g.add(c); } return g; },
   orkhut() {
     const g = new THREE.Group();
     g.add(kegel(0.9, 1.2, '#7a5a38', 0, 0.6, 0, 7));
@@ -400,11 +404,49 @@ function kenneyKooi() {
   return g;
 }
 
-const BOUW = { kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi };
+// Muur (1x1): een stuk kasteelmuur
+function kenneyMuur() { const g = new THREE.Group(); const m = zetIn(g, 'castle/wall', 0, 0, 0); m.scale.set(1.02, 0.85, 1.02); return g; }
+
+// Smederij (2x2): schuurtje met aambeeld, kolenvuur en tonnen
+function kenneySmederij() {
+  const g = new THREE.Group();
+  zetIn(g, 'forest/building-roof', -0.3, 0, -0.3, 0, 1.1);
+  zetIn(g, 'survival/workbench-anvil', -0.3, 0, -0.25, 0.3, 2.6);
+  const vuur = new THREE.Mesh(geo('kolen', () => new THREE.IcosahedronGeometry(0.16, 0)), new THREE.MeshBasicMaterial({ color: 0xff7a2a }));
+  vuur.position.set(0.5, 0.12, -0.5); g.add(vuur); g.add(cil(0.22, 0.26, 0.14, '#6b6a65', 0.5, 0.07, -0.5, 8));
+  g.add(cil(0.1, 0.12, 1.4, '#8d867b', 0.62, 0.7, -0.68, 6)); // schoorsteen
+  zetIn(g, 'survival/barrel', 0.6, 0, 0.5, 0, 1.4); zetIn(g, 'survival/barrel', 0.3, 0, 0.66, 1, 1.4);
+  zetIn(g, 'dungeon/weapon-sword', -0.65, 0.05, 0.6, 0.6, 1.4);
+  return g;
+}
+
+// Houtzagerij (2x2): schuurtje met zaagbank, stapels planken en boomstammen
+function kenneyHoutzagerij() {
+  const g = new THREE.Group();
+  zetIn(g, 'forest/building-roof', -0.3, 0, -0.3, 0, 1.1);
+  zetIn(g, 'survival/workbench-grind', -0.3, 0.15, -0.25, 0, 2.4);
+  zetIn(g, 'survival/resource-planks', 0.55, 0, -0.35, 0, 1.8); zetIn(g, 'survival/resource-planks', 0.55, 0.16, -0.35, 0.1, 1.8);
+  for (let i = 0; i < 3; i++) zetIn(g, 'survival/tree-log', -0.2 + i * 0.32, 0.15, 0.6, Math.PI / 2, 1.15);
+  zetIn(g, 'survival/tree-log', 0.06, 0.42, 0.6, Math.PI / 2, 1.15);
+  return g;
+}
+
+const BOUW = { kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
+  muur: kenneyMuur, smederij: kenneySmederij, houtzagerij: kenneyHoutzagerij };
+
+// Katapult: een voertuig, geen mannetje. Bij een schot zwiept hij even naar achteren.
+function maakKatapult() {
+  const g = new THREE.Group(), lijf = new THREE.Group(); g.add(lijf);
+  if (K.klaar) { const c = K.stuk('castle/siege-catapult'); c.scale.setScalar(0.55); c.rotation.y = Math.PI / 2; c.position.y = 0.11; lijf.add(c); }
+  else { lijf.add(doos(0.5, 0.2, 0.8, HOUT, 0, 0.2, 0)); lijf.add(doos(0.06, 0.6, 0.06, HOUT, 0, 0.5, -0.1)); }
+  const p = { ring: keuzering('h') }; p.ring.scale.setScalar(1.6); g.add(p.ring);
+  return { g, lijf, p, voertuig: true };
+}
 
 // brug over één tegel water (loopt van noord naar zuid)
-export function maakBrug() {
-  if (K.klaar) { const b = K.stuk('forest/bridge'); b.rotation.y = Math.PI / 2; b.scale.set(1.3, 0.6, 1.3); b.position.y = -0.05; return b; }
+export function maakBrug(midden) {
+  // stenen brug uit de Castle Kit; het wegdek ligt gelijk met de oevers, de bogen staan in het water
+  if (K.klaar) { const b = K.stuk(midden ? 'castle/bridge-straight-pillar' : 'castle/bridge-straight'); b.rotation.y = Math.PI / 2; b.scale.set(1.08, 1, 1.08); b.position.y = -0.92; return b; }
   const g = new THREE.Group();
   g.add(doos(0.8, 0.08, 1.0, '#8a5a2b', 0, 0.06, 0));
   for (const x of [-0.42, 0.42]) g.add(doos(0.05, 0.25, 1.0, '#6b4226', x, 0.15, 0));

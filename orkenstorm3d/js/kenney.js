@@ -20,10 +20,12 @@ const LIJST = [
   'survival/rock-a', 'survival/rock-b', 'survival/rock-c',
   // level 2: wachttoren, orkenhut, bruggen
   'castle/tower-hexagon-base', 'castle/tower-hexagon-mid', 'castle/tower-hexagon-roof',
-  'survival/tent-canvas', 'survival/campfire-pit', 'survival/fence-fortified', 'forest/bridge',
+  'survival/tent-canvas', 'survival/campfire-pit', 'survival/fence-fortified', 'castle/bridge-straight', 'castle/bridge-straight-pillar',
   // level 3: gevangenis
   'dungeon/wood-structure', 'castle/metal-gate',
   // level 4: de Donkere Mijnen
+  // muur, smederij, houtzagerij, katapult
+  'survival/workbench-anvil', 'survival/workbench-grind', 'survival/workbench', 'survival/resource-planks', 'survival/tree-log', 'survival/barrel', 'castle/siege-catapult',
   'graveyard/character-skeleton', 'graveyard/lantern-candle', 'dungeon/wall', 'dungeon/stairs', 'dungeon/barrel', 'dungeon/banner', 'characters/aid-crutch',
 ];
 
