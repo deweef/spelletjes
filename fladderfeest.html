@@ -225,10 +225,19 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) stopM
 
 // ---------- de figuren ----------
 // zwaarte: hoe snel hij valt, flap: hoe hard hij omhoog gaat
+// Van makkelijk naar moeilijk; elk dier speel je vrij met punten van het dier ervoor (zie nodig en open).
 const FIGUREN = [
+  // het roodborstje: lief en vergevingsgezind, met wat ruimere gaten
+  { id: 'roodborst', naam: 'Roodborstje', wereld: 'De wintertuin', zwaarte: 0.32, flap: -5.9, max: 7.8, klaar: true, ruimer: 14,
+    bonus: ['besje', 'besjes'], top: 'Winterwonder', palen: 'de vogelhuisjes en ijspegels',
+    au: ['Piep! Au…', 'Brrr, mijn pootjes zijn bevroren.', 'Even opwarmen bij de kachel.', 'Piep! Ik wil een knuffel.', 'Was dat nou een ijspegel?', 'Mijn sjaaltje zit scheef.'] },
   { id: 'meeuw', naam: 'Patatmeeuw', wereld: 'Het strand', zwaarte: 0.36, flap: -6.4, max: 8.5, klaar: true,
     bonus: ['frietje', 'frietjes'], top: 'Patatkoning', palen: 'de strandpalen',
     au: ['Krijs! Mijn patat!', 'Wie zet daar nou een paal neer?', 'Krijs! Dat deed pijn.', 'Meeuwen kunnen echt niet tegen palen.', 'Mijn frietje! Nééé!'] },
+  // de hommel is licht: zweeft langzaam, kleine flapjes, en af en toe duwt een windvlaag hem omhoog of omlaag
+  { id: 'hommel', naam: 'Hommelbrom', wereld: 'Het bollenveld', zwaarte: 0.25, flap: -5.0, max: 6.2, klaar: true, wind: true,
+    bonus: ['nectardruppel', 'nectardruppels'], top: 'Bijenkoningin', palen: 'de tulpen en molenwieken',
+    au: ['Bzzz… au!', 'Brom! Wie zette die tulp daar?', 'Ik ben een hommel, geen helikopter.', 'Bzzz… even uitrusten in een tulp.', 'Die wind! Dat was niet eerlijk.', 'Mijn vleugeltjes zijn moe.'] },
   // de kip is zwaar: ze valt snel, maar fladdert krachtig
   { id: 'kip', naam: 'Fladderkip', wereld: 'De boerderij', zwaarte: 0.46, flap: -7.3, max: 10.5, klaar: true,
     bonus: ['maïskolf', 'maïskolven'], top: 'Kippenkoning', palen: 'de hooibalen',
@@ -237,15 +246,11 @@ const FIGUREN = [
   { id: 'kraai', naam: 'Rockkraai', wereld: 'Het rockfestival', zwaarte: 0.39, flap: -6.7, max: 9.2, klaar: true,
     bonus: ['plectrum', 'plectrums'], top: 'Rockster', palen: 'de versterkers',
     au: ['Kraa! Mijn kuif!', 'Rock-’n-roll… au.', 'Die versterker stond te hard.', 'Kraa! Waar is mijn zonnebril?', 'Encore? Nee, even niet.', 'Ik had oordopjes moeten nemen.'] },
-  // de hommel is licht: zweeft langzaam, kleine flapjes, en af en toe duwt een windvlaag hem omhoog of omlaag
-  // het roodborstje: lief en vergevingsgezind, met wat ruimere gaten
-  { id: 'roodborst', naam: 'Roodborstje', wereld: 'De wintertuin', zwaarte: 0.32, flap: -5.9, max: 7.8, klaar: true, ruimer: 14,
-    bonus: ['besje', 'besjes'], top: 'Winterwonder', palen: 'de vogelhuisjes en ijspegels',
-    au: ['Piep! Au…', 'Brrr, mijn pootjes zijn bevroren.', 'Even opwarmen bij de kachel.', 'Piep! Ik wil een knuffel.', 'Was dat nou een ijspegel?', 'Mijn sjaaltje zit scheef.'] },
-  { id: 'hommel', naam: 'Hommelbrom', wereld: 'Het bollenveld', zwaarte: 0.25, flap: -5.0, max: 6.2, klaar: true, wind: true,
-    bonus: ['nectardruppel', 'nectardruppels'], top: 'Bijenkoningin', palen: 'de tulpen en molenwieken',
-    au: ['Bzzz… au!', 'Brom! Wie zette die tulp daar?', 'Ik ben een hommel, geen helikopter.', 'Bzzz… even uitrusten in een tulp.', 'Die wind! Dat was niet eerlijk.', 'Mijn vleugeltjes zijn moe.'] },
+  { id: 'papegaai', naam: 'Piratenpapegaai', wereld: 'De piratenzee', klaar: false, top: 'Piratenkapitein' },
+  { id: 'pinguin', naam: 'Jetpackpinguïn', wereld: 'De Zuidpool', klaar: false, top: 'Raketpinguïn' },
 ];
+const nodig = (i) => 15 + 5 * i; // punten met het vorige dier: 20, 25, 30, ...
+const open = (i) => i == 0 || record(FIGUREN[i].id) > 0 || record(FIGUREN[i - 1].id) >= nodig(i);
 const MEDAILLES = [[100, '', '#b9f2ff'], [50, 'Goud', '#ffd34d'], [25, 'Zilver', '#d6dde3'], [10, 'Brons', '#d08a4a']];
 const medaille = (n, f = fig) => { const m = MEDAILLES.find(([g]) => n >= g); return m && (m[0] == 100 ? [100, f.top, m[2]] : m); };
 
@@ -255,8 +260,9 @@ let fig = FIGUREN[0];
 let vogel, palen, score, frietjes, snelheid, afstand, beeld = 0, schuif = 0, doodT = 0, tekstje = '', nieuwRecord = false, vallend = null;
 const knoppen = []; // klikbare vlakken in het huidige scherm
 
-let veren = [], juich = 0, wind = null, volgendeWind = 0;
+let vrijgespeeld = null, veren = [], juich = 0, wind = null, volgendeWind = 0;
 function nieuwSpel() {
+  vrijgespeeld = null;
   veren = [];
   vogel = { x: W * 0.28, y: H * 0.42, vy: 0, flapT: 0, hoek: 0 };
   palen = []; score = 0; frietjes = 0; snelheid = 2.3; afstand = 215; nieuwRecord = false; vallend = null;
@@ -347,7 +353,10 @@ function stap() {
     veren = veren.filter((v) => v.l > 0);
     if (staat == 'dood' && doodT > 45) {
       staat = 'over'; doodT = 0;
+      const i = FIGUREN.indexOf(fig), volgende = FIGUREN[i + 1], wasDicht = volgende && !open(i + 1);
       if (score > record(fig.id)) { nieuwRecord = record(fig.id) > 0 || score > 0; zetRecord(fig.id, score); }
+      vrijgespeeld = wasDicht && open(i + 1) ? volgende : null;
+      if (vrijgespeeld) setTimeout(sMedaille, 600);
       if (medaille(score)) sMedaille();
     }
   }
@@ -1016,35 +1025,49 @@ function knop(x, y, w, h, t, kleur, doe) {
 
 function menu() {
   ctx.fillStyle = 'rgba(15,40,70,.28)'; ctx.fillRect(0, 0, W, H);
-  const golf = Math.sin(beeld * 0.05) * 4;
-  tekst('Fladderfeest', W / 2, 88 + golf, 44, '#ffe14d', 'center', '#1d3b57');
-  tekst('Kies wie er gaat fladderen', W / 2, 136, 17);
+  const golf = Math.sin(beeld * 0.05) * 3;
+  tekst('Fladderfeest', W / 2, 62 + golf, 40, '#ffe14d', 'center', '#1d3b57');
+  tekst('Kies wie er gaat fladderen', W / 2, 100, 15);
+  const kw = (W - 58) / 2, kh = 100;
   FIGUREN.forEach((f, i) => {
-    const y = 150 + i * 82, x = 26, w = W - 52, h = 74;
-    ctx.fillStyle = f.klaar ? 'rgba(255,255,255,.92)' : 'rgba(255,255,255,.55)'; rrect(x, y, w, h, 18); ctx.fill();
-    ctx.strokeStyle = f.klaar ? '#f2b81d' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
-    const bob = f.klaar ? Math.sin(beeld * 0.1 + i) * 4 : 0;
-    ctx.globalAlpha = f.klaar ? 1 : 0.5;
-    const fl = beeld % 40 < 12 ? 12 - beeld % 40 : 0;
-    if (f.id == 'meeuw') { meeuw(x + 50, y + 36 + bob, -0.1, fl, 1.15); frietje(x + 78, y + 58, 0.3); }
-    if (f.id == 'kip') { kip(x + 48, y + 38 + bob, 1.15, 0, fl); mais(x + 76, y + 60, 0.5); }
-    if (f.id == 'kraai') { kraai(x + 48, y + 40 + bob, -0.1, fl, 1.1); plectrum(x + 78, y + 58, 0.3); }
-    if (f.id == 'hommel') { hommel(x + 48, y + 40 + bob, 1.15, 0); nectar(x + 78, y + 60); }
-    if (f.id == 'roodborst') { roodborstje(x + 48, y + 40 + bob, 0, fl, 1.25); besjes(x + 78, y + 58); }
+    let x = 24 + (i % 2) * (kw + 10), y = 116 + Math.floor(i / 2) * (kh + 8);
+    if (i == FIGUREN.length - 1 && i % 2 == 0) x = (W - kw) / 2; // laatste alleen in het midden
+    const vrij = f.klaar && open(i);
+    ctx.fillStyle = vrij ? 'rgba(255,255,255,.93)' : 'rgba(255,255,255,.5)'; rrect(x, y, kw, kh, 16); ctx.fill();
+    ctx.strokeStyle = vrij ? '#f2b81d' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
+    const bob = vrij ? Math.sin(beeld * 0.1 + i) * 3 : 0, fl = vrij && beeld % 40 < 12 ? 12 - beeld % 40 : 0;
+    const cx = x + kw / 2, cy = y + 34 + bob;
+    ctx.globalAlpha = vrij ? 1 : 0.45;
+    tekenDier(f.id, cx - 8, cy, fl, 1.15);
     ctx.globalAlpha = 1;
-    tekst(f.naam, x + 100, y + 21, 19, f.klaar ? '#1d3b57' : '#4d6478', 'left', null);
-    tekst(f.wereld, x + 100, y + 40, 13, '#4d6478', 'left', null);
-    if (f.klaar) {
+    tekst(f.naam, cx, y + 70, f.naam.length > 13 ? 13 : 15, vrij ? '#1d3b57' : '#4d6478', 'center', null);
+    if (vrij) {
       const r = record(f.id), m = medaille(r, f);
-      tekst('Record: ' + r + (m ? '  · ' + m[1] : ''), x + 100, y + 58, 13, '#c0792a', 'left', null);
-      knoppen.push({ x, y, w, h, doe: () => { if (fig != f) stopMuziek(false); fig = f; nieuwSpel(); } });
+      tekst('Record ' + r + (m ? ' · ' + m[1] : ''), cx, y + 88, 11, '#c0792a', 'center', null);
+      knoppen.push({ x, y, w: kw, h: kh, doe: () => { if (fig != f) stopMuziek(false); fig = f; nieuwSpel(); } });
     } else {
-      tekst('Komt nog!', x + 100, y + 58, 13, '#d6453b', 'left', null);
-      knoppen.push({ x, y, w, h, doe: () => { tekstje = f.naam + ' is nog in de maak.'; doodT = beeld; } });
+      const uitleg = !f.klaar ? 'Komt nog!' : '🔒 ' + nodig(i) + ' met ' + FIGUREN[i - 1].naam;
+      tekst(uitleg, cx, y + 88, f.klaar ? 10 : 11, '#d6453b', 'center', null);
+      // slotje
+      if (f.klaar) { ctx.fillStyle = '#7a6a5a'; rrect(cx + 18, cy - 4, 18, 14, 3); ctx.fill(); ctx.strokeStyle = '#7a6a5a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx + 27, cy - 4, 6, Math.PI, 0); ctx.stroke(); }
+      knoppen.push({ x, y, w: kw, h: kh, doe: () => {
+        tekstje = !f.klaar ? f.naam + ' is nog in de maak.' : 'Haal ' + nodig(i) + ' punten met ' + FIGUREN[i - 1].naam + '!'; doodT = beeld; sBots();
+      } });
     }
   });
-  if (tekstje && beeld - doodT < 120 && staat == 'menu') tekst(tekstje, W / 2, H - 52, 16, '#fff');
-  else tekst(speler ? 'Speler: ' + speler : 'Kies je naam op de startpagina voor je eigen record', W / 2, H - 52, speler ? 17 : 13);
+  if (tekstje && beeld - doodT < 150 && staat == 'menu') tekst(tekstje, W / 2, H - 28, 15, '#fff');
+  else tekst(speler ? 'Speler: ' + speler : 'Kies je naam op de startpagina voor je eigen record', W / 2, H - 28, speler ? 16 : 12);
+}
+// een dier met zijn bonus erbij, voor het beginscherm
+function tekenDier(id, x, y, fl, s) {
+  if (id == 'meeuw') { meeuw(x, y, -0.1, fl, s); frietje(x + 30, y + 18, 0.3); }
+  if (id == 'kip') { kip(x, y + 2, s, 0, fl); mais(x + 30, y + 20, 0.5); }
+  if (id == 'kraai') { kraai(x, y + 4, -0.1, fl, s * 0.95); plectrum(x + 32, y + 18, 0.3); }
+  if (id == 'hommel') { hommel(x, y + 4, s, 0); nectar(x + 32, y + 20); }
+  if (id == 'roodborst') { roodborstje(x, y + 4, 0, fl, s * 1.1); besjes(x + 30, y + 18); }
+  if (id == 'papegaai' && typeof papegaai == 'function') { papegaai(x, y + 4, -0.1, fl, s); goudstuk(x + 32, y + 18); }
+  if (id == 'pinguin' && typeof pinguin == 'function') { pinguin(x, y + 4, -0.1, fl, s); visje(x + 32, y + 20); }
+  if ((id == 'papegaai' && typeof papegaai != 'function') || (id == 'pinguin' && typeof pinguin != 'function')) tekst('?', x + 8, y, 34, '#4d6478', 'center', null);
 }
 
 function scorebord() {
@@ -1074,7 +1097,10 @@ function eindscherm() {
     const volgende = [...MEDAILLES].reverse().find(([n]) => n > score);
     tekst('Nog ' + (volgende[0] - score) + ' voor ' + volgende[1].toLowerCase(), W / 2, y + 186, 16, '#4d6478', 'center', null);
   }
-  if (frietjes) tekst(frietjes + ' ' + fig.bonus[frietjes == 1 ? 0 : 1] + ' gepikt', W / 2, y + 220, 14, '#c0792a', 'center', null);
+  if (vrijgespeeld) {
+    ctx.fillStyle = '#fff1b8'; rrect(x + 14, y + 204, w - 28, 30, 10); ctx.fill();
+    tekst('Vrijgespeeld: ' + vrijgespeeld.naam + '!', W / 2, y + 220, 15, '#3fae5a', 'center', null);
+  } else if (frietjes) tekst(frietjes + ' ' + fig.bonus[frietjes == 1 ? 0 : 1] + ' gepikt', W / 2, y + 220, 14, '#c0792a', 'center', null);
   ctx.globalAlpha = 1;
   if (doodT > 25) {
     knop(x + 14, y + h - 62, w / 2 - 20, 46, 'Nog een keer', '#3fae5a', nieuwSpel);
