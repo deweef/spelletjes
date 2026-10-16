@@ -73,6 +73,10 @@ Opbouw:
   Extra velden: `spreker` (een werker vertelt eerst iets), `grappen` (deze grappen eerst), `duur` (seconden).
   `soort: 'overval'` (2 → 3) is anders: feest bij het kasteel, nacht (`api.nacht(f)`), orks komen (via
   `plaats` in spel.js) en sleuren de werkers mee. Tijdens een filmpje (`G.tussen`) vallen orks niet aan.
+  Beginfilmpje: `intro: { van, naar, begin, orks, bouw, eind }` bij een level (nu level 1: aankomst, kasteel
+  bouwen, grapje per land in `BOUWGRAP`). Speelt vanzelf alleen de eerste keer per speler
+  (`orkenstorm3d_intro<level>`), daarna via de knop "Filmpje nog eens zien" in de uitleg. Tests die level 1
+  starten zetten eerst `localStorage.orkenstorm3d_intro0 = '1'`.
 - `lib/`: three.js r160 (`three.module.js`) en `OrbitControls.js`, lokaal (geen CDN) zodat het offline
   werkt. Blijf bij deze versie; nieuwe three-onderdelen ook uit r160 halen (npm: `three@0.160.0`).
 - Kleuren: r160 doet het kleurbeheer zelf (sRGB). Geef kleuren gewoon als hex op; alleen

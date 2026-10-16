@@ -25,7 +25,7 @@ Volgorde van bouwen:
     vreetkick zijn hele kaasje op en loopt giechelend de verkeerde kant op
   - Engelsman gaat eerst thee drinken, Italiaan blijft bij zijn pizza
 - Daarna een tekstkaart die naar het volgende level leidt. Ideeën per overgang:
-  - intro level 1: de koning geeft je een stukje land
+  - intro level 1: de koning geeft je een stukje land — KLAAR (aankomst en kasteel bouwen)
   - 1 → 2: groep trekt het bos in, bouwt bij de rivier een kamp met kazerne en twee boerderijtjes
   - 2 → 3: feest, maar 's nachts overvallen orks Zonnedal en nemen alle werkers mee
   - 3 → 4: bevrijde werker vertelt over ridder Sir Lodewijk in de mijnen; klein groepje daalt af
@@ -40,5 +40,5 @@ Volgorde van bouwen:
 ## 3b. Uit de nieuwe 2D-versie — KLAAR: goud in de mijn, muur, smederij, houtzagerij, katapult, stenen brug.
    Nog over uit 2D: weg (vanaf level 8), stal/ridder (level 5), magiërstoren/tovenaar (level 10), levels 7-11.
 
-## 4. Daarna level 5 (eigen naam, bv. "Het Woud van Wilgendaal") en level 6 (De belegerde abdij),
+## 4. Daarna level 5 "Het Woud van Wilgendaal" (naam goedgekeurd) en level 6 (De belegerde abdij),
    meteen met hun tussenstukjes.
