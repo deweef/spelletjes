@@ -16,12 +16,13 @@ bedenk dat de site openbaar is.
   skirun, piratenbluf, orkenstorm, fladderfeest). Laat die ongemoeid tenzij erom gevraagd wordt.
 - Fladderfeest (`fladderfeest.html`, in de stijl van Flappy Bird, met eigen naam en plaatjes): beginscherm met
   drie figuren, elk een eigen wereld en record per speler (`fladderfeest_<figuur>:<naam>`). Patatmeeuw (strand) en
-  Fladderkip (boerderij, zwaar: valt snel, fladdert krachtig; legt een ei als ze af is) zijn klaar; Hommelbrom
-  (bollenveld, licht, wind) komt nog (`klaar: false` in `FIGUREN`). Elke wereld staat in `WERELDEN` (achtergrond,
+  Fladderkip (boerderij, zwaar: valt snel, fladdert krachtig; legt een ei als ze af is) en Rockkraai
+  (rockfestival bij nacht, versterkers en truss met spots, plectrums, rockmuziek met vervormde gitaar en drums)
+  zijn klaar; Hommelbrom (bollenveld, licht, wind) en daarna misschien Roodborstje (winterse tuin, speeldoos) komen nog (`klaar: false` in `FIGUREN`). Elke wereld staat in `WERELDEN` (achtergrond,
   grond, hindernis, bonus, wat er valt, het figuur). `fladderfeest.html#tegel` tekent het plaatje voor de startpagina.
   Muziek: per figuur een eigen deuntje in `MUZIEK` (zelf gecomponeerd, Web Audio, geen bestanden), knopje
   rechtsboven of toets M, onthouden in `fladderfeest_muziek`. Meeuw = zeemansliedje met hoempa; kip = boerendeuntje
-  met getokkel; hommel = draaiorgelwals.
+  met getokkel; kraai = rock (`stijl: 'rock'`); hommel = draaiorgelwals.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een

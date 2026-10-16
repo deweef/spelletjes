@@ -52,6 +52,20 @@ const sPunt = () => { snd(880, 0.08, 'square', 0.03); snd(1320, 0.12, 'square', 
 const sHap = () => { snd(500, 0.05, 'square', 0.04, 300); snd(700, 0.08, 'triangle', 0.05, 0, 0.06); };
 const sKrijs = () => { snd(1400, 0.25, 'sawtooth', 0.05, 700); snd(1300, 0.35, 'sawtooth', 0.04, 500, 0.22); };
 const sBots = () => snd(140, 0.2, 'square', 0.06, 60);
+const sKakel = () => { snd(620, 0.06, 'square', 0.05, 500); snd(560, 0.06, 'square', 0.05, 450, 0.1); snd(900, 0.3, 'sawtooth', 0.04, 500, 0.22); };
+function ruis(d, v, filter, freq, delay = 0) { // ruis voor drums en bekkens
+  if (!ac) return;
+  try {
+    const n = ac.currentTime + delay, b = ac.createBuffer(1, Math.ceil(ac.sampleRate * d), ac.sampleRate), data = b.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    src.buffer = b; f.type = filter; f.frequency.value = freq;
+    g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(0.001, n + d);
+    src.connect(f).connect(g).connect(arguments[5] || ac.destination); src.start(n);
+  } catch (e) {}
+}
+// kraai: gitaar-feedback, een bekkenklap en "kraa!"
+const sKraa = () => { snd(1800, 0.7, 'sine', 0.03, 2600); ruis(1.2, 0.08, 'highpass', 5000); snd(700, 0.18, 'sawtooth', 0.06, 420, 0.5); snd(650, 0.25, 'sawtooth', 0.06, 380, 0.75); };
 const sMedaille = () => [660, 880, 1046, 1318].forEach((f, i) => snd(f, 0.2, 'triangle', 0.06, 0, i * 0.09));
 
 // ---------- muziek (zelf gecomponeerd, de browser speelt het; knopje rechtsboven of toets M) ----------
@@ -68,6 +82,16 @@ const MUZIEK = {
     ],
     akkoorden: [[48, 52, 55], [43, 47, 50], [48, 52, 55], [43, 47, 50], [41, 45, 48], [48, 52, 55], [43, 47, 50], [48, 52, 55]],
   },
+  kraai: { // stevige rock: vervormde powerchords en drums
+    tempo: 142, stijl: 'rock',
+    melodie: [
+      64, -1, 67, 69, -1, 67, 64, 0,   67, -1, 71, -1, 69, 67, 64, -1,
+      69, -1, 72, 71, 69, -1, 67, -1,  64, -1, -1, -1, 0, 0, 62, 64,
+      72, -1, 71, 69, 67, -1, 69, -1,  74, -1, 72, 71, 69, -1, 71, -1,
+      76, -1, 74, 71, 67, -1, 71, 74,  76, -1, -1, -1, -1, 0, 0, 0,
+    ],
+    akkoorden: [[40], [43], [45], [40], [36], [38], [40], [40]],
+  },
   kip: { // boerendeuntje met banjo-getokkel
     tempo: 128, stijl: 'banjo',
     melodie: [
@@ -82,17 +106,48 @@ const MUZIEK = {
 let muziekAan = true; try { muziekAan = localStorage.getItem('fladderfeest_muziek') != '0'; } catch (e) {}
 let mGain = null, mSpeelt = false, mStap = 0, mVolgende = 0;
 const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
-function noot(m, t, d, type, v) {
+let vervorming = null;
+function gitaar() { // vervormer voor de rockgitaar
+  if (!vervorming) {
+    vervorming = ac.createWaveShaper(); const k = 60, c = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) { const x = i / 512 - 1; c[i] = (1 + k) * x / (1 + k * Math.abs(x)); }
+    vervorming.curve = c; const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
+    vervorming.connect(lp).connect(mGain);
+  }
+  return vervorming;
+}
+function noot(m, t, d, type, v, naar) {
   const o = ac.createOscillator(), g = ac.createGain();
   o.type = type; o.frequency.setValueAtTime(hz(m), t);
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.012); g.gain.exponentialRampToValueAtTime(v * 0.5, t + d * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-  o.connect(g).connect(mGain); o.start(t); o.stop(t + d + 0.03);
+  o.connect(g).connect(naar || mGain); o.start(t); o.stop(t + d + 0.03);
+}
+function drum(soort, t) {
+  if (soort == 'kick') { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12); g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.18); o.connect(g).connect(mGain); o.start(t); o.stop(t + 0.2); return; }
+  const d = soort == 'snare' ? 0.16 : 0.04, b = ac.createBuffer(1, Math.ceil(ac.sampleRate * d), ac.sampleRate), data = b.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  src.buffer = b; f.type = soort == 'snare' ? 'bandpass' : 'highpass'; f.frequency.value = soort == 'snare' ? 1800 : 7000;
+  g.gain.setValueAtTime(soort == 'snare' ? 0.22 : 0.05, t); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+  src.connect(f).connect(g).connect(mGain); src.start(t);
 }
 const achtste = () => 30 / (MUZIEK[fig.id].tempo + Math.min(40, score || 0) * 0.6); // sneller als het moeilijker wordt
 function speelStap(i, t) {
   const mz = MUZIEK[fig.id], mel = mz.melodie, n = mel[i], d = achtste();
-  if (n > 0) { let len = 1; while (mel[(i + len) % mel.length] == -1) len++; noot(n, t, d * len * 0.95, 'square', 0.022); noot(n + 12, t, d * len * 0.6, 'triangle', 0.012); }
+  if (n > 0) {
+    let len = 1; while (mel[(i + len) % mel.length] == -1) len++;
+    if (mz.stijl == 'rock') { noot(n, t, d * len * 0.95, 'sawtooth', 0.02, gitaar()); noot(n + 0.1, t, d * len * 0.95, 'square', 0.006); }
+    else { noot(n, t, d * len * 0.95, 'square', 0.022); noot(n + 12, t, d * len * 0.6, 'triangle', 0.012); }
+  }
   const ak = mz.akkoorden[Math.floor(i / 8) % mz.akkoorden.length], tel = i % 8;
+  if (mz.stijl == 'rock') { // chug-chug powerchords, drums: kick op 1 en "en-3", snare op 2 en 4, hihat elke achtste
+    const g = gitaar(), w = ak[0], accent = tel == 0 || tel == 3 || tel == 6;
+    for (const iv of [0, 7, 12]) noot(w + iv, t, d * (accent ? 1.6 : 0.55), 'sawtooth', accent ? 0.05 : 0.03, g);
+    if (tel == 0 || tel == 3 || tel == 4) drum('kick', t);
+    if (tel == 2 || tel == 6) drum('snare', t);
+    drum('hihat', t);
+    return;
+  }
   if (mz.stijl == 'banjo') { // getokkel op elke achtste, bas op 1 en 3
     const rol = [ak[0], ak[1], ak[2], ak[0] + 12, ak[2], ak[1], ak[2], ak[0] + 12];
     noot(rol[tel] + 12, t, d * 0.5, 'square', 0.009); noot(rol[tel] + 24, t, d * 0.3, 'triangle', 0.01);
@@ -144,6 +199,10 @@ const FIGUREN = [
   { id: 'kip', naam: 'Fladderkip', wereld: 'De boerderij', zwaarte: 0.46, flap: -7.3, max: 10.5, klaar: true,
     bonus: ['maïskolf', 'maïskolven'], top: 'Kippenkoning', palen: 'de hooibalen',
     au: ['Tok tok… au!', 'Van schrik een ei gelegd!', 'Kippen kunnen dus níét vliegen.', 'Wie stapelt nou zoveel hooi?', 'Tok! Mijn kam zit scheef.', 'Ik ga terug naar het kippenhok.'] },
+  // de rockkraai: zonnebril, kuif en studs; vliegt zoals de meeuw, iets pittiger
+  { id: 'kraai', naam: 'Rockkraai', wereld: 'Het rockfestival', zwaarte: 0.39, flap: -6.7, max: 9.2, klaar: true,
+    bonus: ['plectrum', 'plectrums'], top: 'Rockster', palen: 'de versterkers',
+    au: ['Kraa! Mijn kuif!', 'Rock-’n-roll… au.', 'Die versterker stond te hard.', 'Kraa! Waar is mijn zonnebril?', 'Encore? Nee, even niet.', 'Ik had oordopjes moeten nemen.'] },
   { id: 'hommel', naam: 'Hommelbrom', wereld: 'Het bollenveld', klaar: false, top: 'Bijenkoningin' },
 ];
 const MEDAILLES = [[100, '', '#b9f2ff'], [50, 'Goud', '#ffd34d'], [25, 'Zilver', '#d6dde3'], [10, 'Brons', '#d08a4a']];
@@ -155,7 +214,7 @@ let fig = FIGUREN[0];
 let vogel, palen, score, frietjes, snelheid, afstand, beeld = 0, schuif = 0, doodT = 0, tekstje = '', nieuwRecord = false, vallend = null;
 const knoppen = []; // klikbare vlakken in het huidige scherm
 
-let veren = [];
+let veren = [], juich = 0;
 function nieuwSpel() {
   veren = [];
   vogel = { x: W * 0.28, y: H * 0.42, vy: 0, flapT: 0, hoek: 0 };
@@ -210,7 +269,7 @@ function botst(cx, cy, r, x, y, w, h) {
 const PAAL = 56, STRAAL = 12;
 
 function stap() {
-  beeld++;
+  beeld++; if (juich > 0) juich--;
   if (staat == 'menu' || staat == 'klaar') { schuif += 1.2; return; }
   if (staat == 'spel') {
     schuif += snelheid;
@@ -220,7 +279,7 @@ function stap() {
     if (vogel.y < 10) { vogel.y = 10; vogel.vy = Math.max(0, vogel.vy); }
     for (const p of palen) {
       p.x -= snelheid;
-      if (!p.voorbij && p.x + PAAL < vogel.x) { p.voorbij = true; score++; sPunt(); snelheid = Math.min(3.3, 2.3 + score * 0.025); }
+      if (!p.voorbij && p.x + PAAL < vogel.x) { p.voorbij = true; score++; sPunt(); juich = 24; snelheid = Math.min(3.3, 2.3 + score * 0.025); }
       if (p.friet && !p.friet.weg && Math.hypot(p.x + PAAL / 2 - vogel.x, p.friet.y - vogel.y) < 22) { p.friet.weg = true; frietjes++; score++; sHap(); }
       const boven = p.midden - p.gat / 2, onder = p.midden + p.gat / 2;
       if (botst(vogel.x, vogel.y, STRAAL, p.x, -50, PAAL, boven + 50) || botst(vogel.x, vogel.y, STRAAL, p.x, onder, PAAL, GROND - onder)) return dood();
@@ -244,9 +303,10 @@ function stap() {
 }
 
 function dood() {
-  staat = 'dood'; doodT = 0; sBots(); setTimeout(sKrijs, 150); stopMuziek(true);
+  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
   vogel.vy = -5;
   vallend = fig.id == 'kip' ? { x: vogel.x - 6, y: vogel.y + 8, vy: 0, r: 0 } // van schrik een ei
+    : fig.id == 'kraai' ? { x: vogel.x + 12, y: vogel.y - 8, vy: -4, r: 0 } // zijn zonnebril vliegt eraf
     : { x: vogel.x + 14, y: vogel.y, vy: -3, r: 0 }; // het frietje valt uit zijn snavel
   if (fig.id == 'kip') for (let i = 0; i < 9; i++) veren.push({ x: vogel.x, y: vogel.y, vx: (Math.random() - 0.5) * 4, vy: -Math.random() * 3, r: Math.random() * 6, l: 90 });
   tekstje = fig.au[Math.floor(Math.random() * fig.au.length)];
@@ -481,10 +541,124 @@ function hooibalen(x, y, h, vanBoven) {
   }
 }
 
+// ---------- het rockfestival (Rockkraai) ----------
+function kraai(x, y, hoek, flapT, s = 1, dood = false) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(s, s);
+  ctx.fillStyle = '#1b1b22'; ctx.beginPath(); ctx.moveTo(-14, -2); ctx.lineTo(-28, -9); ctx.lineTo(-27, 0); ctx.lineTo(-29, 6); ctx.lineTo(-14, 4); ctx.fill(); // staart
+  ctx.beginPath(); ctx.ellipse(0, 0, 17, 12, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = 'rgba(190,170,255,.55)'; ctx.lineWidth = 1.5; ctx.stroke(); // randje zodat hij opvalt in het donker
+  ctx.fillStyle = '#2c2c38'; ctx.beginPath(); ctx.ellipse(2, 4, 12, 6, 0, 0, 7); ctx.fill(); // leren jasje
+  ctx.fillStyle = '#d6dde3'; for (const [dx, dy] of [[-6, 2], [-1, 5], [4, 6], [9, 4]]) { ctx.beginPath(); ctx.arc(dx, dy, 1.4, 0, 7); ctx.fill(); } // studs
+  ctx.fillStyle = '#1b1b22'; ctx.beginPath(); ctx.arc(12, -7, 9, 0, 7); ctx.fill(); // kop
+  ctx.fillStyle = '#7a3ad0'; // paarse kuif
+  ctx.beginPath(); ctx.moveTo(6, -14); ctx.lineTo(4, -25); ctx.lineTo(10, -16); ctx.lineTo(11, -28); ctx.lineTo(14, -16); ctx.lineTo(18, -24); ctx.lineTo(17, -13); ctx.fill();
+  ctx.fillStyle = '#3a3a44'; ctx.beginPath(); ctx.moveTo(19, -9); ctx.lineTo(32, -5); ctx.lineTo(19, -1); ctx.fill(); // snavel
+  if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(12, -11); ctx.lineTo(17, -6); ctx.moveTo(17, -11); ctx.lineTo(12, -6); ctx.stroke(); }
+  else { ctx.fillStyle = '#000'; rrect(8, -12, 13, 6, 2); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(10, -11, 3, 2); } // zonnebril
+  const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
+  ctx.save(); ctx.translate(-2, -3); ctx.rotate(v);
+  ctx.fillStyle = '#26262e'; ctx.beginPath(); ctx.ellipse(-4, 0, 13, 6, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#121216'; for (const dx of [-15, -11, -7]) { ctx.beginPath(); ctx.ellipse(dx, 3, 3, 2, 0.4, 0, 7); ctx.fill(); }
+  ctx.restore();
+  ctx.restore();
+}
+function zonnebril(x, y, r) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(r);
+  ctx.fillStyle = '#000'; rrect(-9, -3, 8, 6, 2); ctx.fill(); rrect(1, -3, 8, 6, 2); ctx.fill(); ctx.fillRect(-2, -2, 4, 1.5);
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(-7, -2, 2, 1.5); ctx.fillRect(3, -2, 2, 1.5);
+  ctx.restore();
+}
+function plectrum(x, y, r = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(r + Math.sin(beeld * 0.08) * 0.2);
+  ctx.fillStyle = '#f2c230'; ctx.beginPath(); ctx.moveTo(0, 11); ctx.quadraticCurveTo(-12, -2, -8, -9); ctx.quadraticCurveTo(0, -13, 8, -9); ctx.quadraticCurveTo(12, -2, 0, 11); ctx.fill();
+  ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = '#fff6c0'; ctx.beginPath(); ctx.ellipse(-3, -5, 2.5, 1.5, -0.5, 0, 7); ctx.fill();
+  if (beeld % 50 < 8) { ctx.fillStyle = '#fff'; ctx.fillRect(6, -12, 2, 6); ctx.fillRect(4, -10, 6, 2); } // glinstering
+  ctx.restore();
+}
+function achtergrondFestival() {
+  const lucht = ctx.createLinearGradient(0, 0, 0, GROND);
+  lucht.addColorStop(0, '#0d0820'); lucht.addColorStop(1, '#3b1460');
+  ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, GROND);
+  ctx.fillStyle = '#fff';
+  for (let i = 0; i < 40; i++) { const x = (i * 97 - schuif * 0.05) % W, xx = x < 0 ? x + W : x, y = (i * 53) % (GROND - 220); if ((beeld + i * 7) % 90 > 4) ctx.fillRect(xx, y, 1.5, 1.5); }
+  ctx.fillStyle = '#f4f0d8'; ctx.beginPath(); ctx.arc(W - 64, 76, 22, 0, 7); ctx.fill();
+  ctx.fillStyle = '#0d0820'; ctx.beginPath(); ctx.arc(W - 54, 70, 20, 0, 7); ctx.fill();
+  // lichtbundels die heen en weer zwaaien
+  const kleuren = ['rgba(255,60,120,.16)', 'rgba(80,200,255,.16)', 'rgba(160,90,255,.16)', 'rgba(255,220,80,.14)'];
+  for (let i = 0; i < 4; i++) {
+    const bx = W * (0.15 + i * 0.24), hoek = Math.sin(beeld * 0.02 + i * 1.7) * 0.45;
+    ctx.save(); ctx.translate(bx, GROND - 30); ctx.rotate(hoek);
+    ctx.fillStyle = kleuren[i]; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(-60, -GROND); ctx.lineTo(60, -GROND); ctx.lineTo(6, 0); ctx.fill();
+    ctx.restore();
+  }
+  // podium met grote schermen in de verte
+  const px = W / 2 - 110 - ((schuif * 0.15) % (W + 300)) + W;
+  for (const x of [px, px - W - 300]) {
+    ctx.fillStyle = '#16121e'; ctx.fillRect(x, GROND - 150, 220, 110);
+    ctx.fillStyle = '#2a2236'; ctx.fillRect(x - 10, GROND - 160, 240, 12);
+    ctx.fillStyle = ['#ff3c78', '#50c8ff', '#a05aff'][Math.floor(beeld / 20) % 3]; ctx.globalAlpha = 0.5; ctx.fillRect(x + 20, GROND - 135, 180, 60); ctx.globalAlpha = 1;
+    tekst('FLADDER ROCK', x + 110, GROND - 105, 18, '#fff', 'center', '#16121e');
+  }
+  // rook
+  ctx.fillStyle = 'rgba(200,190,230,.10)';
+  for (let i = -1; i < W / 80 + 2; i++) { const x = i * 80 - ((schuif * 0.4) % 80); ctx.beginPath(); ctx.ellipse(x + 40, GROND - 46, 50, 16, 0, 0, 7); ctx.fill(); }
+  // publiek met handjes omhoog (meer als je een punt haalt)
+  for (let i = -1; i < W / 18 + 2; i++) {
+    const x = i * 18 - ((schuif * 0.6) % 18), k = Math.floor((schuif * 0.6) / 18) + i, spring = juich > 0 ? Math.abs(Math.sin((juich + k) * 0.5)) * 6 : Math.abs(Math.sin(beeld * 0.12 + k)) * 2;
+    ctx.fillStyle = '#0a0812';
+    ctx.beginPath(); ctx.arc(x + 9, GROND - 26 - spring, 6, 0, 7); ctx.fill();
+    ctx.fillRect(x + 3, GROND - 22 - spring, 12, 24);
+    if (k % 3 == 0 || juich > 0) { ctx.fillRect(x + 2, GROND - 42 - spring, 3, 16); ctx.fillRect(x + 13, GROND - 42 - spring, 3, 16); }
+  }
+}
+function grondFestival() {
+  ctx.fillStyle = '#1d1824'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#4a3a5a'; ctx.fillRect(0, GROND, W, 4);
+  ctx.strokeStyle = '#2b2333'; ctx.lineWidth = 2;
+  for (let i = -1; i < W / 50 + 1; i++) { const x = i * 50 - (schuif % 50); ctx.beginPath(); ctx.moveTo(x, GROND + 4); ctx.lineTo(x, H); ctx.stroke(); }
+  ctx.strokeStyle = '#111'; ctx.lineWidth = 3; ctx.beginPath(); // kabels
+  for (let i = -1; i < W / 120 + 2; i++) { const x = i * 120 - (schuif % 120); ctx.moveTo(x, GROND + 30); ctx.bezierCurveTo(x + 30, GROND + 50, x + 60, GROND + 14, x + 120, GROND + 30); }
+  ctx.stroke();
+}
+// onder: een toren van versterkers; boven: een hangende truss met een spot
+function versterkers(x, y, h, vanBoven) {
+  if (vanBoven) {
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, PAAL, h); ctx.clip();
+    ctx.strokeStyle = '#9aa3ad'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x + 10, y); ctx.lineTo(x + 10, y + h); ctx.moveTo(x + PAAL - 10, y); ctx.lineTo(x + PAAL - 10, y + h); ctx.stroke();
+    ctx.lineWidth = 2; ctx.beginPath();
+    for (let j = y + h - 24; j > y - 30; j -= 24) { ctx.moveTo(x + 10, j); ctx.lineTo(x + PAAL - 10, j + 12); ctx.lineTo(x + 10, j + 24); }
+    ctx.stroke(); ctx.restore();
+    ctx.fillStyle = '#2b2b33'; rrect(x - 2, y + h - 18, PAAL + 4, 18, 4); ctx.fill(); // balk met spots
+    for (const dx of [10, 28, 46]) {
+      ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(x + dx, y + h - 2, 7, 0, Math.PI); ctx.fill();
+      ctx.fillStyle = ['#ff3c78', '#50c8ff', '#ffe14d'][(dx + Math.floor(beeld / 15)) % 3]; ctx.beginPath(); ctx.arc(x + dx, y + h, 4, 0, Math.PI); ctx.fill();
+    }
+    return;
+  }
+  const kh = 46;
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 4, y, PAAL + 8, h); ctx.clip();
+  for (let i = 0; i * kh < h + kh; i++) {
+    const by = y + i * kh;
+    ctx.fillStyle = '#16161c'; rrect(x - 2, by, PAAL + 4, kh - 2, 4); ctx.fill();
+    ctx.fillStyle = '#2a2a33'; rrect(x + 2, by + 4, PAAL - 4, kh - 10, 3); ctx.fill();
+    for (const [dx, dy] of [[15, 15], [PAAL - 15, 15], [15, 31], [PAAL - 15, 31]]) {
+      ctx.fillStyle = '#0c0c10'; ctx.beginPath(); ctx.arc(x + dx, by + dy, 8, 0, 7); ctx.fill();
+      const tril = beeld % 18 < 3 ? 1.5 : 0; ctx.fillStyle = '#3a3a46'; ctx.beginPath(); ctx.arc(x + dx, by + dy, 3 + tril, 0, 7); ctx.fill();
+    }
+  }
+  ctx.restore();
+  ctx.fillStyle = '#e0c060'; rrect(x - 2, y, PAAL + 4, 10, 3); ctx.fill(); // gouden bovenrand met knopjes
+  ctx.fillStyle = '#222'; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(x + 8 + i * 10, y + 5, 2.5, 0, 7); ctx.fill(); }
+}
+
 // per figuur: lucht en achtergrond, grond, hindernis, bonus, wat er valt als je af bent, en het figuur zelf
 const WERELDEN = {
   meeuw: { achter: () => achtergrond(), grond: () => grond(), paal: (x, y, h, b, nr) => paal(x, y, h, b, nr), bonus: (x, y, r) => frietje(x, y, r),
     valt: (x, y, r) => frietje(x, y, r), held: (x, y, h, f, s, d) => meeuw(x, y, h, f, s, d) },
+  kraai: { achter: achtergrondFestival, grond: grondFestival, paal: (x, y, h, b) => versterkers(x, y, h, b), bonus: (x, y, r) => plectrum(x, y - 4, r),
+    valt: (x, y, r) => zonnebril(x, y, r), held: (x, y, h, f, s, d) => kraai(x, y, h, f, s, d), body: 'linear-gradient(#0d0820 50%,#1d1824 50%)' },
   kip: { achter: achtergrondBoerderij, grond: grondBoerderij, paal: (x, y, h, b) => hooibalen(x, y, h, b), bonus: (x, y, r) => mais(x, y - 6, r),
     valt: (x, y) => ei(x, y), held: (x, y, h, f, s, d) => kip(x, y, s, h, f, d) },
 };
@@ -513,23 +687,25 @@ function menu() {
   tekst('Fladderfeest', W / 2, 88 + golf, 44, '#ffe14d', 'center', '#1d3b57');
   tekst('Kies wie er gaat fladderen', W / 2, 136, 17);
   FIGUREN.forEach((f, i) => {
-    const y = 168 + i * 128, x = 26, w = W - 52, h = 112;
+    const y = 156 + i * 100, x = 26, w = W - 52, h = 90;
     ctx.fillStyle = f.klaar ? 'rgba(255,255,255,.92)' : 'rgba(255,255,255,.55)'; rrect(x, y, w, h, 18); ctx.fill();
     ctx.strokeStyle = f.klaar ? '#f2b81d' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
     const bob = f.klaar ? Math.sin(beeld * 0.1 + i) * 4 : 0;
     ctx.globalAlpha = f.klaar ? 1 : 0.5;
-    if (f.id == 'meeuw') { meeuw(x + 58, y + 56 + bob, -0.1, beeld % 40 < 12 ? 12 - beeld % 40 : 0, 1.6); frietje(x + 92, y + 82, 0.3); }
-    if (f.id == 'kip') { kip(x + 56, y + 60 + bob, 1.7, 0, f.klaar ? (beeld % 40 < 12 ? 12 - beeld % 40 : 0) : -1); if (f.klaar) mais(x + 90, y + 88, 0.5); }
-    if (f.id == 'hommel') hommel(x + 56, y + 58, 1.7);
+    const fl = beeld % 40 < 12 ? 12 - beeld % 40 : 0;
+    if (f.id == 'meeuw') { meeuw(x + 54, y + 44 + bob, -0.1, fl, 1.35); frietje(x + 84, y + 70, 0.3); }
+    if (f.id == 'kip') { kip(x + 52, y + 46 + bob, 1.4, 0, fl); mais(x + 82, y + 72, 0.5); }
+    if (f.id == 'kraai') { kraai(x + 52, y + 46 + bob, -0.1, fl, 1.35); plectrum(x + 84, y + 70, 0.3); }
+    if (f.id == 'hommel') hommel(x + 52, y + 46, 1.4);
     ctx.globalAlpha = 1;
-    tekst(f.naam, x + 112, y + 34, 22, f.klaar ? '#1d3b57' : '#4d6478', 'left', null);
-    tekst(f.wereld, x + 112, y + 60, 15, '#4d6478', 'left', null);
+    tekst(f.naam, x + 108, y + 26, 21, f.klaar ? '#1d3b57' : '#4d6478', 'left', null);
+    tekst(f.wereld, x + 108, y + 49, 14, '#4d6478', 'left', null);
     if (f.klaar) {
       const r = record(f.id), m = medaille(r, f);
-      tekst('Record: ' + r + (m ? '  · ' + m[1] : ''), x + 112, y + 86, 15, '#c0792a', 'left', null);
+      tekst('Record: ' + r + (m ? '  · ' + m[1] : ''), x + 108, y + 71, 14, '#c0792a', 'left', null);
       knoppen.push({ x, y, w, h, doe: () => { if (fig != f) stopMuziek(false); fig = f; nieuwSpel(); } });
     } else {
-      tekst('Komt nog!', x + 112, y + 86, 15, '#d6453b', 'left', null);
+      tekst('Komt nog!', x + 108, y + 71, 14, '#d6453b', 'left', null);
       knoppen.push({ x, y, w, h, doe: () => { tekstje = f.naam + ' is nog in de maak.'; doodT = beeld; } });
     }
   });
@@ -583,9 +759,11 @@ function muziekKnop() { // rechtsboven: muziek aan of uit
   knoppen.push({ x: x - 4, y: y - 4, w: 46, h: 46, doe: wisselMuziek });
 }
 
+let bodyKleur = '';
 function teken() {
   knoppen.length = 0;
   const wd = wereld();
+  if (bodyKleur != fig.id) { bodyKleur = fig.id; document.body.style.background = wd.body || ''; }
   wd.achter();
   if (staat != 'menu') {
     for (const p of palen) {
