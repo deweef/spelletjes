@@ -49,6 +49,13 @@ bedenk dat de site openbaar is.
   rechtsboven of toets M, onthouden in `fladderfeest_muziek`. Meeuw = zeemansliedje met hoempa; kip = boerendeuntje
   met getokkel; kraai = rock (`stijl: 'rock'`); roodborstje = speeldoos; hommel = draaiorgelwals;
   papegaai = accordeon; pinguïn = synth.
+- Fotopuzzel (`fotopuzzel.html`, concept): legpuzzel van een foto uit `FOTOS` (foto's in `puzzel/`, ongeveer 2000 px breed;
+  nu Athene) of een eigen foto van het toestel (wordt niet geüpload en niet bewaard). Aantal stukjes kiezen (`AANTALLEN`,
+  12 t/m 500; `raster` kiest kolommen x rijen), optie draaien (tik = kwartslag, alleen rechte stukjes klikken vast).
+  Stukjes met knobbels (`rand`/`vorm`, Path2D, elk stukje vooraf getekend in een eigen canvas), klikken aan buren vast
+  (groepen) en op het bord vast (`vastklikken`). Hulpjes: Voorbeeld, Randjes, Sorteren op kleur, alles in beeld.
+  Zoomen met twee vingers of muiswiel, schuiven door op een lege plek te slepen. Voortgang in `fotopuzzel:<naam>`
+  (zaadje voor de vormen + posities), record per foto/aantal in `fotopuzzel_<foto>_<n>[d]:<naam>`.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Fotopuzzel</title>
+<style>
+:root{--room:#fff4dc;--goud:#f2c230;--rand:rgba(255,244,220,.4)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#1e3a34;color:var(--room);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer}
+.terug{position:fixed;z-index:60;top:calc(8px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);border:1.5px solid var(--rand);color:var(--room);font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none}
+#balk{position:fixed;z-index:20;top:calc(8px + env(safe-area-inset-top));left:52px;right:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#balk .tel{background:rgba(0,0,0,.4);border:1px solid var(--rand);border-radius:10px;padding:5px 10px;font-weight:700;font-size:14px}
+#balk button{background:rgba(0,0,0,.4);border:1px solid var(--rand);border-radius:10px;padding:5px 10px;font-size:14px;font-weight:600}
+#balk button.aan{background:var(--goud);color:#3a2a08;border-color:var(--goud)}
+.scherm{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,25,22,.7)}
+.kaart{background:#2a4a42;border:2px solid var(--goud);border-radius:18px;padding:18px 20px;width:min(560px,100%);max-height:100%;overflow:auto;text-align:center}
+.kaart h1{font:bold 32px Georgia,serif;margin:0 0 4px;color:#ffe07a}
+.kaart h3{margin:14px 0 6px;font-size:16px}
+.klein{font-size:13px;opacity:.85;margin:4px 0}
+#fotos{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#fotos button{width:150px;padding:5px;border-radius:12px;border:2px solid transparent;background:rgba(255,255,255,.08);font-size:13px}
+#fotos button.aan{border-color:var(--goud)}
+#fotos img,#fotos .eigen{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;margin-bottom:4px;background:rgba(0,0,0,.25);font-size:34px;line-height:100px}
+#aantallen{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+#aantallen button{min-width:58px;padding:8px 10px;border-radius:10px;border:1px solid var(--rand);background:rgba(255,255,255,.08);font-weight:700}
+#aantallen button.aan{background:var(--goud);color:#3a2a08;border-color:var(--goud)}
+#aantallen small{display:block;font-weight:500;font-size:10.5px;opacity:.8}
+.groot{display:block;width:100%;margin:8px 0;padding:11px;border-radius:12px;border:0;background:var(--goud);color:#3a2a08;font-weight:800;font-size:17px}
+.groot.stil{background:rgba(255,255,255,.12);color:var(--room)}
+label.vink{display:inline-flex;gap:8px;align-items:center;margin-top:10px;font-size:15px}
+#melding{position:fixed;z-index:30;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(0,0,0,.6);border-radius:12px;padding:8px 14px;font-size:14px;pointer-events:none;transition:opacity .4s;text-align:center}
+.tegel #balk,.tegel .terug,.tegel #melding{display:none!important}
+</style>
+</head>
+<body>
+<a class="terug" href="./" aria-label="Terug naar de spellen">‹</a>
+<canvas id="c"></canvas>
+<div id="balk" hidden>
+  <span class="tel" id="teller">0/0</span>
+  <span class="tel" id="tijd">0:00</span>
+  <button id="bVoorbeeld" title="Laat de foto zwak op het bord zien">👁 Voorbeeld</button>
+  <button id="bRand" title="Laat alleen de randstukjes zien">▢ Randjes</button>
+  <button id="bSorteer" title="Leg de losse stukjes op kleur">🎨 Sorteren</button>
+  <button id="bPas" title="Alles in beeld">⤢</button>
+</div>
+<div id="melding" style="opacity:0"></div>
+<div id="menu" class="scherm">
+  <div class="kaart">
+    <h1>Fotopuzzel</h1>
+    <p class="klein" id="naam"></p>
+    <h3>Kies een foto</h3>
+    <div id="fotos"></div>
+    <input type="file" id="bestand" accept="image/*" hidden>
+    <h3>Hoeveel stukjes?</h3>
+    <div id="aantallen"></div>
+    <label class="vink"><input type="checkbox" id="draaien"> Stukjes draaien (moeilijker: tik op een stukje om het te draaien)</label>
+    <button id="start" class="groot">Puzzelen!</button>
+    <button id="verder" class="groot stil" hidden>Verder met je puzzel</button>
+    <p class="klein">Sleep de stukjes. Stukjes die bij elkaar horen klikken vast. Zoomen: twee vingers of het muiswiel. Schuiven: sleep op een lege plek.</p>
+  </div>
+</div>
+<div id="klaar" class="scherm" hidden>
+  <div class="kaart">
+    <h1>Gelukt!</h1>
+    <p id="klaartekst"></p>
+    <button id="nogeen" class="groot">Nog een puzzel</button>
+    <button id="bekijk" class="groot stil">Bekijk de foto</button>
+  </div>
+</div>
+<script>
+// ---------- foto's en instellingen ----------
+const FOTOS = [{ id: 'athene', n: 'Athene', src: 'puzzel/athene.jpg' }];
+const AANTALLEN = [12, 24, 48, 100, 200, 300, 500];
+let speler = ''; try { speler = localStorage.getItem('speler') || ''; } catch (e) {}
+const KEY = 'fotopuzzel' + (speler ? ':' + speler : '');
+const $ = (id) => document.getElementById(id);
+const TEGEL = location.hash == '#tegel';
+if (TEGEL) document.body.classList.add('tegel');
+
+// ---------- geluid ----------
+let ac = null;
+function unlock() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state != 'running') ac.resume(); } catch (e) {} }
+function snd(f, d, type = 'sine', v = 0.06, slide = 0, delay = 0) {
+  if (!ac) return;
+  try { const o = ac.createOscillator(), g = ac.createGain(), n = ac.currentTime + delay; o.type = type; o.frequency.setValueAtTime(f, n); if (slide) o.frequency.exponentialRampToValueAtTime(slide, n + d); g.gain.setValueAtTime(v, n); g.gain.exponentialRampToValueAtTime(0.001, n + d); o.connect(g).connect(ac.destination); o.start(n); o.stop(n + d + 0.02); } catch (e) {}
+}
+const sKlik = () => { snd(900, 0.05, 'triangle', 0.06, 500); snd(1300, 0.04, 'square', 0.02, 0, 0.03); };
+const sVast = () => { snd(500, 0.06, 'triangle', 0.07, 300); snd(1600, 0.08, 'sine', 0.04, 0, 0.04); };
+const sKlaar = () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => snd(f, 0.3, 'triangle', 0.06, 0, i * 0.1));
+
+// ---------- willekeur met zaadje (zodat dezelfde puzzel na herladen dezelfde vormen heeft) ----------
+function rng(s) { return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
+
+// ---------- de puzzel ----------
+const cv = $('c'), ctx = cv.getContext('2d');
+let foto = null, fotoId = 'athene', eigenSrc = null, aantal = 48, draaien = false;
+let P = null; // { cols, rows, w, h, bx, by, stukken, groepen, ... }
+let cam = { x: 0, y: 0, z: 1 }, vuil = true, voorbeeld = false, alleenRand = false, start = 0, verstreken = 0, klaar = false;
+
+function laadFoto(src) { return new Promise((ok, mis) => { const im = new Image(); im.onload = () => ok(im); im.onerror = mis; im.src = src; }); }
+function raster(n, asp) { // kolommen en rijen zodat de stukjes zo vierkant mogelijk zijn
+  let beste = null;
+  for (let r = 2; r <= 40; r++) for (let c = Math.max(2, Math.floor(r * asp) - 1); c <= Math.ceil(r * asp) + 1; c++) { const s = Math.abs(c * r - n) / n + Math.abs(Math.log(asp / c * r)) * 0.25; if (!beste || s < beste.s) beste = { c, r, s }; }
+  return beste;
+}
+// rand van een stukje: van (x0,y0) naar (x1,y1), knobbel naar buiten (s=1), naar binnen (s=-1) of recht (0)
+function rand(p, x0, y0, x1, y1, s, L) {
+  if (!s) { p.lineTo(x1, y1); return; }
+  const dx = x1 - x0, dy = y1 - y0, nx = dy / L, ny = -dx / L; // buitenkant ligt links van de looprichting
+  const pt = (t, n) => [x0 + dx * t + nx * n * L * s, y0 + dy * t + ny * n * L * s];
+  const c = (a, b, e) => { const A = pt(...a), B = pt(...b), E = pt(...e); p.bezierCurveTo(A[0], A[1], B[0], B[1], E[0], E[1]); };
+  p.lineTo(...pt(0.38, 0));
+  c([0.42, 0.03], [0.40, 0.08], [0.36, 0.13]);
+  c([0.31, 0.19], [0.39, 0.27], [0.5, 0.27]);
+  c([0.61, 0.27], [0.69, 0.19], [0.64, 0.13]);
+  c([0.60, 0.08], [0.58, 0.03], [0.62, 0]);
+  p.lineTo(x1, y1);
+}
+function vorm(st, w, h, m) { // Path2D van een stukje in zijn eigen canvas (cel begint op m,m)
+  const p = new Path2D(); p.moveTo(m, m);
+  rand(p, m, m, m + w, m, st.boven, w); rand(p, m + w, m, m + w, m + h, st.rechts, h);
+  rand(p, m + w, m + h, m, m + h, st.onder, w); rand(p, m, m + h, m, m, st.links, h);
+  p.closePath(); return p;
+}
+function maakPuzzel(n, zaad, opgeslagen) {
+  const asp = foto.width / foto.height, { c: cols, r: rows } = raster(n, asp);
+  const W = 1000, H = W / asp, w = W / cols, h = H / rows, r = rng(zaad);
+  const hor = [], ver = []; // knobbels: hor[r][c] = rand tussen rij r-1 en r (1 = knobbel naar beneden), ver[r][c] = tussen kolom c-1 en c (1 = naar rechts)
+  for (let y = 0; y <= rows; y++) { hor[y] = []; ver[y] = []; for (let x = 0; x <= cols; x++) { hor[y][x] = r() < 0.5 ? 1 : -1; ver[y][x] = r() < 0.5 ? 1 : -1; } }
+  const stukken = [];
+  const res = Math.min(400, foto.width / cols) / w; // pixels per wereld-eenheid voor de stukjes
+  const m = Math.min(w, h) * 0.32;
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const st = { i: stukken.length, r: y, c: x, boven: y ? -hor[y][x] : 0, onder: y < rows - 1 ? hor[y + 1][x] : 0, links: x ? -ver[y][x] : 0, rechts: x < cols - 1 ? ver[y][x + 1] : 0 };
+    st.rand = !st.boven || !st.onder || !st.links || !st.rechts;
+    const cw = Math.ceil((w + 2 * m) * res), ch = Math.ceil((h + 2 * m) * res), can = document.createElement('canvas'); can.width = cw; can.height = ch;
+    const g = can.getContext('2d'); g.scale(res, res); const pad = vorm(st, w, h, m);
+    g.save(); g.clip(pad); g.drawImage(foto, (x * w - m) * foto.width / W, (y * h - m) * foto.height / H, (w + 2 * m) * foto.width / W, (h + 2 * m) * foto.height / H, 0, 0, w + 2 * m, h + 2 * m);
+    const px = 1 / res; g.lineWidth = 1.6 * px; g.strokeStyle = 'rgba(255,255,255,.35)'; g.translate(0.8 * px, 0.8 * px); g.stroke(pad); g.translate(-1.6 * px, -1.6 * px); g.strokeStyle = 'rgba(0,0,0,.45)'; g.stroke(pad); g.restore();
+    // gemiddelde kleur (voor sorteren)
+    const d = g.getImageData(cw * 0.3, ch * 0.3, Math.max(1, cw * 0.4), Math.max(1, ch * 0.4)).data; let R = 0, G = 0, B = 0, k = 0; for (let j = 0; j < d.length; j += 16) { R += d[j]; G += d[j + 1]; B += d[j + 2]; k++; }
+    st.kleur = kleurSleutel(R / k, G / k, B / k);
+    st.can = can; st.x = 0; st.y = 0; st.rot = 0; st.groep = st.i; st.vast = false;
+    stukken.push(st);
+  }
+  P = { cols, rows, w, h, W, H, m, bx: 0, by: 0, stukken, zaad, n };
+  if (opgeslagen) opgeslagen.s.forEach(([x, y, rot, gr, v], i) => Object.assign(stukken[i], { x, y, rot, groep: gr, vast: !!v }));
+  else strooi();
+  pasCamera(); vuil = true;
+}
+function kleurSleutel(r, g, b) { // eerst grijs/donker apart, dan op tint
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 510, sat = mx - mn;
+  if (sat < 22) return 1000 + l * 100; // grijzen en wit achteraan
+  let hue = mx == r ? (g - b) / sat : mx == g ? 2 + (b - r) / sat : 4 + (r - g) / sat; hue = (hue * 60 + 360) % 360;
+  return hue + l * 0.5;
+}
+// stukjes rond het bord leggen, door elkaar
+function strooi() {
+  const { w, h, W, H, stukken } = P, r = rng(P.zaad + 7), plekken = [];
+  const sx = w * 1.25, sy = h * 1.25, buiten = Math.ceil(Math.sqrt(stukken.length * sx * sy * 1.4 + (W + H) ** 2 / 4) - (W + H) / 2) + sx;
+  const k = Math.min(1.5, (innerWidth / Math.max(200, innerHeight - 60)) / (W / H)); // smal scherm: meer stukjes boven en onder het bord
+  for (let y = -buiten * 2.5; y < H + buiten * 2.5; y += sy) for (let x = -buiten * 2.5; x < W + buiten * 2.5; x += sx) {
+    if (x > -sx * 0.9 && x < W + sx * 0.1 && y > -sy * 0.9 && y < H + sy * 0.1) continue; // niet op het bord
+    plekken.push([x, y]);
+  }
+  const afst = ([x, y]) => Math.hypot(Math.max(0, Math.abs(x + w / 2 - W / 2) - W / 2) / W, Math.max(0, Math.abs(y + h / 2 - H / 2) - H / 2) / H * k); // afstand tot het bord, passend bij de schermvorm
+  plekken.sort((a, b) => afst(a) - afst(b)); // dichtbij het bord eerst
+  const volg = stukken.map((s) => s).sort(() => r() - 0.5);
+  volg.forEach((st, i) => { const [x, y] = plekken[i] || [W + (i % 20) * sx, H + Math.floor(i / 20) * sy]; st.x = x + (r() - 0.5) * w * 0.15; st.y = y + (r() - 0.5) * h * 0.15; st.rot = draaien ? Math.floor(r() * 4) : 0; });
+  P.stukken = volg.concat(); // volgorde = tekenvolgorde
+}
+// ---------- camera ----------
+function maat() { const d = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * d; cv.height = innerHeight * d; vuil = true; }
+addEventListener('resize', () => { maat(); });
+function pasCamera() { // alles in beeld
+  let x0 = 0, y0 = 0, x1 = P.W, y1 = P.H;
+  for (const s of P.stukken) { x0 = Math.min(x0, s.x); y0 = Math.min(y0, s.y); x1 = Math.max(x1, s.x + P.w); y1 = Math.max(y1, s.y + P.h); }
+  const bo = 56, mg = 14, z = Math.min((innerWidth - 2 * mg) / (x1 - x0), (innerHeight - bo - 2 * mg) / (y1 - y0));
+  cam.z = z; cam.x = (x0 + x1) / 2 - innerWidth / 2 / z; cam.y = (y0 + y1) / 2 - (innerHeight + bo) / 2 / z; vuil = true;
+}
+const naarWereld = (sx, sy) => [sx / cam.z + cam.x, sy / cam.z + cam.y];
+function zoom(f, sx, sy) { const [wx, wy] = naarWereld(sx, sy); cam.z = Math.max(0.05, Math.min(20, cam.z * f)); cam.x = wx - sx / cam.z; cam.y = wy - sy / cam.z; vuil = true; }
+
+// ---------- tekenen ----------
+function teken() {
+  const d = cv.width / innerWidth;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const gr = ctx.createRadialGradient(cv.width / 2, cv.height / 2, 0, cv.width / 2, cv.height / 2, Math.max(cv.width, cv.height) * 0.7);
+  gr.addColorStop(0, '#2c5a4f'); gr.addColorStop(1, '#16302a'); ctx.fillStyle = gr; ctx.fillRect(0, 0, cv.width, cv.height);
+  if (!P) return;
+  ctx.setTransform(cam.z * d, 0, 0, cam.z * d, -cam.x * cam.z * d, -cam.y * cam.z * d);
+  // het bord
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(-4, -4, P.W + 8, P.H + 8);
+  ctx.fillStyle = '#21463d'; ctx.fillRect(0, 0, P.W, P.H);
+  if (voorbeeld) { ctx.globalAlpha = 0.28; ctx.drawImage(foto, 0, 0, P.W, P.H); ctx.globalAlpha = 1; }
+  ctx.strokeStyle = 'rgba(255,244,220,.35)'; ctx.lineWidth = 2 / cam.z; ctx.strokeRect(0, 0, P.W, P.H);
+  const { w, h, m } = P;
+  for (const s of P.stukken) {
+    if (alleenRand && !s.rand && !s.vast && groepGrootte(s.groep) == 1) continue;
+    if (s.rot) { ctx.save(); ctx.translate(s.x + w / 2, s.y + h / 2); ctx.rotate(s.rot * Math.PI / 2); ctx.drawImage(s.can, -w / 2 - m, -h / 2 - m, w + 2 * m, h + 2 * m); ctx.restore(); }
+    else ctx.drawImage(s.can, s.x - m, s.y - m, w + 2 * m, h + 2 * m);
+  }
+}
+let groepTel = {};
+function telGroepen() { groepTel = {}; for (const s of P.stukken) groepTel[s.groep] = (groepTel[s.groep] || 0) + 1; }
+const groepGrootte = (g) => groepTel[g] || 1;
+
+// ---------- slepen, draaien, zoomen ----------
+const vingers = new Map(); let sleep = null, schuif = null, knijp = null;
+function stukOp(wx, wy) { // bovenste stuk onder de vinger (vastgelegde stukjes niet)
+  for (let i = P.stukken.length - 1; i >= 0; i--) {
+    const s = P.stukken[i]; if (s.vast) continue; if (alleenRand && !s.rand && groepGrootte(s.groep) == 1) continue;
+    const mg = Math.min(P.w, P.h) * 0.12;
+    if (wx > s.x - mg && wx < s.x + P.w + mg && wy > s.y - mg && wy < s.y + P.h + mg) return s;
+  }
+  return null;
+}
+cv.addEventListener('pointerdown', (e) => {
+  if (!P || klaar) return; unlock(); cv.setPointerCapture(e.pointerId);
+  vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (vingers.size == 2) { sleep = null; schuif = null; const [a, b] = [...vingers.values()]; knijp = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; return; }
+  const [wx, wy] = naarWereld(e.clientX, e.clientY), s = stukOp(wx, wy);
+  if (s) {
+    const groep = P.stukken.filter((t) => t.groep == s.groep);
+    P.stukken = P.stukken.filter((t) => t.groep != s.groep).concat(groep); // bovenop leggen
+    sleep = { id: e.pointerId, groep, s, wx, wy, sx: e.clientX, sy: e.clientY, bewogen: false }; sKlik();
+  } else schuif = { id: e.pointerId, x: e.clientX, y: e.clientY };
+  vuil = true;
+});
+cv.addEventListener('pointermove', (e) => {
+  if (!vingers.has(e.pointerId)) return; vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (knijp && vingers.size >= 2) { const [a, b] = [...vingers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    cam.x -= (mx - knijp.mx) / cam.z; cam.y -= (my - knijp.my) / cam.z; zoom(d / knijp.d, mx, my); knijp = { d, mx, my }; return; }
+  if (sleep && e.pointerId == sleep.id) {
+    const [wx, wy] = naarWereld(e.clientX, e.clientY), dx = wx - sleep.wx, dy = wy - sleep.wy;
+    if (Math.hypot(e.clientX - sleep.sx, e.clientY - sleep.sy) > 6) sleep.bewogen = true;
+    for (const t of sleep.groep) { t.x += dx; t.y += dy; } sleep.wx = wx; sleep.wy = wy; vuil = true;
+  } else if (schuif && e.pointerId == schuif.id) { cam.x -= (e.clientX - schuif.x) / cam.z; cam.y -= (e.clientY - schuif.y) / cam.z; schuif.x = e.clientX; schuif.y = e.clientY; vuil = true; }
+});
+function los(e) {
+  vingers.delete(e.pointerId); if (vingers.size < 2) knijp = null;
+  if (sleep && e.pointerId == sleep.id) {
+    if (!sleep.bewogen && draaien && sleep.groep.length == 1) { const s = sleep.s; s.rot = (s.rot + 1) % 4; snd(700, 0.05, 'triangle', 0.05, 900); }
+    else vastklikken(sleep.groep);
+    sleep = null; bewaar(); vuil = true;
+  }
+  if (schuif && e.pointerId == schuif.id) schuif = null;
+}
+cv.addEventListener('pointerup', los); cv.addEventListener('pointercancel', los);
+cv.addEventListener('wheel', (e) => { e.preventDefault(); zoom(Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY); }, { passive: false });
+
+// na het loslaten: aan buurstukjes vastklikken, en op het bord als het op de goede plek ligt
+function vastklikken(groep) {
+  const { w, h } = P, drempel = Math.min(w, h) * 0.22, op = new Map(P.stukken.map((s) => [s.r * P.cols + s.c, s]));
+  let iets = false, nogEens = true;
+  while (nogEens) {
+    nogEens = false;
+    const ids = new Set(groep.map((s) => s.groep));
+    for (const s of groep) {
+      if (s.rot) continue;
+      for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+        const b = op.get((s.r + dr) * P.cols + s.c + dc); if (!b || s.r + dr < 0 || s.c + dc < 0 || s.c + dc >= P.cols || ids.has(b.groep) || b.rot) continue;
+        const ex = b.x - dc * w, ey = b.y - dr * h; // waar s zou moeten liggen naast b
+        if (Math.abs(s.x - ex) < drempel && Math.abs(s.y - ey) < drempel) {
+          const ddx = ex - s.x, ddy = ey - s.y, ander = P.stukken.filter((t) => t.groep == b.groep);
+          if (ander.some((t) => t.vast)) { for (const t of groep) { t.x += ddx; t.y += ddy; } } // naar een vastgelegde groep toe
+          else if (groep.some((t) => t.vast)) { for (const t of ander) { t.x -= ddx; t.y -= ddy; } }
+          else for (const t of groep) { t.x += ddx; t.y += ddy; }
+          const nieuw = s.groep; for (const t of ander) t.groep = nieuw; for (const t of groep) t.groep = nieuw;
+          groep = P.stukken.filter((t) => t.groep == nieuw); iets = true; nogEens = true; break;
+        }
+      }
+      if (nogEens) break;
+    }
+  }
+  // op het bord
+  const s = groep[0];
+  if (!groep.some((t) => t.rot) && Math.abs(s.x - s.c * w) < drempel && Math.abs(s.y - s.r * h) < drempel) {
+    const ddx = s.c * w - s.x, ddy = s.r * h - s.y; for (const t of groep) { t.x += ddx; t.y += ddy; t.vast = true; }
+    iets = true;
+  }
+  // vastgelegde stukjes onderaan tekenen
+  P.stukken = P.stukken.filter((t) => t.vast).concat(P.stukken.filter((t) => !t.vast));
+  if (iets) sVast();
+  telGroepen(); hud();
+  if (P.stukken.every((t) => t.vast)) gewonnen();
+}
+
+// ---------- knoppen ----------
+function melding(t) { const m = $('melding'); m.textContent = t; m.style.opacity = 1; clearTimeout(melding.t); melding.t = setTimeout(() => (m.style.opacity = 0), 2200); }
+$('bVoorbeeld').onclick = () => { voorbeeld = !voorbeeld; $('bVoorbeeld').classList.toggle('aan', voorbeeld); vuil = true; };
+$('bRand').onclick = () => { alleenRand = !alleenRand; $('bRand').classList.toggle('aan', alleenRand); melding(alleenRand ? 'Alleen de randstukjes. Begin met de rand!' : 'Alle stukjes weer zichtbaar'); vuil = true; };
+$('bPas').onclick = () => pasCamera();
+$('bSorteer').onclick = () => { // losse stukjes op kleur in rijen onder het bord
+  const losse = P.stukken.filter((s) => !s.vast && groepGrootte(s.groep) == 1 && (!alleenRand || s.rand)).sort((a, b) => a.kleur - b.kleur);
+  const per = Math.max(6, Math.floor(P.W / (P.w * 1.3)) + 2), x0 = P.W / 2 - per * P.w * 1.3 / 2;
+  losse.forEach((s, i) => { s.x = x0 + (i % per) * P.w * 1.3; s.y = P.H + P.h * 0.8 + Math.floor(i / per) * P.h * 1.3; });
+  melding('Gesorteerd op kleur, onder het bord'); pasCamera(); bewaar();
+};
+function hud() { const n = P.stukken.length, v = P.stukken.filter((s) => s.vast).length; $('teller').textContent = v + '/' + n; }
+function tijdTekst(sec) { sec = Math.round(sec); const u = Math.floor(sec / 3600), mi = Math.floor(sec / 60) % 60, s = sec % 60; return (u ? u + ':' + String(mi).padStart(2, '0') : mi) + ':' + String(s).padStart(2, '0'); }
+
+// ---------- bewaren ----------
+const recordKey = () => 'fotopuzzel_' + fotoId + '_' + P.n + (draaien ? 'd' : '') + (speler ? ':' + speler : '');
+function bewaar() {
+  if (!P || eigenSrc || TEGEL) return; // een eigen foto staat niet online en wordt niet bewaard
+  try { localStorage.setItem(KEY, JSON.stringify({ foto: fotoId, n: P.n, zaad: P.zaad, draaien, tijd: tijdNu(), klaar, s: P.stukken.slice().sort((a, b) => a.i - b.i).map((s) => [+s.x.toFixed(1), +s.y.toFixed(1), s.rot, s.groep, s.vast ? 1 : 0]), volg: P.stukken.map((s) => s.i) })); } catch (e) {}
+}
+const tijdNu = () => verstreken + (start ? (performance.now() - start) / 1000 : 0);
+function opgeslagen() { try { const o = JSON.parse(localStorage.getItem(KEY)); return o && !o.klaar && FOTOS.some((f) => f.id == o.foto) ? o : null; } catch (e) { return null; } }
+
+// ---------- spel starten en winnen ----------
+async function begin(o) {
+  $('menu').hidden = true; $('klaar').hidden = true; klaar = false; voorbeeld = alleenRand = false; $('bVoorbeeld').classList.remove('aan'); $('bRand').classList.remove('aan');
+  melding('Stukjes snijden…');
+  const f = FOTOS.find((x) => x.id == fotoId);
+  foto = await laadFoto(eigenSrc || f.src);
+  await new Promise((r) => setTimeout(r, 30));
+  maakPuzzel(o ? o.n : aantal, o ? o.zaad : Math.floor(Math.random() * 1e9) + 1, o);
+  if (o && o.volg) { const per = new Map(P.stukken.map((s) => [s.i, s])); P.stukken = o.volg.map((i) => per.get(i)).filter(Boolean); }
+  telGroepen(); hud(); verstreken = o ? o.tijd || 0 : 0; start = performance.now();
+  $('balk').hidden = false; bewaar();
+  melding(draaien ? 'Tik op een stukje om het te draaien. Alleen rechte stukjes klikken vast.' : 'Sleep de stukjes naar het bord. Tip: begin met de rand!');
+}
+function gewonnen() {
+  if (klaar) return; klaar = true; verstreken = tijdNu(); start = 0; sKlaar(); bewaar();
+  let rec = 0; try { rec = +localStorage.getItem(recordKey()) || 0; } catch (e) {}
+  const nieuw = !eigenSrc && (!rec || verstreken < rec); if (nieuw) try { localStorage.setItem(recordKey(), Math.round(verstreken)); } catch (e) {}
+  $('klaartekst').textContent = P.stukken.length + ' stukjes in ' + tijdTekst(verstreken) + '. ' + (nieuw ? 'Nieuw record!' : rec ? 'Je record: ' + tijdTekst(rec) : '');
+  setTimeout(() => { $('klaar').hidden = false; }, 900);
+}
+$('nogeen').onclick = () => toonMenu();
+$('bekijk').onclick = () => { $('klaar').hidden = true; voorbeeld = false; pasCamera(); };
+
+// ---------- menu ----------
+function toonMenu() {
+  bewaar(); start && (verstreken = tijdNu(), start = 0);
+  $('menu').hidden = false; $('klaar').hidden = true; $('balk').hidden = true;
+  $('naam').textContent = speler ? 'Speler: ' + speler : '';
+  $('fotos').innerHTML = FOTOS.map((f) => `<button data-f="${f.id}" class="${f.id == fotoId && !eigenSrc ? 'aan' : ''}"><img src="${f.src}" alt="">${f.n}</button>`).join('') +
+    `<button data-f="eigen" class="${eigenSrc ? 'aan' : ''}"><span class="eigen">📷</span>Eigen foto<br><small>blijft op je eigen toestel</small></button>`;
+  $('fotos').querySelectorAll('button').forEach((b) => b.onclick = () => { if (b.dataset.f == 'eigen') $('bestand').click(); else { fotoId = b.dataset.f; eigenSrc = null; toonMenu(); } });
+  $('aantallen').innerHTML = AANTALLEN.map((n) => `<button data-n="${n}" class="${n == aantal ? 'aan' : ''}">${n}<small>${n <= 24 ? 'makkelijk' : n <= 100 ? 'gewoon' : n <= 200 ? 'lastig' : 'pc of tablet'}</small></button>`).join('');
+  $('aantallen').querySelectorAll('button').forEach((b) => b.onclick = () => { aantal = +b.dataset.n; toonMenu(); });
+  $('draaien').checked = draaien;
+  const o = opgeslagen(); $('verder').hidden = !o;
+  if (o) $('verder').textContent = 'Verder met je puzzel (' + FOTOS.find((f) => f.id == o.foto).n + ', ' + o.n + ' stukjes, ' + o.s.filter((s) => s[4]).length + ' gelegd)';
+}
+$('bestand').onchange = (e) => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => { eigenSrc = rd.result; toonMenu(); }; rd.readAsDataURL(f); };
+$('draaien').onchange = () => { draaien = $('draaien').checked; };
+$('start').onclick = () => { unlock(); if (opgeslagen() && !confirm('Je hebt nog een puzzel liggen. Een nieuwe beginnen?')) return; begin(null); };
+$('verder').onclick = () => { unlock(); const o = opgeslagen(); fotoId = o.foto; eigenSrc = null; draaien = !!o.draaien; begin(o); };
+// terugknop: tijdens het puzzelen eerst naar het menu, vanuit het menu naar alle spellen
+document.querySelector('.terug').addEventListener('click', (e) => { if ($('menu').hidden) { e.preventDefault(); toonMenu(); } });
+addEventListener('pagehide', bewaar); document.addEventListener('visibilitychange', () => { if (document.hidden) bewaar(); });
+
+// ---------- lus ----------
+let laatsteSec = -1;
+function lus() {
+  requestAnimationFrame(lus);
+  if (P && start && !klaar) { const s = Math.floor(tijdNu()); if (s != laatsteSec) { laatsteSec = s; $('tijd').textContent = tijdTekst(s); if (s % 10 == 0) bewaar(); } }
+  if (vuil) { vuil = false; teken(); }
+}
+maat(); requestAnimationFrame(lus);
+if (TEGEL) { // plaatje voor de startpagina: een half gelegde puzzel
+  $('menu').hidden = true;
+  laadFoto(FOTOS[0].src).then((im) => { foto = im; draaien = false; maakPuzzel(24, 12345); for (const s of P.stukken) if ((s.r + s.c) % 3 || s.r == 0) { s.x = s.c * P.w; s.y = s.r * P.h; s.vast = true; } else { s.x = s.c * P.w + 60 + Math.random() * 40; s.y = s.r * P.h + 110 + Math.random() * 30; s.rot = 0; } P.stukken = P.stukken.filter((t) => t.vast).concat(P.stukken.filter((t) => !t.vast)); cam.z = Math.min(innerWidth / 1150, innerHeight / 900); cam.x = -75; cam.y = -40; vuil = true; });
+} else toonMenu();
+window.__test = { get P() { return P; }, vastklikken, begin, toonMenu, get cam() { return cam; }, zetAantal: (n) => { aantal = n; }, zetDraaien: (d) => { draaien = d; } };
+</script>
+</body>
+</html>

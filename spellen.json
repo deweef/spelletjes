@@ -49,6 +49,13 @@
     "stand": "staand"
   },
   {
+    "naam": "Fotopuzzel",
+    "omschrijving": "Een echte legpuzzel van een foto: kies 12 tot 500 stukjes, laat ze aan elkaar klikken en gebruik de hulpjes (randjes, sorteren op kleur, voorbeeld). Of puzzel met je eigen foto.",
+    "bestand": "fotopuzzel.html",
+    "plaatje": "fotopuzzel.jpg",
+    "concept": true
+  },
+  {
     "naam": "Orkenstorm 3D",
     "omschrijving": "Orkenstorm in 3D, voor op de pc. Bouw je dorp met boerderijen en een kazerne, draai en zoom de camera rond je kasteel.",
     "bestand": "orkenstorm3d/index.html",
