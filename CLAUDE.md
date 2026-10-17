@@ -111,7 +111,10 @@ wedstrijd), winnen geeft 25 punten, 5 munten, een grap en een effect (`doe`, ani
 muurtjes), krab (loopt zijwaarts over de tafel en duwt koekjes naar voren). Kermis: suikerspin (regen van 10 roze
 koekjes), badeendje (onder het eendje 10-100 bonuspunten), dartpijl (ballon knapt, alle koekjes springen op), biertje
 (10 s dronken camera `wiebelT`/`camBasis` en dubbele punten), P-knuffel (roze knuffel met lief snoetje, speels houden; een
-grote stuitert over de tafel, +10 munten). Eigen badgenamen met `b1`/`b5`. Een nieuw item = regel in `ITEMS` met
+grote stuitert over de tafel, +10 munten). Schatkamer (tafel van 1000 munten): diamant (100 punten, 25 munten, fonkeling), zilveren
+ring (8 gouden koekjes), parelketting (10 parelkoekjes, code 6, 4 punten), gouden armband (rolt over de tafel), klomp goud
+(30 munten); sieraden glanzen met een eigen omgevingskaart (`glans`, alleen op die materialen). De badgeteller telt de
+15 gewone plus 2 per item van de tafels die je hebt (`badgeTotaal`). Eigen badgenamen met `b1`/`b5`. Een nieuw item = regel in `ITEMS` met
 `maak()` (3D-model, origin in het midden) en `doe()`. Plannen: tafels (ook kerst), extra krachten, badges met niveaus.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)

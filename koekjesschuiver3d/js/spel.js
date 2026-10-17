@@ -47,9 +47,16 @@ const ITEMS = [
   { id: 'pijl', thema: 'kermis', n: 'Dartpijl', b5: 'Scherpschutter', r: 0.32, h: 0.14, grap: 'Pang! Ballon kapot, alle koekjes springen op!', weg: 'Mis! De pijl vliegt de kraam uit', maak: () => maakPijl(), doe: () => { for (const c of koekjes) if (c.body.position.y > -0.3) { c.body.wakeUp(); c.body.velocity.y += 3 + Math.random() * 2; c.body.velocity.z += 0.8 + Math.random(); } snd(120, 0.15, 'square', 0.08, 60); ruisKnal(); } },
   { id: 'bier', thema: 'kermis', n: 'Biertje', b1: 'Proost!', b5: 'Vaste klant', r: 0.24, h: 0.5, grap: 'Hik! Staat die tafel nou scheef? 10 seconden dubbele punten!', weg: 'Zonde van het bier…', maak: () => maakBier(), doe: () => { wiebelT = 10; } },
   { id: 'pknuffel', thema: 'kermis', n: 'P-knuffel', b1: 'Hoofdprijs!', b5: 'Knuffelkoning', r: 0.34, h: 0.62, grap: 'Hij is zacht, hij is roze en iedereen wil hem hebben! Boing boing!', weg: 'Nee! De P-knuffel! Iemand anders heeft hem nu…', maak: () => maakPKnuffel(), doe: () => knuffelSprong() },
+  { id: 'diamant', thema: 'schatkamer', n: 'Diamant', b1: 'Diamantjager', b5: 'Diamanten voor altijd', r: 0.3, h: 0.42, grap: 'Een echte diamant! 100 punten en 25 munten. Niet doorvertellen aan de buren.', weg: 'Nee! De diamant valt tussen de planken. Weg is weg.', maak: () => maakDiamant(), doe: () => { score += 75; verdien(20, innerWidth / 2, innerHeight * 0.3); flonker(); } },
+  { id: 'ring', thema: 'schatkamer', n: 'Zilveren ring', b5: 'Ringendrager', r: 0.3, h: 0.14, grap: 'Wil je met me trouwen? Ja? Dan krijg je 8 gouden koekjes!', weg: 'De ring rolt weg. Die verloving gaat dus niet door.', maak: () => maakRing(), doe: () => { goldQ += 8; } },
+  { id: 'ketting', thema: 'schatkamer', n: 'Parelketting', b5: 'Parelduiker', r: 0.4, h: 0.12, grap: 'Oeps, het touwtje knapt! Overal parels: 4 punten per stuk.', weg: 'De parelketting glijdt van de tafel. Oma wordt boos.', maak: () => maakKetting(), doe: () => { for (let i = 0; i < 10; i++) setTimeout(() => laatVallen((Math.random() - 0.5) * (HB * 2 - 1.2), true, 6), i * 90); } },
+  { id: 'armband', thema: 'schatkamer', n: 'Gouden armband', b5: 'Bling bling', r: 0.34, h: 0.14, grap: 'Bling bling! Een reuzenarmband rolt over de tafel.', weg: 'De armband rolt de kamer uit. Bling… blong.', maak: () => maakArmband(), doe: () => armbandRol() },
+  { id: 'goudklomp', thema: 'schatkamer', n: 'Klomp goud', b1: 'Goudzoeker', b5: 'Goudkoorts', r: 0.34, h: 0.3, grap: 'Een klomp goud! Je bent rijk! Nou ja… 30 munten rijk.', weg: 'De klomp goud ploft van de tafel. Te zwaar om op te rapen.', maak: () => maakGoudklomp(), doe: () => verdien(25, innerWidth / 2, innerHeight * 0.3) },
   { id: 'spook', thema: 'halloween', n: 'Spookje', r: 0.36, h: 0.62, grap: 'Boehoe… ik bedoel: snoep!', weg: 'Het spookje zweeft er stiekem vandoor', maak: () => maakSpook(), doe: () => spookVlucht() },
 ];
 const ITEM_KANS = 1 / 25;
+// aantal badges dat je nu kunt halen: de 15 gewone plus 2 per item van de tafels die je hebt
+const badgeTotaal = () => BADGES.length + 2 * ITEMS.filter((it) => gekocht.includes(it.thema) || badges.includes('it_' + it.id)).length;
 const badgeNaam = (it, vijf) => (vijf ? it.b5 || it.n + '-meester' : it.b1 || it.n);
 const ALLE_BADGES = [...BADGES, ...ITEMS.flatMap((it) => [{ id: 'it_' + it.id, n: badgeNaam(it) }, { id: 'it5_' + it.id, n: badgeNaam(it, true) }])];
 const item = (c) => ITEMS[c - 100];
@@ -138,6 +145,7 @@ function bovenTex(code) {
     else if (code == 1) { zacht('#e8b469', '#c98a40'); rondje('#f6a3c0', c * 0.74); for (let i = 0; i < 26; i++) { g.fillStyle = ['#fff', '#7fd0f0', '#ffe14d', '#9ae07a'][i % 4]; const a = r() * 7, d = r() * c * 0.7; g.save(); g.translate(c + Math.cos(a) * d, c + Math.sin(a) * d); g.rotate(r() * 3); g.fillRect(-9, -3, 18, 6); g.restore(); } }
     else if (code == 2) { zacht('#6b4028', '#4e2c1a'); spikkels('#f4ead6', 13, 11); }
     else if (code == 4) { zacht('#ff9a3a', '#c8601a'); g.fillStyle = '#3a1a10'; for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(c + sx * c * 0.42, c - c * 0.05); g.lineTo(c + sx * c * 0.15, c - c * 0.05); g.lineTo(c + sx * c * 0.28, c - c * 0.38); g.fill(); } g.beginPath(); g.moveTo(c - c * 0.5, c + c * 0.15); for (let i = 0; i <= 8; i++) g.lineTo(c - c * 0.5 + i * c * 0.125, c + c * (i % 2 ? 0.3 : 0.45)); g.lineTo(c + c * 0.5, c + c * 0.15); g.quadraticCurveTo(c, c + c * 0.3, c - c * 0.5, c + c * 0.15); g.fill(); spikkels('#9a4aff', 10, 5); }
+    else if (code == 6) { const gr = g.createRadialGradient(c * 0.7, c * 0.6, c * 0.05, c, c, c); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.4, '#f4eef8'); gr.addColorStop(0.8, '#e0d4ec'); gr.addColorStop(1, '#c8b8d8'); rondje(gr, c); g.globalAlpha = 0.25; for (const [k, a] of [['#ffb0e0', 0], ['#b0e8ff', 2], ['#d0ffb0', 4]]) { g.fillStyle = k; g.beginPath(); g.arc(c + Math.cos(a) * c * 0.35, c + Math.sin(a) * c * 0.35, c * 0.4, 0, 7); g.fill(); } g.globalAlpha = 1; }
     else if (code == 5) { zacht('#ff9ac8', '#e0609a'); g.fillStyle = '#fff'; for (let i = 0; i < 6; i++) { const a = i * 1.05 + 0.3, d = c * 0.45, x = c + Math.cos(a) * d, y = c + Math.sin(a) * d; g.beginPath(); g.moveTo(x, y + 6); g.bezierCurveTo(x - 14, y - 6, x - 6, y - 16, x, y - 7); g.bezierCurveTo(x + 6, y - 16, x + 14, y - 6, x, y + 6); g.fill(); } rondje('#ff5a9a', c * 0.16); }
     else if (code == 3) { zacht('#ffd84a', '#d89a18'); g.fillStyle = '#fff4b0'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? c * 0.25 : c * 0.55; g.lineTo(c + Math.cos(a) * rr, c + Math.sin(a) * rr); } g.fill(); }
     else if (code == 10) { rondje('#f2a0c0'); g.strokeStyle = '#ffd0e0'; g.lineWidth = 16; g.beginPath(); for (let a = 0; a < 18; a += 0.2) g.lineTo(c + Math.cos(a) * a * 6, c + Math.sin(a) * a * 6); g.stroke(); rondje('#e8203a', c * 0.2); }
@@ -160,7 +168,7 @@ function bovenTex(code) {
     }
   });
 }
-const SIDE = { 5: '#e0609a', 4: '#c8601a', 0: '#c8843a', 1: '#c8843a', 2: '#4a2a18', 3: '#d89a18', 10: '#f0e0d0', 11: '#e8d0a0', 12: '#cfc4b0', 13: '#f0e8d8', 14: '#fbf3e6' };
+const SIDE = { 6: '#d8cce4', 5: '#e0609a', 4: '#c8601a', 0: '#c8843a', 1: '#c8843a', 2: '#4a2a18', 3: '#d89a18', 10: '#f0e0d0', 11: '#e8d0a0', 12: '#cfc4b0', 13: '#f0e8d8', 14: '#fbf3e6' };
 const koekMat = {};
 function materialen(code) {
   if (!koekMat[code]) {
@@ -252,6 +260,16 @@ const THEMAS = [
       for (let i = 0; i < 6; i++) { g.fillStyle = i % 2 ? '#ffd84a' : '#ff8a4a'; g.fillRect(w * 0.3, h * 0.2 + i * h * 0.07, w * 0.4, h * 0.05); }
       g.strokeStyle = '#ff5ad8'; g.lineWidth = 3; for (let i = 0; i <= 12; i++) { g.beginPath(); g.moveTo(w / 2, h * 0.62); g.lineTo(i * w / 12, h); g.stroke(); }
       for (let y = h * 0.66; y < h; y += (y - h * 0.6) * 0.5 + 6) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); } sterren(g, w, h, 30, 0.5); } },
+  { id: 'schatkamer', n: 'Schatkamer', prijs: 1000, kast: '#d4a020', donker: '#3a1450', vloer: '#24102e', mist: '#2a1238', tafel: '#ffe6a8', lamp: '#ffffff',
+    lucht(g, w, h) { verloop(g, w, h, ['#12061e', '#3a1450', '#5a1a5a']);
+      const r = rnd(9); for (let i = 0; i < 70; i++) { const x = r() * w, y = r() * h, s = 2 + r() * 6; g.fillStyle = ['#fff', '#ffe68a', '#bfe8ff', '#ffb0e0'][i % 4]; g.beginPath(); g.moveTo(x, y - s); g.lineTo(x + s * 0.25, y - s * 0.25); g.lineTo(x + s, y); g.lineTo(x + s * 0.25, y + s * 0.25); g.lineTo(x, y + s); g.lineTo(x - s * 0.25, y + s * 0.25); g.lineTo(x - s, y); g.lineTo(x - s * 0.25, y - s * 0.25); g.fill(); }
+      g.fillStyle = '#d4a020'; const ky = h * 0.72; g.fillRect(0, ky, w, h - ky); g.fillStyle = '#b8860b'; for (let x = 0; x < w; x += 26) { bol(g, x + 13, ky + 14, 9, '#ffd84a'); bol(g, x, ky + 30, 9, '#e8b830'); } // stapels goudstukken
+      for (const [x, k] of [[0.15, '#ff3a5a'], [0.35, '#3ad8ff'], [0.6, '#5aff8a'], [0.85, '#c06aff']]) { g.fillStyle = k; g.beginPath(); g.moveTo(w * x, ky - 22); g.lineTo(w * x + 14, ky - 8); g.lineTo(w * x, ky + 6); g.lineTo(w * x - 14, ky - 8); g.fill(); } },
+    bord(g, w, h) { verloop(g, w, h, ['#4a1a6a', '#22082e']);
+      g.fillStyle = '#ffd84a'; const cx = w / 2, cy = h * 0.5; g.beginPath(); g.moveTo(cx - 150, cy + 60); g.lineTo(cx - 170, cy - 60); g.lineTo(cx - 80, cy); g.lineTo(cx, cy - 90); g.lineTo(cx + 80, cy); g.lineTo(cx + 170, cy - 60); g.lineTo(cx + 150, cy + 60); g.fill(); // kroon
+      g.fillRect(cx - 155, cy + 60, 310, 34); for (const [dx, k] of [[-100, '#ff3a5a'], [0, '#3ad8ff'], [100, '#5aff8a']]) bol(g, cx + dx, cy + 77, 12, k);
+      for (const dx of [-170, 0, 170]) bol(g, cx + dx, dx ? cy - 64 : cy - 94, 12, '#fff4c0');
+      for (let i = 0; i < 16; i++) bol(g, (i + 0.5) * w / 16, h * 0.93, 7, i % 2 ? '#fff' : '#ffd84a'); } }
 ];
 // een pompoen (met een lachend gezicht dat van binnen gloeit)
 function pompoen(g, x, y, s, groot) {
@@ -479,7 +497,7 @@ function gewonnen(k) {
     const i = c - 10; coll[i]++; score += 25; sPrize(); pop(TREATS[i].n + '!', p.x, p.y - 20, 'goud'); verdien(1, p.x, p.y - 50);
     if (coll[i] == 3) pop(TREATS[i].p + ' klaar!', innerWidth / 2, innerHeight - 110, 'goud');
   } else {
-    const v = (c == 3 ? 10 : c == 4 ? 5 : c == 5 ? 3 : 1) * (wiebelT > 0 ? 2 : 1); score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
+    const v = (c == 3 ? 10 : c == 4 ? 5 : c == 6 ? 4 : c == 5 ? 3 : 1) * (wiebelT > 0 ? 2 : 1); score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
   }
   checkBadges(); tekenHud(true);
 }
@@ -668,6 +686,65 @@ function knuffelSprong() {
   } });
 }
 
+// schatkamer: glimmende sieraden (eigen omgevingskaart zodat metaal en diamant glanzen)
+let glansKaart = null;
+function glans() {
+  if (glansKaart) return glansKaart;
+  const tex = canvasTex((g, w, h) => { verloop(g, w, h, ['#ffffff', '#c8b0ff', '#3a2050', '#ffe0a0', '#201030']); for (let i = 0; i < 30; i++) bol(g, Math.random() * w, Math.random() * h * 0.6, 3 + Math.random() * 10, '#ffffff'); }, 512, 256);
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  const pm = new THREE.PMREMGenerator(renderer); glansKaart = pm.fromEquirectangular(tex).texture; pm.dispose(); return glansKaart;
+}
+const sieraad = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, metalness: 1, roughness: 0.18, envMap: glans(), ...extra });
+function maakDiamant() {
+  const grp = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: '#9fd8ff', metalness: 0.6, roughness: 0.04, envMap: glans(), envMapIntensity: 1.1, flatShading: true });
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.29, 0.1, 10), m); top.position.y = 0.11; grp.add(top);
+  const onder = new THREE.Mesh(new THREE.ConeGeometry(0.29, 0.32, 10), m); onder.rotation.x = Math.PI; onder.position.y = -0.1; grp.add(onder);
+  return grp;
+}
+function maakRing() {
+  const grp = new THREE.Group();
+  const band = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.05, 12, 28), sieraad('#e8eef4')); band.rotation.x = Math.PI / 2; grp.add(band);
+  const steen = new THREE.Mesh(new THREE.OctahedronGeometry(0.08), new THREE.MeshStandardMaterial({ color: '#ff5aa0', metalness: 0.3, roughness: 0.05, envMap: glans(), flatShading: true, emissive: '#3a0a1a' })); steen.position.set(0, 0.04, 0.22); grp.add(steen);
+  return grp;
+}
+function maakKetting() {
+  const grp = new THREE.Group(), parel = new THREE.MeshStandardMaterial({ color: '#fbf6ff', metalness: 0.1, roughness: 0.15, envMap: glans(), envMapIntensity: 1.5 });
+  const pg = new THREE.SphereGeometry(0.045, 10, 8);
+  for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2, p = new THREE.Mesh(pg, parel); p.position.set(Math.cos(a) * 0.33, 0, Math.sin(a) * 0.26 + (Math.sin(a) > 0.8 ? 0.06 : 0)); grp.add(p); }
+  const slot = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), sieraad('#ffd24a')); slot.position.set(0, 0, -0.27); grp.add(slot);
+  return grp;
+}
+function maakArmband() {
+  const grp = new THREE.Group();
+  const band = new THREE.Mesh(new THREE.TorusGeometry(0.27, 0.06, 14, 32), sieraad('#ffcc3a')); band.rotation.x = Math.PI / 2; grp.add(band);
+  for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, st = new THREE.Mesh(new THREE.OctahedronGeometry(0.045), new THREE.MeshStandardMaterial({ color: ['#ff3a5a', '#3ad8ff', '#5aff8a'][i % 3], roughness: 0.05, metalness: 0.3, envMap: glans(), flatShading: true })); st.position.set(Math.cos(a) * 0.27, 0.05, Math.sin(a) * 0.27); grp.add(st); }
+  return grp;
+}
+function maakGoudklomp() {
+  const g = new THREE.IcosahedronGeometry(0.3, 1), pos = g.attributes.position;
+  for (let i = 0; i < pos.count; i++) { const f = 0.8 + Math.sin(pos.getX(i) * 17 + pos.getZ(i) * 11) * 0.12 + Math.cos(pos.getY(i) * 13) * 0.08; pos.setXYZ(i, pos.getX(i) * f, pos.getY(i) * f * 0.75, pos.getZ(i) * f); }
+  g.computeVertexNormals();
+  return new THREE.Mesh(g, sieraad('#ffc21a', { roughness: 0.32, flatShading: true }));
+}
+// diamant gewonnen: de hele kast fonkelt even
+function flonker() {
+  const n = 40, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) pos.set([(Math.random() - 0.5) * HB * 2, Math.random() * 2.5, -2 + Math.random() * (VOOR + 2)], i * 3);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const pm = new THREE.PointsMaterial({ color: '#ffffff', size: 0.16, transparent: true, depthWrite: false }), p = new THREE.Points(g, pm); scene.add(p);
+  [1568, 2093, 2637, 3136].forEach((f, i) => snd(f, 0.4, 'sine', 0.04, 0, i * 0.09));
+  effecten.push({ stap: (t) => { pm.opacity = Math.max(0, 1 - t / 2) * (0.6 + 0.4 * Math.sin(t * 30)); p.rotation.y = t * 0.2; if (t > 2) { scene.remove(p); return false; } } });
+}
+// armband gewonnen: een grote gouden armband rolt over de tafel en duwt de koekjes naar voren
+function armbandRol() {
+  const a = maakArmband(); a.scale.setScalar(2.2); a.rotation.z = Math.PI / 2; scene.add(a);
+  effecten.push({ stap: (t) => {
+    const z = -1.6 + t * 1.6, x = Math.sin(t * 1.5) * 0.8; a.position.set(x, 0.65, z); a.rotation.x = -t * 4;
+    for (const c of koekjes) { const p = c.body.position; if (Math.abs(p.z - z) < 0.5 && Math.abs(p.x - x) < 0.8 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 2.5); } }
+    if (t > 3) { scene.remove(a); return false; }
+  } });
+}
+
 // figuren springen na het winnen uit de bak omhoog (het likkoekje extra groot, recht naar je toe)
 const springers = [];
 function tekenSpringers(dt) {
@@ -689,7 +766,7 @@ function roep(tekst) { const el = document.createElement('div'); el.className = 
 let hudSleutel = '';
 function tekenHud(forceer) {
   $('voorraad').textContent = supply; $('punten').textContent = score;
-  $('badgetal').textContent = badges.filter((b) => !b.startsWith('it')).length + '/' + BADGES.length; $('munten').textContent = munten + ' 🪙';
+  $('badgetal').textContent = badges.length + '/' + badgeTotaal(); $('munten').textContent = munten + ' 🪙';
   const s = coll.join(',');
   if (!forceer && s == hudSleutel) return; hudSleutel = s;
   $('krachten').innerHTML = TREATS.map((tr, i) => `<button data-k="${i}" class="${coll[i] >= 3 ? 'klaar' : ''}" title="${tr.d}">${tr.p}<i>${'●'.repeat(Math.min(3, coll[i]))}${'○'.repeat(Math.max(0, 3 - coll[i]))}</i><small>${tr.n}</small></button>`).join('');
@@ -702,7 +779,7 @@ function tekenToast(dt) {
   toastT += dt; if (toastT > 2.8) { toastRij.shift(); toastT = 0; }
 }
 $('badgeknop').onclick = () => {
-  $('badgetel').textContent = badges.filter((b) => !b.startsWith('it')).length + ' van de ' + BADGES.length + ' verdiend';
+  $('badgetel').textContent = badges.length + ' van de ' + badgeTotaal() + ' verdiend (koop een tafel in de winkel voor nog meer badges)';
   $('tafelbadges').innerHTML = THEMAS.filter((th) => ITEMS.some((it) => it.thema == th.id)).map((th) => `<h4 class="${gekocht.includes(th.id) ? '' : 'niet'}">${th.n}${gekocht.includes(th.id) ? '' : ' (koop deze tafel in de winkel)'}</h4><div class="tbadges">` +
     ITEMS.filter((it) => it.thema == th.id).map((it) => [['it_' + it.id, badgeNaam(it), 'Win de ' + it.n.toLowerCase()], ['it5_' + it.id, badgeNaam(it, true), 'Win 5 keer de ' + it.n.toLowerCase() + ' (' + Math.min(5, itemsGewonnen[it.id] || 0) + '/5)']].map(([id, n, d]) => `<div class="${badges.includes(id) ? '' : 'niet'}"><b>${badges.includes(id) ? '🏅 ' : ''}${n}</b>${d}</div>`).join('')).join('') + '</div>').join('');
   $('badgelijst').innerHTML = BADGES.map((b) => `<div class="${badges.includes(b.id) ? '' : 'niet'}"><b>${badges.includes(b.id) ? '🏅 ' : ''}${b.n}</b>${b.d}</div>`).join('');
