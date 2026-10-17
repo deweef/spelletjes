@@ -36,7 +36,8 @@ bedenk dat de site openbaar is.
   hoorbaar), papegaai ook een magneetpiraat op de tonnen die het goudstuk wegtrekt (`p.piraat`, `magneet`, `piraat`; duikt
   in de ton als je over hem heen vliegt), hommel windvlagen (alleen met streken), kip schuivende hooibalen en kraai dansende versterkers (`p.amp`),
   pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links). Moeilijkheid: gat en snelheid tot ~40 punten (`gat`,
-  `tempo`), na 50 punten nog heel langzaam wat krapper en sneller.
+  `tempo`), na 50 punten nog heel langzaam wat krapper en sneller. Elk dier roept tijdens het spelen om de 8-16 seconden
+  iets met een geluidje en een tekstwolkje (`ROEP`, `roepT`, `roepBel`).
   Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
   `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
   = insturen. Knop 🏆 Scorebord op het beginscherm (`scorebordScherm`), insturen gaat automatisch op het eindscherm (`autoInsturen`: alleen met een gekozen naam en alleen een persoonlijk record dat beter is dan wat al ingestuurd is, bijgehouden in `fladderfeest_ingestuurd:<naam>`); laatste lijst
@@ -87,8 +88,10 @@ springen omhoog (`springers`), het likkoekje extra groot met "Likkie-likkie!" ha
 de dichtstbijzijnde stand waarbij de tafel tussen bovenbalk en krachtknoppen past (`pasAan`). Gewone koekjes en figuren
 hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde blijft een cilinder). Opslag per speler
 (`koekjesschuiver3d:<naam>`). Munten (🪙): gouden koekje en gebakje 1, figuur 3, badge 10, dubbele figuren ruilen 5
-(knop bij de badges). Winkel (`#winkel`): achtergronden in `THEMAS` (bakkerij gratis, kermis, strand, winternacht met
-sneeuw, ruimte), elk met lucht, kastkleuren en een plaatje op de achterwand (`zetThema`). "Nieuwe tafel" wist alleen
+(knop bij de badges). Winkel (`#winkel`): achtergronden in `THEMAS` (bakkerij gratis, mint met roze; halloween, kermis, strand,
+winternacht met sneeuw, ruimte), elk met lucht, kastkleuren, tafeltint (`tafel`), lampjes (`lamp`) en een plaatje op de
+achterwand (`zetThema`). Gewonnen koekjes vallen in een opvangbak (`BAK`, met natuurkunde) en verdwijnen na 2,5 s.
+De terugknop sluit eerst een open scherm. "Nieuwe tafel" wist alleen
 tafel, punten en gebakjes. Online scorebord (zelfde Apps Script, geen aanpassing nodig: de lijst zonder `spel` bevat
 alles behalve ork3d): `koek3d_punten` (beste tafel) en `koek3d_munten` (alle munten ooit, `muntenTotaal`), modus `gewoon`.
 Insturen gaat vanzelf (`autoInsturen`: met naam, alleen verbeteringen, hooguit eens per minuut en bij weggaan);
