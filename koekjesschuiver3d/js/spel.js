@@ -168,6 +168,17 @@ function bovenTex(code) {
     else if (code == 12) { rondje('#f6f0e2'); g.fillStyle = '#2a1a12'; g.beginPath(); g.arc(c, c, c * 0.96, Math.PI / 2, Math.PI * 1.5); g.fill(); }
     else if (code == 13) { rondje('#8ad8c0'); rondje('#b8f0e0', c * 0.7); }
     else if (code == 14) { g.fillStyle = '#fbf3e6'; g.fillRect(0, 0, w, w); g.strokeStyle = '#e8b0c0'; g.lineWidth = 10; for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(0, i * w / 4); g.lineTo(w, i * w / 4); g.stroke(); } rondje('#e8203a', c * 0.16); }
+    else if (VORMEN[code]) { // vormkoekjes: het hele plaatje vullen (de vorm snijdt het uit)
+      const k = code - 20, kl = (a, b2) => { const gr = g.createRadialGradient(c, c, c * 0.3, c, c, c * 1.3); gr.addColorStop(0, a); gr.addColorStop(1, b2); g.fillStyle = gr; g.fillRect(0, 0, w, w); };
+      if (k == 0) { kl('#f0c890', '#c8904a'); spikkels('#fffaf0', 70, 3.5); spikkels('#f8e8c8', 40, 2.5); } // lange vinger met suiker
+      if (k == 2) { kl('#c08848', '#8a5a2a'); g.fillStyle = '#a8703c'; g.fillRect(w * 0.07, w * 0.09, w * 0.86, w * 0.82); // café noir: glazuur
+        const gl = g.createLinearGradient(0, 0, w, w); gl.addColorStop(0, 'rgba(255,240,220,.35)'); gl.addColorStop(0.4, 'rgba(255,255,255,0)'); g.fillStyle = gl; g.fillRect(w * 0.07, w * 0.09, w * 0.86, w * 0.82);
+        g.fillStyle = 'rgba(90,50,20,.35)'; g.font = `bold ${w * 0.1}px Georgia`; g.textAlign = 'center'; g.fillText('Likkie', c, c + w * 0.04); }
+      if (k == 4) { kl('#c07a3a', '#8a5020'); g.strokeStyle = '#6a3a12'; g.lineWidth = 7; g.lineCap = 'round'; // speculaas met molentje
+        g.strokeRect(w * 0.12, w * 0.14, w * 0.76, w * 0.72); g.beginPath(); g.moveTo(c, c + 50); g.lineTo(c, c - 10); g.moveTo(c - 45, c - 50); g.lineTo(c + 45, c + 30); g.moveTo(c + 45, c - 50); g.lineTo(c - 45, c + 30); g.stroke();
+        g.beginPath(); g.moveTo(c - 25, c + 70); g.lineTo(c - 15, c + 20); g.lineTo(c + 15, c + 20); g.lineTo(c + 25, c + 70); g.stroke(); }
+      if (k == 6) { kl('#e8962a', '#b0601a'); spikkels('#fff4c8', 90, 5); spikkels('#ffd27a', 60, 4); } // krakeling met kristalsuiker
+    }
     else { // koekjesfiguren
       const k = code - 20;
       rondje(['#e8c27a', '#e6c48a', '#4a2a18', '#c88a3e', '#b8743a', '#d8a868', '#d89a4a', '#d8a050'][k]);
@@ -202,7 +213,27 @@ function bolKoek(r, h) {
   for (let i = 0; i < pos.count; i++) uv.setXY(i, 0.5 + pos.getX(i) / (2 * r), 0.5 - pos.getZ(i) / (2 * r));
   return g;
 }
+// koekjesfiguren met een eigen vorm (bovenaanzicht, in eenheden; b x d = breedte x diepte voor de natuurkunde-doos)
+const VORMEN = {
+  20: { b: 1.15, d: 0.36, vorm: (p) => { const r = 0.18, l = 0.575 - r; p.moveTo(-l, -r); p.lineTo(l, -r); p.absarc(l, 0, r, -Math.PI / 2, Math.PI / 2); p.lineTo(-l, r); p.absarc(-l, 0, r, Math.PI / 2, Math.PI * 1.5); } }, // lange vinger
+  22: { b: 0.98, d: 0.66, vorm: (p) => rondRecht(p, 0.49, 0.33, 0.07) }, // likkoekje (café noir)
+  24: { b: 0.98, d: 0.62, vorm: (p) => rondRecht(p, 0.49, 0.31, 0.05) }, // speculaasje
+  26: { b: 1.05, d: 0.78, vorm: (p) => { // krakeling: twee lussen bovenaan, smaller naar onderen, drie gaten
+    p.moveTo(0, -0.39); p.bezierCurveTo(-0.2, -0.36, -0.5, -0.25, -0.52, 0.02); p.bezierCurveTo(-0.53, 0.3, -0.3, 0.42, -0.14, 0.36);
+    p.bezierCurveTo(-0.06, 0.33, -0.02, 0.27, 0, 0.24); p.bezierCurveTo(0.02, 0.27, 0.06, 0.33, 0.14, 0.36); p.bezierCurveTo(0.3, 0.42, 0.53, 0.3, 0.52, 0.02); p.bezierCurveTo(0.5, -0.25, 0.2, -0.36, 0, -0.39);
+    for (const [x, y, rx, ry] of [[-0.25, 0.06, 0.13, 0.11], [0.25, 0.06, 0.13, 0.11], [0, -0.19, 0.08, 0.07]]) { const h = new THREE.Path(); h.absellipse(x, y, rx, ry, 0, Math.PI * 2, true); p.holes.push(h); } } },
+};
+function rondRecht(p, w, d, r) { p.moveTo(-w + r, -d); p.lineTo(w - r, -d); p.quadraticCurveTo(w, -d, w, -d + r); p.lineTo(w, d - r); p.quadraticCurveTo(w, d, w - r, d); p.lineTo(-w + r, d); p.quadraticCurveTo(-w, d, -w, d - r); p.lineTo(-w, -d + r); p.quadraticCurveTo(-w, -d, -w + r, -d); }
+function vormGeo(code) {
+  const v = VORMEN[code], sh = new THREE.Shape(); v.vorm(sh);
+  const h = dikte(code), g = new THREE.ExtrudeGeometry(sh, { depth: h * 0.5, bevelEnabled: true, bevelThickness: h * 0.25, bevelSize: 0.04, bevelSegments: 3, curveSegments: 24 });
+  g.translate(0, 0, -h * 0.25); g.rotateX(-Math.PI / 2); // plat op tafel, bovenkant omhoog
+  const pos = g.attributes.position, uv = g.attributes.uv; // plaatje van boven: van de vorm naar het hele canvas
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, 0.5 + pos.getX(i) / (v.b + 0.08), 0.5 - pos.getZ(i) / (v.d + 0.08));
+  g.computeVertexNormals(); return g;
+}
 const koekGeo = (code) => {
+  if (VORMEN[code]) return geoCache['v' + code] || (geoCache['v' + code] = vormGeo(code));
   const bol = code < 10 || code >= 20, k = straal(code) + '_' + dikte(code) + (code == 11 ? 'd' : '') + (bol ? 'b' : '');
   return geoCache[k] || (geoCache[k] = bol ? bolKoek(straal(code), dikte(code) * 1.25) : new THREE.CylinderGeometry(straal(code), straal(code), dikte(code), code == 11 ? 3 : 32));
 };
@@ -416,7 +447,7 @@ const schuifBody = vast(HB, SCHUIF.hoog / 2, SCHUIF.half, 0, SCHUIF.hoog / 2, SC
 let koekjes = [];
 function nieuwKoekje(code, x, y, z, q) {
   const r = straal(code), h = dikte(code);
-  const body = new CANNON.Body({ mass: code >= 10 ? 1.3 : 1, material: matKoek, shape: new CANNON.Cylinder(r, r, h, code == 11 ? 3 : 10), linearDamping: 0.12, angularDamping: 0.85 }); // veel draaidemping: koekjes blijven plat liggen
+  const body = new CANNON.Body({ mass: code >= 10 ? 1.3 : 1, material: matKoek, shape: VORMEN[code] ? new CANNON.Box(new CANNON.Vec3(VORMEN[code].b / 2, h / 2, VORMEN[code].d / 2)) : new CANNON.Cylinder(r, r, h, code == 11 ? 3 : 10), linearDamping: 0.12, angularDamping: 0.85 }); // veel draaidemping: koekjes blijven plat liggen
   body.position.set(x, y, z);
   if (q) body.quaternion.set(q[0], q[1], q[2], q[3]); else body.quaternion.setFromEuler(0, Math.random() * 6, 0);
   body.sleepSpeedLimit = 0.12; body.sleepTimeLimit = 0.8;

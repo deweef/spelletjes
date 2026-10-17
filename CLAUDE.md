@@ -99,7 +99,9 @@ gewonnen, over de zijkant (na `ZIJ_EIND`) weg. Koekjes op hun kant krijgen een z
 springen omhoog (`springers`), het likkoekje extra groot met "Likkie-likkie!" hardop. Opslag in `koekjesschuiver3d`.
 `#tegel` verbergt de knoppen voor het plaatje. Tafel smal en lang (`HB`, `VOOR`); de camera zoekt bij elk schermformaat
 de dichtstbijzijnde stand waarbij de tafel tussen bovenbalk en krachtknoppen past (`pasAan`). Gewone koekjes en figuren
-hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde blijft een cilinder). Opslag per speler
+hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde blijft een cilinder). Lange vinger, likkoekje (café noir),
+speculaasje en krakeling hebben hun echte vorm (`VORMEN`, `vormGeo`: uitgesneden vorm met afgeronde rand, natuurkunde
+een platte doos). Opslag per speler
 (`koekjesschuiver3d:<naam>`). Munten (🪙): gouden koekje en gebakje 1, figuur 3, badge 10, dubbele figuren ruilen 5
 (knop bij de badges). Winkel (`#winkel`): achtergronden in `THEMAS` (bakkerij gratis, mint met roze; halloween, kermis, strand,
 winternacht met sneeuw, ruimte), elk met lucht, kastkleuren, tafeltint (`tafel`), lampjes (`lamp`) en een plaatje op de
