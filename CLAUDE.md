@@ -53,7 +53,7 @@ bedenk dat de site openbaar is.
   nu Athene) of een eigen foto van het toestel (wordt niet geüpload en niet bewaard). Aantal stukjes kiezen (`AANTALLEN`,
   12 t/m 500; `raster` kiest kolommen x rijen), optie draaien (tik = kwartslag, alleen rechte stukjes klikken vast).
   Stukjes met knobbels (`rand`/`vorm`, Path2D, elk stukje vooraf getekend in een eigen canvas), klikken aan buren vast
-  (groepen) en op het bord vast (`vastklikken`). Hulpjes: Voorbeeld, Randjes, Sorteren op kleur, alles in beeld.
+  (groepen) en op het bord vast (`vastklikken`). Hulpjes: Voorbeeld (klein rechtsboven `#mini`, tik = groot met zoomen/schuiven/dubbeltik `#groot`), Randjes, Sorteren op kleur, alles in beeld.
   Zoomen met twee vingers of muiswiel, schuiven door op een lege plek te slepen. Voortgang in `fotopuzzel:<naam>`
   (zaadje voor de vormen + posities), record per foto/aantal in `fotopuzzel_<foto>_<n>[d]:<naam>`.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,

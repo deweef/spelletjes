@@ -35,6 +35,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 .groot.stil{background:rgba(255,255,255,.12);color:var(--room)}
 label.vink{display:inline-flex;gap:8px;align-items:center;margin-top:10px;font-size:15px}
 #melding{position:fixed;z-index:30;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(0,0,0,.6);border-radius:12px;padding:8px 14px;font-size:14px;pointer-events:none;transition:opacity .4s;text-align:center}
+#mini{position:fixed;z-index:15;right:calc(8px + env(safe-area-inset-right));width:min(34vw,240px);border:2px solid var(--goud);border-radius:10px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.45);cursor:zoom-in;background:#000}
+#mini img{display:block;width:100%}
+#mini span{position:absolute;right:4px;bottom:4px;background:rgba(0,0,0,.55);border-radius:6px;padding:1px 6px;font-size:12px}
+#groot{position:fixed;inset:0;z-index:55;background:rgba(5,15,12,.92);overflow:hidden;touch-action:none}
+#groot img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none}
+#groot .sluit{position:absolute;z-index:2;top:calc(10px + env(safe-area-inset-top));right:calc(10px + env(safe-area-inset-right));width:40px;height:40px;border-radius:50%;border:1.5px solid var(--rand);background:rgba(0,0,0,.5);font-size:20px}
+#groot .uitleg{position:absolute;z-index:2;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(0,0,0,.55);border-radius:10px;padding:6px 12px;font-size:13px;white-space:nowrap}
 .tegel #balk,.tegel .terug,.tegel #melding{display:none!important}
 </style>
 </head>
@@ -44,12 +51,14 @@ label.vink{display:inline-flex;gap:8px;align-items:center;margin-top:10px;font-s
 <div id="balk" hidden>
   <span class="tel" id="teller">0/0</span>
   <span class="tel" id="tijd">0:00</span>
-  <button id="bVoorbeeld" title="Laat de foto zwak op het bord zien">👁 Voorbeeld</button>
+  <button id="bVoorbeeld" title="Laat de foto klein rechtsboven zien">👁 Voorbeeld</button>
   <button id="bRand" title="Laat alleen de randstukjes zien">▢ Randjes</button>
   <button id="bSorteer" title="Leg de losse stukjes op kleur">🎨 Sorteren</button>
   <button id="bPas" title="Alles in beeld">⤢</button>
 </div>
 <div id="melding" style="opacity:0"></div>
+<div id="mini" hidden title="Tik om groter te bekijken"><img alt="Voorbeeld"><span>🔍</span></div>
+<div id="groot" hidden><img alt="Voorbeeld"><button class="sluit" aria-label="Sluiten">✕</button><div class="uitleg">Zoom met twee vingers of het muiswiel · dubbeltik = zoom</div></div>
 <div id="menu" class="scherm">
   <div class="kaart">
     <h1>Fotopuzzel</h1>
@@ -198,7 +207,6 @@ function teken() {
   // het bord
   ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(-4, -4, P.W + 8, P.H + 8);
   ctx.fillStyle = '#21463d'; ctx.fillRect(0, 0, P.W, P.H);
-  if (voorbeeld) { ctx.globalAlpha = 0.28; ctx.drawImage(foto, 0, 0, P.W, P.H); ctx.globalAlpha = 1; }
   ctx.strokeStyle = 'rgba(255,244,220,.35)'; ctx.lineWidth = 2 / cam.z; ctx.strokeRect(0, 0, P.W, P.H);
   const { w, h, m } = P;
   for (const s of P.stukken) {
@@ -294,7 +302,32 @@ function vastklikken(groep) {
 
 // ---------- knoppen ----------
 function melding(t) { const m = $('melding'); m.textContent = t; m.style.opacity = 1; clearTimeout(melding.t); melding.t = setTimeout(() => (m.style.opacity = 0), 2200); }
-$('bVoorbeeld').onclick = () => { voorbeeld = !voorbeeld; $('bVoorbeeld').classList.toggle('aan', voorbeeld); vuil = true; };
+// voorbeeld: klein rechtsboven, tik erop voor groot met zoomen en schuiven
+function zetVoorbeeld(aan) {
+  voorbeeld = aan; $('bVoorbeeld').classList.toggle('aan', aan); $('mini').hidden = !aan;
+  if (aan) { $('mini').querySelector('img').src = foto.src; $('mini').style.top = ($('balk').getBoundingClientRect().bottom + 8) + 'px'; }
+}
+$('bVoorbeeld').onclick = () => zetVoorbeeld(!voorbeeld);
+addEventListener('resize', () => { if (voorbeeld) zetVoorbeeld(true); });
+const gv = { z: 1, x: 0, y: 0, min: 1 }, gImg = $('groot').querySelector('img'), gVingers = new Map(); let gKnijp = null, gTik = 0;
+function gToon() { gImg.style.transform = `translate(${gv.x}px,${gv.y}px) scale(${gv.z})`; }
+function gBegrens() { const w = foto.width * gv.z, h = foto.height * gv.z; gv.x = w < innerWidth ? (innerWidth - w) / 2 : Math.min(0, Math.max(innerWidth - w, gv.x)); gv.y = h < innerHeight ? (innerHeight - h) / 2 : Math.min(0, Math.max(innerHeight - h, gv.y)); }
+function gZoom(f, sx, sy) { const z = Math.max(gv.min, Math.min(gv.min * 8, gv.z * f)); gv.x = sx - (sx - gv.x) * z / gv.z; gv.y = sy - (sy - gv.y) * z / gv.z; gv.z = z; gBegrens(); gToon(); }
+$('mini').onclick = () => { gImg.src = foto.src; gv.min = gv.z = Math.min(innerWidth / foto.width, innerHeight / foto.height); gBegrens(); gToon(); $('groot').hidden = false; };
+$('groot').querySelector('.sluit').onclick = () => { $('groot').hidden = true; };
+$('groot').addEventListener('wheel', (e) => { e.preventDefault(); gZoom(Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY); }, { passive: false });
+$('groot').addEventListener('pointerdown', (e) => {
+  if (e.target.classList.contains('sluit')) return; $('groot').setPointerCapture(e.pointerId); gVingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (gVingers.size == 2) { const [a, b] = [...gVingers.values()]; gKnijp = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; }
+  else { const nu = performance.now(); if (nu - gTik < 300) gZoom(gv.z > gv.min * 1.5 ? gv.min / gv.z : 2.5, e.clientX, e.clientY); gTik = nu; } // dubbeltik
+});
+$('groot').addEventListener('pointermove', (e) => {
+  if (!gVingers.has(e.pointerId)) return; const oud = gVingers.get(e.pointerId); gVingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (gKnijp && gVingers.size >= 2) { const [a, b] = [...gVingers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; gv.x += mx - gKnijp.mx; gv.y += my - gKnijp.my; gZoom(d / gKnijp.d, mx, my); gKnijp = { d, mx, my }; }
+  else if (gVingers.size == 1) { gv.x += e.clientX - oud.x; gv.y += e.clientY - oud.y; gBegrens(); gToon(); }
+});
+const gLos = (e) => { gVingers.delete(e.pointerId); if (gVingers.size < 2) gKnijp = null; };
+$('groot').addEventListener('pointerup', gLos); $('groot').addEventListener('pointercancel', gLos);
 $('bRand').onclick = () => { alleenRand = !alleenRand; $('bRand').classList.toggle('aan', alleenRand); melding(alleenRand ? 'Alleen de randstukjes. Begin met de rand!' : 'Alle stukjes weer zichtbaar'); vuil = true; };
 $('bPas').onclick = () => pasCamera();
 $('bSorteer').onclick = () => { // losse stukjes op kleur in rijen onder het bord
@@ -317,7 +350,7 @@ function opgeslagen() { try { const o = JSON.parse(localStorage.getItem(KEY)); r
 
 // ---------- spel starten en winnen ----------
 async function begin(o) {
-  $('menu').hidden = true; $('klaar').hidden = true; klaar = false; voorbeeld = alleenRand = false; $('bVoorbeeld').classList.remove('aan'); $('bRand').classList.remove('aan');
+  $('menu').hidden = true; $('klaar').hidden = true; klaar = false; alleenRand = false; zetVoorbeeld(false); $('bRand').classList.remove('aan');
   melding('Stukjes snijden…');
   const f = FOTOS.find((x) => x.id == fotoId);
   foto = await laadFoto(eigenSrc || f.src);
@@ -336,12 +369,12 @@ function gewonnen() {
   setTimeout(() => { $('klaar').hidden = false; }, 900);
 }
 $('nogeen').onclick = () => toonMenu();
-$('bekijk').onclick = () => { $('klaar').hidden = true; voorbeeld = false; pasCamera(); };
+$('bekijk').onclick = () => { $('klaar').hidden = true; zetVoorbeeld(false); pasCamera(); };
 
 // ---------- menu ----------
 function toonMenu() {
   bewaar(); start && (verstreken = tijdNu(), start = 0);
-  $('menu').hidden = false; $('klaar').hidden = true; $('balk').hidden = true;
+  $('menu').hidden = false; $('klaar').hidden = true; $('balk').hidden = true; $('mini').hidden = true; $('groot').hidden = true;
   $('naam').textContent = speler ? 'Speler: ' + speler : '';
   $('fotos').innerHTML = FOTOS.map((f) => `<button data-f="${f.id}" class="${f.id == fotoId && !eigenSrc ? 'aan' : ''}"><img src="${f.src}" alt="">${f.n}</button>`).join('') +
     `<button data-f="eigen" class="${eigenSrc ? 'aan' : ''}"><span class="eigen">📷</span>Eigen foto<br><small>blijft op je eigen toestel</small></button>`;
@@ -357,7 +390,7 @@ $('draaien').onchange = () => { draaien = $('draaien').checked; };
 $('start').onclick = () => { unlock(); if (opgeslagen() && !confirm('Je hebt nog een puzzel liggen. Een nieuwe beginnen?')) return; begin(null); };
 $('verder').onclick = () => { unlock(); const o = opgeslagen(); fotoId = o.foto; eigenSrc = null; draaien = !!o.draaien; begin(o); };
 // terugknop: tijdens het puzzelen eerst naar het menu, vanuit het menu naar alle spellen
-document.querySelector('.terug').addEventListener('click', (e) => { if ($('menu').hidden) { e.preventDefault(); toonMenu(); } });
+document.querySelector('.terug').addEventListener('click', (e) => { if (!$('groot').hidden) { e.preventDefault(); $('groot').hidden = true; return; } if ($('menu').hidden) { e.preventDefault(); toonMenu(); } });
 addEventListener('pagehide', bewaar); document.addEventListener('visibilitychange', () => { if (document.hidden) bewaar(); });
 
 // ---------- lus ----------
