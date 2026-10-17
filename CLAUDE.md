@@ -41,7 +41,8 @@ bedenk dat de site openbaar is.
   Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
   `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
   = insturen. Knop 🏆 Scorebord op het beginscherm (`scorebordScherm`), insturen gaat automatisch op het eindscherm (`autoInsturen`: alleen met een gekozen naam en alleen een persoonlijk record dat beter is dan wat al ingestuurd is, bijgehouden in `fladderfeest_ingestuurd:<naam>`); laatste lijst
-  in `fladderfeest_bord` voor offline. script.google.com is vanuit de cloudomgeving niet bereikbaar: test met
+  in `fladderfeest_bord` voor offline. Hetzelfde script heeft ook `doPost` met `actie=leer`: het geheime leerlogboek van de
+  Leerhoek (deweef/leren, `leerlog.js`), tabbladen 'Leerhoek' en 'Leerhoek overzicht'; wordt nooit via GET teruggegeven. script.google.com is vanuit de cloudomgeving niet bereikbaar: test met
   Playwright `route` en een nagemaakt antwoord.
   Een nieuw dier = regel in `FIGUREN`, deuntje in `MUZIEK`, wereld in `WERELDEN`, plaatje in `tekenDier()`. Elke wereld staat in `WERELDEN` (achtergrond,
   grond, hindernis, bonus, wat er valt, het figuur). `fladderfeest.html#tegel` tekent het plaatje voor de startpagina.
