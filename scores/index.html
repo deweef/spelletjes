@@ -49,9 +49,9 @@ input{font:inherit;font-size:18px;padding:10px 12px;border-radius:10px;border:2p
 </form>
 
 <div id="app" hidden>
-  <div class="tabs"><button data-t="leren" aria-pressed="true">📚 Leren</button><button data-t="spel" aria-pressed="false">🎮 Spelletjes</button><button data-t="beheer" aria-pressed="false">🛠 Beheer</button></div>
-  <section id="t-leren"></section>
-  <section id="t-spel" hidden></section>
+  <div class="tabs"><button data-t="spel" aria-pressed="true">🎮 Spelletjes</button><button data-t="leren" aria-pressed="false">📚 Leren</button><button data-t="beheer" aria-pressed="false">🛠 Beheer</button></div>
+  <section id="t-spel"></section>
+  <section id="t-leren" hidden></section>
   <section id="t-beheer" hidden></section>
   <p style="margin-top:28px"><button class="klein" id="ververs">Vernieuwen</button> · <button class="klein" id="uit">Geheim woord vergeten op deze telefoon</button></p>
 </div>
@@ -67,7 +67,7 @@ const dag=d=>new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeri
 const tijd=d=>new Date(d).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
 const geleden=d=>{const m=(Date.now()-new Date(d))/60000;return m<60?Math.round(m)+' min geleden':m<1440?Math.round(m/60)+' uur geleden':Math.round(m/1440)+' dagen geleden'};
 const nf=n=>String(Math.round(n*10)/10).replace('.',',');
-let D=null,wie=ls.get('scores-wie')||'Ben',tab='leren';
+let D=null,wie=ls.get('scores-wie')||'Ben',tab='spel';
 try{D=JSON.parse(ls.get('scores-data')||'null')}catch(e){}
 
 // vraag = 'actie=ouder' (alles ophalen) of 'actie=wis&rij=..&naam=..&score=..'; het antwoord is altijd de nieuwe stand
@@ -115,9 +115,11 @@ function tekenSpel(){const g=lijsten();const per={};for(const x of Object.values
 /* ---------- Beheer: scores wissen ---------- */
 function tekenBeheer(){const g=lijsten();
  const vreemd=(o,m,n,s)=>{const x=g[o+' · '+m];if(!x||x.laag)return false;const anderen=x.top.filter(t=>t[0]!==n).map(t=>t[1]);return anderen.length>0&&s>3*Math.max(...anderen)};
+ // een oudere score die lager is dan het eigen record staat niet op het scorebord
+ const oud=(o,m,n,s)=>{const x=g[o+' · '+m];return !!x&&x.beste[n]!==s};
  const rijen=(D.scores||[]).slice().reverse().slice(0,150);
- $('#t-beheer').innerHTML=`<p class="zacht">De nieuwste scores bovenaan. Een <span class="let">⚠️</span> betekent: meer dan 3 keer zo hoog als de beste score van iemand anders. Wissen haalt de score uit de spreadsheet en dus van het scorebord.</p>
- <table><tr><th>Wanneer</th><th>Wie</th><th>Wat</th><th class="n">Score</th><th></th></tr>${rijen.map(([rij,d,n,o,m,s])=>`<tr><td class="zacht">${dag(d)}</td><td>${esc(n)}</td><td><span class="zacht">${esc(SPEL(String(o)))}</span><br>${esc(mooi(String(o)))} (${esc(m)})</td><td class="n">${vreemd(o,m,n,Number(s))?'<span class="let">⚠️ </span>':''}${esc(s)}</td><td><button class="wis" data-rij="${rij}" data-n="${esc(n)}" data-s="${esc(s)}" aria-label="Wis">🗑</button></td></tr>`).join('')}</table>`;
+ $('#t-beheer').innerHTML=`<p class="zacht">De nieuwste scores bovenaan. Een <span class="let">⚠️</span> betekent: meer dan 3 keer zo hoog als de beste score van iemand anders. Grijs met "oud" = lager dan het eigen record, dus niet zichtbaar op het scorebord (wis je het record, dan komt deze terug). Wissen haalt de score uit de spreadsheet.</p>
+ <table><tr><th>Wanneer</th><th>Wie</th><th>Wat</th><th class="n">Score</th><th></th></tr>${rijen.map(([rij,d,n,o,m,s])=>`<tr${oud(o,m,n,Number(s))?' style="opacity:.5"':''}><td class="zacht">${dag(d)}</td><td>${esc(n)}</td><td><span class="zacht">${esc(SPEL(String(o)))}</span><br>${esc(mooi(String(o)))} (${esc(m)})</td><td class="n">${vreemd(o,m,n,Number(s))?'<span class="let">⚠️ </span>':''}${esc(s)}${oud(o,m,n,Number(s))?'<br><span class="zacht">oud</span>':''}</td><td><button class="wis" data-rij="${rij}" data-n="${esc(n)}" data-s="${esc(s)}" aria-label="Wis">🗑</button></td></tr>`).join('')}</table>`;
  document.querySelectorAll('.wis').forEach(b=>b.onclick=()=>{if(confirm(`Score ${b.dataset.s} van ${b.dataset.n} wissen?`))haal(`actie=wis&rij=${b.dataset.rij}&naam=${encodeURIComponent(b.dataset.n)}&score=${encodeURIComponent(b.dataset.s)}`)})}
 
 if(D)teken();haal();
