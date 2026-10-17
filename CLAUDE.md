@@ -37,7 +37,7 @@ bedenk dat de site openbaar is.
   pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links).
   Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
   `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
-  = insturen. Knop 🏆 Scorebord op het beginscherm (`scorebordScherm`), knop Insturen op de eindschermen; laatste lijst
+  = insturen. Knop 🏆 Scorebord op het beginscherm (`scorebordScherm`), insturen gaat automatisch op het eindscherm (`autoInsturen`: alleen met een gekozen naam en alleen een persoonlijk record dat beter is dan wat al ingestuurd is, bijgehouden in `fladderfeest_ingestuurd:<naam>`); laatste lijst
   in `fladderfeest_bord` voor offline. script.google.com is vanuit de cloudomgeving niet bereikbaar: test met
   Playwright `route` en een nagemaakt antwoord.
   Een nieuw dier = regel in `FIGUREN`, deuntje in `MUZIEK`, wereld in `WERELDEN`, plaatje in `tekenDier()`. Elke wereld staat in `WERELDEN` (achtergrond,
@@ -125,7 +125,7 @@ Opbouw:
 - Online scorebord (zelfde Google Spreadsheet en Apps Script als Fladderfeest, `extra/scorebord.gs`, `BORD_URL` in
   main.js; opvragen met `?spel=ork3d`): `ork3d_ver_<moeilijkheid>` = verst gekomen ((level-1)*100 + procent, of level*100
   bij winst; `procent(S)` per level in data.js, beste waarde in `G.beste`) en `ork3d_tijd_l<n>_<moeilijkheid>` (kleine letters: het script accepteert alleen a-z, 0-9 en _) = snelste
-  overwinning in seconden (`G.t / 60`, filmpjes en pauze tellen niet). Knop Insturen op het eindscherm, 🏆 Scorebord in het
+  overwinning in seconden (`G.t / 60`, filmpjes en pauze tellen niet). Insturen gaat automatisch op het eindscherm (`autoInsturen`, alleen met naam en alleen verbeteringen, `orkenstorm3d_ingestuurd:<naam>`), 🏆 Scorebord in het
   titelmenu (`#bord`).
 - `lib/`: three.js r160 (`three.module.js`) en `OrbitControls.js`, lokaal (geen CDN) zodat het offline
   werkt. Blijf bij deze versie; nieuwe three-onderdelen ook uit r160 halen (npm: `three@0.160.0`).

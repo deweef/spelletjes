@@ -750,18 +750,25 @@ function tekenBord(melding) {
 }
 $('bordknop').onclick = () => { unlock(); sClick(); bordDiff = G.diff; toon('bord'); tekenBord('Scores ophalen…'); bordHalen().then((ok) => tekenBord(ok ? '' : 'Geen internet: dit zijn de laatst bekende scores.')); };
 $('bordterug').onclick = () => tekenTitel();
-$('insturen').onclick = () => {
-  if (!uitslag || $('insturen').disabled) return;
-  let naam = speler();
-  if (!naam) { naam = (prompt('Met welke naam wil je op het scorebord?') || '').trim().slice(0, 16); }
-  if (!naam) return;
-  const q = (o, s) => '&actie=opslaan&naam=' + encodeURIComponent(naam) + '&onderdeel=' + o + '&modus=' + uitslag.modus + '&score=' + s;
-  $('insturen').disabled = true; $('insturen').textContent = 'Even geduld…';
-  bordHalen(q('ork3d_ver', uitslag.ver)).then((ok) => (ok && uitslag.tijd ? bordHalen(q('ork3d_tijd_l' + uitslag.level, uitslag.tijd)) : ok)).then((ok) => {
-    $('insturen').textContent = ok ? 'Ingestuurd ✓' : 'Lukt niet (internet?) · opnieuw';
-    $('insturen').disabled = !!ok;
+// Automatisch insturen bij het eindscherm: alleen met een gekozen naam, en alleen als het beter is dan wat je al
+// eerder instuurde (orkenstorm3d_ingestuurd:<naam>); verst gekomen hoger, snelste tijd lager
+function autoInsturen() {
+  const st = (t) => { $('insturenstatus').textContent = t; };
+  if (!speler()) { st('Kies je naam op de startpagina om op het scorebord te komen.'); return; }
+  const lk = 'orkenstorm3d_ingestuurd:' + speler(); let al = {};
+  try { al = JSON.parse(localStorage.getItem(lk) || '{}'); } catch (e) {}
+  const q = (o, sc) => '&actie=opslaan&naam=' + encodeURIComponent(speler()) + '&onderdeel=' + o + '&modus=' + uitslag.modus + '&score=' + sc;
+  const verK = 'ork3d_ver_' + uitslag.modus, tijdK = 'ork3d_tijd_l' + uitslag.level + '_' + uitslag.modus;
+  const stuur = [];
+  if (uitslag.ver > (al[verK] || 0)) stuur.push([verK, 'ork3d_ver', uitslag.ver]);
+  if (uitslag.tijd && (!al[tijdK] || uitslag.tijd < al[tijdK])) stuur.push([tijdK, 'ork3d_tijd_l' + uitslag.level, uitslag.tijd]);
+  if (!stuur.length) { st(''); return; }
+  st('Naar het scorebord sturen…');
+  stuur.reduce((p, [k, o, sc]) => p.then((ok) => (ok ? bordHalen(q(o, sc)).then((gelukt) => { if (gelukt) al[k] = sc; return gelukt; }) : false)), Promise.resolve(true)).then((ok) => {
+    try { localStorage.setItem(lk, JSON.stringify(al)); } catch (e) {}
+    st(ok ? '🏆 Nieuw persoonlijk record: staat op het scorebord!' : 'Scorebord niet bereikbaar (internet?). Volgende keer opnieuw.');
   });
-};
+}
 
 function tekenTitel() {
   toon('titel');
@@ -806,7 +813,7 @@ function eindScherm() {
   // voor het scorebord
   const tijd = Math.max(1, Math.round(G.t / 60));
   uitslag = { modus: MODI[G.diff], level: G.lvl + 1, ver: won ? (G.lvl + 1) * 100 : G.lvl * 100 + G.beste, tijd: won ? tijd : 0 };
-  $('insturen').hidden = uitslag.ver <= 0; $('insturen').disabled = false; $('insturen').textContent = '🏆 Insturen naar het scorebord';
+  autoInsturen();
   $('insturenuitleg').textContent = (won ? `Gewonnen in ${tijdTekst(tijd)}` : `Je kwam tot ${G.beste}% van level ${G.lvl + 1}`) + ` (${DIFF[G.diff].n.toLowerCase()})`;
   toon('einde');
 }

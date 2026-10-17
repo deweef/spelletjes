@@ -41,19 +41,24 @@ function bordHalen(extra = '') {
   return fetch(BORD_URL + extra, { redirect: 'follow' }).then((r) => r.json()).then((d) => { bordBewaar(d); bordStatus = 'ok'; return true; })
     .catch(() => { bordStatus = 'fout'; return false; });
 }
-function insturen(onderdeel, punten) {
-  let naam = speler;
-  if (!naam) { try { naam = localStorage.getItem('fladderfeest_naam') || ''; } catch (e) {} }
-  if (!naam) { naam = (prompt('Met welke naam wil je op het scorebord?') || '').trim().slice(0, 16); try { localStorage.setItem('fladderfeest_naam', naam); } catch (e) {} }
-  if (!naam) return;
-  ingestuurd = 'bezig';
-  const q = '?actie=opslaan&naam=' + encodeURIComponent(naam) + '&onderdeel=' + onderdeel + '&modus=' + (streken ? 'streken' : 'gewoon') + '&score=' + punten;
-  bordHalen(q).then((ok) => { ingestuurd = ok ? 'ok' : 'fout'; if (ok) sPunt(); });
-}
-function insturenKnop(x, y, w, onderdeel, punten) {
+// Automatisch insturen: alleen met een gekozen naam, en alleen als het beter is dan wat je al eerder instuurde
+// (bijgehouden per speler in fladderfeest_ingestuurd:<naam>). Lukt het niet (geen internet), dan volgende keer opnieuw.
+function autoInsturen(onderdeel, punten) {
   if (punten <= 0) return;
-  const tekstKnop = ingestuurd == 'ok' ? 'Ingestuurd ✓' : ingestuurd == 'bezig' ? 'Even geduld…' : ingestuurd == 'fout' ? 'Lukt niet (internet?) · opnieuw' : '🏆 Insturen naar het scorebord';
-  knop(x, y, w, 40, tekstKnop, ingestuurd == 'ok' ? '#8a9aa8' : '#e8a22a', () => { if (ingestuurd != 'ok' && ingestuurd != 'bezig') insturen(onderdeel, punten); });
+  if (!speler) { ingestuurd = 'geennaam'; return; }
+  const modus = streken ? 'streken' : 'gewoon', sk = onderdeel + '_' + modus, lk = 'fladderfeest_ingestuurd:' + speler;
+  let al = {}; try { al = JSON.parse(localStorage.getItem(lk) || '{}'); } catch (e) {}
+  const beste = Math.max(punten, record(onderdeel)); // ook een eerder record dat nog niet op het scorebord stond
+  if (beste <= (al[sk] || 0)) return;
+  ingestuurd = 'bezig';
+  bordHalen('?actie=opslaan&naam=' + encodeURIComponent(speler) + '&onderdeel=' + onderdeel + '&modus=' + modus + '&score=' + beste).then((ok) => {
+    ingestuurd = ok ? 'ok' : 'fout';
+    if (ok) { al[sk] = beste; try { localStorage.setItem(lk, JSON.stringify(al)); } catch (e) {} }
+  });
+}
+function insturenStatus(y) {
+  const t = { ok: '🏆 Je record staat op het scorebord!', bezig: 'Naar het scorebord sturen…', fout: 'Scorebord niet bereikbaar (internet?)', geennaam: 'Kies je naam op de startpagina voor het scorebord' }[ingestuurd];
+  if (t) tekst(t, W / 2, y, ingestuurd == 'ok' ? 15 : 12, ingestuurd == 'ok' ? '#3fae5a' : '#4d6478', 'center', null);
 }
 let bordTab = 'tocht';
 function scorebordScherm() {
@@ -503,10 +508,12 @@ function stap() {
         const t = totaal(); tocht.nieuw = t > record('tocht'); if (tocht.nieuw) zetRecord('tocht', t);
         if (score > record(fig.id)) zetRecord(fig.id, score);
         if (t >= 25) sMedaille();
+        autoInsturen('tocht', t);
         return;
       }
       const i = FIGUREN.indexOf(fig), volgende = FIGUREN[i + 1], wasDicht = volgende && !open(i + 1);
       if (score > record(fig.id)) { nieuwRecord = record(fig.id) > 0 || score > 0; zetRecord(fig.id, score); }
+      autoInsturen(fig.id, score);
       vrijgespeeld = wasDicht && open(i + 1) ? volgende : null;
       if (vrijgespeeld) setTimeout(sMedaille, 600);
       if (medaille(score)) sMedaille();
@@ -1722,7 +1729,7 @@ function eindschermTocht() {
   for (let k = 0; k < FIGUREN.length; k++) { ctx.fillStyle = k < tocht.i ? '#3fae5a' : k == tocht.i ? '#e8762a' : '#d8d0c0'; ctx.beginPath(); ctx.arc(W / 2 + (k - 3) * 22, y + 214, 7, 0, 7); ctx.fill(); }
   ctx.globalAlpha = 1;
   if (doodT > 25) {
-    insturenKnop(x + 14, y + h - 112, w - 28, 'tocht', t);
+    insturenStatus(y + h - 90);
     knop(x + 14, y + h - 62, w / 2 - 20, 46, 'Nog een tocht', '#3fae5a', startTocht);
     knop(x + w / 2 + 6, y + h - 62, w / 2 - 20, 46, 'Menu', '#3f8fd8', () => { staat = 'menu'; tocht = null; tekstje = ''; zorgMuziek(); });
   }
@@ -1757,7 +1764,7 @@ function eindscherm() {
   } else if (frietjes) tekst(frietjes + ' ' + fig.bonus[frietjes == 1 ? 0 : 1] + ' gepikt', W / 2, y + 220, 14, '#c0792a', 'center', null);
   ctx.globalAlpha = 1;
   if (doodT > 25) {
-    insturenKnop(x + 14, y + h - 112, w - 28, fig.id, score);
+    insturenStatus(y + h - 90);
     knop(x + 14, y + h - 62, w / 2 - 20, 46, 'Nog een keer', '#3fae5a', nieuwSpel);
     knop(x + w / 2 + 6, y + h - 62, w / 2 - 20, 46, 'Ander dier', '#3f8fd8', () => { staat = 'menu'; tekstje = ''; zorgMuziek(); });
   }
