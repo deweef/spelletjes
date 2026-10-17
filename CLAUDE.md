@@ -126,7 +126,12 @@ grote stuitert over de tafel, +10 munten). Schatkamer (tafel van 1000 munten): d
 ring (8 gouden koekjes), parelketting (10 parelkoekjes, code 6, 4 punten), gouden armband (rolt over de tafel), klomp goud
 (30 munten). Winternacht: sneeuwpop (20 s muurtjes en ijsblauwe tafel, `vries`), cadeautje (15 munten, een
 gebakje of een zak kolen), rendier (trekt een slee over de tafel, `sleeRit`; geen rode neus, "dat is zijn neef"), kerstbal
-(8 kerstkoekjes, code 7, 5 punten); sieraden glanzen met een eigen omgevingskaart (`glans`, alleen op die materialen). De badgeteller telt de
+(8 kerstkoekjes, code 7, 5 punten); Bakkerij: taart (25 punten extra en een deuntje), deegroller (rolt over de hele breedte, `rolOver`), muisje
+(pikt 3 koekjes, laat 10 munten achter, `muisRoof`). Ruimte: ufo (straalt 3 koekjes naar de opvangbak, `ufoStraal`),
+meteoriet (inslag, `inslag`), alien (12 s lage zwaartekracht, `laagT`). Drakenburcht (tafel van 25.000 munten, oranje
+vonken die opstijgen `vonken`, items vaker `ITEM_KANS_DRAAK` en meer gouden koekjes): drakenei (babydraakje laat 6 gouden
+koekjes vallen), draak (vliegt over en spuwt vuur: alle gewone koekjes op tafel worden goud, `drakenvuur`), schatkist (50
+munten), toverkristal (20 s driedubbele punten, `driesT`); sieraden glanzen met een eigen omgevingskaart (`glans`, alleen op die materialen). De badgeteller telt de
 15 gewone plus 2 per item van de tafels die je hebt (`badgeTotaal`). Eigen badgenamen met `b1`/`b5`. Een nieuw item = regel in `ITEMS` met
 `maak()` (3D-model, origin in het midden) en `doe()`. Plannen: tafels (ook kerst), extra krachten, badges met niveaus.
 

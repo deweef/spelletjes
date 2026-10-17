@@ -56,9 +56,19 @@ const ITEMS = [
   { id: 'cadeau', thema: 'winter', n: 'Cadeautje', b5: 'Cadeautjesjager', r: 0.3, h: 0.4, grap: 'Een cadeautje! Even uitpakken…', weg: 'Het cadeautje valt van de tafel. Retour afzender.', maak: () => maakCadeau(), doe: () => cadeauUitpakken() },
   { id: 'rendier', thema: 'winter', n: 'Rendier', b5: 'Arrensleeër', r: 0.34, h: 0.5, grap: 'Nee, niet die met de rode neus. Dat is zijn neef. Hij trekt wel een slee!', weg: 'Het rendier galoppeert terug naar het noorden.', maak: () => maakRendier(), doe: () => sleeRit() },
   { id: 'kerstbal', thema: 'winter', n: 'Kerstbal', b5: 'Kerstboomversierder', r: 0.26, h: 0.42, grap: 'Glinster! Het regent kerstkoekjes: 5 punten per stuk.', weg: 'Pats! Kerstbal kapot. Wie ruimt dit op?', maak: () => maakKerstbal(), doe: () => { flonker(); for (let i = 0; i < 8; i++) setTimeout(() => laatVallen((Math.random() - 0.5) * (HB * 2 - 1.2), true, 7), i * 100); } },
+  { id: 'taart', thema: 'bakkerij', n: 'Taart', b1: 'Jarig!', b5: 'Taartenbakker', r: 0.4, h: 0.42, grap: 'Lang zal ze leven! Kaarsjes uitblazen: 25 punten extra.', weg: 'De taart valt op de grond. Vijf-secondenregel!', maak: () => maakTaart(), doe: () => { score += 25; [392, 392, 440, 392, 523, 494].forEach((f, i) => snd(f, 0.28, 'triangle', 0.05, 0, i * 0.3)); tekenHud(); } },
+  { id: 'deegroller', thema: 'bakkerij', n: 'Deegroller', b5: 'Deegrolkampioen', r: 0.4, h: 0.16, grap: 'Platwalsen maar! Een reuzendeegroller duwt alles naar voren.', weg: 'De deegroller rolt van de tafel. Bonk.', maak: () => maakDeegroller(), doe: () => rolOver(maakDeegroller(), 2.4) },
+  { id: 'muis', thema: 'bakkerij', n: 'Muisje', b1: 'Piep!', b5: 'Muizenvanger', r: 0.26, h: 0.24, grap: 'Piep! Lekker! Het muisje pikt 3 koekjes… maar laat 10 munten achter als bedankje.', weg: 'Het muisje rent weg. Snel, zet een val!', maak: () => maakMuis(), doe: () => muisRoof() },
+  { id: 'ufo', thema: 'ruimte', n: 'Ufo', b1: 'Ontvoerd!', b5: 'Ufoloog', r: 0.38, h: 0.24, grap: 'Bliep bloep! De ufo straalt 3 koekjes op… en zet ze in jouw bak.', weg: 'De ufo zoeft weg naar een andere melkweg.', maak: () => maakUfo(), doe: () => ufoStraal() },
+  { id: 'meteoriet', thema: 'ruimte', n: 'Meteoriet', b5: 'Sterrenkijker', r: 0.32, h: 0.34, grap: 'BOEM! Een meteorietinslag! De koekjes vliegen alle kanten op.', weg: 'De meteoriet ploft in de opvangbak van de buren.', maak: () => maakMeteoriet(), doe: () => inslag() },
+  { id: 'alien', thema: 'ruimte', n: 'Alien', b1: 'Hallo aardbewoner', b5: 'Buitenaards', r: 0.3, h: 0.5, grap: 'Neem mij mee naar jullie leider… of naar de koekjestrommel. 12 seconden bijna geen zwaartekracht!', weg: 'De alien beamt zichzelf terug naar huis.', maak: () => maakAlien(), doe: () => { laagT = 12; world.gravity.set(0, -6, 0); for (const c of koekjes) c.body.wakeUp(); snd(300, 1.2, 'sine', 0.04, 900); } },
+  { id: 'drakenei', thema: 'draak', n: 'Drakenei', b5: 'Drakenfluisteraar', r: 0.26, h: 0.42, grap: 'Krak! Een babydraakje! Het spuugt 6 gouden koekjes.', weg: 'Het drakenei rolt de lava in. Gebakken ei.', maak: () => maakDrakenei(), doe: () => babyDraak() },
+  { id: 'draakje', thema: 'draak', n: 'Draak', b1: 'Drakentemmer', b5: 'Drakenkoning', r: 0.36, h: 0.45, grap: 'De grote draak spuwt vuur… en alle koekjes op de tafel worden goud!', weg: 'De draak vliegt boos weg. Oeps.', maak: () => maakDraakje(), doe: () => drakenvuur() },
+  { id: 'schatkist', thema: 'draak', n: 'Schatkist', b5: 'Schatgraver', r: 0.36, h: 0.4, grap: 'De schatkist springt open: 50 munten!', weg: 'De schatkist zakt weg in de lava. Nooit meer gezien.', maak: () => maakSchatkist(), doe: () => { verdien(45, innerWidth / 2, innerHeight * 0.3); flonker(); } },
+  { id: 'kristal', thema: 'draak', n: 'Toverkristal', b5: 'Tovenaar', r: 0.24, h: 0.5, grap: 'Het kristal gloeit: 20 seconden driedubbele punten!', weg: 'Het kristal valt in duizend stukjes. Ongeluk? Nee, gewoon pech.', maak: () => maakKristal(), doe: () => { driesT = 20; snd(880, 0.8, 'sine', 0.04, 1760); } },
   { id: 'spook', thema: 'halloween', n: 'Spookje', r: 0.36, h: 0.62, grap: 'Boehoe… ik bedoel: snoep!', weg: 'Het spookje zweeft er stiekem vandoor', maak: () => maakSpook(), doe: () => spookVlucht() },
 ];
-const ITEM_KANS = 1 / 25;
+const ITEM_KANS = 1 / 25, ITEM_KANS_DRAAK = 1 / 12; // op de Drakenburcht vallen er vaker items
 // aantal badges dat je nu kunt halen: de 15 gewone plus 2 per item van de tafels die je hebt
 const badgeTotaal = () => BADGES.length + 2 * ITEMS.filter((it) => gekocht.includes(it.thema) || badges.includes('it_' + it.id)).length;
 const badgeNaam = (it, vijf) => (vijf ? it.b5 || it.n + '-meester' : it.b1 || it.n);
@@ -274,7 +284,19 @@ const THEMAS = [
       g.fillStyle = '#ffd84a'; const cx = w / 2, cy = h * 0.5; g.beginPath(); g.moveTo(cx - 150, cy + 60); g.lineTo(cx - 170, cy - 60); g.lineTo(cx - 80, cy); g.lineTo(cx, cy - 90); g.lineTo(cx + 80, cy); g.lineTo(cx + 170, cy - 60); g.lineTo(cx + 150, cy + 60); g.fill(); // kroon
       g.fillRect(cx - 155, cy + 60, 310, 34); for (const [dx, k] of [[-100, '#ff3a5a'], [0, '#3ad8ff'], [100, '#5aff8a']]) bol(g, cx + dx, cy + 77, 12, k);
       for (const dx of [-170, 0, 170]) bol(g, cx + dx, dx ? cy - 64 : cy - 94, 12, '#fff4c0');
-      for (let i = 0; i < 16; i++) bol(g, (i + 0.5) * w / 16, h * 0.93, 7, i % 2 ? '#fff' : '#ffd84a'); } }
+      for (let i = 0; i < 16; i++) bol(g, (i + 0.5) * w / 16, h * 0.93, 7, i % 2 ? '#fff' : '#ffd84a'); } },
+  { id: 'draak', n: 'Drakenburcht', prijs: 25000, kast: '#6a1a12', donker: '#1a0806', vloer: '#1a0806', mist: '#2a0c06', tafel: '#ffcf7a', lamp: '#ff9a2a', vonken: true,
+    lucht(g, w, h) { verloop(g, w, h, ['#0a0302', '#2a0c06', '#5a1a08']);
+      g.fillStyle = '#120403'; for (let x = 0; x < w; x += w / 9) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + w / 18, h * (0.12 + ((x * 7) % 5) / 40)); g.lineTo(x + w / 9, 0); g.fill(); } // stalactieten
+      const gr = g.createLinearGradient(0, h * 0.75, 0, h); gr.addColorStop(0, 'rgba(255,90,0,0)'); gr.addColorStop(1, 'rgba(255,120,20,.7)'); g.fillStyle = gr; g.fillRect(0, h * 0.75, w, h * 0.25); // lavagloed
+      const r = rnd(4); for (let i = 0; i < 90; i++) bol(g, r() * w, h * 0.78 + r() * h * 0.2, 4 + r() * 8, ['#ffd84a', '#e8b830', '#fff0a0'][i % 3]); // goudschat
+      g.fillStyle = 'rgba(0,0,0,.75)'; g.beginPath(); const dx = w * 0.62, dy = h * 0.38; g.moveTo(dx - 120, dy + 30); g.quadraticCurveTo(dx - 60, dy - 70, dx, dy); g.quadraticCurveTo(dx + 60, dy - 70, dx + 120, dy + 30); g.quadraticCurveTo(dx + 40, dy + 10, dx + 20, dy + 40); g.lineTo(dx + 50, dy + 60); g.lineTo(dx, dy + 45); g.lineTo(dx - 50, dy + 60); g.lineTo(dx - 20, dy + 40); g.quadraticCurveTo(dx - 40, dy + 10, dx - 120, dy + 30); g.fill(); // draak in de verte
+      bol(g, dx - 8, dy + 20, 3, '#ff5a1a'); bol(g, dx + 8, dy + 20, 3, '#ff5a1a'); },
+    bord(g, w, h) { verloop(g, w, h, ['#3a0c06', '#120403']);
+      const cx = w / 2, cy = h * 0.5; g.fillStyle = '#d4a020'; g.beginPath(); g.moveTo(cx, cy - 170); g.lineTo(cx + 150, cy - 110); g.lineTo(cx + 120, cy + 90); g.lineTo(cx, cy + 180); g.lineTo(cx - 120, cy + 90); g.lineTo(cx - 150, cy - 110); g.fill(); // schild
+      g.fillStyle = '#8a1a10'; g.beginPath(); g.moveTo(cx, cy - 140); g.lineTo(cx + 125, cy - 92); g.lineTo(cx + 100, cy + 76); g.lineTo(cx, cy + 152); g.lineTo(cx - 100, cy + 76); g.lineTo(cx - 125, cy - 92); g.fill();
+      g.fillStyle = '#ffd84a'; g.beginPath(); g.moveTo(cx - 60, cy + 60); g.quadraticCurveTo(cx - 70, cy - 40, cx - 10, cy - 70); g.lineTo(cx + 40, cy - 100); g.lineTo(cx + 30, cy - 60); g.lineTo(cx + 70, cy - 50); g.quadraticCurveTo(cx + 20, cy - 20, cx + 40, cy + 30); g.quadraticCurveTo(cx, cy + 10, cx - 20, cy + 70); g.fill(); // gestileerde draak
+      bol(g, cx + 22, cy - 72, 6, '#ff3a1a'); for (let i = 0; i < 14; i++) bol(g, (i + 0.5) * w / 14, h * 0.94, 8, i % 2 ? '#ff9a2a' : '#ffd84a'); } }
 ];
 // een pompoen (met een lachend gezicht dat van binnen gloeit)
 function pompoen(g, x, y, s, groot) {
@@ -300,7 +322,8 @@ function zetThema(id) {
   KM.kast.color.set(thema.kast); KM.donker.color.set(thema.donker); KM.vloer.color.set(thema.vloer);
   KM.tafel.color.set(thema.tafel || '#ffffff'); KM.lampAan.color.set(thema.lamp || '#fff3b0');
   if (KM.bord.map) KM.bord.map.dispose(); KM.bord.map = canvasTex((g, w, h) => thema.bord(g, w, h), 768, 500); KM.bord.needsUpdate = true;
-  scene.fog.color.set(thema.mist); tekenLucht(); sneeuw.visible = !!thema.sneeuw;
+  scene.fog.color.set(thema.mist); tekenLucht(); sneeuw.visible = !!thema.sneeuw || !!thema.vonken;
+  sneeuw.material.color.set(thema.vonken ? '#ff9a2a' : '#ffffff'); sneeuw.userData.op = !!thema.vonken;
 }
 // vallende sneeuw (Winternacht)
 const sneeuw = (() => {
@@ -312,8 +335,8 @@ const sneeuw = (() => {
 })();
 function sneeuwStap(dt) {
   if (!sneeuw.visible) return;
-  const a = sneeuw.geometry.attributes.position;
-  for (let i = 0; i < a.count; i++) { let y = a.getY(i) - dt * (0.5 + (i % 7) * 0.08); if (y < -2) y += 10; a.setY(i, y); a.setX(i, a.getX(i) + Math.sin(t + i) * dt * 0.1); }
+  const a = sneeuw.geometry.attributes.position, op = sneeuw.userData.op ? -1.4 : 1; // vonken gaan omhoog
+  for (let i = 0; i < a.count; i++) { let y = a.getY(i) - dt * (0.5 + (i % 7) * 0.08) * op; if (y < -2) y += 10; if (y > 8) y -= 10; a.setY(i, y); a.setX(i, a.getX(i) + Math.sin(t + i) * dt * 0.1); }
   a.needsUpdate = true;
 }
 
@@ -405,7 +428,7 @@ function nieuwKoekje(code, x, y, z, q) {
   koekjes.push(k); return k;
 }
 function weg(k) { world.removeBody(k.body); scene.remove(k.mesh); koekjes.splice(koekjes.indexOf(k), 1); }
-function randCookie() { const r = Math.random(); return r < 0.04 ? 3 : r < 0.24 ? 2 : r < 0.44 ? 1 : 0; }
+function randCookie() { const r = Math.random(); return r < (themaId == 'draak' && modus == 'vrij' ? 0.1 : 0.04) ? 3 : r < 0.24 ? 2 : r < 0.44 ? 1 : 0; }
 
 // ---------- toestand ----------
 let modus = 'menu', vrij = null, wedBest = 0, stilT = 0; // menu, vrij, wedstrijd of einde
@@ -467,7 +490,7 @@ function laatVallen(x, gratis, vast) {
   if (vast != null) {}
   else if (goldQ > 0 && !gratis) { goldQ--; code = 3; }
   else if (rozeQ > 0 && !gratis) { rozeQ--; code = 5; }
-  else if (!gratis && modus == 'vrij' && eigen.length && Math.random() < ITEM_KANS) code = eigen[Math.floor(Math.random() * eigen.length)];
+  else if (!gratis && modus == 'vrij' && eigen.length && Math.random() < (themaId == 'draak' ? ITEM_KANS_DRAAK : ITEM_KANS)) code = eigen[Math.floor(Math.random() * eigen.length)];
   else if (!gratis && Math.random() < 1 / 18) { const nog = found.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0); code = 20 + (nog.length && Math.random() < 0.5 ? nog[Math.floor(Math.random() * nog.length)] : Math.floor(Math.random() * 8)); }
   else if (!gratis && Math.random() < 1 / 13) code = 10 + Math.floor(Math.random() * 5);
   const k = nieuwKoekje(code, x, VAL_Y, VAL_Z + Math.random() * 0.1);
@@ -502,7 +525,7 @@ function gewonnen(k) {
     const i = c - 10; coll[i]++; score += 25; sPrize(); pop(TREATS[i].n + '!', p.x, p.y - 20, 'goud'); verdien(1, p.x, p.y - 50);
     if (coll[i] == 3) pop(TREATS[i].p + ' klaar!', innerWidth / 2, innerHeight - 110, 'goud');
   } else {
-    const v = (c == 3 ? 10 : c == 4 || c == 7 ? 5 : c == 6 ? 4 : c == 5 ? 3 : 1) * (wiebelT > 0 ? 2 : 1); score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
+    const v = (c == 3 ? 10 : c == 4 || c == 7 ? 5 : c == 6 ? 4 : c == 5 ? 3 : 1) * (wiebelT > 0 ? 2 : 1) * (driesT > 0 ? 3 : 1); score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
   }
   checkBadges(); tekenHud(true);
 }
@@ -616,7 +639,7 @@ function maakKrab() {
   return grp;
 }
 // kwal: de tafel wordt even glibberig (minder wrijving, en de tafel glimt blauwig)
-let vriesT = 0, glibberT = 0, wiebelT = 0, camBasis = null;
+let driesT = 0, laagT = 0, vriesT = 0, glibberT = 0, wiebelT = 0, camBasis = null;
 function glibber(sec) {
   glibberT = sec; const aan = sec > 0;
   cmTafel.friction = aan ? 0.04 : WRIJF.tafel; cmKoek.friction = aan ? 0.05 : WRIJF.koek;
@@ -814,6 +837,163 @@ function sleeRit() {
   } });
 }
 
+// bakkerij: taart, deegroller en muisje
+function maakTaart() {
+  const grp = new THREE.Group();
+  const onder = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.22, 24), mat('#fff4e0')); onder.position.y = -0.1; grp.add(onder);
+  const glazuur = new THREE.Mesh(new THREE.CylinderGeometry(0.39, 0.39, 0.06, 24), mat('#ff8ac0')); glazuur.position.y = 0.03; grp.add(glazuur);
+  for (let i = 0; i < 3; i++) { const a = i * 2.1, k = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.14, 6), mat(['#5ab8ff', '#ffd84a', '#8aff7a'][i])); k.position.set(Math.cos(a) * 0.16, 0.13, Math.sin(a) * 0.16); grp.add(k);
+    const vlam = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffb030' })); vlam.scale.y = 1.6; vlam.position.set(Math.cos(a) * 0.16, 0.23, Math.sin(a) * 0.16); grp.add(vlam); }
+  for (let i = 0; i < 10; i++) { const a = i * 0.63, b = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), mat('#ffffff')); b.position.set(Math.cos(a) * 0.34, 0.07, Math.sin(a) * 0.34); grp.add(b); }
+  return grp;
+}
+function maakDeegroller() {
+  const grp = new THREE.Group(), hout = mat('#d8a868', { roughness: 0.7 });
+  const rol = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.5, 14), hout); rol.rotation.z = Math.PI / 2; grp.add(rol);
+  for (const s of [-1, 1]) { const h = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.14, 8), mat('#a8743a')); h.rotation.z = Math.PI / 2; h.position.x = s * 0.32; grp.add(h); }
+  return grp;
+}
+function maakMuis() {
+  const grp = new THREE.Group(), grijs = mat('#9a9aa6'), roze = mat('#ffa0b8'), zwart = new THREE.MeshBasicMaterial({ color: '#111' });
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), grijs); lijf.scale.set(1.5, 0.8, 0.9); grp.add(lijf);
+  const kop = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.16, 10), grijs); kop.rotation.z = -Math.PI / 2; kop.position.set(0.24, 0.02, 0); grp.add(kop);
+  for (const sz of [-1, 1]) { const oor = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), roze); oor.scale.z = 0.3; oor.position.set(0.18, 0.1, sz * 0.06); oor.rotation.y = Math.PI / 2; grp.add(oor); const o = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 5), zwart); o.position.set(0.26, 0.06, sz * 0.035); grp.add(o); }
+  const neus = new THREE.Mesh(new THREE.SphereGeometry(0.015, 6, 5), roze); neus.position.set(0.32, 0.02, 0); grp.add(neus);
+  const staart = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.01, 5, 12, Math.PI), roze); staart.position.set(-0.27, 0.02, 0); staart.rotation.x = Math.PI / 2; grp.add(staart);
+  return grp;
+}
+// iets groots rolt van achter naar voren over de hele tafelbreedte (deegroller)
+function rolOver(m, schaal) {
+  m.scale.setScalar(schaal); scene.add(m);
+  effecten.push({ stap: (t) => {
+    const z = -1.8 + t * 1.8; m.position.set(0, 0.25, z); m.rotation.x = -t * 6;
+    for (const c of koekjes) { const p = c.body.position; if (Math.abs(p.z - z) < 0.45 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 2.6); } }
+    if (t > 2.8) { scene.remove(m); return false; }
+  } });
+}
+// muisje: rent over de tafel, pikt 3 koekjes en laat munten achter
+function muisRoof() {
+  const m = maakMuis(); m.scale.setScalar(1.6); scene.add(m);
+  const prooi = koekjes.filter((k) => k.code < 10 && !k.geteld && k.body.position.y > -0.2 && k.body.position.z > 0.5).sort(() => Math.random() - 0.5).slice(0, 3);
+  let n = 0; setTimeout(() => verdien(5, innerWidth / 2, innerHeight * 0.35), 1800);
+  effecten.push({ stap: (t, dt) => {
+    const x = -HB - 0.6 + t * (2 * HB + 1.2) / 2.4; m.position.set(x, 0.32, 1.5 + Math.sin(t * 7) * 0.3); m.rotation.y = 0;
+    while (n < prooi.length && x > prooi[n].body.position.x) { const k = prooi[n++]; if (koekjes.includes(k)) { weg(k); snd(1600, 0.05, 'square', 0.03, 2200); } }
+    if (Math.floor(t * 8) != Math.floor((t - dt) * 8)) snd(3000, 0.02, 'square', 0.015);
+    if (t > 2.4) { scene.remove(m); return false; }
+  } });
+}
+
+// ruimte: ufo, meteoriet en alien
+function maakUfo() {
+  const grp = new THREE.Group();
+  const schotel = new THREE.Mesh(new THREE.SphereGeometry(0.38, 24, 10), sieraad('#c8d0dc', { roughness: 0.25 })); schotel.scale.y = 0.25; grp.add(schotel);
+  const koepel = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: '#7ae8ff', transparent: true, opacity: 0.7, emissive: '#1a4a5a' })); koepel.position.y = 0.06; grp.add(koepel);
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, l = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), new THREE.MeshBasicMaterial({ color: ['#ff5a5a', '#ffd84a', '#5aff8a'][i % 3] })); l.position.set(Math.cos(a) * 0.33, -0.02, Math.sin(a) * 0.33); grp.add(l); }
+  return grp;
+}
+function maakMeteoriet() {
+  const g = new THREE.IcosahedronGeometry(0.3, 1), pos = g.attributes.position;
+  for (let i = 0; i < pos.count; i++) { const f = 0.82 + Math.sin(pos.getX(i) * 19 + pos.getY(i) * 7) * 0.12; pos.setXYZ(i, pos.getX(i) * f, pos.getY(i) * f, pos.getZ(i) * f); }
+  g.computeVertexNormals();
+  return new THREE.Mesh(g, mat('#5a4a44', { roughness: 0.95, flatShading: true, emissive: '#3a0a00' }));
+}
+function maakAlien() {
+  const grp = new THREE.Group(), groen = mat('#7aff6a', { roughness: 0.5 }), zwart = mat('#0a0a10', { roughness: 0.1 });
+  const lijf = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.14, 4, 10), groen); lijf.position.y = -0.12; grp.add(lijf);
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 12), groen); kop.scale.set(1, 1.15, 0.9); kop.position.y = 0.12; grp.add(kop);
+  for (const sx of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), zwart); o.scale.set(1, 0.6, 0.5); o.rotation.z = sx * 0.4; o.position.set(sx * 0.07, 0.14, 0.13); grp.add(o);
+    const spriet = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.12, 5), groen); spriet.position.set(sx * 0.06, 0.33, 0); spriet.rotation.z = -sx * 0.3; grp.add(spriet);
+    const bol = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffef5a' })); bol.position.set(sx * 0.08, 0.39, 0); grp.add(bol); }
+  return grp;
+}
+// ufo: zweeft boven de tafel en straalt 3 koekjes op naar de opvangbak
+function ufoStraal() {
+  const u = maakUfo(); u.scale.setScalar(2); scene.add(u);
+  const straal = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.6, 2, 16, 1, true), new THREE.MeshBasicMaterial({ color: '#9aff9a', transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false })); scene.add(straal);
+  const prooi = koekjes.filter((k) => !k.geteld && k.body.position.y > -0.2 && k.code < 100).sort((a, b) => a.body.position.z - b.body.position.z).slice(0, 3);
+  effecten.push({ stap: (t) => {
+    const x = Math.sin(t * 1.4) * 0.8; u.position.set(x, 2.2, 1); u.rotation.y = t * 3; straal.position.set(x, 1.1, 1); straal.visible = t > 0.4 && t < 2.6;
+    if (t > 0.5 && t < 2.5) { const f = (t - 0.5) / 2; prooi.forEach((k, i) => { if (!koekjes.includes(k)) return; const b = k.body; b.velocity.set(0, 0, 0); b.angularVelocity.set(0, 3, 0); b.position.set(b.position.x + (x - b.position.x) * 0.05, Math.min(1.9, b.position.y + 0.04), b.position.z + (1 - b.position.z) * 0.05); }); }
+    if (t > 2.5 && !u.userData.klaar) { u.userData.klaar = true; prooi.forEach((k, i) => { if (koekjes.includes(k)) { k.body.position.set(-0.6 + i * 0.6, 0.4, VOOR + 0.5); k.body.velocity.set(0, -2, 0); } }); snd(1200, 0.4, 'sine', 0.05, 300); }
+    if (t > 3) { scene.remove(u); scene.remove(straal); return false; }
+  } });
+  snd(400, 1.5, 'sine', 0.03, 1600);
+}
+// meteoriet: een vuurbal slaat in midden op de tafel
+function inslag() {
+  const m = maakMeteoriet(); m.scale.setScalar(1.8); scene.add(m);
+  const vuur = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 10), new THREE.MeshBasicMaterial({ color: '#ff8a1a', transparent: true, opacity: 0.6 })); scene.add(vuur);
+  const doel = new THREE.Vector3((Math.random() - 0.5) * HB, 0.2, 1.4); let geknald = false;
+  effecten.push({ stap: (t) => {
+    const f = Math.min(1, t / 0.9); m.position.set(doel.x + (1 - f) * 3, doel.y + (1 - f) * 6, doel.z - (1 - f) * 2); m.rotation.x += 0.2; vuur.position.copy(m.position); vuur.scale.setScalar(geknald ? 1 + (t - 0.9) * 6 : 0.8); vuur.material.opacity = geknald ? Math.max(0, 0.7 - (t - 0.9) * 1.2) : 0.6;
+    if (f >= 1 && !geknald) { geknald = true; scene.remove(m); ruisKnal(); snd(60, 0.8, 'sawtooth', 0.1, 30);
+      for (const c of koekjes) { const p = c.body.position, dx = p.x - doel.x, dz = p.z - doel.z, d = Math.hypot(dx, dz) + 0.3; if (d < 2.5 && p.y > -0.3) { c.body.wakeUp(); c.body.velocity.x += dx / d * 3; c.body.velocity.z += dz / d * 3 + 1.5; c.body.velocity.y += 4 / d; } } }
+    if (t > 1.6) { scene.remove(vuur); return false; }
+  } });
+}
+
+// drakenburcht (25.000 munten): drakenei, draak, schatkist en toverkristal
+function maakDrakenei() {
+  const grp = new THREE.Group();
+  const ei = new THREE.Mesh(new THREE.SphereGeometry(0.2, 18, 14), new THREE.MeshStandardMaterial({ color: '#3a8a4a', roughness: 0.35, metalness: 0.3, envMap: glans(), emissive: '#0a2a10' })); ei.scale.set(1, 1.35, 1); grp.add(ei);
+  for (let i = 0; i < 12; i++) { const a = i * 2.4, y = -0.18 + (i % 6) * 0.07, v = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 5), sieraad('#ffd24a')); v.position.set(Math.cos(a) * 0.19 * Math.cos(y * 2), y, Math.sin(a) * 0.19 * Math.cos(y * 2)); grp.add(v); }
+  return grp;
+}
+function maakDraakje(groot) {
+  const grp = new THREE.Group(), rood = mat('#c8281a', { roughness: 0.45, emissive: '#2a0400' }), goudM = sieraad('#ffcc3a'), zwart = new THREE.MeshBasicMaterial({ color: '#ffef5a' });
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10), rood); lijf.scale.set(1.5, 0.9, 0.9); grp.add(lijf);
+  const nek = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 0.2, 8), rood); nek.position.set(0.2, 0.12, 0); nek.rotation.z = -0.8; grp.add(nek);
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), rood); kop.scale.set(1.5, 0.9, 1); kop.position.set(0.3, 0.2, 0); grp.add(kop);
+  for (const sz of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.015, 6, 5), zwart); o.position.set(0.34, 0.24, sz * 0.05); grp.add(o);
+    const hoorn = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.09, 6), goudM); hoorn.position.set(0.27, 0.29, sz * 0.04); hoorn.rotation.z = 0.5; grp.add(hoorn);
+    const vleugel = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.04, 3), rood); vleugel.scale.set(1.4, 1, 1); vleugel.position.set(-0.02, 0.14, sz * 0.18); vleugel.rotation.set(sz * 0.6, 0, 0); vleugel.name = 'vleugel'; grp.add(vleugel); }
+  const staart = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.32, 8), rood); staart.position.set(-0.3, 0, 0); staart.rotation.z = Math.PI / 2 + 0.2; grp.add(staart);
+  return grp;
+}
+function maakSchatkist() {
+  const grp = new THREE.Group(), hout = mat('#7a4a22', { roughness: 0.7 }), goudM = sieraad('#ffcc3a');
+  const bak = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.26, 0.34), hout); bak.position.y = -0.06; grp.add(bak);
+  const deksel = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.5, 14, 1, false, 0, Math.PI), hout); deksel.rotation.z = Math.PI / 2; deksel.rotation.y = Math.PI / 2; deksel.position.y = 0.07; grp.add(deksel);
+  for (const x of [-0.18, 0.18]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.28, 0.36), goudM); b.position.set(x, -0.05, 0); grp.add(b); }
+  const slot = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.04), goudM); slot.position.set(0, 0.04, 0.18); grp.add(slot);
+  return grp;
+}
+function maakKristal() {
+  const m = new THREE.MeshStandardMaterial({ color: '#c06aff', metalness: 0.3, roughness: 0.05, envMap: glans(), emissive: '#3a0a5a', flatShading: true, transparent: true, opacity: 0.9 });
+  const grp = new THREE.Group(); const k = new THREE.Mesh(new THREE.OctahedronGeometry(0.18), m); k.scale.y = 1.6; grp.add(k);
+  for (const [x, z, s] of [[0.12, 0.05, 0.5], [-0.1, -0.06, 0.6]]) { const kk = new THREE.Mesh(new THREE.OctahedronGeometry(0.18 * s), m); kk.scale.y = 1.6; kk.position.set(x, -0.1, z); kk.rotation.z = x * 3; grp.add(kk); }
+  return grp;
+}
+// babydraakje: fladdert over de tafel en laat 6 gouden koekjes vallen
+function babyDraak() {
+  const d = maakDraakje(); d.scale.setScalar(1.5); scene.add(d); let n = 0;
+  const plekken = [-0.8, -0.5, -0.2, 0.2, 0.5, 0.8].map((f) => f * (HB - 0.6));
+  effecten.push({ stap: (t) => {
+    const x = -HB - 1 + t * (2 * HB + 2) / 2.6; d.position.set(x, 1.8 + Math.sin(t * 8) * 0.12, VAL_Z + 0.2);
+    d.children.filter((c) => c.name == 'vleugel').forEach((v, i) => { v.rotation.x = (i ? 1 : -1) * (0.6 + Math.sin(t * 25) * 0.5); });
+    while (n < plekken.length && x > plekken[n]) laatVallen(plekken[n++], true, 3);
+    if (t > 2.6) { scene.remove(d); return false; }
+  } });
+  snd(1400, 0.2, 'square', 0.03, 2000);
+}
+// grote draak: vliegt over de tafel, spuwt vuur en alle gewone koekjes worden goud
+function drakenvuur() {
+  const d = maakDraakje(); d.scale.setScalar(4.5); d.rotation.y = -Math.PI / 2; scene.add(d);
+  const vuur = [], vm = new THREE.MeshBasicMaterial({ color: '#ff7a1a', transparent: true, opacity: 0.8, depthWrite: false });
+  let goud = false;
+  effecten.push({ stap: (t, dt) => {
+    const z = -3 + t * 2.4; d.position.set(Math.sin(t * 1.5) * 0.6, 3.2, z);
+    d.children.filter((c) => c.name == 'vleugel').forEach((v, i) => { v.rotation.x = (i ? 1 : -1) * (0.6 + Math.sin(t * 9) * 0.6); });
+    if (t > 0.6 && t < 2.4 && Math.random() < 0.7) { const v = new THREE.Mesh(new THREE.SphereGeometry(0.12 + Math.random() * 0.15, 8, 6), vm); v.position.set(d.position.x, 2.6, z + 1.2); v.userData.v = new THREE.Vector3((Math.random() - 0.5) * 1.5, -4 - Math.random() * 2, 1 + Math.random()); scene.add(v); vuur.push(v); }
+    for (const v of [...vuur]) { v.position.addScaledVector(v.userData.v, dt); v.scale.multiplyScalar(1 + dt * 1.5); if (v.position.y < 0.1) { scene.remove(v); vuur.splice(vuur.indexOf(v), 1); } }
+    if (Math.random() < 0.3) ruisKnal();
+    if (!goud && t > 1.5) { goud = true; let n = 0; for (const k of koekjes) if (k.code <= 2 && !k.geteld) { k.code = 3; k.mesh.material = materialen(3)[1]; n++; } roep(n + ' koekjes van goud!'); sBadge(); }
+    if (t > 3.2) { scene.remove(d); vuur.forEach((v) => scene.remove(v)); return false; }
+  } });
+  snd(80, 2, 'sawtooth', 0.06, 50);
+}
+
 // figuren springen na het winnen uit de bak omhoog (het likkoekje extra groot, recht naar je toe)
 const springers = [];
 function tekenSpringers(dt) {
@@ -959,7 +1139,7 @@ function speel() { modus = 'vrij'; document.body.classList.remove('inmenu'); $('
 function startWedstrijd() {
   if (modus == 'vrij' || modus == 'menu') bewaar(); // je eigen tafel staat veilig in de opslag
   for (const k of [...koekjes]) weg(k);
-  supply = 50; score = 0; coll = [0, 0, 0, 0, 0]; goldQ = rainQ = rozeQ = 0; glibber(0); vries(0); zetMuurtjes(false); wallT = 0; stilT = 0;
+  supply = 50; score = 0; coll = [0, 0, 0, 0, 0]; goldQ = rainQ = rozeQ = 0; glibber(0); vries(0); driesT = 0; laagT = 0; world.gravity.set(0, -22, 0); zetMuurtjes(false); wallT = 0; stilT = 0;
   vulTafel(); modus = 'wedstrijd'; document.body.classList.remove('inmenu'); $('menu').hidden = true; $('einde').hidden = true; $('wedlabel').hidden = false; document.body.classList.add('wed');
   tekenHud(true); pasAan(); roep('Wedstrijd!');
 }
@@ -970,7 +1150,7 @@ function eindeWedstrijd() {
   $('eindstatus').textContent = ''; autoInsturen((tekst) => { $('eindstatus').textContent = tekst; });
   $('einde').hidden = false; if (nieuw) sBadge(); else sPrize();
 }
-function terugNaarVrij() { for (const k of [...koekjes]) weg(k); goldQ = rainQ = rozeQ = 0; glibber(0); vries(0); zetMuurtjes(false); wallT = 0; if (!laad()) vulTafel(); $('wedlabel').hidden = true; document.body.classList.remove('wed'); tekenHud(true); }
+function terugNaarVrij() { for (const k of [...koekjes]) weg(k); goldQ = rainQ = rozeQ = 0; glibber(0); vries(0); driesT = 0; laagT = 0; world.gravity.set(0, -22, 0); zetMuurtjes(false); wallT = 0; if (!laad()) vulTafel(); $('wedlabel').hidden = true; document.body.classList.remove('wed'); tekenHud(true); }
 $('mvrij').onclick = () => { unlock(); speel(); };
 $('mwed').onclick = () => { unlock(); startWedstrijd(); };
 $('mbord').onclick = () => { unlock(); $('bordknop').onclick(); };
@@ -1015,6 +1195,8 @@ function stap(dt) {
   if (wallT > 0 && (wallT -= dt) <= 0) zetMuurtjes(false);
   if (glibberT > 0 && (glibberT -= dt) <= 0) glibber(0);
   if (vriesT > 0 && (vriesT -= dt) <= 0) vries(0);
+  if (driesT > 0) driesT -= dt;
+  if (laagT > 0 && (laagT -= dt) <= 0) { world.gravity.set(0, -22, 0); for (const c of koekjes) c.body.wakeUp(); }
   if (wiebelT > 0 && (wiebelT -= dt) <= 0) { wiebelT = 0; pasAan(); }
   if (modus != 'wedstrijd' && supply < REGEN_MAX) { if ((regen += dt) >= REGEN) { regen = 0; supply++; tekenHud(); } } else regen = 0;
   if (modus != 'wedstrijd' && score > best) best = score;
