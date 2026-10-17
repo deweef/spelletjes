@@ -92,7 +92,8 @@ hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde bl
 winternacht met sneeuw, ruimte), elk met lucht, kastkleuren, tafeltint (`tafel`), lampjes (`lamp`) en een plaatje op de
 achterwand (`zetThema`). Gewonnen koekjes vallen in een opvangbak (`BAK`, met natuurkunde) en verdwijnen na 2,5 s.
 Hoofdscherm (`#menu`, `modus`: menu/vrij/wedstrijd/einde): Verder met je tafel (vrij spelen), Wedstrijd, Scorebord,
-Winkel, Badges en je tafels (alleen de gekochte, `tekenMenu`). De natuurkunde staat stil in het menu. De terugknop gaat
+Winkel, Badges en je tafels (alleen de gekochte, `tekenMenu`). De natuurkunde staat stil in het menu. Natuurkunde in vaste stapjes van 1/60 s (`tijdOver`), zodat het op elk apparaat
+gelijk werkt. Spraak (Likkie-likkie, ook in 2D) wordt bij de eerste tik gewekt (`stemWakker`, `nlStem`). De terugknop gaat
 altijd eerst naar het hoofdscherm, vanuit het hoofdscherm naar alle spellen. "Nieuwe tafel" (bij de badges) wist alleen
 tafel, punten en gebakjes. Wedstrijd (`startWedstrijd`): nieuwe volle tafel, 50 koekjes, geen aanvulling en geen koekjes
 terug bij winst; klaar als de koekjes op zijn en er 7 s niets valt (25 s als er nog een Koekjesregen/Bakplaat klaarstaat).

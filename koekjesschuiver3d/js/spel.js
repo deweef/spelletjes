@@ -39,7 +39,12 @@ const dikte = (c) => (c < 10 ? KH : c == 13 ? 0.24 : c < 20 ? 0.2 : 0.16);
 
 // ---------- geluid ----------
 let ac = null;
-function unlock() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state != 'running') ac.resume(); } catch (e) {} }
+function unlock() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state != 'running') ac.resume(); } catch (e) {} stemWakker(); }
+// spraak: telefoons laten pas praten als de stem een keer tijdens een tik is 'gewekt' (stil zinnetje), en Nederlandse stemmen laden later
+let stemOk = false, nlStem = null;
+function zoekStem() { try { nlStem = speechSynthesis.getVoices().find((v) => v.lang && v.lang.replace('_', '-').toLowerCase().startsWith('nl')) || nlStem; } catch (e) {} }
+try { zoekStem(); speechSynthesis.addEventListener('voiceschanged', zoekStem); } catch (e) {}
+function stemWakker() { if (stemOk) return; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); stemOk = true; zoekStem(); } catch (e) {} }
 ['pointerdown', 'keydown'].forEach((t) => document.addEventListener(t, unlock, { passive: true }));
 function snd(f, d, type = 'sine', v = 0.08, slide = 0, delay = 0) {
   if (!ac) return;
@@ -57,7 +62,7 @@ const sBadge = () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => sn
 const sTik = (v) => snd(500 + Math.random() * 300, 0.05, 'triangle', Math.min(0.05, v), 260);
 function likkie() {
   setTimeout(() => [880, 1175, 880, 1175].forEach((f, i) => snd(f, 0.1, 'triangle', 0.05, 0, i * 0.09)), 300);
-  try { const u = new SpeechSynthesisUtterance('Likkie-likkie!'); u.lang = 'nl-NL'; u.pitch = 1.9; u.rate = 1.15; const v = speechSynthesis.getVoices().find((v) => v.lang && v.lang.startsWith('nl')); if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {}
+  try { const u = new SpeechSynthesisUtterance('Likkie-likkie!'); u.lang = 'nl-NL'; u.pitch = 1.9; u.rate = 1.15; u.volume = 1; zoekStem(); if (nlStem) u.voice = nlStem; if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel(); speechSynthesis.resume(); setTimeout(() => speechSynthesis.speak(u), 60); } catch (e) {}
 }
 
 // ---------- 3D-weergave ----------
@@ -629,7 +634,7 @@ zetThema(TEGEL ? 'bakkerij' : themaId);
 tekenHud(true); pasAan();
 if (!TEGEL) naarMenu();
 $('laden').hidden = true;
-let vorige = performance.now(), bewaarT = 0, regenT = 0, omvalT = 0;
+let tijdOver = 0, vorige = performance.now(), bewaarT = 0, regenT = 0, omvalT = 0;
 function stap(dt) {
   t += dt;
   // schuif heen en weer (kinematisch: met snelheid, zodat koekjes echt geduwd worden)
@@ -669,7 +674,9 @@ function stap(dt) {
 function lus(nu) {
   requestAnimationFrame(lus);
   const echt = Math.min(0.05, (nu - vorige) / 1000); vorige = nu;
-  if (spelen() || TEGEL) stap(Math.max(1 / 120, echt));
+  // natuurkunde in vaste stapjes van 1/60 seconde, zodat het op elke telefoon en pc precies hetzelfde werkt
+  // (een trage telefoon doet een paar stapjes per beeld; is hij nog trager, dan loopt het spel wat langzamer)
+  if (spelen() || TEGEL) { tijdOver = Math.min(tijdOver + echt, 4 / 60); while (tijdOver >= 1 / 60) { stap(1 / 60); tijdOver -= 1 / 60; } }
   for (const k of koekjes) { k.mesh.position.copy(k.body.position); k.mesh.quaternion.copy(k.body.quaternion); }
   kast.schuif.position.set(0, SCHUIF.hoog / 2, schuifBody.position.z);
   spook.position.set(mikX, VAL_Y, VAL_Z); spook.rotation.y = nu / 600; spook.visible = supply > 0;
@@ -678,4 +685,4 @@ function lus(nu) {
   renderer.render(scene, camera);
 }
 requestAnimationFrame(lus);
-window.__test = { world, get koekjes() { return koekjes; }, laatVallen, gebruikKracht, stap, autoInsturen, naarMenu, startWedstrijd, eindeWedstrijd, speel, get modus() { return modus; }, get toestand() { return { wedBest, muntenTotaal, ingestuurd, best, weggevallen, supply, score, coll, found, badges, wonTotal, munten, gekocht, themaId }; }, zetMunten: (n) => { munten = n; tekenHud(); }, zetFound: (f) => { found = f; }, zetColl: (c) => { coll = c; tekenHud(true); } };
+window.__test = { likkie, world, get koekjes() { return koekjes; }, laatVallen, gebruikKracht, stap, autoInsturen, naarMenu, startWedstrijd, eindeWedstrijd, speel, get modus() { return modus; }, get toestand() { return { wedBest, muntenTotaal, ingestuurd, best, weggevallen, supply, score, coll, found, badges, wonTotal, munten, gekocht, themaId }; }, zetMunten: (n) => { munten = n; tekenHud(); }, zetFound: (f) => { found = f; }, zetColl: (c) => { coll = c; tekenHud(true); } };

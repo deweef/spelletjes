@@ -36,7 +36,11 @@ function fit(){const s=Math.min(innerWidth/W,innerHeight/H);cv.style.width=W*s+'
 addEventListener('resize',fit);fit();
 
 // ---------- geluid ----------
-let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!='running')ac.resume();if(!ac._ok){const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);ac._ok=1}}catch(e){}}
+// spraak: telefoons laten pas praten als de stem een keer tijdens een tik is 'gewekt', en Nederlandse stemmen laden later
+let stemOk=false,nlStem=null;function zoekStem(){try{nlStem=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.replace('_','-').toLowerCase().startsWith('nl'))||nlStem;}catch(e){}}
+try{zoekStem();speechSynthesis.addEventListener('voiceschanged',zoekStem);}catch(e){}
+function stemWakker(){if(stemOk)return;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);stemOk=true;zoekStem();}catch(e){}}
+let ac=null;function unlock(){stemWakker();try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!='running')ac.resume();if(!ac._ok){const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);ac._ok=1}}catch(e){}}
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,unlock,{passive:true}));
 // geen inzoomen bij dubbeltikken
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
@@ -192,7 +196,7 @@ function checkBadges(){const has=id=>badges.includes(id);const add=id=>{if(has(i
  if(coll.some(c=>c>=3)||powersUsed.length)add('set');if(powersUsed.length>=5)add('krachten');if(found.every(Boolean))add('meester')}
 // het likkoekje roept het hardop, met een hoog stemmetje
 function likkie(){setTimeout(()=>[880,1175,880,1175].forEach((f,i)=>snd(f,.1,'triangle',.05,0,i*.09)),300);
- try{const u=new SpeechSynthesisUtterance('Likkie-likkie!');u.lang='nl-NL';u.pitch=1.9;u.rate=1.15;const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.startsWith('nl'));if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+ try{const u=new SpeechSynthesisUtterance('Likkie-likkie!');u.lang='nl-NL';u.pitch=1.9;u.rate=1.15;u.volume=1;zoekStem();if(nlStem)u.voice=nlStem;if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();speechSynthesis.resume();setTimeout(()=>speechSynthesis.speak(u),60);}catch(e){}}
 const sRoep=()=>[392,523,392,659,784].forEach((f,i)=>snd(f,.16,'square',.04,0,i*.11));
 const sBadge=()=>[523,659,784,1047,784,1047,1319].forEach((f,i)=>snd(f,.2,'triangle',.06,0,i*.08));
 addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
