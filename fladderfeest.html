@@ -66,11 +66,11 @@ function scorebordScherm() {
     tekst(lbl, kx + kw / 2, ky + 14, 11, '#fff', 'center', null);
     knoppen.push({ x: kx, y: ky, w: kw, h: 30, doe: () => { bordTab = id; sClick(); } });
   });
-  for (const [k, lbl, aan] of [[0, 'Gewoon', !streken], [1, 'Met streken', streken]]) {
+  for (const [k, lbl, val] of [[0, 'Met streken', true], [1, 'Gewoon', false]]) { const aan = streken == val;
     const bx = 14 + k * ((W - 28) / 2), bw = (W - 28) / 2 - 4;
-    ctx.fillStyle = aan ? (k ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.18)'; rrect(bx, 148, bw, 26, 8); ctx.fill();
+    ctx.fillStyle = aan ? (val ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.18)'; rrect(bx, 148, bw, 26, 8); ctx.fill();
     tekst(lbl, bx + bw / 2, 161, 12, '#fff', 'center', null);
-    knoppen.push({ x: bx, y: 146, w: bw, h: 30, doe: () => { streken = !!k; try { localStorage.setItem('fladderfeest_streken', streken ? '1' : '0'); } catch (e) {} } });
+    knoppen.push({ x: bx, y: 146, w: bw, h: 30, doe: () => { streken = val; try { localStorage.setItem('fladderfeest_streken', streken ? '1' : '0'); } catch (e) {} } });
   }
   const lijst = bord && bord[bordTab + '_' + (streken ? 'streken' : 'gewoon')];
   ctx.fillStyle = 'rgba(255,248,230,.95)'; rrect(20, 186, W - 40, 350, 16); ctx.fill();
@@ -88,7 +88,7 @@ function scorebordScherm() {
 }
 
 // Gewoon of Met streken (elk dier een eigen pesterij); records apart per modus
-let streken = false; try { streken = localStorage.getItem('fladderfeest_streken') == '1'; } catch (e) {}
+let streken = true; try { streken = localStorage.getItem('fladderfeest_streken') != '0'; } catch (e) {} // standaard met streken
 const sleutel = (f, m = streken) => 'fladderfeest_' + f + (m ? '_streken' : '') + (speler ? ':' + speler : '');
 function record(f, m = streken) { try { return +localStorage.getItem(sleutel(f, m)) || 0; } catch (e) { return 0; } }
 function zetRecord(f, n) { try { localStorage.setItem(sleutel(f), n); } catch (e) {} }
@@ -1635,12 +1635,12 @@ function menu() {
   tekst('Grote tocht', W / 2, 98, 20, '#fff', 'center', 'rgba(0,0,0,.3)');
   tekst(bt ? 'Beste tocht: ' + bt + ' punten' : 'Alle dieren achter elkaar', W / 2, 117, 12, '#fff8e0', 'center', null);
   knoppen.push({ x: 24, y: 82, w: W - 48, h: 46, doe: startTocht });
-  for (const [k, lbl, aan] of [[0, 'Gewoon', !streken], [1, 'Met streken', streken]]) {
+  for (const [k, lbl, val] of [[0, 'Met streken', true], [1, 'Gewoon', false]]) { const aan = streken == val;
     const bx = 24 + k * ((W - 48) / 2), bw = (W - 48) / 2;
-    ctx.fillStyle = aan ? (k ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.35)'; rrect(bx + (k ? 3 : 0), 136, bw - 3, 28, 10); ctx.fill();
+    ctx.fillStyle = aan ? (val ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.35)'; rrect(bx + (k ? 3 : 0), 136, bw - 3, 28, 10); ctx.fill();
     tekst(lbl, bx + bw / 2, 151, 14, '#fff', 'center', aan ? 'rgba(0,0,0,.25)' : null);
     knoppen.push({ x: bx, y: 134, w: bw, h: 32, doe: () => {
-      if (streken == !!k) return; streken = !!k; sClick();
+      if (streken == val) return; streken = val; sClick();
       try { localStorage.setItem('fladderfeest_streken', streken ? '1' : '0'); } catch (e) {}
       tekstje = streken ? 'Met streken: elk dier heeft een eigen pesterij!' : 'Gewoon: zonder streken.'; doodT = beeld;
     } });
