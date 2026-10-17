@@ -39,9 +39,10 @@ addEventListener('resize',fit);fit();
 // spraak: telefoons laten pas praten als de stem een keer tijdens een tik is 'gewekt', en Nederlandse stemmen laden later
 let stemOk=false,nlStem=null;function zoekStem(){try{nlStem=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.replace('_','-').toLowerCase().startsWith('nl'))||nlStem;}catch(e){}}
 try{zoekStem();speechSynthesis.addEventListener('voiceschanged',zoekStem);}catch(e){}
-function stemWakker(){if(stemOk)return;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);stemOk=true;zoekStem();}catch(e){}}
-let ac=null;function unlock(){stemWakker();try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!='running')ac.resume();if(!ac._ok){const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);ac._ok=1}}catch(e){}}
+function stemWakker(){if(stemOk)return;try{const u=window.stemU=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);stemOk=true;zoekStem();}catch(e){}}
+let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!='running')ac.resume();if(!ac._ok){const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);ac._ok=1}}catch(e){}}
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,unlock,{passive:true}));
+['touchend','click','keydown'].forEach(t=>document.addEventListener(t,stemWakker,{passive:true}));
 // geen inzoomen bij dubbeltikken
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
@@ -195,7 +196,7 @@ function checkBadges(){const has=id=>badges.includes(id);const add=id=>{if(has(i
  if(wonTotal>=1)add('eerste');if(wonTotal>=100)add('honderd');if(wonTotal>=500)add('vijfhonderd');if(goldWon>=5)add('goud');
  if(coll.some(c=>c>=3)||powersUsed.length)add('set');if(powersUsed.length>=5)add('krachten');if(found.every(Boolean))add('meester')}
 // het likkoekje roept het hardop, met een hoog stemmetje
-function likkie(){setTimeout(()=>[880,1175,880,1175].forEach((f,i)=>snd(f,.1,'triangle',.05,0,i*.09)),300);let gestart=false;try{const u=new SpeechSynthesisUtterance('Likkie-likkie!');u.lang='nl-NL';u.pitch=1.6;u.rate=1.1;u.volume=1;zoekStem();if(nlStem)u.voice=nlStem;u.onstart=()=>{gestart=true};if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();speechSynthesis.resume();setTimeout(()=>speechSynthesis.speak(u),60);}catch(e){}setTimeout(()=>{if(!gestart)nepStem()},1500)}
+function likkie(){setTimeout(()=>[880,1175,880,1175].forEach((f,i)=>snd(f,.1,'triangle',.05,0,i*.09)),300);let gestart=false;try{const u=window.stemU=new SpeechSynthesisUtterance('Likkie-likkie!');u.lang='nl-NL';u.pitch=1.6;u.rate=1.1;u.volume=1;zoekStem();if(nlStem)u.voice=nlStem;u.onstart=()=>{gestart=true};if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel();speechSynthesis.resume();setTimeout(()=>speechSynthesis.speak(u),60);}catch(e){}setTimeout(()=>{if(!gestart)nepStem()},1500)}
 // geen stem op dit toestel: een zelfgemaakt piepstemmetje 'lik-kie lik-kie'
 function nepStem(){if(!ac)return;try{[[0,'i',620],[.17,'ie',700],[.42,'i',640],[.59,'ie',760]].forEach(([d,kl,f0])=>{const n=ac.currentTime+d,o=ac.createOscillator(),bp=ac.createBiquadFilter(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f0,n);o.frequency.linearRampToValueAtTime(f0*(kl=='ie'?1.25:.95),n+.14);bp.type='bandpass';bp.frequency.value=2600;bp.Q.value=3;g.gain.setValueAtTime(.0001,n);g.gain.exponentialRampToValueAtTime(.25,n+.02);g.gain.exponentialRampToValueAtTime(.001,n+(kl=='ie'?.2:.11));o.connect(bp).connect(g).connect(ac.destination);o.start(n);o.stop(n+.25);const b=ac.createBuffer(1,ac.sampleRate*.03,ac.sampleRate),dd=b.getChannelData(0);for(let i=0;i<dd.length;i++)dd[i]=(Math.random()*2-1)*(1-i/dd.length);const src=ac.createBufferSource(),kg=ac.createGain();src.buffer=b;kg.gain.value=.2;src.connect(kg).connect(ac.destination);src.start(n+(kl=='ie'?-.02:.1))})}catch(e){}}
 const sRoep=()=>[392,523,392,659,784].forEach((f,i)=>snd(f,.16,'square',.04,0,i*.11));

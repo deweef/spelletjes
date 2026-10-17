@@ -91,13 +91,16 @@ const dikte = (c) => (c >= 100 ? item(c).h : c < 10 ? KH : c == 13 ? 0.24 : c < 
 
 // ---------- geluid ----------
 let ac = null;
-function unlock() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state != 'running') ac.resume(); } catch (e) {} stemWakker(); }
+function unlock() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state != 'running') ac.resume(); } catch (e) {} }
 // spraak: telefoons laten pas praten als de stem een keer tijdens een tik is 'gewekt' (stil zinnetje), en Nederlandse stemmen laden later
 let stemOk = false, nlStem = null;
 function zoekStem() { try { nlStem = speechSynthesis.getVoices().find((v) => v.lang && v.lang.replace('_', '-').toLowerCase().startsWith('nl')) || nlStem; } catch (e) {} }
 try { zoekStem(); speechSynthesis.addEventListener('voiceschanged', zoekStem); } catch (e) {}
-function stemWakker() { if (stemOk) return; try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); stemOk = true; zoekStem(); } catch (e) {} }
+let stemU = null; // vasthouden, anders ruimt de browser hem op voor hij praat
+function stemWakker() { if (stemOk) return; try { const u = stemU = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); stemOk = true; zoekStem(); } catch (e) {} }
 ['pointerdown', 'keydown'].forEach((t) => document.addEventListener(t, unlock, { passive: true }));
+// een iPhone laat de stem pas praten na een echte klik (loslaten), niet al bij het aanraken
+['click', 'touchend', 'keydown'].forEach((t) => document.addEventListener(t, stemWakker, { passive: true }));
 function snd(f, d, type = 'sine', v = 0.08, slide = 0, delay = 0) {
   if (!ac) return;
   try {
@@ -116,7 +119,7 @@ function likkie() {
   setTimeout(() => [880, 1175, 880, 1175].forEach((f, i) => snd(f, 0.1, 'triangle', 0.05, 0, i * 0.09)), 300);
   let gestart = false;
   try {
-    const u = new SpeechSynthesisUtterance('Likkie-likkie!'); u.lang = 'nl-NL'; u.pitch = 1.6; u.rate = 1.1; u.volume = 1; zoekStem(); if (nlStem) u.voice = nlStem;
+    const u = stemU = new SpeechSynthesisUtterance('Likkie-likkie!'); u.lang = 'nl-NL'; u.pitch = 1.6; u.rate = 1.1; u.volume = 1; zoekStem(); if (nlStem) u.voice = nlStem;
     u.onstart = () => { gestart = true; };
     if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel(); speechSynthesis.resume(); setTimeout(() => speechSynthesis.speak(u), 60);
   } catch (e) {}

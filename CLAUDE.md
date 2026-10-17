@@ -108,7 +108,7 @@ winternacht met sneeuw, ruimte), elk met lucht, kastkleuren, tafeltint (`tafel`)
 achterwand (`zetThema`). Gewonnen koekjes vallen in een opvangbak (`BAK`, met natuurkunde) en verdwijnen na 2,5 s.
 Hoofdscherm (`#menu`, `modus`: menu/vrij/wedstrijd/einde): Verder met je tafel (vrij spelen), Wedstrijd, Scorebord,
 Winkel, Badges en je tafels (alleen de gekochte, `tekenMenu`). De natuurkunde staat stil in het menu. Natuurkunde in vaste stapjes van 1/60 s (`tijdOver`), zodat het op elk apparaat
-gelijk werkt. Spraak (Likkie-likkie, ook in 2D) wordt bij de eerste tik gewekt (`stemWakker`, `nlStem`); start de stem niet binnen 1,5 s, dan piept een zelfgemaakt stemmetje (`nepStem`); testknop 🔊 in het badgescherm (`#stemtest`). De terugknop gaat
+gelijk werkt. Spraak (Likkie-likkie, ook in 2D) wordt gewekt bij de eerste klik of het loslaten van een tik (`stemWakker` op click/touchend, niet pointerdown: dat telt op een iPhone niet; `nlStem`); start de stem niet binnen 1,5 s, dan piept een zelfgemaakt stemmetje (`nepStem`); testknop 🔊 in het badgescherm (`#stemtest`). De terugknop gaat
 altijd eerst naar het hoofdscherm, vanuit het hoofdscherm naar alle spellen. "Nieuwe tafel" (bij de badges) wist alleen
 tafel, punten en gebakjes. Wedstrijd (`startWedstrijd`): nieuwe volle tafel, 50 koekjes, geen aanvulling en geen koekjes
 terug bij winst; klaar als de koekjes op zijn en er 7 s niets valt (25 s als er nog een Koekjesregen/Bakplaat klaarstaat).
