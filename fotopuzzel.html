@@ -31,6 +31,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 #aantallen button{min-width:58px;padding:8px 10px;border-radius:10px;border:1px solid var(--rand);background:rgba(255,255,255,.08);font-weight:700}
 #aantallen button.aan{background:var(--goud);color:#3a2a08;border-color:var(--goud)}
 #aantallen small{display:block;font-weight:500;font-size:10.5px;opacity:.8}
+.keuze{display:flex;gap:8px;justify-content:center}.keuze button{flex:1;max-width:220px;padding:9px 10px;border-radius:10px;border:1px solid var(--rand);background:rgba(255,255,255,.08);font-weight:700}
+.keuze button.aan{background:var(--goud);color:#3a2a08;border-color:var(--goud)}.keuze small{display:block;font-weight:500;font-size:11px;opacity:.85}
 .groot{display:block;width:100%;margin:8px 0;padding:11px;border-radius:12px;border:0;background:var(--goud);color:#3a2a08;font-weight:800;font-size:17px}
 .groot.stil{background:rgba(255,255,255,.12);color:var(--room)}
 label.vink{display:inline-flex;gap:8px;align-items:center;margin-top:10px;font-size:15px}
@@ -68,7 +70,8 @@ label.vink{display:inline-flex;gap:8px;align-items:center;margin-top:10px;font-s
     <input type="file" id="bestand" accept="image/*" hidden>
     <h3>Hoeveel stukjes?</h3>
     <div id="aantallen"></div>
-    <label class="vink"><input type="checkbox" id="draaien"> Stukjes draaien (moeilijker: tik op een stukje om het te draaien)</label>
+    <h3>Hoe liggen de stukjes?</h3>
+    <div id="liggen" class="keuze"><button data-d="0">⬆ Allemaal recht<small>je hoeft niet te draaien</small></button><button data-d="1">🔄 Door elkaar gedraaid<small>tik op een stukje om te draaien</small></button></div>
     <button id="start" class="groot">Puzzelen!</button>
     <button id="verder" class="groot stil" hidden>Verder met je puzzel</button>
     <p class="klein">Sleep de stukjes. Stukjes die bij elkaar horen klikken vast. Zoomen: twee vingers of het muiswiel. Schuiven: sleep op een lege plek.</p>
@@ -381,12 +384,11 @@ function toonMenu() {
   $('fotos').querySelectorAll('button').forEach((b) => b.onclick = () => { if (b.dataset.f == 'eigen') $('bestand').click(); else { fotoId = b.dataset.f; eigenSrc = null; toonMenu(); } });
   $('aantallen').innerHTML = AANTALLEN.map((n) => `<button data-n="${n}" class="${n == aantal ? 'aan' : ''}">${n}<small>${n <= 24 ? 'makkelijk' : n <= 100 ? 'gewoon' : n <= 200 ? 'lastig' : 'pc of tablet'}</small></button>`).join('');
   $('aantallen').querySelectorAll('button').forEach((b) => b.onclick = () => { aantal = +b.dataset.n; toonMenu(); });
-  $('draaien').checked = draaien;
+  $('liggen').querySelectorAll('button').forEach((b) => { b.classList.toggle('aan', !!+b.dataset.d == draaien); b.onclick = () => { draaien = !!+b.dataset.d; toonMenu(); }; });
   const o = opgeslagen(); $('verder').hidden = !o;
   if (o) $('verder').textContent = 'Verder met je puzzel (' + FOTOS.find((f) => f.id == o.foto).n + ', ' + o.n + ' stukjes, ' + o.s.filter((s) => s[4]).length + ' gelegd)';
 }
 $('bestand').onchange = (e) => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => { eigenSrc = rd.result; toonMenu(); }; rd.readAsDataURL(f); };
-$('draaien').onchange = () => { draaien = $('draaien').checked; };
 $('start').onclick = () => { unlock(); if (opgeslagen() && !confirm('Je hebt nog een puzzel liggen. Een nieuwe beginnen?')) return; begin(null); };
 $('verder').onclick = () => { unlock(); const o = opgeslagen(); fotoId = o.foto; eigenSrc = null; draaien = !!o.draaien; begin(o); };
 // terugknop: tijdens het puzzelen eerst naar het menu, vanuit het menu naar alle spellen
