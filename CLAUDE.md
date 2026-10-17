@@ -57,6 +57,8 @@ bedenk dat de site openbaar is.
 - De spellen staan in twee blokken: 2D (telefoon en tablet) en 3D (pc, `"soort": "3d"` in spellen.json).
   Op een aanraakscherm of smal scherm staat 2D bovenaan, anders 3D.
 - Elk spel heeft linksboven een terugknop `<a class="terug" href="./">‹</a>` (in een submap: `href="../"`).
+  In Fladderfeest gaat die knop tijdens het spelen eerst terug naar het menu van Fladderfeest; alleen vanuit dat menu
+  naar de startpagina.
 
 ## Werkwijze
 - De familie mag meespelen met concept-versies. Zet wijzigingen daarom direct op `main` (dan publiceert

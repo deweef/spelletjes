@@ -1882,6 +1882,13 @@ function lus(nu) {
   teken();
 }
 document.addEventListener('visibilitychange', () => { vorige = performance.now(); });
+// De terugknop linksboven: in het spel terug naar het menu van Fladderfeest, alleen vanuit dat menu naar alle spelletjes
+document.querySelector('.terug').addEventListener('click', (e) => {
+  if (staat == 'menu') return;
+  e.preventDefault();
+  if (staat == 'klaar' || staat == 'spel' || staat == 'finish') stopMuziek(false);
+  staat = 'menu'; tocht = null; tekstje = ''; zorgMuziek();
+});
 if (TEGEL) { document.querySelector('.terug').hidden = true; tegelPlaatje(); }
 else { nieuwSpel(); staat = 'menu'; requestAnimationFrame(lus); }
 window.__test = { get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
