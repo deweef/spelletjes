@@ -42,6 +42,11 @@ const ITEMS = [
   { id: 'flamingo', thema: 'strand', n: 'Roze flamingo', r: 0.34, h: 0.8, grap: 'Staat ze nou op één poot… of is ze gewoon moe? De volgende 10 koekjes zijn roze: 3 punten!', weg: 'De flamingo fladdert weg op één poot', maak: () => maakFlamingo(), doe: () => { rozeQ += 10; } },
   { id: 'parasol', thema: 'strand', n: 'Parasol', r: 0.45, h: 0.55, grap: 'Effe chillen in de schaduw: 20 seconden valt er niets van de zijkant.', weg: 'De parasol waait weg. Typisch Nederlands strandweer.', maak: () => maakParasol(), doe: () => { wallT = Math.max(wallT, 20); zetMuurtjes(true); } },
   { id: 'krab', thema: 'strand', n: 'Krab', r: 0.36, h: 0.26, grap: 'Knip knip! Opzij, opzij, opzij!', weg: 'De krab loopt zijwaarts weg. Hoe anders?', maak: () => maakKrab(), doe: () => krabWandeling() },
+  { id: 'suikerspin', thema: 'kermis', n: 'Suikerspin', b5: 'Plakvingers', r: 0.34, h: 0.7, grap: 'Plakkerige vingers gegarandeerd! Het regent roze koekjes.', weg: 'De suikerspin is opgegeten. Door de vloer.', maak: () => maakSuikerspin(), doe: () => { for (let i = 0; i < 10; i++) setTimeout(() => laatVallen((Math.random() - 0.5) * (HB * 2 - 1.2), true, 1), i * 110); } },
+  { id: 'eend', thema: 'kermis', n: 'Badeendje', b5: 'Eendjesvisser', r: 0.3, h: 0.42, grap: 'Kwak! Bij het eendjesvissen wint iedereen wat.', weg: 'Kwak… het eendje zwemt weg', maak: () => maakEend(), doe: () => eendPrijs() },
+  { id: 'pijl', thema: 'kermis', n: 'Dartpijl', b5: 'Scherpschutter', r: 0.32, h: 0.14, grap: 'Pang! Ballon kapot, alle koekjes springen op!', weg: 'Mis! De pijl vliegt de kraam uit', maak: () => maakPijl(), doe: () => { for (const c of koekjes) if (c.body.position.y > -0.3) { c.body.wakeUp(); c.body.velocity.y += 3 + Math.random() * 2; c.body.velocity.z += 0.8 + Math.random(); } snd(120, 0.15, 'square', 0.08, 60); ruisKnal(); } },
+  { id: 'bier', thema: 'kermis', n: 'Biertje', b1: 'Proost!', b5: 'Vaste klant', r: 0.24, h: 0.5, grap: 'Hik! Staat die tafel nou scheef? 10 seconden dubbele punten!', weg: 'Zonde van het bier…', maak: () => maakBier(), doe: () => { wiebelT = 10; } },
+  { id: 'pknuffel', thema: 'kermis', n: 'P-knuffel', b1: 'Hoofdprijs!', b5: 'Knuffelkoning', r: 0.34, h: 0.62, grap: 'Hij is zacht, hij is roze en iedereen wil hem hebben! Boing boing!', weg: 'Nee! De P-knuffel! Iemand anders heeft hem nu…', maak: () => maakPKnuffel(), doe: () => knuffelSprong() },
   { id: 'spook', thema: 'halloween', n: 'Spookje', r: 0.36, h: 0.62, grap: 'Boehoe… ik bedoel: snoep!', weg: 'Het spookje zweeft er stiekem vandoor', maak: () => maakSpook(), doe: () => spookVlucht() },
 ];
 const ITEM_KANS = 1 / 25;
@@ -474,7 +479,7 @@ function gewonnen(k) {
     const i = c - 10; coll[i]++; score += 25; sPrize(); pop(TREATS[i].n + '!', p.x, p.y - 20, 'goud'); verdien(1, p.x, p.y - 50);
     if (coll[i] == 3) pop(TREATS[i].p + ' klaar!', innerWidth / 2, innerHeight - 110, 'goud');
   } else {
-    const v = c == 3 ? 10 : c == 4 ? 5 : c == 5 ? 3 : 1; score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
+    const v = (c == 3 ? 10 : c == 4 ? 5 : c == 5 ? 3 : 1) * (wiebelT > 0 ? 2 : 1); score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
   }
   checkBadges(); tekenHud(true);
 }
@@ -588,7 +593,7 @@ function maakKrab() {
   return grp;
 }
 // kwal: de tafel wordt even glibberig (minder wrijving, en de tafel glimt blauwig)
-let glibberT = 0;
+let glibberT = 0, wiebelT = 0, camBasis = null;
 function glibber(sec) {
   glibberT = sec; const aan = sec > 0;
   cmTafel.friction = aan ? 0.04 : WRIJF.tafel; cmKoek.friction = aan ? 0.05 : WRIJF.koek;
@@ -602,6 +607,63 @@ function krabWandeling() {
     const x = -HB - 0.5 + t * (2 * HB + 1) / 3, z = 1.2; k.position.set(x, 0.35 + Math.abs(Math.sin(t * 12)) * 0.05, z); k.rotation.z = Math.sin(t * 12) * 0.08;
     for (const c of koekjes) { const p = c.body.position; if (Math.abs(p.x - x) < 0.5 && Math.abs(p.z - z) < 0.9 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 2.2); } }
     if (Math.floor(t * 6) != Math.floor((t - dt) * 6)) snd(1800 + Math.random() * 400, 0.03, 'square', 0.03, 900);
+    if (t > 3) { scene.remove(k); return false; }
+  } });
+}
+
+// kermis: suikerspin, badeendje, dartpijl, biertje en de P-knuffel
+function ruisKnal() { try { const n = ac.currentTime, b = ac.createBuffer(1, ac.sampleRate * 0.2, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length); const src = ac.createBufferSource(), g = ac.createGain(); src.buffer = b; g.gain.value = 0.15; src.connect(g).connect(ac.destination); src.start(n); } catch (e) {} }
+function maakSuikerspin() {
+  const grp = new THREE.Group(), roze = mat('#ffb0d8', { roughness: 0.95, emissive: '#3a1028' });
+  for (let i = 0; i < 14; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.12 + Math.random() * 0.06, 10, 8), roze); const a = Math.random() * 7, r = Math.random() * 0.16; b.position.set(Math.cos(a) * r, 0.12 + Math.random() * 0.2, Math.sin(a) * r); grp.add(b); }
+  const stok = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.45, 6), mat('#f4e8d0')); stok.position.y = -0.12; grp.add(stok);
+  return grp;
+}
+function maakEend() {
+  const grp = new THREE.Group(), geel = mat('#ffd400', { roughness: 0.35 }), oranje = mat('#ff8a1a'), zwart = new THREE.MeshBasicMaterial({ color: '#111' });
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), geel); lijf.scale.set(1.2, 0.8, 1); lijf.position.y = -0.06; grp.add(lijf);
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 10), geel); kop.position.set(0.14, 0.12, 0); grp.add(kop);
+  const snavel = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), oranje); snavel.scale.set(1.4, 0.5, 1); snavel.position.set(0.27, 0.1, 0); grp.add(snavel);
+  for (const sz of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), zwart); o.position.set(0.22, 0.17, sz * 0.07); grp.add(o); }
+  return grp;
+}
+function maakPijl() {
+  const grp = new THREE.Group(), deel = new THREE.Group();
+  const punt = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.12, 8), mat('#cccccc', { metalness: 0.8, roughness: 0.3 })); punt.position.y = 0.3; deel.add(punt);
+  const schacht = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.4, 8), mat('#2a5ad8')); schacht.position.y = 0.05; deel.add(schacht);
+  for (let i = 0; i < 3; i++) { const v = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.14, 0.1), mat('#ff3a3a')); v.position.y = -0.18; v.rotation.y = i * Math.PI / 3; deel.add(v); }
+  deel.rotation.z = Math.PI / 2; grp.add(deel); return grp; // ligt plat
+}
+function maakBier() {
+  const grp = new THREE.Group();
+  const glas = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.17, 0.42, 16), new THREE.MeshStandardMaterial({ color: '#f2b02a', roughness: 0.2, transparent: true, opacity: 0.85, emissive: '#3a2000' })); glas.position.y = -0.04; grp.add(glas);
+  const schuim = new THREE.Mesh(new THREE.SphereGeometry(0.21, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), mat('#fffaf0', { roughness: 1 })); schuim.scale.y = 0.5; schuim.position.y = 0.17; grp.add(schuim);
+  const oor = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.025, 8, 14), new THREE.MeshStandardMaterial({ color: '#ffe0a0', transparent: true, opacity: 0.6 })); oor.position.set(0.22, -0.02, 0); grp.add(oor);
+  return grp;
+}
+// de P-knuffel: roze, zacht, met een lief snoetje (speels, niet meer dan dat)
+function maakPKnuffel() {
+  const grp = new THREE.Group(), roze = mat('#ff9ec4', { roughness: 0.95 }), zwart = new THREE.MeshBasicMaterial({ color: '#2a1020' }), blos = new THREE.MeshBasicMaterial({ color: '#ff6aa0' });
+  const lijf = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.26, 6, 14), roze); lijf.position.y = 0.06; grp.add(lijf);
+  for (const sx of [-1, 1]) { const bol = new THREE.Mesh(new THREE.SphereGeometry(0.12, 14, 10), roze); bol.position.set(sx * 0.13, -0.19, 0.02); grp.add(bol); }
+  for (const sx of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), zwart); o.position.set(sx * 0.055, 0.2, 0.135); grp.add(o); const b = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), blos); b.scale.set(1.3, 0.7, 0.4); b.position.set(sx * 0.1, 0.14, 0.13); grp.add(b); }
+  const mond = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.01, 6, 12, Math.PI), zwart); mond.rotation.z = Math.PI; mond.position.set(0, 0.15, 0.145); grp.add(mond);
+  return grp;
+}
+// badeendje: onder het eendje staat je prijs
+function eendPrijs() {
+  const n = [10, 25, 25, 50, 100][Math.floor(Math.random() * 5)];
+  setTimeout(() => { score += n; roep('Onder het eendje staat… ' + n + '!'); if (n == 100) sBadge(); else sPrize(); tekenHud(); }, 1600);
+}
+// P-knuffel: een grote P-knuffel stuitert over de tafel en duwt bij elke landing de koekjes weg
+function knuffelSprong() {
+  const k = maakPKnuffel(); k.scale.setScalar(2.4); scene.add(k); let land = 0;
+  setTimeout(() => verdien(10, innerWidth / 2, innerHeight * 0.3), 600);
+  effecten.push({ stap: (t) => {
+    const f = t / 3, z = -1.6 + f * 4.4, sprong = Math.abs(Math.sin(f * Math.PI * 3)); k.position.set(Math.sin(f * 6) * 0.6, 0.8 + sprong * 1.6, z); k.rotation.y = t * 2;
+    k.scale.set(2.4 * (1 + (1 - sprong) * 0.15), 2.4 * (1 - (1 - sprong) * 0.2), 2.4);
+    const nu = Math.floor(f * 3 + 0.5); if (nu > land && nu <= 3) { land = nu; snd(220, 0.25, 'sine', 0.07, 520); roep('Boing!');
+      for (const c of koekjes) { const dx = c.body.position.x - k.position.x, dz = c.body.position.z - z; if (dx * dx + dz * dz < 2.2 && c.body.position.y > -0.3) { c.body.wakeUp(); c.body.velocity.y += 2.5; c.body.velocity.z += 2; c.body.velocity.x += dx * 1.5; } } }
     if (t > 3) { scene.remove(k); return false; }
   } });
 }
@@ -806,6 +868,7 @@ function stap(dt) {
   }
   if (wallT > 0 && (wallT -= dt) <= 0) zetMuurtjes(false);
   if (glibberT > 0 && (glibberT -= dt) <= 0) glibber(0);
+  if (wiebelT > 0 && (wiebelT -= dt) <= 0) { wiebelT = 0; pasAan(); }
   if (modus != 'wedstrijd' && supply < REGEN_MAX) { if ((regen += dt) >= REGEN) { regen = 0; supply++; tekenHud(); } } else regen = 0;
   if (modus != 'wedstrijd' && score > best) best = score;
   if ((bewaarT += dt) > 3) { bewaarT = 0; bewaar(); }
@@ -828,6 +891,7 @@ function lus(nu) {
   spook.position.set(mikX, VAL_Y, VAL_Z); spook.rotation.y = nu / 600; spook.visible = supply > 0;
   tekenSpringers(echt); tekenToast(echt); sneeuwStap(echt); if (spelen()) effectenStap(echt);
   const fase = Math.floor(nu / 350); for (const l of lampjes) l.material = (l.userData.i + fase) % 3 ? KM.lampAan : KM.lampUit;
+  if (wiebelT > 0) { if (!camBasis) camBasis = { p: camera.position.clone(), q: camera.quaternion.clone() }; const w = Math.min(1, wiebelT / 2); camera.position.copy(camBasis.p); camera.quaternion.copy(camBasis.q); camera.position.x += Math.sin(nu / 700) * 0.6 * w; camera.rotateZ(Math.sin(nu / 900) * 0.07 * w); } else camBasis = null; // biertje: dronken camera
   renderer.render(scene, camera);
 }
 requestAnimationFrame(lus);

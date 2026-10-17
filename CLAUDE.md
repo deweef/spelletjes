@@ -108,7 +108,10 @@ wedstrijd), winnen geeft 25 punten, 5 munten, een grap en een effect (`doe`, ani
 (`#tafelbadges`) en tellen niet mee in de 15. Halloween: pompoen (vleermuizen jagen de koekjes naar voren) en spookje
 (zweeft over de tafel en laat 5 halloweenkoekjes vallen, code 4, 5 punten). Strand: kwal (15 s glibberig: minder wrijving via `glibber`,
 `cmTafel`/`cmKoek`, tafel glimt blauw), roze flamingo (volgende 10 koekjes roze, code 5, 3 punten, `rozeQ`), parasol (20 s
-muurtjes), krab (loopt zijwaarts over de tafel en duwt koekjes naar voren). Eigen badgenamen met `b1`/`b5`. Een nieuw item = regel in `ITEMS` met
+muurtjes), krab (loopt zijwaarts over de tafel en duwt koekjes naar voren). Kermis: suikerspin (regen van 10 roze
+koekjes), badeendje (onder het eendje 10-100 bonuspunten), dartpijl (ballon knapt, alle koekjes springen op), biertje
+(10 s dronken camera `wiebelT`/`camBasis` en dubbele punten), P-knuffel (roze knuffel met lief snoetje, speels houden; een
+grote stuitert over de tafel, +10 munten). Eigen badgenamen met `b1`/`b5`. Een nieuw item = regel in `ITEMS` met
 `maak()` (3D-model, origin in het midden) en `doe()`. Plannen: tafels (ook kerst), extra krachten, badges met niveaus.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
