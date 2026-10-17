@@ -85,6 +85,7 @@ export const LEVELS = [
     o: [['ork', 11, 5], ['ork', 7, 5], ['ork', 19, 11], ['ork', 3, 12], ['ork', 14, 2]],
     huts: [],
     win: (s) => s.count('boerderij') >= 4 && s.count('kazerne') >= 1,
+    procent: (s) => Math.min(4, s.count('boerderij')) * 20 + Math.min(1, s.count('kazerne')) * 20,
     voortgang: (s) => `boerderijen <b>${Math.min(4, s.count('boerderij'))}/4</b> · kazerne <b>${Math.min(1, s.count('kazerne'))}/1</b>`,
     intro: { // het beginfilmpje: aankomst en het kasteel bouwen
       van: [13, 28], naar: [8, 24],
@@ -154,6 +155,7 @@ export const LEVELS = [
     huts: [[18, 4], [13, 8]],
     waves: { first: 7200, every: 5400 },
     win: (s) => s.huts() == 0 && s.orcs() == 0,
+    procent: (s) => (1 - s.huts() / Math.max(1, s.start().huts)) * 80 + (s.huts() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 20 : 0),
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b> · orks nog <b>${s.orcs()}</b>`,
     tussen: { // het filmpje naar level 3: feest, nacht en de overval
       soort: 'overval', duur: 26,
@@ -218,6 +220,7 @@ export const LEVELS = [
     kooi: [[15, 4]],
     waves: { first: 10800, every: 7200 },
     win: (s) => s.vrij() && s.huts() == 0 && s.count('boerderij') >= 2,
+    procent: (s) => (s.vrij() ? 30 : 0) + Math.min(2, s.count('boerderij')) * 15 + (1 - s.huts() / Math.max(1, s.start().huts)) * 40,
     voortgang: (s) => `werkers <b>${s.vrij() ? 'bevrijd ✓' : 'gevangen'}</b> · boerderijen <b>${Math.min(2, s.count('boerderij'))}/2</b> · orkenhut nog <b>${s.huts()}</b>`,
     tussen: { // het filmpje naar level 4: op zoek naar de ridder in de mijnen
       uitgang: [10, 22],
@@ -298,6 +301,7 @@ export const LEVELS = [
       ],
     },
     win: (s) => s.heldUit(),
+    procent: (s) => (s.heldVrij() ? 50 + s.naarTrap() * 50 : s.naarHeld() * 45),
     voortgang: (s) => (s.heldVrij() ? 'Sir Lodewijk <b>bevrijd ✓</b> · breng hem naar de <b>trap</b> (onderaan)' : 'zoek <b>Sir Lodewijk</b> in de mijnen'),
   },
   {
@@ -363,6 +367,7 @@ export const LEVELS = [
     huts: [[4, 4], [8, 7], [27, 5], [30, 9]], hutHp: 400, otowers: [[11, 5], [24, 9]],
     waves: { first: 7200, every: 5400 },
     win: (s) => s.huts() == 0 && s.orcs() == 0,
+    procent: (s) => (1 - s.huts() / Math.max(1, s.start().huts)) * 80 + (s.huts() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 20 : 0),
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b>` + (s.huts() == 0 ? ` · orks nog <b>${s.orcs()}</b>` : ''),
   },
 ];

@@ -37,6 +37,20 @@ export const S = {
   towers: () => G.blds.filter((b) => b.k == 'orktoren').length,
   orcs: () => G.units.filter((u) => u.side == 'o').length,
   vrij: () => G.freed,
+  start: () => G.start || {},
+  // voor de voortgang in procenten (level 4): hoe dicht je bij Sir Lodewijk bent, en hij bij de trap
+  naarHeld: () => {
+    const h = G.units.find((u) => u.k == 'held'); if (!h) return 0;
+    const d = Math.min(...G.units.filter((u) => u.side == 'h' && u.k != 'held').map((u) => dist(u, h)), 1e9);
+    if (!G.start.dHeld) G.start.dHeld = d;
+    return Math.max(0, Math.min(1, 1 - d / G.start.dHeld));
+  },
+  naarTrap: () => {
+    const h = G.units.find((u) => u.k == 'held' && u.side == 'h'); if (!h) return 0;
+    let d = 1e9; for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) if (G.map[y][x] == 'E') d = Math.min(d, Math.hypot(h.x - (x + 0.5) * T, h.y - (y + 0.5) * T));
+    if (!G.start.dTrap) G.start.dTrap = d;
+    return Math.max(0, Math.min(1, 1 - d / G.start.dTrap));
+  },
   heldVrij: () => G.units.some((u) => u.k == 'held' && u.side == 'h'),
   heldUit: () => G.units.some((u) => { // Sir Lodewijk staat op of naast de trap
     if (u.k != 'held' || u.side != 'h') return false;
@@ -69,6 +83,7 @@ export function loadLevel(i) {
   for (const [k, x, y] of L.u) addUnit(k, x, y);
   for (const [k, x, y] of L.o) { const u = addUnit(k, x, y); u.home = { x: u.x, y: u.y }; }
   if (L.held) { const h = addUnit('held', L.held[0], L.held[1]); h.side = 'n'; h.hp = 35; h.captive = 1; h.rolstoel = false; h.voice = { lang: 'nl', pitch: 0.6 }; }
+  G.start = { huts: L.huts.length, orcs: L.o.length }; G.beste = 0; // voor het scorebord: hoe ver je komt
   G.lostMsg = ''; reveal(); G.state = 'brief'; G.msg = ''; G.msgT = 0;
   G.levelVersie++; G.mapVersie++;
 }
@@ -302,6 +317,7 @@ function pizzaPauze(u) { // Italiaan deelt pizza uit: geneest mannetjes vlakbij
 
 export function update() {
   G.t++;
+  if (G.t % 30 == 0 && G.L.procent && !G.tussen) G.beste = Math.max(G.beste, Math.min(99, Math.round(G.L.procent(S))));
   const L = G.L;
   if (G.t % 10 == 0) reveal();
   // gebouwen

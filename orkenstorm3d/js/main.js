@@ -723,7 +723,45 @@ function tekenBalk() {
 }
 
 // ---------- menu's ----------
-function toon(id) { for (const s of ['titel', 'brief', 'einde']) $(s).hidden = s != id; $('hud').hidden = id != null; }
+function toon(id) { for (const s of ['titel', 'brief', 'einde', 'bord']) $(s).hidden = s != id; $('hud').hidden = id != null; }
+
+// ---------- online scorebord (dezelfde Google Spreadsheet als Fladderfeest, zie extra/scorebord.gs) ----------
+// verst gekomen: (level - 1) * 100 + procent, of level * 100 als je het gewonnen hebt; snelste tijd per level in seconden
+const BORD_URL = 'https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
+const MODI = ['makkelijk', 'normaal', 'moeilijk'];
+let bord = null, uitslag = null, bordTab = 'ver', bordDiff = 1;
+try { bord = JSON.parse(localStorage.getItem('orkenstorm3d_bord') || 'null'); } catch (e) {}
+function bordHalen(extra = '') {
+  return fetch(BORD_URL + '?spel=ork3d' + extra, { redirect: 'follow' }).then((r) => r.json())
+    .then((d) => { bord = d; try { localStorage.setItem('orkenstorm3d_bord', JSON.stringify(d)); } catch (e) {} return true; }).catch(() => false);
+}
+const tijdTekst = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+const verTekst = (s) => (s % 100 == 0 ? 'level ' + s / 100 + ' gewonnen' : 'level ' + (Math.floor(s / 100) + 1) + ' · ' + (s % 100) + '%');
+function tekenBord(melding) {
+  const tabs = [['ver', 'Verst gekomen'], ...LEVELS.map((l, i) => ['tijd_L' + (i + 1), 'Snelste level ' + (i + 1)])];
+  $('bordtabs').innerHTML = tabs.map(([id, n]) => `<button data-tab="${id}" class="${bordTab == id ? 'actief' : ''}">${n}</button>`).join('');
+  $('bordmoeilijk').innerHTML = DIFF.map((d, i) => `<button data-d="${i}" class="${bordDiff == i ? 'actief' : ''}">${d.n}</button>`).join('');
+  $('bordtabs').querySelectorAll('button').forEach((b) => b.onclick = () => { bordTab = b.dataset.tab; sClick(); tekenBord(); });
+  $('bordmoeilijk').querySelectorAll('button').forEach((b) => b.onclick = () => { bordDiff = +b.dataset.d; sClick(); tekenBord(); });
+  const lijst = (bord && bord['ork3d_' + bordTab + '_' + MODI[bordDiff]]) || [];
+  $('bordlijst').innerHTML = lijst.length ? lijst.map((r) => `<li class="${speler() && r.naam == speler() ? 'ik' : ''}"><span>${esc(r.naam)}</span><b>${bordTab == 'ver' ? verTekst(r.score) : tijdTekst(r.score)}</b></li>`).join('')
+    : '<li style="justify-content:center">Nog niemand! Word jij de eerste?</li>';
+  $('bordmelding').textContent = melding || (bordTab == 'ver' ? 'Hoe ver je in Orkenstorm 3D bent gekomen.' : 'De snelste overwinning, zonder filmpjes en pauzes.');
+}
+$('bordknop').onclick = () => { unlock(); sClick(); bordDiff = G.diff; toon('bord'); tekenBord('Scores ophalen…'); bordHalen().then((ok) => tekenBord(ok ? '' : 'Geen internet: dit zijn de laatst bekende scores.')); };
+$('bordterug').onclick = () => tekenTitel();
+$('insturen').onclick = () => {
+  if (!uitslag || $('insturen').disabled) return;
+  let naam = speler();
+  if (!naam) { naam = (prompt('Met welke naam wil je op het scorebord?') || '').trim().slice(0, 16); }
+  if (!naam) return;
+  const q = (o, s) => '&actie=opslaan&naam=' + encodeURIComponent(naam) + '&onderdeel=' + o + '&modus=' + uitslag.modus + '&score=' + s;
+  $('insturen').disabled = true; $('insturen').textContent = 'Even geduld…';
+  bordHalen(q('ork3d_ver', uitslag.ver)).then((ok) => (ok && uitslag.tijd ? bordHalen(q('ork3d_tijd_L' + uitslag.level, uitslag.tijd)) : ok)).then((ok) => {
+    $('insturen').textContent = ok ? 'Ingestuurd ✓' : 'Lukt niet (internet?) · opnieuw';
+    $('insturen').disabled = !!ok;
+  });
+};
 
 function tekenTitel() {
   toon('titel');
@@ -765,6 +803,11 @@ function eindScherm() {
   $('volgende').hidden = !(won && G.lvl + 1 < LEVELS.length);
   $('volgende').textContent = G.L.tussen ? 'Verder met het verhaal' : 'Volgend level';
   $('opnieuw').textContent = won ? 'Nog een keer' : 'Opnieuw proberen';
+  // voor het scorebord
+  const tijd = Math.max(1, Math.round(G.t / 60));
+  uitslag = { modus: MODI[G.diff], level: G.lvl + 1, ver: won ? (G.lvl + 1) * 100 : G.lvl * 100 + G.beste, tijd: won ? tijd : 0 };
+  $('insturen').hidden = uitslag.ver <= 0; $('insturen').disabled = false; $('insturen').textContent = '🏆 Insturen naar het scorebord';
+  $('insturenuitleg').textContent = (won ? `Gewonnen in ${tijdTekst(tijd)}` : `Je kwam tot ${G.beste}% van level ${G.lvl + 1}`) + ` (${DIFF[G.diff].n.toLowerCase()})`;
   toon('einde');
 }
 $('volgende').onclick = () => (G.L.tussen ? speelTussen() : start(G.lvl + 1));

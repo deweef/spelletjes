@@ -35,7 +35,7 @@ bedenk dat de site openbaar is.
   `tekenStreken`): roodborst sneeuwbui (`bui`), meeuw patatdieven en papegaai kanonskogels (`gevaren`, met een rood !
   vooraf), hommel windvlagen (alleen met streken), kip schuivende hooibalen en kraai dansende versterkers (`p.amp`),
   pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links).
-  Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/fladderfeest-scorebord.gs` (web-app,
+  Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
   `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
   = insturen. Knop 🏆 Scorebord op het beginscherm (`scorebordScherm`), knop Insturen op de eindschermen; laatste lijst
   in `fladderfeest_bord` voor offline. script.google.com is vanuit de cloudomgeving niet bereikbaar: test met
@@ -110,6 +110,11 @@ Opbouw:
   bouwen, grapje per land in `BOUWGRAP`). Speelt vanzelf alleen de eerste keer per speler
   (`orkenstorm3d_intro<level>`), daarna via de knop "Filmpje nog eens zien" in de uitleg. Tests die level 1
   starten zetten eerst `localStorage.orkenstorm3d_intro0 = '1'`.
+- Online scorebord (zelfde Google Spreadsheet en Apps Script als Fladderfeest, `extra/scorebord.gs`, `BORD_URL` in
+  main.js; opvragen met `?spel=ork3d`): `ork3d_ver_<moeilijkheid>` = verst gekomen ((level-1)*100 + procent, of level*100
+  bij winst; `procent(S)` per level in data.js, beste waarde in `G.beste`) en `ork3d_tijd_L<n>_<moeilijkheid>` = snelste
+  overwinning in seconden (`G.t / 60`, filmpjes en pauze tellen niet). Knop Insturen op het eindscherm, 🏆 Scorebord in het
+  titelmenu (`#bord`).
 - `lib/`: three.js r160 (`three.module.js`) en `OrbitControls.js`, lokaal (geen CDN) zodat het offline
   werkt. Blijf bij deze versie; nieuwe three-onderdelen ook uit r160 halen (npm: `three@0.160.0`).
 - Kleuren: r160 doet het kleurbeheer zelf (sRGB). Geef kleuren gewoon als hex op; alleen

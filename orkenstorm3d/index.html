@@ -58,6 +58,15 @@ i.eten{border-radius:3px 3px 50% 50%;background:linear-gradient(#f2d25a,#d4a92d)
 
 /* menu's */
 .scherm{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,8,4,.55)}
+.bordtabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.bordtabs button{padding:6px 10px;border-radius:8px;border:1px solid var(--rand);background:#3a2d20;font-size:13px;font-weight:700}
+.bordtabs button.actief{background:var(--goud);color:#2a1a08}
+#bordlijst{text-align:left;margin:10px auto;padding:0 0 0 8px;max-width:340px;list-style:none;counter-reset:plek}
+#bordlijst li{display:flex;justify-content:space-between;gap:12px;padding:6px 10px;border-radius:8px;counter-increment:plek}
+#bordlijst li::before{content:counter(plek) ".";width:26px;opacity:.7}
+#bordlijst li span:first-of-type{flex:1}
+#bordlijst li.ik{background:rgba(232,197,71,.25)}
+#bordlijst li b{color:var(--goud)}
 .kaart{background:rgba(28,21,14,.94);border:1.5px solid var(--rand);border-radius:16px;padding:24px 26px;width:min(480px,100%);max-height:100%;overflow:auto;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 h1{font:bold 40px/1 Georgia,serif;margin:4px 0 6px;color:var(--perkament)}
 h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
@@ -74,7 +83,16 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
 #briefdoel{margin:14px 0 4px;font-weight:700;color:var(--goud)}
 .label{display:inline-block;background:#c0462f;color:#fff;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .tekstknop{background:none;border:0;color:#d9c49a;text-decoration:underline;font-size:13px;margin-top:6px}
-#pauze .kaart{width:auto}
+#pauze .bordtabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.bordtabs button{padding:6px 10px;border-radius:8px;border:1px solid var(--rand);background:#3a2d20;font-size:13px;font-weight:700}
+.bordtabs button.actief{background:var(--goud);color:#2a1a08}
+#bordlijst{text-align:left;margin:10px auto;padding:0 0 0 8px;max-width:340px;list-style:none;counter-reset:plek}
+#bordlijst li{display:flex;justify-content:space-between;gap:12px;padding:6px 10px;border-radius:8px;counter-increment:plek}
+#bordlijst li::before{content:counter(plek) ".";width:26px;opacity:.7}
+#bordlijst li span:first-of-type{flex:1}
+#bordlijst li.ik{background:rgba(232,197,71,.25)}
+#bordlijst li b{color:var(--goud)}
+.kaart{width:auto}
 /* tussenstukje */
 #tussen{position:fixed;inset:0;z-index:35;pointer-events:none}
 #verteller{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(760px,92vw);background:rgba(15,11,7,.82);border:1px solid var(--rand);border-radius:12px;padding:12px 18px;font:italic 18px/1.4 Georgia,serif;text-align:center;color:var(--perkament)}
@@ -133,6 +151,7 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
     <p class="klein" id="laden">Laden…</p>
     <div id="levels"></div>
     <div id="moeilijk"></div>
+    <button id="bordknop" class="groot">🏆 Scorebord</button>
     <button id="stemknop" class="tekstknop">Stemmen: aan</button>
     <p class="klein" id="stemmen"></p>
     <p class="klein">Modellen: Kenney.nl</p>
@@ -151,11 +170,24 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
   </div>
 </div>
 
+<div id="bord" class="scherm" hidden>
+  <div class="kaart">
+    <h2>🏆 Scorebord</h2>
+    <div class="bordtabs" id="bordtabs"></div>
+    <div class="bordtabs" id="bordmoeilijk"></div>
+    <ol id="bordlijst"></ol>
+    <p class="klein" id="bordmelding"></p>
+    <button id="bordterug" class="groot">Terug</button>
+  </div>
+</div>
+
 <div id="einde" class="scherm" hidden>
   <div class="kaart">
     <h2 id="eindtitel"></h2>
     <p id="eindtekst"></p>
     <button id="volgende" class="groot goud">Volgend level</button>
+    <button id="insturen" class="groot">🏆 Insturen naar het scorebord</button>
+    <p class="klein" id="insturenuitleg"></p>
     <button id="opnieuw" class="groot">Opnieuw</button>
     <button id="naarmenu" class="groot">Naar het menu</button>
   </div>

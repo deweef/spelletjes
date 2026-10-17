@@ -31,7 +31,7 @@ addEventListener('resize', fit); fit();
 
 // ---------- speler en records (per naam, zie de startpagina) ----------
 let speler = ''; try { speler = localStorage.getItem('speler') || ''; } catch (e) {}
-// ---------- online scorebord (Google Spreadsheet met een Apps Script, zie extra/fladderfeest-scorebord.gs) ----------
+// ---------- online scorebord (Google Spreadsheet met een Apps Script, zie extra/scorebord.gs) ----------
 const BORD_URL = 'https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
 let bord = null, bordStatus = '', ingestuurd = '';
 try { bord = JSON.parse(localStorage.getItem('fladderfeest_bord') || 'null'); } catch (e) {}
