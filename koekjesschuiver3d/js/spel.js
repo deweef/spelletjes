@@ -52,6 +52,10 @@ const ITEMS = [
   { id: 'ketting', thema: 'schatkamer', n: 'Parelketting', b5: 'Parelduiker', r: 0.4, h: 0.12, grap: 'Oeps, het touwtje knapt! Overal parels: 4 punten per stuk.', weg: 'De parelketting glijdt van de tafel. Oma wordt boos.', maak: () => maakKetting(), doe: () => { for (let i = 0; i < 10; i++) setTimeout(() => laatVallen((Math.random() - 0.5) * (HB * 2 - 1.2), true, 6), i * 90); } },
   { id: 'armband', thema: 'schatkamer', n: 'Gouden armband', b5: 'Bling bling', r: 0.34, h: 0.14, grap: 'Bling bling! Een reuzenarmband rolt over de tafel.', weg: 'De armband rolt de kamer uit. Bling… blong.', maak: () => maakArmband(), doe: () => armbandRol() },
   { id: 'goudklomp', thema: 'schatkamer', n: 'Klomp goud', b1: 'Goudzoeker', b5: 'Goudkoorts', r: 0.34, h: 0.3, grap: 'Een klomp goud! Je bent rijk! Nou ja… 30 munten rijk.', weg: 'De klomp goud ploft van de tafel. Te zwaar om op te rapen.', maak: () => maakGoudklomp(), doe: () => verdien(25, innerWidth / 2, innerHeight * 0.3) },
+  { id: 'sneeuwpop', thema: 'winter', n: 'Sneeuwpop', b5: 'Sneeuwpoppenbouwer', r: 0.3, h: 0.72, grap: 'Brrr! De zijkanten zijn bevroren: 20 seconden valt er niets af.', weg: 'De sneeuwpop smelt van de tafel. Zonde van de wortel.', maak: () => maakSneeuwpop(), doe: () => { wallT = Math.max(wallT, 20); zetMuurtjes(true); vries(20); } },
+  { id: 'cadeau', thema: 'winter', n: 'Cadeautje', b5: 'Cadeautjesjager', r: 0.3, h: 0.4, grap: 'Een cadeautje! Even uitpakken…', weg: 'Het cadeautje valt van de tafel. Retour afzender.', maak: () => maakCadeau(), doe: () => cadeauUitpakken() },
+  { id: 'rendier', thema: 'winter', n: 'Rendier', b5: 'Arrensleeër', r: 0.34, h: 0.5, grap: 'Nee, niet die met de rode neus. Dat is zijn neef. Hij trekt wel een slee!', weg: 'Het rendier galoppeert terug naar het noorden.', maak: () => maakRendier(), doe: () => sleeRit() },
+  { id: 'kerstbal', thema: 'winter', n: 'Kerstbal', b5: 'Kerstboomversierder', r: 0.26, h: 0.42, grap: 'Glinster! Het regent kerstkoekjes: 5 punten per stuk.', weg: 'Pats! Kerstbal kapot. Wie ruimt dit op?', maak: () => maakKerstbal(), doe: () => { flonker(); for (let i = 0; i < 8; i++) setTimeout(() => laatVallen((Math.random() - 0.5) * (HB * 2 - 1.2), true, 7), i * 100); } },
   { id: 'spook', thema: 'halloween', n: 'Spookje', r: 0.36, h: 0.62, grap: 'Boehoe… ik bedoel: snoep!', weg: 'Het spookje zweeft er stiekem vandoor', maak: () => maakSpook(), doe: () => spookVlucht() },
 ];
 const ITEM_KANS = 1 / 25;
@@ -145,6 +149,7 @@ function bovenTex(code) {
     else if (code == 1) { zacht('#e8b469', '#c98a40'); rondje('#f6a3c0', c * 0.74); for (let i = 0; i < 26; i++) { g.fillStyle = ['#fff', '#7fd0f0', '#ffe14d', '#9ae07a'][i % 4]; const a = r() * 7, d = r() * c * 0.7; g.save(); g.translate(c + Math.cos(a) * d, c + Math.sin(a) * d); g.rotate(r() * 3); g.fillRect(-9, -3, 18, 6); g.restore(); } }
     else if (code == 2) { zacht('#6b4028', '#4e2c1a'); spikkels('#f4ead6', 13, 11); }
     else if (code == 4) { zacht('#ff9a3a', '#c8601a'); g.fillStyle = '#3a1a10'; for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(c + sx * c * 0.42, c - c * 0.05); g.lineTo(c + sx * c * 0.15, c - c * 0.05); g.lineTo(c + sx * c * 0.28, c - c * 0.38); g.fill(); } g.beginPath(); g.moveTo(c - c * 0.5, c + c * 0.15); for (let i = 0; i <= 8; i++) g.lineTo(c - c * 0.5 + i * c * 0.125, c + c * (i % 2 ? 0.3 : 0.45)); g.lineTo(c + c * 0.5, c + c * 0.15); g.quadraticCurveTo(c, c + c * 0.3, c - c * 0.5, c + c * 0.15); g.fill(); spikkels('#9a4aff', 10, 5); }
+    else if (code == 7) { zacht('#b06a30', '#7a4018'); g.strokeStyle = '#fff8ee'; g.lineWidth = 9; g.lineJoin = 'round'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? c * 0.28 : c * 0.62; g.lineTo(c + Math.cos(a) * rr, c + Math.sin(a) * rr); } g.closePath(); g.stroke(); for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * Math.PI * 0.4; g.fillStyle = ['#e8303a', '#3ac860', '#ffd84a'][i % 3]; g.beginPath(); g.arc(c + Math.cos(a) * c * 0.8, c + Math.sin(a) * c * 0.8, 9, 0, 7); g.fill(); } }
     else if (code == 6) { const gr = g.createRadialGradient(c * 0.7, c * 0.6, c * 0.05, c, c, c); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.4, '#f4eef8'); gr.addColorStop(0.8, '#e0d4ec'); gr.addColorStop(1, '#c8b8d8'); rondje(gr, c); g.globalAlpha = 0.25; for (const [k, a] of [['#ffb0e0', 0], ['#b0e8ff', 2], ['#d0ffb0', 4]]) { g.fillStyle = k; g.beginPath(); g.arc(c + Math.cos(a) * c * 0.35, c + Math.sin(a) * c * 0.35, c * 0.4, 0, 7); g.fill(); } g.globalAlpha = 1; }
     else if (code == 5) { zacht('#ff9ac8', '#e0609a'); g.fillStyle = '#fff'; for (let i = 0; i < 6; i++) { const a = i * 1.05 + 0.3, d = c * 0.45, x = c + Math.cos(a) * d, y = c + Math.sin(a) * d; g.beginPath(); g.moveTo(x, y + 6); g.bezierCurveTo(x - 14, y - 6, x - 6, y - 16, x, y - 7); g.bezierCurveTo(x + 6, y - 16, x + 14, y - 6, x, y + 6); g.fill(); } rondje('#ff5a9a', c * 0.16); }
     else if (code == 3) { zacht('#ffd84a', '#d89a18'); g.fillStyle = '#fff4b0'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? c * 0.25 : c * 0.55; g.lineTo(c + Math.cos(a) * rr, c + Math.sin(a) * rr); } g.fill(); }
@@ -168,7 +173,7 @@ function bovenTex(code) {
     }
   });
 }
-const SIDE = { 6: '#d8cce4', 5: '#e0609a', 4: '#c8601a', 0: '#c8843a', 1: '#c8843a', 2: '#4a2a18', 3: '#d89a18', 10: '#f0e0d0', 11: '#e8d0a0', 12: '#cfc4b0', 13: '#f0e8d8', 14: '#fbf3e6' };
+const SIDE = { 7: '#7a4018', 6: '#d8cce4', 5: '#e0609a', 4: '#c8601a', 0: '#c8843a', 1: '#c8843a', 2: '#4a2a18', 3: '#d89a18', 10: '#f0e0d0', 11: '#e8d0a0', 12: '#cfc4b0', 13: '#f0e8d8', 14: '#fbf3e6' };
 const koekMat = {};
 function materialen(code) {
   if (!koekMat[code]) {
@@ -497,7 +502,7 @@ function gewonnen(k) {
     const i = c - 10; coll[i]++; score += 25; sPrize(); pop(TREATS[i].n + '!', p.x, p.y - 20, 'goud'); verdien(1, p.x, p.y - 50);
     if (coll[i] == 3) pop(TREATS[i].p + ' klaar!', innerWidth / 2, innerHeight - 110, 'goud');
   } else {
-    const v = (c == 3 ? 10 : c == 4 ? 5 : c == 6 ? 4 : c == 5 ? 3 : 1) * (wiebelT > 0 ? 2 : 1); score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
+    const v = (c == 3 ? 10 : c == 4 || c == 7 ? 5 : c == 6 ? 4 : c == 5 ? 3 : 1) * (wiebelT > 0 ? 2 : 1); score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
   }
   checkBadges(); tekenHud(true);
 }
@@ -611,7 +616,7 @@ function maakKrab() {
   return grp;
 }
 // kwal: de tafel wordt even glibberig (minder wrijving, en de tafel glimt blauwig)
-let glibberT = 0, wiebelT = 0, camBasis = null;
+let vriesT = 0, glibberT = 0, wiebelT = 0, camBasis = null;
 function glibber(sec) {
   glibberT = sec; const aan = sec > 0;
   cmTafel.friction = aan ? 0.04 : WRIJF.tafel; cmKoek.friction = aan ? 0.05 : WRIJF.koek;
@@ -742,6 +747,70 @@ function armbandRol() {
     const z = -1.6 + t * 1.6, x = Math.sin(t * 1.5) * 0.8; a.position.set(x, 0.65, z); a.rotation.x = -t * 4;
     for (const c of koekjes) { const p = c.body.position; if (Math.abs(p.z - z) < 0.5 && Math.abs(p.x - x) < 0.8 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 2.5); } }
     if (t > 3) { scene.remove(a); return false; }
+  } });
+}
+
+// winternacht: sneeuwpop, cadeautje, rendier met slee en kerstbal
+function maakSneeuwpop() {
+  const grp = new THREE.Group(), wit = mat('#f6faff', { roughness: 0.9 }), zwart = mat('#1a1a1a');
+  [[0.2, -0.2], [0.15, 0.08], [0.11, 0.28]].forEach(([r, y]) => { const b = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), wit); b.position.y = y; grp.add(b); });
+  const neus = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.12, 8), mat('#ff8a1a')); neus.rotation.x = Math.PI / 2; neus.position.set(0, 0.28, 0.15); grp.add(neus);
+  for (const sx of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 5), zwart); o.position.set(sx * 0.04, 0.32, 0.095); grp.add(o); }
+  const sjaal = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 8, 16), mat('#e8303a')); sjaal.rotation.x = Math.PI / 2; sjaal.position.y = 0.19; grp.add(sjaal);
+  const rand = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.02, 14), zwart); rand.position.y = 0.37; grp.add(rand);
+  const hoed = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.1, 14), zwart); hoed.position.y = 0.42; grp.add(hoed);
+  return grp;
+}
+function maakCadeau() {
+  const grp = new THREE.Group(), goudLint = mat('#ffd24a', { metalness: 0.4, roughness: 0.3 });
+  grp.add(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.34, 0.42), mat('#d8202a')));
+  for (const [x, z] of [[0.43, 0.06], [0.06, 0.43]]) { const l = new THREE.Mesh(new THREE.BoxGeometry(x, 0.35, z), goudLint); grp.add(l); }
+  for (const sx of [-1, 1]) { const strik = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.02, 6, 12), goudLint); strik.position.set(sx * 0.05, 0.2, 0); strik.rotation.set(0, Math.PI / 2, sx * 0.6); grp.add(strik); }
+  return grp;
+}
+function maakRendier() {
+  const grp = new THREE.Group(), bruin = mat('#8a5a30'), licht = mat('#c89a6a'), zwart = new THREE.MeshBasicMaterial({ color: '#111' });
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10), bruin); lijf.scale.set(1.4, 0.8, 0.8); lijf.position.y = 0.02; grp.add(lijf);
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), bruin); kop.position.set(0.26, 0.17, 0); grp.add(kop);
+  const snuit = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), licht); snuit.position.set(0.34, 0.14, 0); grp.add(snuit);
+  const neus = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), zwart); neus.position.set(0.39, 0.15, 0); grp.add(neus);
+  for (const sz of [-1, 1]) {
+    const o = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 5), zwart); o.position.set(0.3, 0.21, sz * 0.06); grp.add(o);
+    const gewei = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.015, 0.18, 5), licht); gewei.position.set(0.22, 0.32, sz * 0.06); gewei.rotation.x = sz * 0.4; grp.add(gewei);
+    const tak = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.012, 0.09, 5), licht); tak.position.set(0.26, 0.36, sz * 0.1); tak.rotation.set(sz * 0.9, 0, -0.6); grp.add(tak);
+    for (const dx of [-0.15, 0.15]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.02, 0.2, 6), bruin); p.position.set(dx, -0.17, sz * 0.08); grp.add(p); }
+  }
+  return grp;
+}
+function maakKerstbal() {
+  const grp = new THREE.Group();
+  const bal = new THREE.Mesh(new THREE.SphereGeometry(0.22, 22, 16), sieraad('#e8202a', { metalness: 0.7, roughness: 0.12 })); bal.position.y = -0.04; grp.add(bal);
+  const dop = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.06, 10), sieraad('#ffd24a')); dop.position.y = 0.19; grp.add(dop);
+  const oog = new THREE.Mesh(new THREE.TorusGeometry(0.025, 0.008, 6, 10), sieraad('#ffd24a')); oog.position.y = 0.23; grp.add(oog);
+  return grp;
+}
+// sneeuwpop: de tafel bevriest even (ijsblauw)
+function vries(sec) { vriesT = sec; KM.tafel.emissive.set(sec > 0 ? '#3a6a8a' : '#000000'); if (sec > 0) snd(2400, 0.5, 'sine', 0.03, 1200); }
+// cadeautje: munten, een gebakje of… een zak kolen
+function cadeauUitpakken() {
+  setTimeout(() => {
+    const r = Math.random();
+    if (r < 0.4) { verdien(15, innerWidth / 2, innerHeight * 0.35); roep('Er zitten 15 munten in!'); sBadge(); }
+    else if (r < 0.75) { const i = Math.floor(Math.random() * 5); coll[i]++; roep('Een ' + TREATS[i].n.toLowerCase() + '!'); sPrize(); tekenHud(true); }
+    else { roep('Een zak kolen…'); setTimeout(() => pop('Was je wel lief dit jaar?', innerWidth / 2, innerHeight * 0.42, 'goud grap'), 700); snd(110, 0.5, 'sawtooth', 0.05, 70); }
+  }, 1500);
+}
+// rendier: trekt een slee van achter naar voren over de tafel, met belletjes
+function sleeRit() {
+  const grp = new THREE.Group(), r = maakRendier(); r.scale.setScalar(1.6); r.rotation.y = -Math.PI / 2; grp.add(r);
+  const slee = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.25, 0.6), mat('#c82020')); slee.position.set(0, -0.05, -0.75); grp.add(slee);
+  const lading = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.3, 0.35), mat('#2a8a3a')); lading.position.set(0, 0.2, -0.8); grp.add(lading);
+  scene.add(grp); const x = (Math.random() - 0.5) * (HB - 0.6);
+  effecten.push({ stap: (t, dt) => {
+    const z = -2 + t * 2.2; grp.position.set(x, 0.55 + Math.abs(Math.sin(t * 9)) * 0.06, z);
+    for (const c of koekjes) { const p = c.body.position; if (Math.abs(p.x - x) < 0.8 && p.z < z + 0.4 && p.z > z - 1.2 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 2.4); } }
+    if (Math.floor(t * 5) != Math.floor((t - dt) * 5)) snd(2600 + Math.random() * 600, 0.15, 'triangle', 0.03, 0);
+    if (t > 2.8) { scene.remove(grp); return false; }
   } });
 }
 
@@ -890,7 +959,7 @@ function speel() { modus = 'vrij'; document.body.classList.remove('inmenu'); $('
 function startWedstrijd() {
   if (modus == 'vrij' || modus == 'menu') bewaar(); // je eigen tafel staat veilig in de opslag
   for (const k of [...koekjes]) weg(k);
-  supply = 50; score = 0; coll = [0, 0, 0, 0, 0]; goldQ = rainQ = rozeQ = 0; glibber(0); zetMuurtjes(false); wallT = 0; stilT = 0;
+  supply = 50; score = 0; coll = [0, 0, 0, 0, 0]; goldQ = rainQ = rozeQ = 0; glibber(0); vries(0); zetMuurtjes(false); wallT = 0; stilT = 0;
   vulTafel(); modus = 'wedstrijd'; document.body.classList.remove('inmenu'); $('menu').hidden = true; $('einde').hidden = true; $('wedlabel').hidden = false; document.body.classList.add('wed');
   tekenHud(true); pasAan(); roep('Wedstrijd!');
 }
@@ -901,7 +970,7 @@ function eindeWedstrijd() {
   $('eindstatus').textContent = ''; autoInsturen((tekst) => { $('eindstatus').textContent = tekst; });
   $('einde').hidden = false; if (nieuw) sBadge(); else sPrize();
 }
-function terugNaarVrij() { for (const k of [...koekjes]) weg(k); goldQ = rainQ = rozeQ = 0; glibber(0); zetMuurtjes(false); wallT = 0; if (!laad()) vulTafel(); $('wedlabel').hidden = true; document.body.classList.remove('wed'); tekenHud(true); }
+function terugNaarVrij() { for (const k of [...koekjes]) weg(k); goldQ = rainQ = rozeQ = 0; glibber(0); vries(0); zetMuurtjes(false); wallT = 0; if (!laad()) vulTafel(); $('wedlabel').hidden = true; document.body.classList.remove('wed'); tekenHud(true); }
 $('mvrij').onclick = () => { unlock(); speel(); };
 $('mwed').onclick = () => { unlock(); startWedstrijd(); };
 $('mbord').onclick = () => { unlock(); $('bordknop').onclick(); };
@@ -945,6 +1014,7 @@ function stap(dt) {
   }
   if (wallT > 0 && (wallT -= dt) <= 0) zetMuurtjes(false);
   if (glibberT > 0 && (glibberT -= dt) <= 0) glibber(0);
+  if (vriesT > 0 && (vriesT -= dt) <= 0) vries(0);
   if (wiebelT > 0 && (wiebelT -= dt) <= 0) { wiebelT = 0; pasAan(); }
   if (modus != 'wedstrijd' && supply < REGEN_MAX) { if ((regen += dt) >= REGEN) { regen = 0; supply++; tekenHud(); } } else regen = 0;
   if (modus != 'wedstrijd' && score > best) best = score;
