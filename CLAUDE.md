@@ -130,7 +130,11 @@ ring (8 gouden koekjes), parelketting (10 parelkoekjes, code 6, 4 punten), goude
 gebakje of een zak kolen), rendier (trekt een slee over de tafel, `sleeRit`; geen rode neus, "dat is zijn neef"), kerstbal
 (8 kerstkoekjes, code 7, 5 punten); Bakkerij: taart (25 punten extra en een deuntje), deegroller (rolt over de hele breedte, `rolOver`), muisje
 (pikt 3 koekjes, laat 10 munten achter, `muisRoof`). Ruimte: ufo (straalt 3 koekjes naar de opvangbak, `ufoStraal`),
-meteoriet (inslag, `inslag`), alien (12 s lage zwaartekracht, `laagT`). Drakenburcht (tafel van 100.000 munten, oranje
+meteoriet (inslag, `inslag`), alien (12 s lage zwaartekracht, `laagT`). Snoepland (10.000 munten, gebakjes vaker): gummibeer (stuitert, `stuiter`), chocoladefontein (14 chocoladekoekjes),
+lolly (draaikolk), zuurstok (veegt de voorkant leeg). Dino-eiland (25.000, koekjesfiguren vaker): T-rex (aardbeving),
+dino-ei (babydino waggelt over de tafel), vulkaan (15 koekjes uit de lucht), fossiel (45 munten). Onderwaterwereld (50.000,
+bubbels, items geven 10 munten): octopus (zet 5 koekjes in de bak, `grijp`), haai (hapt 4 koekjes weg, laat 20 munten achter),
+schelp (10 parelkoekjes), duikboot (sonar-golven). Drakenburcht (tafel van 100.000 munten, oranje
 vonken die opstijgen `vonken`, items vaker `ITEM_KANS_DRAAK` en meer gouden koekjes): drakenei (babydraakje laat 6 gouden
 koekjes vallen), draak (vliegt over en spuwt vuur: alle gewone koekjes op tafel worden goud, `drakenvuur`), schatkist (50
 munten), toverkristal (20 s driedubbele punten, `driesT`); sieraden glanzen met een eigen omgevingskaart (`glans`, alleen op die materialen). De badgeteller telt de

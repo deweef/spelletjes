@@ -66,6 +66,18 @@ const ITEMS = [
   { id: 'draakje', thema: 'draak', n: 'Draak', b1: 'Drakentemmer', b5: 'Drakenkoning', r: 0.36, h: 0.45, grap: 'De grote draak spuwt vuur… en alle koekjes op de tafel worden goud!', weg: 'De draak vliegt boos weg. Oeps.', maak: () => maakDraakje(), doe: () => drakenvuur() },
   { id: 'schatkist', thema: 'draak', n: 'Schatkist', b5: 'Schatgraver', r: 0.36, h: 0.4, grap: 'De schatkist springt open: 50 munten!', weg: 'De schatkist zakt weg in de lava. Nooit meer gezien.', maak: () => maakSchatkist(), doe: () => { verdien(45, innerWidth / 2, innerHeight * 0.3); flonker(); } },
   { id: 'kristal', thema: 'draak', n: 'Toverkristal', b5: 'Tovenaar', r: 0.24, h: 0.5, grap: 'Het kristal gloeit: 20 seconden driedubbele punten!', weg: 'Het kristal valt in duizend stukjes. Ongeluk? Nee, gewoon pech.', maak: () => maakKristal(), doe: () => { driesT = 20; snd(880, 0.8, 'sine', 0.04, 1760); } },
+  { id: 'gummibeer', thema: 'snoep', n: 'Gummibeer', b5: 'Gummibeerbaas', r: 0.26, h: 0.42, grap: 'Boing! Een reuzengummibeer stuitert over de tafel.', weg: 'De gummibeer stuitert de kamer uit.', maak: () => maakGummibeer(), doe: () => stuiter(maakGummibeer(), 3) },
+  { id: 'fontein', thema: 'snoep', n: 'Chocoladefontein', b5: 'Chocoholic', r: 0.3, h: 0.5, grap: 'Een chocoladefontein! Het regent chocoladekoekjes.', weg: 'Chocola over de vloer. Wie gaat dat oplikken?', maak: () => maakFontein(), doe: () => { for (let i = 0; i < 14; i++) setTimeout(() => laatVallen((Math.random() - 0.5) * (HB * 2 - 1.2), true, 2), i * 90); } },
+  { id: 'lolly', thema: 'snoep', n: 'Lolly', b5: 'Hypnotiseur', r: 0.34, h: 0.14, grap: 'Kijk diep in de lolly… je wordt heel slaperig… en alle koekjes draaien rond!', weg: 'De lolly rolt weg. Plakkerig.', maak: () => maakLolly(), doe: () => draaikolk() },
+  { id: 'zuurstok', thema: 'snoep', n: 'Zuurstok', b5: 'Zuurstokzwaaier', r: 0.36, h: 0.14, grap: 'Zoef! Een reuzenzuurstok veegt de voorkant leeg.', weg: 'Krak. Zuurstok gebroken.', maak: () => maakZuurstok(), doe: () => zuurstokVeeg() },
+  { id: 'trex', thema: 'dino', n: 'T-rex', b1: 'ROAR!', b5: 'Dinotemmer', r: 0.3, h: 0.5, grap: 'ROOOAR! De T-rex stampt en de hele tafel trilt!', weg: 'De T-rex valt om. Te korte armpjes om zich vast te houden.', maak: () => maakTrex(), doe: () => aardbeving() },
+  { id: 'dinoei', thema: 'dino', n: 'Dino-ei', b5: 'Eierbroeder', r: 0.24, h: 0.4, grap: 'Krak! Een babydino: "Mama?" Hij waggelt over de tafel.', weg: 'Het dino-ei rolt weg. Omelet!', maak: () => maakDinoEi(), doe: () => babyDino() },
+  { id: 'vulkaan', thema: 'dino', n: 'Vulkaan', b5: 'Vulkanoloog', r: 0.38, h: 0.38, grap: 'Uitbarsting! Er regenen koekjes uit de lucht.', weg: 'De vulkaan dooft uit. Pfff.', maak: () => maakVulkaan(), doe: () => uitbarsting() },
+  { id: 'fossiel', thema: 'dino', n: 'Fossiel', b1: 'Botje!', b5: 'Paleontoloog', r: 0.34, h: 0.14, grap: 'Een echt fossiel! Het museum betaalt 40 munten.', weg: 'Het fossiel valt in stukken. Weer 65 miljoen jaar wachten.', maak: () => maakFossiel(), doe: () => verdien(40, innerWidth / 2, innerHeight * 0.3) },
+  { id: 'octopus', thema: 'zee', n: 'Octopus', b5: 'Achtarmige vriend', r: 0.32, h: 0.4, grap: 'Acht armen, acht keer helpen: de octopus zet 5 koekjes in je bak.', weg: 'De octopus spuit inkt en is weg.', maak: () => maakOctopus(), doe: () => grijp(5, maakOctopus()) },
+  { id: 'haai', thema: 'zee', n: 'Haai', b1: 'Tanden!', b5: 'Haaienfluisteraar', r: 0.36, h: 0.36, grap: 'Dun-dun… dun-dun… HAP! De haai eet 4 koekjes, maar laat een tand achter: 20 munten.', weg: 'De haai zwemt verder. Gelukkig.', maak: () => maakHaai(), doe: () => haaiHap() },
+  { id: 'schelp', thema: 'zee', n: 'Schelp', b5: 'Parelvisser', r: 0.34, h: 0.24, grap: 'De schelp gaat open: parels! 4 punten per stuk.', weg: 'De schelp klapt dicht en zinkt.', maak: () => maakSchelp(), doe: () => { for (let i = 0; i < 10; i++) setTimeout(() => laatVallen((Math.random() - 0.5) * (HB * 2 - 1.2), true, 6), i * 90); } },
+  { id: 'duikboot', thema: 'zee', n: 'Duikboot', b5: 'Kapitein', r: 0.32, h: 0.36, grap: 'Ping… ping… De sonar van de duikboot duwt alle koekjes naar voren!', weg: 'De duikboot duikt weg naar de diepte.', maak: () => maakDuikboot(), doe: () => sonar() },
   { id: 'spook', thema: 'halloween', n: 'Spookje', r: 0.36, h: 0.62, grap: 'Boehoe… ik bedoel: snoep!', weg: 'Het spookje zweeft er stiekem vandoor', maak: () => maakSpook(), doe: () => spookVlucht() },
 ];
 const ITEM_KANS = 1 / 25, ITEM_KANS_DRAAK = 1 / 12; // op de Drakenburcht vallen er vaker items
@@ -316,6 +328,36 @@ const THEMAS = [
       g.fillRect(cx - 155, cy + 60, 310, 34); for (const [dx, k] of [[-100, '#ff3a5a'], [0, '#3ad8ff'], [100, '#5aff8a']]) bol(g, cx + dx, cy + 77, 12, k);
       for (const dx of [-170, 0, 170]) bol(g, cx + dx, dx ? cy - 64 : cy - 94, 12, '#fff4c0');
       for (let i = 0; i < 16; i++) bol(g, (i + 0.5) * w / 16, h * 0.93, 7, i % 2 ? '#fff' : '#ffd84a'); } },
+  { id: 'snoep', n: 'Snoepland', prijs: 10000, kast: '#ff5aa8', donker: '#8a2a7a', vloer: '#ffc8e4', mist: '#ffb8dc', tafel: '#ffe4f2', lamp: '#ffffff',
+    lucht(g, w, h) { verloop(g, w, h, ['#9ad8ff', '#ffd0ec', '#fff0f8']);
+      for (const [x, y] of [[0.2, 0.12], [0.7, 0.2]]) { bol(g, w * x, h * y, 22, '#fff'); bol(g, w * x + 24, h * y + 4, 17, '#fff'); bol(g, w * x - 22, h * y + 6, 15, '#fff'); }
+      for (let i = 0; i < 7; i++) { const x = (i + 0.5) * w / 7; bol(g, x, h + 10, w * 0.12, ['#ff8ac8', '#8ad8ff', '#b8ff8a', '#ffd84a'][i % 4]); } // gomheuvels
+      for (const [x, k] of [[0.12, '#ff3a8a'], [0.88, '#3ab8ff'], [0.5, '#ffb03a']]) { g.fillStyle = '#fff'; g.fillRect(w * x - 3, h * 0.45, 6, h * 0.4); for (let r = 40; r > 0; r -= 8) bol(g, w * x, h * 0.42, r, r / 8 % 2 ? k : '#fff'); } // lolly's
+      for (const x of [0.3, 0.7]) { g.lineWidth = 12; g.lineCap = 'round'; for (let j = 0; j < 8; j++) { g.strokeStyle = j % 2 ? '#fff' : '#ff2a4a'; g.beginPath(); g.moveTo(w * x, h * 0.95 - j * 18); g.lineTo(w * x, h * 0.95 - j * 18 - 18); g.stroke(); } g.beginPath(); g.arc(w * x + 18, h * 0.95 - 144, 18, Math.PI, 0); g.strokeStyle = '#ff2a4a'; g.stroke(); } },
+    bord(g, w, h) { for (let i = 0; i < 16; i++) { g.fillStyle = i % 2 ? '#fff' : '#ff6ab0'; g.beginPath(); g.moveTo(i * w / 8 - h, h); g.lineTo(i * w / 8 - h + w / 16, h); g.lineTo(i * w / 8 + w / 16, 0); g.lineTo(i * w / 8, 0); g.fill(); }
+      const cx = w / 2, cy = h * 0.45; for (let r = 150; r > 0; r -= 18) bol(g, cx, cy, r, r / 18 % 2 ? '#ff3a8a' : '#fff4fa'); g.fillStyle = '#fff'; g.fillRect(cx - 8, cy + 150, 16, h); } },
+  { id: 'dino', n: 'Dino-eiland', prijs: 25000, kast: '#4a8a2a', donker: '#24400e', vloer: '#4a3a1a', mist: '#7a9a50', tafel: '#f0e4b8', lamp: '#ffd84a',
+    lucht(g, w, h) { verloop(g, w, h, ['#f8b060', '#ffd890', '#b8e0a0']);
+      g.fillStyle = '#6a4a3a'; g.beginPath(); g.moveTo(w * 0.45, h * 0.7); g.lineTo(w * 0.62, h * 0.28); g.lineTo(w * 0.7, h * 0.28); g.lineTo(w * 0.88, h * 0.7); g.fill(); // vulkaan
+      g.fillStyle = '#ff5a1a'; g.beginPath(); g.moveTo(w * 0.62, h * 0.28); g.lineTo(w * 0.7, h * 0.28); g.lineTo(w * 0.67, h * 0.4); g.lineTo(w * 0.64, h * 0.34); g.fill();
+      for (let i = 0; i < 5; i++) bol(g, w * (0.66 + i * 0.02), h * (0.22 - i * 0.04), 14 + i * 5, `rgba(90,80,80,${0.5 - i * 0.07})`); // rook
+      g.fillStyle = '#2a5a1a'; g.beginPath(); g.moveTo(0, h); for (let x = 0; x <= w; x += 20) g.lineTo(x, h * 0.72 + Math.sin(x / 30) * 12); g.lineTo(w, h); g.fill(); // oerwoud
+      for (const x of [0.1, 0.3, 0.92]) { g.fillStyle = '#6a4a2a'; g.fillRect(w * x - 4, h * 0.45, 8, h * 0.3); g.fillStyle = '#3a8a2a'; for (let j = 0; j < 6; j++) { g.save(); g.translate(w * x, h * 0.45); g.rotate(j * 1.05); g.beginPath(); g.ellipse(26, 0, 28, 8, 0, 0, 7); g.fill(); g.restore(); } }
+      g.fillStyle = '#3a2a2a'; for (const [x, y] of [[0.25, 0.18], [0.4, 0.12]]) { g.beginPath(); g.moveTo(w * x, h * y); g.lineTo(w * x - 26, h * y - 8); g.lineTo(w * x - 6, h * y + 2); g.lineTo(w * x + 6, h * y + 2); g.lineTo(w * x + 26, h * y - 8); g.fill(); } }, // pterosauriërs
+    bord(g, w, h) { verloop(g, w, h, ['#6a8a3a', '#3a5a1a']); g.fillStyle = '#f4e8c8';
+      const voet = (x, y, s) => { g.beginPath(); g.ellipse(x, y, 30 * s, 38 * s, 0, 0, 7); g.fill(); for (const dx of [-28, 0, 28]) { g.beginPath(); g.ellipse(x + dx * s, y - 52 * s, 9 * s, 22 * s, dx / 60, 0, 7); g.fill(); } };
+      voet(w * 0.3, h * 0.65, 1.3); voet(w * 0.6, h * 0.42, 1.1); voet(w * 0.82, h * 0.72, 0.9);
+      g.font = `bold ${h * 0.14}px Georgia`; g.textAlign = 'center'; g.fillStyle = '#ffd84a'; g.fillText('ROAR!', w * 0.5, h * 0.92); } },
+  { id: 'zee', n: 'Onderwaterwereld', prijs: 50000, kast: '#1a7aaa', donker: '#0a2a4a', vloer: '#0a3050', mist: '#0a3a5a', tafel: '#c8f0ff', lamp: '#8affff', bubbels: true,
+    lucht(g, w, h) { verloop(g, w, h, ['#2ab8e8', '#0a5a9a', '#062a4a']);
+      g.fillStyle = 'rgba(255,255,255,.08)'; for (let i = 0; i < 6; i++) { g.beginPath(); g.moveTo(w * (0.1 + i * 0.17), 0); g.lineTo(w * (0.18 + i * 0.17), 0); g.lineTo(w * (0.05 + i * 0.17), h); g.lineTo(w * (-0.05 + i * 0.17), h); g.fill(); } // lichtstralen
+      for (let i = 0; i < 9; i++) { const x = (i + 0.5) * w / 9; g.strokeStyle = '#2a8a4a'; g.lineWidth = 7; g.beginPath(); g.moveTo(x, h); for (let y = h; y > h * 0.62; y -= 10) g.lineTo(x + Math.sin(y / 20 + i) * 10, y); g.stroke(); } // zeewier
+      for (const [x, k] of [[0.2, '#ff7a6a'], [0.55, '#ffb03a'], [0.85, '#ff5ab8']]) for (let j = 0; j < 5; j++) bol(g, w * x + (j - 2) * 14, h * 0.9 - Math.abs(j - 2) * -6 - j % 2 * 18, 12, k); // koraal
+      const vis = (x, y, k, s) => { g.fillStyle = k; g.beginPath(); g.ellipse(x, y, 18 * s, 10 * s, 0, 0, 7); g.fill(); g.beginPath(); g.moveTo(x + 14 * s, y); g.lineTo(x + 28 * s, y - 10 * s); g.lineTo(x + 28 * s, y + 10 * s); g.fill(); bol(g, x - 9 * s, y - 2 * s, 2.5 * s, '#000'); };
+      vis(w * 0.3, h * 0.35, '#ffb03a', 1.2); vis(w * 0.7, h * 0.25, '#ffd84a', 1); vis(w * 0.6, h * 0.5, '#ff7ab8', 0.8); vis(w * 0.15, h * 0.55, '#7ae8ff', 0.9); },
+    bord(g, w, h) { verloop(g, w, h, ['#1a8ac8', '#0a3a6a']); const cx = w / 2, cy = h * 0.55;
+      g.fillStyle = '#ffb0c8'; for (let i = 0; i < 9; i++) { g.save(); g.translate(cx, cy + 60); g.rotate(-Math.PI / 2 + (i - 4) * 0.28); g.beginPath(); g.moveTo(0, 0); g.lineTo(150, -22); g.quadraticCurveTo(165, 0, 150, 22); g.fill(); g.restore(); } // schelp
+      bol(g, cx, cy + 20, 26, '#fbf6ff'); bol(g, cx - 8, cy + 12, 8, '#fff'); for (let i = 0; i < 12; i++) bol(g, (i + 0.5) * w / 12, h * 0.1 + (i % 3) * 12, 6 + (i % 2) * 4, 'rgba(255,255,255,.5)'); } },
   { id: 'draak', n: 'Drakenburcht', prijs: 100000, kast: '#6a1a12', donker: '#1a0806', vloer: '#1a0806', mist: '#2a0c06', tafel: '#ffcf7a', lamp: '#ff9a2a', vonken: true,
     lucht(g, w, h) { verloop(g, w, h, ['#0a0302', '#2a0c06', '#5a1a08']);
       g.fillStyle = '#120403'; for (let x = 0; x < w; x += w / 9) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + w / 18, h * (0.12 + ((x * 7) % 5) / 40)); g.lineTo(x + w / 9, 0); g.fill(); } // stalactieten
@@ -353,8 +395,8 @@ function zetThema(id) {
   KM.kast.color.set(thema.kast); KM.donker.color.set(thema.donker); KM.vloer.color.set(thema.vloer);
   KM.tafel.color.set(thema.tafel || '#ffffff'); KM.lampAan.color.set(thema.lamp || '#fff3b0');
   if (KM.bord.map) KM.bord.map.dispose(); KM.bord.map = canvasTex((g, w, h) => thema.bord(g, w, h), 768, 500); KM.bord.needsUpdate = true;
-  scene.fog.color.set(thema.mist); tekenLucht(); sneeuw.visible = !!thema.sneeuw || !!thema.vonken;
-  sneeuw.material.color.set(thema.vonken ? '#ff9a2a' : '#ffffff'); sneeuw.userData.op = !!thema.vonken;
+  scene.fog.color.set(thema.mist); tekenLucht(); sneeuw.visible = !!thema.sneeuw || !!thema.vonken || !!thema.bubbels;
+  sneeuw.material.color.set(thema.vonken ? '#ff9a2a' : thema.bubbels ? '#c8f4ff' : '#ffffff'); sneeuw.userData.op = !!thema.vonken || !!thema.bubbels;
 }
 // vallende sneeuw (Winternacht)
 const sneeuw = (() => {
@@ -522,8 +564,8 @@ function laatVallen(x, gratis, vast) {
   else if (goldQ > 0 && !gratis) { goldQ--; code = 3; }
   else if (rozeQ > 0 && !gratis) { rozeQ--; code = 5; }
   else if (!gratis && modus == 'vrij' && eigen.length && Math.random() < (themaId == 'draak' ? ITEM_KANS_DRAAK : ITEM_KANS)) code = eigen[Math.floor(Math.random() * eigen.length)];
-  else if (!gratis && Math.random() < 1 / 18) { const nog = found.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0); code = 20 + (nog.length && Math.random() < 0.5 ? nog[Math.floor(Math.random() * nog.length)] : Math.floor(Math.random() * 8)); }
-  else if (!gratis && Math.random() < 1 / 13) code = 10 + Math.floor(Math.random() * 5);
+  else if (!gratis && Math.random() < (themaId == 'dino' && modus == 'vrij' ? 1 / 11 : 1 / 18)) { const nog = found.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0); code = 20 + (nog.length && Math.random() < 0.5 ? nog[Math.floor(Math.random() * nog.length)] : Math.floor(Math.random() * 8)); }
+  else if (!gratis && Math.random() < (themaId == 'snoep' && modus == 'vrij' ? 1 / 7 : 1 / 13)) code = 10 + Math.floor(Math.random() * 5);
   const k = nieuwKoekje(code, x, VAL_Y, VAL_Z + Math.random() * 0.1);
   k.body.quaternion.setFromEuler((Math.random() - 0.5) * 0.12, Math.random() * 6, (Math.random() - 0.5) * 0.12);
   snd(1400, 0.05, 'triangle', 0.04, 900); tekenHud();
@@ -546,7 +588,7 @@ function gewonnen(k) {
   stilT = 0;
   const c = k.code, p = schermPunt(k.body.position.x, 0, VOOR);
   if (c >= 100) {
-    const it = item(c); itemsGewonnen[it.id] = (itemsGewonnen[it.id] || 0) + 1; score += 25; sPrize(); roep(it.n + '!'); verdien(5, p.x, p.y - 50);
+    const it = item(c); itemsGewonnen[it.id] = (itemsGewonnen[it.id] || 0) + 1; score += 25; sPrize(); roep(it.n + '!'); verdien(themaId == 'zee' ? 10 : 5, p.x, p.y - 50);
     setTimeout(() => pop(it.grap, innerWidth / 2, innerHeight * 0.42, 'goud grap'), 900); it.doe();
   } else if (c >= 20) {
     const i = c - 20; found[i]++; score += 50; if (modus != 'wedstrijd') supply += 2; sRoep(); roep(KAR[i].roep); verdien(3, p.x, p.y - 50);
@@ -733,12 +775,13 @@ function eendPrijs() {
   setTimeout(() => { score += n; roep('Onder het eendje staat… ' + n + '!'); if (n == 100) sBadge(); else sPrize(); tekenHud(); }, 1600);
 }
 // P-knuffel: een grote P-knuffel stuitert over de tafel en duwt bij elke landing de koekjes weg
-function knuffelSprong() {
-  const k = maakPKnuffel(); k.scale.setScalar(2.4); scene.add(k); let land = 0;
-  setTimeout(() => verdien(10, innerWidth / 2, innerHeight * 0.3), 600);
+function knuffelSprong() { stuiter(maakPKnuffel(), 2.4); setTimeout(() => verdien(10, innerWidth / 2, innerHeight * 0.3), 600); }
+// iets groots stuitert drie keer over de tafel en duwt bij elke landing de koekjes weg (P-knuffel, gummibeer)
+function stuiter(k, S) {
+  k.scale.setScalar(S); scene.add(k); let land = 0;
   effecten.push({ stap: (t) => {
     const f = t / 3, z = -1.6 + f * 4.4, sprong = Math.abs(Math.sin(f * Math.PI * 3)); k.position.set(Math.sin(f * 6) * 0.6, 0.8 + sprong * 1.6, z); k.rotation.y = t * 2;
-    k.scale.set(2.4 * (1 + (1 - sprong) * 0.15), 2.4 * (1 - (1 - sprong) * 0.2), 2.4);
+    k.scale.set(S * (1 + (1 - sprong) * 0.15), S * (1 - (1 - sprong) * 0.2), S);
     const nu = Math.floor(f * 3 + 0.5); if (nu > land && nu <= 3) { land = nu; snd(220, 0.25, 'sine', 0.07, 520); roep('Boing!');
       for (const c of koekjes) { const dx = c.body.position.x - k.position.x, dz = c.body.position.z - z; if (dx * dx + dz * dz < 2.2 && c.body.position.y > -0.3) { c.body.wakeUp(); c.body.velocity.y += 2.5; c.body.velocity.z += 2; c.body.velocity.x += dx * 1.5; } } }
     if (t > 3) { scene.remove(k); return false; }
@@ -1023,6 +1066,179 @@ function drakenvuur() {
     if (t > 3.2) { scene.remove(d); vuur.forEach((v) => scene.remove(v)); return false; }
   } });
   snd(80, 2, 'sawtooth', 0.06, 50);
+}
+
+// snoepland: gummibeer, chocoladefontein, lolly en zuurstok
+function maakGummibeer() {
+  const grp = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: '#ff2a4a', roughness: 0.15, transparent: true, opacity: 0.85, emissive: '#4a0010' });
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 10), m); lijf.scale.set(1, 1.2, 0.8); lijf.position.y = -0.06; grp.add(lijf);
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), m); kop.position.y = 0.16; grp.add(kop);
+  for (const sx of [-1, 1]) { const oor = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), m); oor.position.set(sx * 0.08, 0.25, 0); grp.add(oor);
+    const arm = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), m); arm.position.set(sx * 0.14, 0.0, 0.03); grp.add(arm); const been = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), m); been.position.set(sx * 0.08, -0.2, 0.03); grp.add(been); }
+  return grp;
+}
+function maakFontein() {
+  const grp = new THREE.Group(), choc = mat('#5a3018', { roughness: 0.25 }), zilver = sieraad('#d8d8e0');
+  [[0.28, -0.22], [0.2, -0.05], [0.12, 0.1]].forEach(([r, y]) => { const s = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.8, 0.05, 20), zilver); s.position.y = y; grp.add(s); const c = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.95, r * 0.95, 0.03, 20), choc); c.position.y = y + 0.03; grp.add(c); });
+  const paal = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), zilver); grp.add(paal);
+  const top = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), choc); top.position.y = 0.22; grp.add(top);
+  return grp;
+}
+let lollyTex = null;
+function maakLolly() {
+  lollyTex = lollyTex || canvasTex((g, w) => { const c = w / 2; g.fillStyle = '#fff'; g.fillRect(0, 0, w, w); g.lineWidth = 18; for (const [k, o] of [['#ff2a6a', 0], ['#3ab8ff', 2.1], ['#ffd84a', 4.2]]) { g.strokeStyle = k; g.beginPath(); for (let a = 0; a < 16; a += 0.1) g.lineTo(c + Math.cos(a + o) * a * 7.5, c + Math.sin(a + o) * a * 7.5); g.stroke(); } });
+  const grp = new THREE.Group();
+  const schijf = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.08, 28), [mat('#ff8ab8'), new THREE.MeshStandardMaterial({ map: lollyTex, roughness: 0.2 }), new THREE.MeshStandardMaterial({ map: lollyTex, roughness: 0.2 })]); grp.add(schijf);
+  const stok = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4, 6), mat('#ffffff')); stok.rotation.z = Math.PI / 2; stok.position.x = 0.45; grp.add(stok);
+  return grp;
+}
+let zuurTex = null;
+function maakZuurstok() {
+  zuurTex = zuurTex || canvasTex((g, w, h) => { for (let i = -8; i < 16; i++) { g.fillStyle = i % 2 ? '#fff' : '#ff2a3a'; g.beginPath(); g.moveTo(i * 24, 0); g.lineTo(i * 24 + 24, 0); g.lineTo(i * 24 + 64, h); g.lineTo(i * 24 + 40, h); g.fill(); } }, 256, 32);
+  zuurTex.wrapS = THREE.RepeatWrapping; zuurTex.repeat.set(3, 1);
+  const grp = new THREE.Group(), m = new THREE.MeshStandardMaterial({ map: zuurTex, roughness: 0.3 });
+  const stok = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 12), m); stok.rotation.z = Math.PI / 2; stok.position.x = -0.05; grp.add(stok);
+  const haak = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.05, 10, 16, Math.PI), m); haak.position.set(0.25, 0, -0.12); haak.rotation.x = -Math.PI / 2; grp.add(haak);
+  return grp;
+}
+// lolly: alle koekjes draaien even rond (en schuiven daarbij naar voren)
+function draaikolk() {
+  const mid = new THREE.Vector3(0, 0, 1.4); snd(300, 1.5, 'sine', 0.04, 900);
+  effecten.push({ stap: (t) => {
+    if (Math.floor(t * 6) != Math.floor((t - 1 / 60) * 6)) for (const c of koekjes) { const p = c.body.position; if (p.y < -0.2) continue; const dx = p.x - mid.x, dz = p.z - mid.z; c.body.wakeUp(); c.body.velocity.x += -dz * 0.9; c.body.velocity.z += dx * 0.9 + 0.5; c.body.angularVelocity.y += 2; }
+    if (t > 2.5) return false;
+  } });
+}
+// zuurstok: veegt van links naar rechts langs de voorkant en duwt koekjes over de rand
+function zuurstokVeeg() {
+  const z = maakZuurstok(); z.scale.setScalar(2.4); z.rotation.y = Math.PI / 2; scene.add(z);
+  effecten.push({ stap: (t) => {
+    const x = -HB - 0.8 + t * (2 * HB + 1.6) / 1.6; z.position.set(x, 0.35, VOOR - 0.9);
+    for (const c of koekjes) { const p = c.body.position; if (Math.abs(p.x - x) < 0.5 && p.z > VOOR - 1.6 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 3); c.body.velocity.x += 0.5; } }
+    if (t > 1.6) { scene.remove(z); return false; }
+  } });
+  snd(900, 0.4, 'sawtooth', 0.03, 300);
+}
+
+// dino-eiland: T-rex, dino-ei, vulkaan en fossiel
+function maakTrex() {
+  const grp = new THREE.Group(), groen = mat('#4a9a3a', { roughness: 0.6 }), wit = new THREE.MeshBasicMaterial({ color: '#fff' }), zwart = new THREE.MeshBasicMaterial({ color: '#111' });
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10), groen); lijf.scale.set(1.3, 1.1, 0.9); lijf.position.y = -0.02; lijf.rotation.z = 0.4; grp.add(lijf);
+  const kop = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.13, 0.13), groen); kop.position.set(0.14, 0.2, 0); grp.add(kop);
+  for (const sz of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 5), zwart); o.position.set(0.18, 0.25, sz * 0.066); grp.add(o);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.07, 5), groen); arm.position.set(0.12, 0.02, sz * 0.09); arm.rotation.z = 1; grp.add(arm); // piepkleine armpjes
+    const been = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.035, 0.18, 8), groen); been.position.set(-0.02, -0.18, sz * 0.08); grp.add(been); }
+  for (let i = 0; i < 4; i++) { const tand = new THREE.Mesh(new THREE.ConeGeometry(0.01, 0.03, 4), wit); tand.rotation.x = Math.PI; tand.position.set(0.12 + i * 0.03, 0.135, 0.06); grp.add(tand); }
+  const staart = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.36, 8), groen); staart.position.set(-0.27, -0.06, 0); staart.rotation.z = Math.PI / 2 + 0.25; grp.add(staart);
+  return grp;
+}
+function maakDinoEi() {
+  const grp = new THREE.Group(), ei = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), mat('#f4ecd8', { roughness: 0.5 })); ei.scale.y = 1.3; grp.add(ei);
+  for (let i = 0; i < 14; i++) { const a = i * 2.3, y = -0.16 + (i % 7) * 0.05, v = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 5), mat('#8a6a3a')); v.position.set(Math.cos(a) * 0.175 * Math.cos(y * 2.2), y, Math.sin(a) * 0.175 * Math.cos(y * 2.2)); grp.add(v); }
+  return grp;
+}
+function maakVulkaan() {
+  const grp = new THREE.Group();
+  const berg = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.38, 0.34, 12), mat('#6a4a3a', { roughness: 0.9, flatShading: true })); grp.add(berg);
+  const lava = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.03, 12), new THREE.MeshBasicMaterial({ color: '#ff5a1a' })); lava.position.y = 0.17; grp.add(lava);
+  for (let i = 0; i < 3; i++) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, 0.02), new THREE.MeshBasicMaterial({ color: '#ff7a1a' })); const a = i * 2.1; s.position.set(Math.cos(a) * 0.15, 0.08, Math.sin(a) * 0.15); s.rotation.set(Math.sin(a) * 0.4, 0, -Math.cos(a) * 0.4); grp.add(s); }
+  return grp;
+}
+function maakFossiel() {
+  const grp = new THREE.Group(), bot = mat('#f2ead2', { roughness: 0.8 });
+  const stuk = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.5, 10), bot); stuk.rotation.z = Math.PI / 2; grp.add(stuk);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const k = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), bot); k.position.set(sx * 0.26, 0, sz * 0.05); grp.add(k); }
+  return grp;
+}
+// T-rex: aardbeving, de tafel trilt en alle koekjes springen rommelig naar voren
+function aardbeving() {
+  wiebelT = Math.max(wiebelT, 2.5); snd(50, 2, 'sawtooth', 0.09, 35); ruisKnal();
+  effecten.push({ stap: (t) => {
+    if (Math.floor(t * 5) != Math.floor((t - 1 / 60) * 5)) for (const c of koekjes) if (c.body.position.y > -0.2) { c.body.wakeUp(); c.body.velocity.x += (Math.random() - 0.5) * 2; c.body.velocity.z += 0.4 + Math.random() * 1.2; c.body.velocity.y += 1 + Math.random(); }
+    if (t > 2.4) return false;
+  } });
+}
+// babydino: waggelt van achter naar voren en duwt koekjes mee
+function babyDino() {
+  const d = maakTrex(); d.scale.setScalar(1.4); d.rotation.y = -Math.PI / 2; scene.add(d); const x = (Math.random() - 0.5) * (HB - 0.6);
+  effecten.push({ stap: (t, dt) => {
+    const z = -1.6 + t * 1.6; d.position.set(x + Math.sin(t * 8) * 0.1, 0.4 + Math.abs(Math.sin(t * 8)) * 0.05, z); d.rotation.z = Math.sin(t * 8) * 0.12;
+    for (const c of koekjes) { const p = c.body.position; if (Math.abs(p.x - x) < 0.55 && Math.abs(p.z - z - 0.3) < 0.4 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 2.2); } }
+    if (Math.floor(t * 3) != Math.floor((t - dt) * 3)) snd(500, 0.12, 'square', 0.03, 700);
+    if (t > 3) { scene.remove(d); return false; }
+  } });
+}
+// vulkaan: er vallen 15 koekjes uit de lucht (soms een gouden)
+function uitbarsting() {
+  ruisKnal(); snd(70, 1.2, 'sawtooth', 0.08, 40);
+  for (let i = 0; i < 15; i++) setTimeout(() => laatVallen((Math.random() - 0.5) * (HB * 2 - 1.2), true, Math.random() < 0.2 ? 3 : randCookie()), 200 + i * 110);
+}
+
+// onderwaterwereld: octopus, haai, schelp en duikboot
+function maakOctopus() {
+  const grp = new THREE.Group(), paars = mat('#b05ad8', { roughness: 0.4 }), wit = new THREE.MeshBasicMaterial({ color: '#fff' }), zwart = new THREE.MeshBasicMaterial({ color: '#111' });
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 12), paars); kop.scale.y = 1.2; kop.position.y = 0.06; grp.add(kop);
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, arm = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.3, 6), paars); arm.position.set(Math.cos(a) * 0.17, -0.14, Math.sin(a) * 0.17); arm.rotation.set(Math.sin(a) * 1.2, 0, -Math.cos(a) * 1.2); arm.rotateX(Math.PI); grp.add(arm); }
+  for (const sx of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), wit); o.position.set(sx * 0.07, 0.08, 0.15); grp.add(o); const pu = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 5), zwart); pu.position.set(sx * 0.07, 0.08, 0.185); grp.add(pu); }
+  return grp;
+}
+function maakHaai() {
+  const grp = new THREE.Group(), grijs = mat('#7a8a9a', { roughness: 0.4 }), wit = mat('#f0f4f8'), zwart = new THREE.MeshBasicMaterial({ color: '#111' });
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.15, 16, 10), grijs); lijf.scale.set(2.2, 0.8, 0.8); grp.add(lijf);
+  const buik = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 8), wit); buik.scale.set(2, 0.6, 0.75); buik.position.y = -0.04; grp.add(buik);
+  const vin = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.2, 4), grijs); vin.position.set(0, 0.17, 0); vin.scale.z = 0.3; grp.add(vin);
+  const staart = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.18, 4), grijs); staart.position.set(-0.36, 0.02, 0); staart.rotation.z = Math.PI / 2; staart.scale.z = 0.3; grp.add(staart);
+  for (const sz of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 5), zwart); o.position.set(0.24, 0.04, sz * 0.08); grp.add(o); }
+  return grp;
+}
+function maakSchelp() {
+  const grp = new THREE.Group(), roze = mat('#ffc0d0', { roughness: 0.5 });
+  const onder = new THREE.Mesh(new THREE.SphereGeometry(0.3, 18, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), roze); onder.scale.y = 0.35; grp.add(onder);
+  const boven = new THREE.Mesh(new THREE.SphereGeometry(0.3, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), roze); boven.scale.y = 0.3; boven.position.set(0, 0.03, -0.08); boven.rotation.x = -0.5; grp.add(boven);
+  const parel = new THREE.Mesh(new THREE.SphereGeometry(0.07, 14, 10), new THREE.MeshStandardMaterial({ color: '#fbf6ff', roughness: 0.15, metalness: 0.1, envMap: glans(), envMapIntensity: 1.5 })); parel.position.set(0, 0.03, 0.06); grp.add(parel);
+  return grp;
+}
+function maakDuikboot() {
+  const grp = new THREE.Group(), geel = mat('#ffd02a', { roughness: 0.4 }), raam = new THREE.MeshStandardMaterial({ color: '#7ae8ff', emissive: '#1a5a6a' });
+  const romp = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.34, 6, 14), geel); romp.rotation.z = Math.PI / 2; grp.add(romp);
+  const toren = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.09), geel); toren.position.set(0.02, 0.15, 0); grp.add(toren);
+  const kijker = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.12, 6), mat('#888')); kijker.position.set(0.05, 0.26, 0); grp.add(kijker);
+  for (let i = 0; i < 3; i++) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.02, 12), raam); r.rotation.x = Math.PI / 2; r.position.set(-0.12 + i * 0.12, 0, 0.12); grp.add(r); }
+  const schroef = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.14, 0.03), mat('#888')); schroef.position.set(-0.3, 0, 0); grp.add(schroef);
+  return grp;
+}
+// octopus (en anderen): pakt een paar koekjes van de tafel en zet ze in de opvangbak
+function grijp(n, m) {
+  m.scale.setScalar(2.2); scene.add(m);
+  const prooi = koekjes.filter((k) => !k.geteld && k.body.position.y > -0.2 && k.code < 100).sort((a, b) => b.body.position.z - a.body.position.z).slice(0, n);
+  effecten.push({ stap: (t) => {
+    m.position.set(Math.sin(t * 2) * 0.6, 1.9 + Math.sin(t * 5) * 0.1, 1.3); m.rotation.y = t;
+    if (t > 0.4 && t < 1.8) prooi.forEach((k) => { if (!koekjes.includes(k)) return; const b = k.body; b.velocity.set(0, 0, 0); b.position.set(b.position.x + (m.position.x - b.position.x) * 0.06, Math.min(1.5, b.position.y + 0.04), b.position.z + (1.3 - b.position.z) * 0.06); });
+    if (t > 1.8 && !m.userData.klaar) { m.userData.klaar = true; prooi.forEach((k, i) => { if (koekjes.includes(k)) { k.body.position.set(-0.8 + i * 0.4, 0.4, VOOR + 0.5); k.body.velocity.set(0, -2, 0); } }); snd(700, 0.3, 'sine', 0.05, 300); }
+    if (t > 2.4) { scene.remove(m); return false; }
+  } });
+}
+// haai: zwemt over de tafel en hapt 4 koekjes weg, maar laat een tand (munten) achter
+function haaiHap() {
+  const h = maakHaai(); h.scale.setScalar(2.4); scene.add(h); let n = 0;
+  const prooi = koekjes.filter((k) => k.code < 10 && !k.geteld && k.body.position.y > -0.2).sort(() => Math.random() - 0.5).slice(0, 4).sort((a, b) => a.body.position.x - b.body.position.x);
+  [0, 0.5, 0.9, 1.2].forEach((d, i) => snd(i % 2 ? 98 : 104, 0.3, 'sawtooth', 0.05, 0, d)); // dun-dun
+  setTimeout(() => verdien(15, innerWidth / 2, innerHeight * 0.35), 2200);
+  effecten.push({ stap: (t) => {
+    const x = -HB - 1 + t * (2 * HB + 2) / 2.6; h.position.set(x, 0.55, 1.4 + Math.sin(t * 3) * 0.4); h.rotation.y = Math.sin(t * 6) * 0.15;
+    while (n < prooi.length && x > prooi[n].body.position.x) { const k = prooi[n++]; if (koekjes.includes(k)) { weg(k); snd(160, 0.08, 'square', 0.06, 80); } }
+    if (t > 2.6) { scene.remove(h); return false; }
+  } });
+}
+// duikboot: sonar-golven die de koekjes naar voren duwen
+function sonar() {
+  for (let i = 0; i < 3; i++) setTimeout(() => {
+    snd(1400, 0.6, 'sine', 0.05, 1350);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.03, 6, 32), new THREE.MeshBasicMaterial({ color: '#8affff', transparent: true, opacity: 0.7 })); ring.rotation.x = Math.PI / 2; ring.position.set(0, 0.3, -1.5); scene.add(ring);
+    effecten.push({ stap: (t) => { ring.scale.setScalar(1 + t * 6); ring.material.opacity = Math.max(0, 0.7 - t * 0.6); const r = 0.3 * (1 + t * 6);
+      for (const c of koekjes) { const p = c.body.position, d = Math.hypot(p.x, p.z + 1.5); if (Math.abs(d - r) < 0.25 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 1.8); } }
+      if (t > 1.2) { scene.remove(ring); return false; } } });
+  }, i * 600);
 }
 
 // figuren springen na het winnen uit de bak omhoog (het likkoekje extra groot, recht naar je toe)
