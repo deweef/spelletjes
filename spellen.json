@@ -56,5 +56,14 @@
     "stand": "liggend",
     "concept": true,
     "soort": "3d"
+  },
+  {
+    "naam": "Koekjesschuiver 3D",
+    "omschrijving": "Koekjesschuiver in 3D, voor op de pc. Grote koekjes die echt op elkaar stapelen, met de schuif, traktaties, koekjesfiguren en badges.",
+    "bestand": "koekjesschuiver3d/index.html",
+    "plaatje": "koekjesschuiver3d.jpg",
+    "stand": "liggend",
+    "concept": true,
+    "soort": "3d"
   }
 ]

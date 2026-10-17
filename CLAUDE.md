@@ -74,6 +74,16 @@ bedenk dat de site openbaar is.
   de spelstatus te lezen en de tijd vooruit te spoelen. Wacht na het starten van een level een paar seconden
   voordat je schermposities uitrekent: de camera schuift in de trage testbrowser nog even na.
 
+## Koekjesschuiver 3D (`koekjesschuiver3d/`, concept)
+De pc-versie van koekjesschuiver.html met echte 3D-natuurkunde, zodat koekjes op elkaar stapelen; minder en grotere
+koekjes dan in 2D (rustiger). Alles in `js/spel.js`; `lib/` heeft three.js r160 en cannon-es 0.20 (MIT, npm
+`cannon-es`). Zelfde spelregels en codes als 2D (0-3 koekjes, 10+k traktaties, 20+k koekjesfiguren, krachten,
+badges); de schuif is een kinematisch blok onder een vaste achterwand, koekjes die over de voorrand vallen zijn
+gewonnen, over de zijkant (na `ZIJ_EIND`) weg. Koekjes op hun kant krijgen een zetje (`omvalT`). Gewonnen figuren
+springen omhoog (`springers`), het likkoekje extra groot met "Likkie-likkie!" hardop. Opslag in `koekjesschuiver3d`.
+`#tegel` verbergt de knoppen voor het plaatje. Plannen: winkel met tafels (ook kerst), speciale koekjes, extra
+krachten, munten (o.a. door dubbele figuren te ruilen), badges met niveaus en een online scorebord.
+
 ## Orkenstorm 3D (`orkenstorm3d/`)
 Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee blokken op de
 startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
