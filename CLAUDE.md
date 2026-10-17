@@ -81,8 +81,14 @@ koekjes dan in 2D (rustiger). Alles in `js/spel.js`; `lib/` heeft three.js r160 
 badges); de schuif is een kinematisch blok onder een vaste achterwand, koekjes die over de voorrand vallen zijn
 gewonnen, over de zijkant (na `ZIJ_EIND`) weg. Koekjes op hun kant krijgen een zetje (`omvalT`). Gewonnen figuren
 springen omhoog (`springers`), het likkoekje extra groot met "Likkie-likkie!" hardop. Opslag in `koekjesschuiver3d`.
-`#tegel` verbergt de knoppen voor het plaatje. Plannen: winkel met tafels (ook kerst), speciale koekjes, extra
-krachten, munten (o.a. door dubbele figuren te ruilen), badges met niveaus en een online scorebord.
+`#tegel` verbergt de knoppen voor het plaatje. Tafel smal en lang (`HB`, `VOOR`); de camera zoekt bij elk schermformaat
+de dichtstbijzijnde stand waarbij de tafel tussen bovenbalk en krachtknoppen past (`pasAan`). Gewone koekjes en figuren
+hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde blijft een cilinder). Opslag per speler
+(`koekjesschuiver3d:<naam>`). Munten (🪙): gouden koekje en gebakje 1, figuur 3, badge 10, dubbele figuren ruilen 5
+(knop bij de badges). Winkel (`#winkel`): achtergronden in `THEMAS` (bakkerij gratis, kermis, strand, winternacht met
+sneeuw, ruimte), elk met lucht, kastkleuren en een plaatje op de achterwand (`zetThema`). "Nieuwe tafel" wist alleen
+tafel, punten en gebakjes. Plannen: tafels (ook kerst), speciale koekjes, extra krachten, badges met niveaus en een
+online scorebord.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
 Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee blokken op de
