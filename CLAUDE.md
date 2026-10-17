@@ -59,6 +59,8 @@ bedenk dat de site openbaar is.
   verdwijnen alle sleutels die op `:<naam>` eindigen.
 - De spellen staan in twee blokken: 2D (telefoon en tablet) en 3D (pc, `"soort": "3d"` in spellen.json).
   Op een aanraakscherm of smal scherm staat 2D bovenaan, anders 3D.
+  Bovenaan staat een overzicht (`#overzicht`) met per blok de spellen als knopjes; een tik scrollt naar dat spel
+  (anker `spel-<bestandsnaam>`, de tegel licht even op), en elk blok heeft een link "↑ overzicht".
 - Elk spel heeft linksboven een terugknop `<a class="terug" href="./">‹</a>` (in een submap: `href="../"`).
   In Fladderfeest en Orkenstorm 3D gaat die knop tijdens het spelen eerst terug naar het menu van het spel; alleen
   vanuit dat menu naar de startpagina.

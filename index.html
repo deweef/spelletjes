@@ -51,7 +51,18 @@ h1{font:bold clamp(44px,11vw,76px)/.95 Georgia,"Times New Roman",serif;color:var
 .knop{font:inherit;font-weight:700;padding:9px 16px;border-radius:10px;border:0;background:var(--goud);color:#2a1a08;cursor:pointer}
 .knop.licht{background:rgba(255,226,168,.15);color:var(--maan);font-weight:600}
 .overslaan{background:none;border:0;color:var(--zacht);text-decoration:underline;font:inherit;font-size:13px;cursor:pointer;margin-top:8px;padding:0}
-@media (prefers-reduced-motion:reduce){.spel{transition:none}}
+html{scroll-behavior:smooth}
+#overzicht{background:rgba(255,255,255,.05);border:1px solid rgba(255,226,168,.18);border-radius:16px;padding:12px 14px 6px;margin:0 0 26px}
+#overzicht h3{font:bold 15px system-ui,sans-serif;color:var(--zacht);margin:0 0 8px;letter-spacing:.03em;text-transform:uppercase}
+#overzicht .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+#overzicht a{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;background:rgba(255,226,168,.1);border:1px solid rgba(255,226,168,.25);color:var(--maan);text-decoration:none;font-size:14.5px;font-weight:600}
+#overzicht a:hover{background:rgba(255,226,168,.22)}
+#overzicht img{width:44px;height:28px;object-fit:cover;border-radius:999px;background:#211c40}
+.lijst li{scroll-margin-top:16px}
+.lijst li:target .spel{border-color:var(--goud);box-shadow:0 0 0 3px var(--goud);animation:aanwijs 1.4s ease 2}
+@keyframes aanwijs{50%{box-shadow:0 0 0 7px rgba(240,184,60,.35)}}
+.naarboven{float:right;font:13px system-ui,sans-serif;color:var(--zacht);text-decoration:none;margin-top:8px}
+@media (prefers-reduced-motion:reduce){.spel{transition:none}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -66,16 +77,21 @@ h1{font:bold clamp(44px,11vw,76px)/.95 Georgia,"Times New Roman",serif;color:var
 // Reservelijst voor als spellen.json niet te laden is
 const RESERVE=[{"naam": "Kasteelsprong", "omschrijving": "Ren over de kasteelmuur, spring over rotsen, duik onder pijlen door en luid de klok.", "bestand": "kasteelsprong.html", "plaatje": "kasteelsprong.jpg", "stand": "liggend"}, {"naam": "Koekjesschuiver", "omschrijving": "Laat koekjes op de schuifplank vallen, vind de koekjesfiguren en verdien Koekie-badges.", "bestand": "koekjesschuiver.html", "plaatje": "koekjesschuiver.jpg", "stand": "staand"}, {"naam": "Kikkersprong", "omschrijving": "Help de kikkers over de polderweg en de sloot naar hun huisje. Pas op voor tractoren en duikende blaadjes.", "bestand": "kikkersprong.html", "plaatje": "kikkersprong.jpg", "stand": "staand"}, {"naam": "Skirun", "omschrijving": "Ski de berg af tussen bomen door, pak de poortjes, doe trucjes op de schans en blijf de boze sneeuwbal voor.", "bestand": "skirun.html", "plaatje": "skirun.jpg", "stand": "staand"}, {"naam": "Piratenbluf", "omschrijving": "Het dobbelspel van de piraten: bied, bluf en roep 'Leugenaar!' tegen drie zeerovers en een brutale papegaai.", "bestand": "piratenbluf.html", "plaatje": "piratenbluf.jpg", "stand": "staand"}, {"naam": "Orkenstorm", "omschrijving": "Bouw een dorp, hak hout, haal goud uit de mijn, train soldaten en verjaag de orks onder de wolken vandaan.", "bestand": "orkenstorm.html", "plaatje": "orkenstorm.jpg", "stand": "staand"}, {"naam": "Fladderfeest", "omschrijving": "Tik om te fladderen! Begin met het Roodborstje en speel steeds een nieuw dier vrij: meeuw, hommel, kip, rockkraai, piratenpapegaai en jetpackpinguïn. Elk met een eigen wereld en muziekje.", "bestand": "fladderfeest.html", "plaatje": "fladderfeest.jpg", "stand": "staand"}, {"naam": "Orkenstorm 3D", "omschrijving": "Orkenstorm in 3D, voor op de pc. Bouw je dorp met boerderijen en een kazerne, draai en zoom de camera rond je kasteel.", "bestand": "orkenstorm3d/index.html", "plaatje": "orkenstorm3d.jpg", "stand": "liggend", "concept": true, "soort": "3d"}, {"naam": "Koekjesschuiver 3D", "omschrijving": "Koekjesschuiver in 3D, voor op de pc. Grote koekjes die echt op elkaar stapelen, met de schuif, traktaties, koekjesfiguren en badges.", "bestand": "koekjesschuiver3d/index.html", "plaatje": "koekjesschuiver3d.jpg", "stand": "liggend", "concept": true, "soort": "3d"}];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const tegel=s=>`<li><a class="spel" href="${esc(s.bestand)}">
+const anker=s=>'spel-'+String(s.bestand).replace(/\/index\.html$|\.html$/,'').replace(/[^a-z0-9]+/gi,'-');
+const tegel=s=>`<li id="${anker(s)}"><a class="spel" href="${esc(s.bestand)}">
    ${s.plaatje?`<img src="${esc(s.plaatje)}" alt="" loading="lazy">`:''}
    <div class="tekst">${s.concept?'<span class="concept">Concept, nog in de maak</span>':''}<h2>${esc(s.naam)}</h2><p>${esc(s.omschrijving||'')}</p>${s.stand?`<span class="stand">${s.concept&&s.stand=='liggend'?'Het best op de pc':s.stand=='liggend'?'Telefoon liggend houden':'Telefoon rechtop houden'}</span>`:''}</div></a></li>`;
 // Twee blokken: op een telefoon of tablet de 2D-spellen bovenaan, op een laptop de 3D-spellen
 async function laad(){let lijst;try{lijst=await (await fetch('spellen.json',{cache:'no-cache'})).json()}catch(e){lijst=RESERVE}
- const blok=(titel,uitleg,spellen)=>spellen.length?`<section class="blok"><h2 class="kop">${titel}</h2><p class="uitleg">${uitleg}</p><ul class="lijst">${spellen.map(tegel).join('')}</ul></section>`:'';
+ const blok=(titel,uitleg,spellen)=>spellen.length?`<section class="blok"><a class="naarboven" href="#overzicht">↑ overzicht</a><h2 class="kop">${titel}</h2><p class="uitleg">${uitleg}</p><ul class="lijst">${spellen.map(tegel).join('')}</ul></section>`:'';
  const twee=blok('Spellen voor telefoon en tablet','Snel even spelen, ook onderweg.',lijst.filter(s=>s.soort!='3d'));
  const drie=blok('3D-spellen voor de pc','Met muis en toetsenbord, op een groot scherm.',lijst.filter(s=>s.soort=='3d'));
  const opTelefoon=matchMedia('(pointer: coarse)').matches||innerWidth<800;
- document.getElementById('blokken').innerHTML=opTelefoon?twee+drie:drie+twee;
+ // overzicht bovenaan: per blok de spellen als knopjes, tik = naar dat spel scrollen
+ const groep=(titel,spellen)=>spellen.length?`<h3>${titel}</h3><div class="chips">${spellen.map(s=>`<a href="#${anker(s)}">${s.plaatje?`<img src="${esc(s.plaatje)}" alt="">`:''}${esc(s.naam)}</a>`).join('')}</div>`:'';
+ const g2=groep('Telefoon en tablet',lijst.filter(s=>s.soort!='3d')),g3=groep('3D voor de pc',lijst.filter(s=>s.soort=='3d'));
+ const overzicht=`<nav id="overzicht" aria-label="Overzicht van de spellen">${opTelefoon?g2+g3:g3+g2}</nav>`;
+ document.getElementById('blokken').innerHTML=overzicht+(opTelefoon?twee+drie:drie+twee);
  return lijst}
 
 // ---------- wie speelt er? ----------
