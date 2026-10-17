@@ -106,7 +106,9 @@ verbeteringen). Tafel-items (`ITEMS`, code 100+i): vallen alleen op hun eigen ta
 wedstrijd), winnen geeft 25 punten, 5 munten, een grap en een effect (`doe`, animaties in `effecten`), en tafelbadges
 `it_<id>` (eerste keer) en `it5_<id>` (5 keer), geteld in `itemsGewonnen`; tafelbadges staan apart in het badgescherm
 (`#tafelbadges`) en tellen niet mee in de 15. Halloween: pompoen (vleermuizen jagen de koekjes naar voren) en spookje
-(zweeft over de tafel en laat 5 halloweenkoekjes vallen, code 4, 5 punten). Een nieuw item = regel in `ITEMS` met
+(zweeft over de tafel en laat 5 halloweenkoekjes vallen, code 4, 5 punten). Strand: kwal (15 s glibberig: minder wrijving via `glibber`,
+`cmTafel`/`cmKoek`, tafel glimt blauw), roze flamingo (volgende 10 koekjes roze, code 5, 3 punten, `rozeQ`), parasol (20 s
+muurtjes), krab (loopt zijwaarts over de tafel en duwt koekjes naar voren). Eigen badgenamen met `b1`/`b5`. Een nieuw item = regel in `ITEMS` met
 `maak()` (3D-model, origin in het midden) en `doe()`. Plannen: tafels (ook kerst), extra krachten, badges met niveaus.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)

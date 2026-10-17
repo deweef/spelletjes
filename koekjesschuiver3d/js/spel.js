@@ -38,10 +38,15 @@ const BADGES = [
 // (eerste keer, en 5 keer). maak() geeft het 3D-model, doe() het effect, weg = tekstje als hij over de zijkant valt.
 const ITEMS = [
   { id: 'pompoen', thema: 'halloween', n: 'Pompoen', r: 0.42, h: 0.5, grap: 'Boe! Vleermuizen jagen de koekjes naar voren!', weg: 'De pompoen rolt de nacht in…', maak: () => maakPompoen(), doe: () => vleermuizen() },
+  { id: 'kwal', thema: 'strand', n: 'Kwal', b1: 'Gekwald', b5: 'Kwallenkoning', r: 0.38, h: 0.42, grap: 'Au! Wie legt hier nou een kwal neer? Alles is glibberig!', weg: 'De kwal glibbert terug de zee in', maak: () => maakKwal(), doe: () => glibber(15) },
+  { id: 'flamingo', thema: 'strand', n: 'Roze flamingo', r: 0.34, h: 0.8, grap: 'Staat ze nou op één poot… of is ze gewoon moe? De volgende 10 koekjes zijn roze: 3 punten!', weg: 'De flamingo fladdert weg op één poot', maak: () => maakFlamingo(), doe: () => { rozeQ += 10; } },
+  { id: 'parasol', thema: 'strand', n: 'Parasol', r: 0.45, h: 0.55, grap: 'Effe chillen in de schaduw: 20 seconden valt er niets van de zijkant.', weg: 'De parasol waait weg. Typisch Nederlands strandweer.', maak: () => maakParasol(), doe: () => { wallT = Math.max(wallT, 20); zetMuurtjes(true); } },
+  { id: 'krab', thema: 'strand', n: 'Krab', r: 0.36, h: 0.26, grap: 'Knip knip! Opzij, opzij, opzij!', weg: 'De krab loopt zijwaarts weg. Hoe anders?', maak: () => maakKrab(), doe: () => krabWandeling() },
   { id: 'spook', thema: 'halloween', n: 'Spookje', r: 0.36, h: 0.62, grap: 'Boehoe… ik bedoel: snoep!', weg: 'Het spookje zweeft er stiekem vandoor', maak: () => maakSpook(), doe: () => spookVlucht() },
 ];
 const ITEM_KANS = 1 / 25;
-const ALLE_BADGES = [...BADGES, ...ITEMS.flatMap((it) => [{ id: 'it_' + it.id, n: it.n }, { id: 'it5_' + it.id, n: it.n + '-meester' }])];
+const badgeNaam = (it, vijf) => (vijf ? it.b5 || it.n + '-meester' : it.b1 || it.n);
+const ALLE_BADGES = [...BADGES, ...ITEMS.flatMap((it) => [{ id: 'it_' + it.id, n: badgeNaam(it) }, { id: 'it5_' + it.id, n: badgeNaam(it, true) }])];
 const item = (c) => ITEMS[c - 100];
 const straal = (c) => (c >= 100 ? item(c).r : c < 10 ? KR : c < 20 ? 0.5 : 0.52);
 const dikte = (c) => (c >= 100 ? item(c).h : c < 10 ? KH : c == 13 ? 0.24 : c < 20 ? 0.2 : 0.16);
@@ -128,6 +133,7 @@ function bovenTex(code) {
     else if (code == 1) { zacht('#e8b469', '#c98a40'); rondje('#f6a3c0', c * 0.74); for (let i = 0; i < 26; i++) { g.fillStyle = ['#fff', '#7fd0f0', '#ffe14d', '#9ae07a'][i % 4]; const a = r() * 7, d = r() * c * 0.7; g.save(); g.translate(c + Math.cos(a) * d, c + Math.sin(a) * d); g.rotate(r() * 3); g.fillRect(-9, -3, 18, 6); g.restore(); } }
     else if (code == 2) { zacht('#6b4028', '#4e2c1a'); spikkels('#f4ead6', 13, 11); }
     else if (code == 4) { zacht('#ff9a3a', '#c8601a'); g.fillStyle = '#3a1a10'; for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(c + sx * c * 0.42, c - c * 0.05); g.lineTo(c + sx * c * 0.15, c - c * 0.05); g.lineTo(c + sx * c * 0.28, c - c * 0.38); g.fill(); } g.beginPath(); g.moveTo(c - c * 0.5, c + c * 0.15); for (let i = 0; i <= 8; i++) g.lineTo(c - c * 0.5 + i * c * 0.125, c + c * (i % 2 ? 0.3 : 0.45)); g.lineTo(c + c * 0.5, c + c * 0.15); g.quadraticCurveTo(c, c + c * 0.3, c - c * 0.5, c + c * 0.15); g.fill(); spikkels('#9a4aff', 10, 5); }
+    else if (code == 5) { zacht('#ff9ac8', '#e0609a'); g.fillStyle = '#fff'; for (let i = 0; i < 6; i++) { const a = i * 1.05 + 0.3, d = c * 0.45, x = c + Math.cos(a) * d, y = c + Math.sin(a) * d; g.beginPath(); g.moveTo(x, y + 6); g.bezierCurveTo(x - 14, y - 6, x - 6, y - 16, x, y - 7); g.bezierCurveTo(x + 6, y - 16, x + 14, y - 6, x, y + 6); g.fill(); } rondje('#ff5a9a', c * 0.16); }
     else if (code == 3) { zacht('#ffd84a', '#d89a18'); g.fillStyle = '#fff4b0'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? c * 0.25 : c * 0.55; g.lineTo(c + Math.cos(a) * rr, c + Math.sin(a) * rr); } g.fill(); }
     else if (code == 10) { rondje('#f2a0c0'); g.strokeStyle = '#ffd0e0'; g.lineWidth = 16; g.beginPath(); for (let a = 0; a < 18; a += 0.2) g.lineTo(c + Math.cos(a) * a * 6, c + Math.sin(a) * a * 6); g.stroke(); rondje('#e8203a', c * 0.2); }
     else if (code == 11) { rondje('#f6e7c8'); g.fillStyle = '#7a2a5a'; g.beginPath(); g.moveTo(c, c); g.arc(c, c, c * 0.9, -2.2, -0.9); g.fill(); spikkels('#fff', 8, 10); }
@@ -149,7 +155,7 @@ function bovenTex(code) {
     }
   });
 }
-const SIDE = { 4: '#c8601a', 0: '#c8843a', 1: '#c8843a', 2: '#4a2a18', 3: '#d89a18', 10: '#f0e0d0', 11: '#e8d0a0', 12: '#cfc4b0', 13: '#f0e8d8', 14: '#fbf3e6' };
+const SIDE = { 5: '#e0609a', 4: '#c8601a', 0: '#c8843a', 1: '#c8843a', 2: '#4a2a18', 3: '#d89a18', 10: '#f0e0d0', 11: '#e8d0a0', 12: '#cfc4b0', 13: '#f0e8d8', 14: '#fbf3e6' };
 const koekMat = {};
 function materialen(code) {
   if (!koekMat[code]) {
@@ -341,8 +347,9 @@ const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -22, 0) });
 world.broadphase = new CANNON.SAPBroadphase(world);
 world.allowSleep = true; world.solver.iterations = 10;
 const matKoek = new CANNON.Material('koek'), matTafel = new CANNON.Material('tafel');
-world.addContactMaterial(new CANNON.ContactMaterial(matKoek, matTafel, { friction: 0.15, restitution: 0.01 }));
-world.addContactMaterial(new CANNON.ContactMaterial(matKoek, matKoek, { friction: 0.12, restitution: 0.01 }));
+const WRIJF = { tafel: 0.15, koek: 0.12 };
+const cmTafel = new CANNON.ContactMaterial(matKoek, matTafel, { friction: WRIJF.tafel, restitution: 0.01 }), cmKoek = new CANNON.ContactMaterial(matKoek, matKoek, { friction: WRIJF.koek, restitution: 0.01 });
+world.addContactMaterial(cmTafel); world.addContactMaterial(cmKoek);
 function vast(hx, hy, hz, x, y, z, type = CANNON.Body.STATIC) {
   const b = new CANNON.Body({ mass: 0, type, material: matTafel, shape: new CANNON.Box(new CANNON.Vec3(hx, hy, hz)) });
   b.position.set(x, y, z); world.addBody(b); return b;
@@ -377,7 +384,7 @@ let modus = 'menu', vrij = null, wedBest = 0, stilT = 0; // menu, vrij, wedstrij
 let itemsGewonnen = {};
 let munten = 0, muntenTotaal = 0, gekocht = ['bakkerij'], themaId = 'bakkerij', ingestuurd = {};
 let supply = 40, score = 0, best = 0, coll = [0, 0, 0, 0, 0], found = [0, 0, 0, 0, 0, 0, 0, 0], wonTotal = 0, goldWon = 0, powersUsed = [], badges = [];
-let goldQ = 0, rainQ = 0, wallT = 0, regen = 0, t = 0, laatsteVal = -1, mikX = 0;
+let rozeQ = 0, goldQ = 0, rainQ = 0, wallT = 0, regen = 0, t = 0, laatsteVal = -1, mikX = 0;
 // opslag per speler (koekjesschuiver3d:<naam>), met de oude sleutel zonder naam als beginwaarde
 let SPELER = ''; try { SPELER = localStorage.getItem('speler') || ''; } catch (e) {}
 const REGEN = 5, REGEN_MAX = 30, KEY0 = 'koekjesschuiver3d', KEY = KEY0 + (SPELER ? ':' + SPELER : '');
@@ -415,7 +422,7 @@ function laad() {
 }
 function opnieuw() {
   for (const k of [...koekjes]) weg(k);
-  supply = 40; score = 0; coll = [0, 0, 0, 0, 0]; goldQ = rainQ = 0; zetMuurtjes(false); wallT = 0;
+  supply = 40; score = 0; coll = [0, 0, 0, 0, 0]; goldQ = rainQ = rozeQ = 0; zetMuurtjes(false); wallT = 0;
   vulTafel(); bewaar(); tekenHud(true);
 }
 
@@ -431,6 +438,7 @@ function laatVallen(x, gratis, vast) {
   const eigen = ITEMS.map((it, i) => (it.thema == themaId ? 100 + i : -1)).filter((c) => c >= 0);
   if (vast != null) {}
   else if (goldQ > 0 && !gratis) { goldQ--; code = 3; }
+  else if (rozeQ > 0 && !gratis) { rozeQ--; code = 5; }
   else if (!gratis && modus == 'vrij' && eigen.length && Math.random() < ITEM_KANS) code = eigen[Math.floor(Math.random() * eigen.length)];
   else if (!gratis && Math.random() < 1 / 18) { const nog = found.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0); code = 20 + (nog.length && Math.random() < 0.5 ? nog[Math.floor(Math.random() * nog.length)] : Math.floor(Math.random() * 8)); }
   else if (!gratis && Math.random() < 1 / 13) code = 10 + Math.floor(Math.random() * 5);
@@ -466,7 +474,7 @@ function gewonnen(k) {
     const i = c - 10; coll[i]++; score += 25; sPrize(); pop(TREATS[i].n + '!', p.x, p.y - 20, 'goud'); verdien(1, p.x, p.y - 50);
     if (coll[i] == 3) pop(TREATS[i].p + ' klaar!', innerWidth / 2, innerHeight - 110, 'goud');
   } else {
-    const v = c == 3 ? 10 : c == 4 ? 5 : 1; score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
+    const v = c == 3 ? 10 : c == 4 ? 5 : c == 5 ? 3 : 1; score += v; wonTotal++; if (c == 3) goldWon++; if (modus != 'wedstrijd') supply += c == 3 ? 3 : 1; /* in een wedstrijd geen koekjes terug */ pop('+' + v, p.x, p.y - 20, c == 3 ? 'goud' : ''); sWin(c == 3); if (c == 3) verdien(1, p.x, p.y - 50);
   }
   checkBadges(); tekenHud(true);
 }
@@ -538,6 +546,66 @@ function spookVlucht() {
   } });
 }
 
+// strand: kwal, flamingo, parasol en krab
+const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.55, ...extra });
+function maakKwal() {
+  const grp = new THREE.Group(), paars = mat('#e08aff', { transparent: true, opacity: 0.75, emissive: '#5a1a7a' });
+  const kap = new THREE.Mesh(new THREE.SphereGeometry(0.36, 22, 12, 0, Math.PI * 2, 0, Math.PI / 2), paars); kap.scale.y = 0.75; kap.position.y = -0.05; grp.add(kap);
+  const rok = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.04, 8, 24), paars); rok.rotation.x = Math.PI / 2; rok.position.y = -0.05; grp.add(rok);
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, d = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.01, 0.3, 5), paars); d.position.set(Math.cos(a) * 0.2, -0.18, Math.sin(a) * 0.2); d.rotation.set(Math.sin(a) * 0.5, 0, Math.cos(a) * 0.5); grp.add(d); }
+  const zwart = new THREE.MeshBasicMaterial({ color: '#2a0a3a' }); for (const sx of [-1, 1]) { const o = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), zwart); o.position.set(sx * 0.1, 0.12, 0.24); grp.add(o); }
+  return grp;
+}
+function maakFlamingo() {
+  const grp = new THREE.Group(), roze = mat('#ff7ab8'), zwart = mat('#222'), geel = mat('#ffd24a');
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), roze); lijf.scale.set(1.3, 0.8, 0.9); lijf.position.y = 0.05; grp.add(lijf);
+  const nek = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.035, 8, 16, Math.PI * 1.3), roze); nek.position.set(0.18, 0.2, 0); nek.rotation.z = -0.4; grp.add(nek);
+  const kop = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), roze); kop.position.set(0.14, 0.38, 0); grp.add(kop);
+  const snavel = new THREE.Mesh(new THREE.ConeGeometry(0.035, 0.12, 8), zwart); snavel.position.set(0.22, 0.35, 0); snavel.rotation.z = -2; grp.add(snavel);
+  const been = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.36, 6), geel); been.position.set(0, -0.2, 0); grp.add(been); // op één poot, natuurlijk
+  const voet = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.02, 0.08), geel); voet.position.set(0.03, -0.39, 0); grp.add(voet);
+  return grp;
+}
+let parasolTex = null;
+function maakParasol() {
+  parasolTex = parasolTex || canvasTex((g, w, h) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#fff' : '#ff5a5a'; g.fillRect(i * w / 8, 0, w / 8 + 1, h); } }, 256, 32);
+  const grp = new THREE.Group();
+  const doek = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.22, 16, 1, true), new THREE.MeshStandardMaterial({ map: parasolTex, side: THREE.DoubleSide, roughness: 0.7 })); doek.position.y = 0.16; grp.add(doek);
+  const stok = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.55, 8), mat('#d8c8a0')); grp.add(stok);
+  const voet = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.06, 14), mat('#3a8ac8')); voet.position.y = -0.25; grp.add(voet);
+  return grp;
+}
+function maakKrab() {
+  const grp = new THREE.Group(), rood = mat('#e8402a'), wit = new THREE.MeshBasicMaterial({ color: '#fff' }), zwart = new THREE.MeshBasicMaterial({ color: '#111' });
+  const lijf = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 10), rood); lijf.scale.set(1.2, 0.5, 0.9); grp.add(lijf);
+  for (const sx of [-1, 1]) {
+    const steel = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.12, 5), rood); steel.position.set(sx * 0.08, 0.14, 0.12); grp.add(steel);
+    const oog = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), wit); oog.position.set(sx * 0.08, 0.21, 0.12); grp.add(oog);
+    const pup = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 5), zwart); pup.position.set(sx * 0.08, 0.215, 0.155); grp.add(pup);
+    const schaar = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), rood); schaar.scale.set(1, 0.6, 1.3); schaar.position.set(sx * 0.32, 0.03, 0.12); grp.add(schaar);
+    for (let i = 0; i < 3; i++) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.012, 0.16, 5), rood); p.position.set(sx * 0.27, -0.05, -0.1 + i * 0.08); p.rotation.z = sx * 1.1; grp.add(p); }
+  }
+  return grp;
+}
+// kwal: de tafel wordt even glibberig (minder wrijving, en de tafel glimt blauwig)
+let glibberT = 0;
+function glibber(sec) {
+  glibberT = sec; const aan = sec > 0;
+  cmTafel.friction = aan ? 0.04 : WRIJF.tafel; cmKoek.friction = aan ? 0.05 : WRIJF.koek;
+  KM.tafel.emissive.set(aan ? '#1a4a6a' : '#000000');
+  if (aan) { snd(300, 0.6, 'sine', 0.04, 900); for (const c of koekjes) c.body.wakeUp(); }
+}
+// krab: loopt zijwaarts over de tafel en knipt de koekjes waar hij langskomt naar voren
+function krabWandeling() {
+  const k = maakKrab(); k.scale.setScalar(1.4); scene.add(k);
+  effecten.push({ stap: (t, dt) => {
+    const x = -HB - 0.5 + t * (2 * HB + 1) / 3, z = 1.2; k.position.set(x, 0.35 + Math.abs(Math.sin(t * 12)) * 0.05, z); k.rotation.z = Math.sin(t * 12) * 0.08;
+    for (const c of koekjes) { const p = c.body.position; if (Math.abs(p.x - x) < 0.5 && Math.abs(p.z - z) < 0.9 && p.y > -0.2) { c.body.wakeUp(); c.body.velocity.z = Math.max(c.body.velocity.z, 2.2); } }
+    if (Math.floor(t * 6) != Math.floor((t - dt) * 6)) snd(1800 + Math.random() * 400, 0.03, 'square', 0.03, 900);
+    if (t > 3) { scene.remove(k); return false; }
+  } });
+}
+
 // figuren springen na het winnen uit de bak omhoog (het likkoekje extra groot, recht naar je toe)
 const springers = [];
 function tekenSpringers(dt) {
@@ -574,7 +642,7 @@ function tekenToast(dt) {
 $('badgeknop').onclick = () => {
   $('badgetel').textContent = badges.filter((b) => !b.startsWith('it')).length + ' van de ' + BADGES.length + ' verdiend';
   $('tafelbadges').innerHTML = THEMAS.filter((th) => ITEMS.some((it) => it.thema == th.id)).map((th) => `<h4 class="${gekocht.includes(th.id) ? '' : 'niet'}">${th.n}${gekocht.includes(th.id) ? '' : ' (koop deze tafel in de winkel)'}</h4><div class="tbadges">` +
-    ITEMS.filter((it) => it.thema == th.id).map((it) => [['it_' + it.id, it.n, 'Win de ' + it.n.toLowerCase()], ['it5_' + it.id, it.n + '-meester', 'Win 5 keer de ' + it.n.toLowerCase() + ' (' + Math.min(5, itemsGewonnen[it.id] || 0) + '/5)']].map(([id, n, d]) => `<div class="${badges.includes(id) ? '' : 'niet'}"><b>${badges.includes(id) ? '🏅 ' : ''}${n}</b>${d}</div>`).join('')).join('') + '</div>').join('');
+    ITEMS.filter((it) => it.thema == th.id).map((it) => [['it_' + it.id, badgeNaam(it), 'Win de ' + it.n.toLowerCase()], ['it5_' + it.id, badgeNaam(it, true), 'Win 5 keer de ' + it.n.toLowerCase() + ' (' + Math.min(5, itemsGewonnen[it.id] || 0) + '/5)']].map(([id, n, d]) => `<div class="${badges.includes(id) ? '' : 'niet'}"><b>${badges.includes(id) ? '🏅 ' : ''}${n}</b>${d}</div>`).join('')).join('') + '</div>').join('');
   $('badgelijst').innerHTML = BADGES.map((b) => `<div class="${badges.includes(b.id) ? '' : 'niet'}"><b>${badges.includes(b.id) ? '🏅 ' : ''}${b.n}</b>${b.d}</div>`).join('');
   $('figlijst').innerHTML = KAR.map((k, i) => `<div class="${found[i] ? '' : 'niet'}">${k.n}${found[i] > 1 ? ' <b>×' + found[i] + '</b>' : ''}</div>`).join('');
   const dubbel = found.reduce((a, v) => a + Math.max(0, v - 1), 0);
@@ -683,7 +751,7 @@ function speel() { modus = 'vrij'; document.body.classList.remove('inmenu'); $('
 function startWedstrijd() {
   if (modus == 'vrij' || modus == 'menu') bewaar(); // je eigen tafel staat veilig in de opslag
   for (const k of [...koekjes]) weg(k);
-  supply = 50; score = 0; coll = [0, 0, 0, 0, 0]; goldQ = rainQ = 0; zetMuurtjes(false); wallT = 0; stilT = 0;
+  supply = 50; score = 0; coll = [0, 0, 0, 0, 0]; goldQ = rainQ = rozeQ = 0; glibber(0); zetMuurtjes(false); wallT = 0; stilT = 0;
   vulTafel(); modus = 'wedstrijd'; document.body.classList.remove('inmenu'); $('menu').hidden = true; $('einde').hidden = true; $('wedlabel').hidden = false; document.body.classList.add('wed');
   tekenHud(true); pasAan(); roep('Wedstrijd!');
 }
@@ -694,7 +762,7 @@ function eindeWedstrijd() {
   $('eindstatus').textContent = ''; autoInsturen((tekst) => { $('eindstatus').textContent = tekst; });
   $('einde').hidden = false; if (nieuw) sBadge(); else sPrize();
 }
-function terugNaarVrij() { for (const k of [...koekjes]) weg(k); goldQ = rainQ = 0; zetMuurtjes(false); wallT = 0; if (!laad()) vulTafel(); $('wedlabel').hidden = true; document.body.classList.remove('wed'); tekenHud(true); }
+function terugNaarVrij() { for (const k of [...koekjes]) weg(k); goldQ = rainQ = rozeQ = 0; glibber(0); zetMuurtjes(false); wallT = 0; if (!laad()) vulTafel(); $('wedlabel').hidden = true; document.body.classList.remove('wed'); tekenHud(true); }
 $('mvrij').onclick = () => { unlock(); speel(); };
 $('mwed').onclick = () => { unlock(); startWedstrijd(); };
 $('mbord').onclick = () => { unlock(); $('bordknop').onclick(); };
@@ -737,6 +805,7 @@ function stap(dt) {
     }
   }
   if (wallT > 0 && (wallT -= dt) <= 0) zetMuurtjes(false);
+  if (glibberT > 0 && (glibberT -= dt) <= 0) glibber(0);
   if (modus != 'wedstrijd' && supply < REGEN_MAX) { if ((regen += dt) >= REGEN) { regen = 0; supply++; tekenHud(); } } else regen = 0;
   if (modus != 'wedstrijd' && score > best) best = score;
   if ((bewaarT += dt) > 3) { bewaarT = 0; bewaar(); }
