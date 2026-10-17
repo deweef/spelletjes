@@ -738,7 +738,7 @@ function bordHalen(extra = '') {
 const tijdTekst = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 const verTekst = (s) => (s % 100 == 0 ? 'level ' + s / 100 + ' gewonnen' : 'level ' + (Math.floor(s / 100) + 1) + ' · ' + (s % 100) + '%');
 function tekenBord(melding) {
-  const tabs = [['ver', 'Verst gekomen'], ...LEVELS.map((l, i) => ['tijd_L' + (i + 1), 'Snelste level ' + (i + 1)])];
+  const tabs = [['ver', 'Verst gekomen'], ...LEVELS.map((l, i) => ['tijd_l' + (i + 1), 'Snelste level ' + (i + 1)])];
   $('bordtabs').innerHTML = tabs.map(([id, n]) => `<button data-tab="${id}" class="${bordTab == id ? 'actief' : ''}">${n}</button>`).join('');
   $('bordmoeilijk').innerHTML = DIFF.map((d, i) => `<button data-d="${i}" class="${bordDiff == i ? 'actief' : ''}">${d.n}</button>`).join('');
   $('bordtabs').querySelectorAll('button').forEach((b) => b.onclick = () => { bordTab = b.dataset.tab; sClick(); tekenBord(); });
@@ -757,7 +757,7 @@ $('insturen').onclick = () => {
   if (!naam) return;
   const q = (o, s) => '&actie=opslaan&naam=' + encodeURIComponent(naam) + '&onderdeel=' + o + '&modus=' + uitslag.modus + '&score=' + s;
   $('insturen').disabled = true; $('insturen').textContent = 'Even geduld…';
-  bordHalen(q('ork3d_ver', uitslag.ver)).then((ok) => (ok && uitslag.tijd ? bordHalen(q('ork3d_tijd_L' + uitslag.level, uitslag.tijd)) : ok)).then((ok) => {
+  bordHalen(q('ork3d_ver', uitslag.ver)).then((ok) => (ok && uitslag.tijd ? bordHalen(q('ork3d_tijd_l' + uitslag.level, uitslag.tijd)) : ok)).then((ok) => {
     $('insturen').textContent = ok ? 'Ingestuurd ✓' : 'Lukt niet (internet?) · opnieuw';
     $('insturen').disabled = !!ok;
   });

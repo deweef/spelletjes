@@ -112,7 +112,7 @@ Opbouw:
   starten zetten eerst `localStorage.orkenstorm3d_intro0 = '1'`.
 - Online scorebord (zelfde Google Spreadsheet en Apps Script als Fladderfeest, `extra/scorebord.gs`, `BORD_URL` in
   main.js; opvragen met `?spel=ork3d`): `ork3d_ver_<moeilijkheid>` = verst gekomen ((level-1)*100 + procent, of level*100
-  bij winst; `procent(S)` per level in data.js, beste waarde in `G.beste`) en `ork3d_tijd_L<n>_<moeilijkheid>` = snelste
+  bij winst; `procent(S)` per level in data.js, beste waarde in `G.beste`) en `ork3d_tijd_l<n>_<moeilijkheid>` (kleine letters: het script accepteert alleen a-z, 0-9 en _) = snelste
   overwinning in seconden (`G.t / 60`, filmpjes en pauze tellen niet). Knop Insturen op het eindscherm, 🏆 Scorebord in het
   titelmenu (`#bord`).
 - `lib/`: three.js r160 (`three.module.js`) en `OrbitControls.js`, lokaal (geen CDN) zodat het offline
