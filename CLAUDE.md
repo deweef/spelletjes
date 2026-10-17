@@ -100,8 +100,12 @@ terug bij winst; klaar als de koekjes op zijn en er 7 s niets valt (25 s als er 
 Je eigen tafel blijft intussen in de opslag (`bewaar` schrijft dan alleen munten, badges e.d.). Beste wedstrijd in
 `wedBest`. Online scorebord (zelfde Apps Script, geen aanpassing nodig: de lijst zonder `spel` bevat alles behalve
 ork3d): alleen `koek3d_wedstrijd`, modus `gewoon`, automatisch ingestuurd na een wedstrijd (met naam, alleen
-verbeteringen). Plannen: tafels (ook kerst), speciale koekjes, extra krachten,
-badges met niveaus.
+verbeteringen). Tafel-items (`ITEMS`, code 100+i): vallen alleen op hun eigen tafel (kans `ITEM_KANS` = 1/25 per koekje, niet in een
+wedstrijd), winnen geeft 25 punten, 5 munten, een grap en een effect (`doe`, animaties in `effecten`), en tafelbadges
+`it_<id>` (eerste keer) en `it5_<id>` (5 keer), geteld in `itemsGewonnen`; tafelbadges staan apart in het badgescherm
+(`#tafelbadges`) en tellen niet mee in de 15. Halloween: pompoen (vleermuizen jagen de koekjes naar voren) en spookje
+(zweeft over de tafel en laat 5 halloweenkoekjes vallen, code 4, 5 punten). Een nieuw item = regel in `ITEMS` met
+`maak()` (3D-model, origin in het midden) en `doe()`. Plannen: tafels (ook kerst), extra krachten, badges met niveaus.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
 Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee blokken op de

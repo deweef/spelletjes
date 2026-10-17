@@ -72,6 +72,9 @@ body.wed #muntknop,body.wed #badgeknop{display:none}
 body.inmenu #balk,body.inmenu #krachten,body.inmenu #tip{display:none!important}
 #wedlabel{background:#ff8a3a;color:#fff;border-radius:12px;padding:5px 10px;font-weight:800;font-size:13px;line-height:1.1;text-align:center}
 #eindpunten{font:bold 54px Georgia,serif;color:#ffe07a;margin:4px 0}
+.pop.grap{font-size:17px;white-space:normal;width:min(320px,86vw);text-align:center;animation-duration:2.6s}
+#tafelbadges h4{margin:10px 0 4px;text-align:left;font-size:14px}#tafelbadges h4.niet{opacity:.5}
+.tbadges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;text-align:left}.tbadges div{background:rgba(255,244,220,.08);border-radius:10px;padding:8px 10px;font-size:13px}.tbadges div.niet{opacity:.45}.tbadges b{display:block;font-size:14px}
 .stilknop{background:none;border:1px solid var(--rand);border-radius:10px;padding:7px 14px;margin-top:6px;font-size:13px}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.js","cannon":"./lib/cannon-es.js"}}</script>
@@ -97,6 +100,9 @@ body.inmenu #balk,body.inmenu #krachten,body.inmenu #tip{display:none!important}
     <button id="bordknop" class="groot">🏆 Scorebord</button>
     <p id="badgetel"></p>
     <div id="badgelijst"></div>
+    <h3>Tafelbadges</h3>
+    <p class="klein">Elke tafel heeft eigen dingen die er af en toe op vallen. Win ze voor een badge!</p>
+    <div id="tafelbadges"></div>
     <h3>Koekjesfiguren</h3>
     <div id="figlijst"></div>
     <button id="ruilknop" class="groot"></button>
