@@ -99,7 +99,7 @@ gewonnen, over de zijkant (na `ZIJ_EIND`) weg. Koekjes op hun kant krijgen een z
 springen omhoog (`springers`), het likkoekje extra groot met "Likkie-likkie!" hardop. Opslag in `koekjesschuiver3d`.
 `#tegel` verbergt de knoppen voor het plaatje. Tafel smal en lang (`HB`, `VOOR`); de camera zoekt bij elk schermformaat
 de dichtstbijzijnde stand waarbij de tafel tussen bovenbalk en krachtknoppen past (`pasAan`). Gewone koekjes en figuren
-hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde blijft een cilinder). Lange vinger, likkoekje (café noir),
+hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde blijft een cilinder). Lange vinger, knappertje (vierkant met gaatjes), likkoekje (café noir),
 speculaasje en krakeling hebben hun echte vorm (`VORMEN`, `vormGeo`: uitgesneden vorm met afgeronde rand, natuurkunde
 een platte doos). Opslag per speler
 (`koekjesschuiver3d:<naam>`). Munten (🪙): gouden koekje en gebakje 1, figuur 3, badge 10, dubbele figuren ruilen 5
@@ -108,7 +108,7 @@ winternacht met sneeuw, ruimte), elk met lucht, kastkleuren, tafeltint (`tafel`)
 achterwand (`zetThema`). Gewonnen koekjes vallen in een opvangbak (`BAK`, met natuurkunde) en verdwijnen na 2,5 s.
 Hoofdscherm (`#menu`, `modus`: menu/vrij/wedstrijd/einde): Verder met je tafel (vrij spelen), Wedstrijd, Scorebord,
 Winkel, Badges en je tafels (alleen de gekochte, `tekenMenu`). De natuurkunde staat stil in het menu. Natuurkunde in vaste stapjes van 1/60 s (`tijdOver`), zodat het op elk apparaat
-gelijk werkt. Spraak (Likkie-likkie, ook in 2D) wordt bij de eerste tik gewekt (`stemWakker`, `nlStem`). De terugknop gaat
+gelijk werkt. Spraak (Likkie-likkie, ook in 2D) wordt bij de eerste tik gewekt (`stemWakker`, `nlStem`); start de stem niet binnen 1,5 s, dan piept een zelfgemaakt stemmetje (`nepStem`); testknop 🔊 in het badgescherm (`#stemtest`). De terugknop gaat
 altijd eerst naar het hoofdscherm, vanuit het hoofdscherm naar alle spellen. "Nieuwe tafel" (bij de badges) wist alleen
 tafel, punten en gebakjes. Wedstrijd (`startWedstrijd`): nieuwe volle tafel, 50 koekjes, geen aanvulling en geen koekjes
 terug bij winst; klaar als de koekjes op zijn en er 7 s niets valt (25 s als er nog een Koekjesregen/Bakplaat klaarstaat).

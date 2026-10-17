@@ -22,7 +22,7 @@ const TREATS = [
   { n: 'Macaron', p: 'Goudkoorts', d: '8 gouden koekjes' },
   { n: 'Petit four', p: 'Bakplaat', d: '+20 koekjes' }];
 const KAR = [
-  { n: 'Lange vinger', roep: 'Lange vinger!' }, { n: 'Kaakje', roep: 'Kaakje!' }, { n: 'Likkoekje', roep: 'Likkie-likkie!', spring: 1 },
+  { n: 'Lange vinger', roep: 'Lange vinger!' }, { n: 'Knappertje', roep: 'Knappertje!' }, { n: 'Likkoekje', roep: 'Likkie-likkie!', spring: 1 },
   { n: 'Stroopwafel', roep: 'Stroopwafel!' }, { n: 'Speculaasje', roep: 'Speculaasje!' }, { n: 'Bitterkoekje', roep: 'Bitterkoekje!' },
   { n: 'Krakeling', roep: 'Krakeling!' }, { n: 'Gevulde koek', roep: 'Gevulde koek!' }];
 const BADGES = [
@@ -114,7 +114,28 @@ const sBadge = () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => sn
 const sTik = (v) => snd(500 + Math.random() * 300, 0.05, 'triangle', Math.min(0.05, v), 260);
 function likkie() {
   setTimeout(() => [880, 1175, 880, 1175].forEach((f, i) => snd(f, 0.1, 'triangle', 0.05, 0, i * 0.09)), 300);
-  try { const u = new SpeechSynthesisUtterance('Likkie-likkie!'); u.lang = 'nl-NL'; u.pitch = 1.9; u.rate = 1.15; u.volume = 1; zoekStem(); if (nlStem) u.voice = nlStem; if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel(); speechSynthesis.resume(); setTimeout(() => speechSynthesis.speak(u), 60); } catch (e) {}
+  let gestart = false;
+  try {
+    const u = new SpeechSynthesisUtterance('Likkie-likkie!'); u.lang = 'nl-NL'; u.pitch = 1.6; u.rate = 1.1; u.volume = 1; zoekStem(); if (nlStem) u.voice = nlStem;
+    u.onstart = () => { gestart = true; };
+    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel(); speechSynthesis.resume(); setTimeout(() => speechSynthesis.speak(u), 60);
+  } catch (e) {}
+  setTimeout(() => { if (!gestart) nepStem(); }, 1500); // geen stem op dit toestel: dan een zelfgemaakt stemmetje
+}
+// "lik-kie lik-kie" met een piepstemmetje: korte tik voor de k en een klinker met een filter (i = hoog)
+function nepStem() {
+  if (!ac) return;
+  try {
+    [[0, 'i', 620], [0.17, 'ie', 700], [0.42, 'i', 640], [0.59, 'ie', 760]].forEach(([d, kl, f0]) => {
+      const n = ac.currentTime + d, o = ac.createOscillator(), bp = ac.createBiquadFilter(), g = ac.createGain();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, n); o.frequency.linearRampToValueAtTime(f0 * (kl == 'ie' ? 1.25 : 0.95), n + 0.14);
+      bp.type = 'bandpass'; bp.frequency.value = 2600; bp.Q.value = 3;
+      g.gain.setValueAtTime(0.0001, n); g.gain.exponentialRampToValueAtTime(0.25, n + 0.02); g.gain.exponentialRampToValueAtTime(0.001, n + (kl == 'ie' ? 0.2 : 0.11));
+      o.connect(bp).connect(g).connect(ac.destination); o.start(n); o.stop(n + 0.25);
+      const b = ac.createBuffer(1, ac.sampleRate * 0.03, ac.sampleRate), dd = b.getChannelData(0); for (let i = 0; i < dd.length; i++) dd[i] = (Math.random() * 2 - 1) * (1 - i / dd.length);
+      const src = ac.createBufferSource(), kg = ac.createGain(); src.buffer = b; kg.gain.value = 0.2; src.connect(kg).connect(ac.destination); src.start(n + (kl == 'ie' ? -0.02 : 0.1)); // de k
+    });
+  } catch (e) {}
 }
 
 // ---------- 3D-weergave ----------
@@ -182,6 +203,7 @@ function bovenTex(code) {
     else if (code == 14) { g.fillStyle = '#fbf3e6'; g.fillRect(0, 0, w, w); g.strokeStyle = '#e8b0c0'; g.lineWidth = 10; for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(0, i * w / 4); g.lineTo(w, i * w / 4); g.stroke(); } rondje('#e8203a', c * 0.16); }
     else if (VORMEN[code]) { // vormkoekjes: het hele plaatje vullen (de vorm snijdt het uit)
       const k = code - 20, kl = (a, b2) => { const gr = g.createRadialGradient(c, c, c * 0.3, c, c, c * 1.3); gr.addColorStop(0, a); gr.addColorStop(1, b2); g.fillStyle = gr; g.fillRect(0, 0, w, w); };
+      if (k == 1) { kl('#f2c27a', '#d8984a'); g.fillStyle = '#b8783a'; for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) if ((i + j) % 2 == 0) { g.beginPath(); g.arc(w * (0.18 + i * 0.16), w * (0.18 + j * 0.16), 5, 0, 7); g.fill(); } } // knappertje
       if (k == 0) { kl('#f0c890', '#c8904a'); spikkels('#fffaf0', 70, 3.5); spikkels('#f8e8c8', 40, 2.5); } // lange vinger met suiker
       if (k == 2) { kl('#c08848', '#8a5a2a'); g.fillStyle = '#a8703c'; g.fillRect(w * 0.07, w * 0.09, w * 0.86, w * 0.82); // café noir: glazuur
         const gl = g.createLinearGradient(0, 0, w, w); gl.addColorStop(0, 'rgba(255,240,220,.35)'); gl.addColorStop(0.4, 'rgba(255,255,255,0)'); g.fillStyle = gl; g.fillRect(w * 0.07, w * 0.09, w * 0.86, w * 0.82);
@@ -200,9 +222,14 @@ function bovenTex(code) {
       if (k == 2) { rondje('#5a3420', c * 0.82); g.fillStyle = '#ff8ab0'; g.beginPath(); g.moveTo(c, c * 1.4); g.bezierCurveTo(c * 0.3, c * 0.9, c * 0.6, c * 0.4, c, c * 0.8); g.bezierCurveTo(c * 1.4, c * 0.4, c * 1.7, c * 0.9, c, c * 1.4); g.fill(); }
       if (k == 3) { g.strokeStyle = '#a06a2a'; g.lineWidth = 7; for (let i = -6; i < 7; i++) { g.beginPath(); g.moveTo(c + i * 26 - 100, 0); g.lineTo(c + i * 26 + 100, w); g.stroke(); g.beginPath(); g.moveTo(c + i * 26 + 100, 0); g.lineTo(c + i * 26 - 100, w); g.stroke(); } }
       if (k == 4) { g.strokeStyle = '#7a4a1a'; g.lineWidth = 9; g.beginPath(); g.moveTo(c, c * 1.5); g.lineTo(c, c * 0.7); g.moveTo(c - 40, c * 0.6); g.lineTo(c + 40, c * 1.1); g.moveTo(c + 40, c * 0.6); g.lineTo(c - 40, c * 1.1); g.stroke(); }
-      if (k == 5) { spikkels('#a8784a', 18, 14); rondje('#f4e8d0', c * 0.2); }
+      if (k == 5) { const gr = g.createRadialGradient(c * 0.8, c * 0.75, 8, c, c, c); gr.addColorStop(0, '#f2d4a0'); gr.addColorStop(0.6, '#dcaa66'); gr.addColorStop(1, '#b07838'); rondje(gr); const r = rnd(55); // bitterkoekje: bol, licht, vol barstjes
+        for (let i = 0; i < 16; i++) { let x = c + (r() - 0.5) * c * 1.3, y = c + (r() - 0.5) * c * 1.3; g.strokeStyle = 'rgba(120,70,25,.55)'; g.lineWidth = 2 + r() * 3; g.beginPath(); g.moveTo(x, y); for (let j = 0; j < 4; j++) { x += (r() - 0.5) * 45; y += (r() - 0.5) * 45; g.lineTo(x, y); } g.stroke(); g.strokeStyle = 'rgba(255,240,210,.5)'; g.lineWidth = 1.5; g.stroke(); }
+        spikkels('#fff6e0', 60, 2.5); }
       if (k == 6) { g.strokeStyle = '#f2d090'; g.lineWidth = 22; g.beginPath(); g.ellipse(c - 34, c, 46, 60, -0.3, 0, 7); g.stroke(); g.beginPath(); g.ellipse(c + 34, c, 46, 60, 0.3, 0, 7); g.stroke(); spikkels('#fff', 20, 4); }
-      if (k == 7) { rondje('#e8c070', c * 0.75); rondje('#f6f0e0', c * 0.22); }
+      if (k == 7) { rondje('#c8843c'); g.fillStyle = '#e0a860'; for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; g.beginPath(); g.arc(c + Math.cos(a) * c * 0.86, c + Math.sin(a) * c * 0.86, c * 0.11, 0, 7); g.fill(); } // gevulde koek: gekartelde rand
+        const gr = g.createRadialGradient(c * 0.8, c * 0.7, 10, c, c, c * 0.75); gr.addColorStop(0, '#e89a48'); gr.addColorStop(1, '#a0561c'); rondje(gr, c * 0.74); g.strokeStyle = 'rgba(90,45,10,.5)'; g.lineWidth = 4; g.beginPath(); g.arc(c, c, c * 0.74, 0, 7); g.stroke();
+        g.globalAlpha = 0.3; g.fillStyle = '#fff'; g.beginPath(); g.ellipse(c * 0.78, c * 0.66, c * 0.3, c * 0.13, -0.6, 0, 7); g.fill(); g.globalAlpha = 1;
+        [[0.78, 0.8, 0.5], [1.25, 0.9, -0.7], [1.0, 1.3, 0.1]].forEach(([x, y, d]) => { g.fillStyle = '#c89058'; g.beginPath(); g.ellipse(c * x, c * y, c * 0.19, c * 0.1, d, 0, 7); g.fill(); g.fillStyle = '#f2dcae'; g.beginPath(); g.ellipse(c * x, c * y, c * 0.15, c * 0.075, d, 0, 7); g.fill(); }); } // met drie amandelen
     }
   });
 }
@@ -228,6 +255,7 @@ function bolKoek(r, h) {
 // koekjesfiguren met een eigen vorm (bovenaanzicht, in eenheden; b x d = breedte x diepte voor de natuurkunde-doos)
 const VORMEN = {
   20: { b: 1.15, d: 0.36, vorm: (p) => { const r = 0.18, l = 0.575 - r; p.moveTo(-l, -r); p.lineTo(l, -r); p.absarc(l, 0, r, -Math.PI / 2, Math.PI / 2); p.lineTo(-l, r); p.absarc(-l, 0, r, Math.PI / 2, Math.PI * 1.5); } }, // lange vinger
+  21: { b: 0.8, d: 0.8, vorm: (p) => rondRecht(p, 0.4, 0.4, 0.05) }, // knappertje (vierkant met gaatjes)
   22: { b: 0.98, d: 0.66, vorm: (p) => rondRecht(p, 0.49, 0.33, 0.07) }, // likkoekje (café noir)
   24: { b: 0.98, d: 0.62, vorm: (p) => rondRecht(p, 0.49, 0.31, 0.05) }, // speculaasje
   26: { b: 1.05, d: 0.78, vorm: (p) => { // krakeling: twee lussen bovenaan, smaller naar onderen, drie gaten
@@ -1342,6 +1370,7 @@ function tekenBord(melding) {
 $('bordknop').onclick = () => { $('badges').hidden = true; $('bordscherm').hidden = false; tekenBord('Scores ophalen…'); autoInsturen(); bordHalen().then((ok) => tekenBord(ok ? '' : 'Geen internet: dit zijn de laatst bekende scores.')); };
 $('borddicht').onclick = () => { $('bordscherm').hidden = true; };
 $('badgesdicht').onclick = () => { $('badges').hidden = true; };
+$('stemtest').onclick = () => { unlock(); likkie(); };
 $('nieuwknop').onclick = () => { if (modus == 'wedstrijd' || modus == 'einde') return alert('Dat kan alleen op je eigen tafel, niet tijdens een wedstrijd.'); if (confirm('Nieuwe tafel? Je begint weer met 40 koekjes en 0 punten. Je badges, figuren, munten en achtergronden blijf je houden.')) { $('badges').hidden = true; opnieuw(); } };
 
 // ---------- invoer: mikken met de muis, klikken of tikken om te laten vallen ----------
