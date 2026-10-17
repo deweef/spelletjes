@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Scores">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d1230">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Scores</title>
+<style>
+:root{--bg:#0d1230;--kaart:#18204a;--lijn:#2a3570;--tekst:#eef0ff;--zacht:#a3abd6;--goud:#ffd34d;--groen:#4cd68a;--rood:#ff6b6b;--ben:#5aa9ff;--dana:#ff7fbf;--ouder:#b9a6ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tekst);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:30px;margin:6px 0 2px}h2{font-size:19px;margin:22px 0 8px}h3{font-size:16px;margin:0}
+.sub{color:var(--zacht);margin:0 0 14px;font-size:14px}
+.tabs{display:flex;gap:6px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}
+.tabs button,.chips button{flex:1;font:600 15px system-ui;padding:10px 6px;border-radius:12px;border:2px solid var(--lijn);background:var(--kaart);color:var(--tekst);cursor:pointer}
+.tabs button[aria-pressed=true]{background:var(--goud);color:#1a1a1a;border-color:var(--goud)}
+.chips{display:flex;gap:6px;margin:6px 0 4px}
+.chips button{font-size:14px;padding:8px 4px}
+.chips button[aria-pressed=true]{border-color:var(--c);background:color-mix(in srgb,var(--c) 25%,var(--kaart))}
+.kaart{background:var(--kaart);border:1px solid var(--lijn);border-radius:14px;padding:12px 14px;margin:8px 0}
+.groot{font-size:34px;font-weight:800;line-height:1}
+.rij{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.zacht{color:var(--zacht);font-size:13.5px}
+.balk{height:9px;border-radius:5px;background:var(--lijn);overflow:hidden;margin-top:6px}.balk i{display:block;height:100%;background:var(--c,var(--goud))}
+table{width:100%;border-collapse:collapse;font-size:14.5px}td,th{padding:6px 4px;border-bottom:1px solid var(--lijn);text-align:left;vertical-align:top}
+th{color:var(--zacht);font-weight:600;font-size:12.5px}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.log{display:grid;gap:6px}.log .kaart{margin:0;padding:10px 12px}
+.wis{background:none;border:1px solid var(--lijn);color:var(--rood);border-radius:8px;padding:4px 8px;font-size:14px;cursor:pointer}
+.let{color:var(--goud);font-weight:700}
+input{font:inherit;font-size:18px;padding:10px 12px;border-radius:10px;border:2px solid var(--lijn);background:var(--bg);color:var(--tekst);width:100%}
+.knop{font:700 16px system-ui;padding:12px;border-radius:12px;border:0;background:var(--goud);color:#1a1a1a;cursor:pointer;width:100%;margin-top:10px}
+.klein{background:none;border:0;color:var(--zacht);text-decoration:underline;cursor:pointer;font:inherit;font-size:14px;padding:0}
+.fout{color:var(--rood);font-weight:600;min-height:1.3em}
+[hidden]{display:none!important}
+</style></head><body><div class="wrap">
+<h1>🏆 Scores</h1><p class="sub" id="status">Laden…</p>
+
+<form id="login" class="kaart" hidden>
+  <h3>Geheim woord</h3>
+  <p class="zacht">De allereerste keer wordt het woord dat je hier kiest je vaste sleutel (minstens 6 tekens). Daarna werkt alleen dat woord. Het blijft op deze telefoon bewaard.</p>
+  <input id="sl" type="password" autocomplete="current-password" minlength="6">
+  <button class="knop" type="submit">Openen</button><div class="fout" id="lfout"></div>
+</form>
+
+<div id="app" hidden>
+  <div class="tabs"><button data-t="leren" aria-pressed="true">📚 Leren</button><button data-t="spel" aria-pressed="false">🎮 Spelletjes</button><button data-t="beheer" aria-pressed="false">🛠 Beheer</button></div>
+  <section id="t-leren"></section>
+  <section id="t-spel" hidden></section>
+  <section id="t-beheer" hidden></section>
+  <p style="margin-top:28px"><button class="klein" id="ververs">Vernieuwen</button> · <button class="klein" id="uit">Geheim woord vergeten op deze telefoon</button></p>
+</div>
+</div>
+<script>
+const BORD_URL='https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const VAK={engels:'Engels',wiskunde:'Wiskunde',biologie:'Biologie','scheikunde-h1':'Scheikunde H1',scheikunde:'Scheikunde H2',frans:'Frans','frans-copilot':'Frans v2','frans-combi':'Frans combi','frans-spel':'Frans spel'};
+const KLEUR={Ben:'var(--ben)',Dana:'var(--dana)',Ouder:'var(--ouder)'};
+const dag=d=>new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
+const tijd=d=>new Date(d).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+const geleden=d=>{const m=(Date.now()-new Date(d))/60000;return m<60?Math.round(m)+' min geleden':m<1440?Math.round(m/60)+' uur geleden':Math.round(m/1440)+' dagen geleden'};
+const nf=n=>String(Math.round(n*10)/10).replace('.',',');
+let D=null,wie=ls.get('scores-wie')||'Ben',tab='leren';
+try{D=JSON.parse(ls.get('scores-data')||'null')}catch(e){}
+
+// vraag = 'actie=ouder' (alles ophalen) of 'actie=wis&rij=..&naam=..&score=..'; het antwoord is altijd de nieuwe stand
+async function haal(vraag='actie=ouder'){const sl=ls.get('scores-sleutel');if(!sl){toonLogin();return}
+ $('#status').textContent=vraag.startsWith('actie=wis')?'Wissen…':'Bijwerken…';
+ try{const r=await fetch(BORD_URL+'?'+vraag+'&sleutel='+encodeURIComponent(sl),{redirect:'follow'});const d=await r.json();
+  if(d.fout==='sleutel'){ls.del('scores-sleutel');toonLogin('Dat woord klopt niet.');return}
+  if(d.fout==='veranderd'){alert('Die score was intussen al veranderd of weg. De lijst wordt bijgewerkt.');return haal()}
+  D=d;ls.set('scores-data',JSON.stringify(d));$('#status').textContent='Bijgewerkt om '+tijd(new Date())+(d.nieuw?' · je geheime woord is ingesteld':'');
+ }catch(e){$('#status').textContent=D?'Geen verbinding: dit is de laatst bekende stand.':'Geen verbinding.'}
+ teken()}
+function toonLogin(f=''){$('#login').hidden=false;$('#app').hidden=true;$('#status').textContent='';$('#lfout').textContent=f;$('#sl').focus()}
+$('#login').onsubmit=e=>{e.preventDefault();const v=$('#sl').value.trim();if(v.length<6){$('#lfout').textContent='Minstens 6 tekens.';return}ls.set('scores-sleutel',v);$('#login').hidden=true;haal()};
+$('#uit').onclick=()=>{ls.del('scores-sleutel');ls.del('scores-data');D=null;toonLogin()};
+$('#ververs').onclick=()=>haal();
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;teken()});
+
+function teken(){if(!D)return;$('#app').hidden=false;$('#login').hidden=true;
+ document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===tab));
+ for(const t of ['leren','spel','beheer'])$('#t-'+t).hidden=t!==tab;
+ ({leren:tekenLeren,spel:tekenSpel,beheer:tekenBeheer})[tab]()}
+
+/* ---------- Leren ---------- */
+function tekenLeren(){const L=(D.leer||[]).map(([d,n,v,m,w,s])=>({d,n,v,m:Number(m)||0,w,s}));
+ const namen=['Ben','Dana','Ouder'];
+ const rijen=L.filter(r=>r.n===wie).sort((a,b)=>new Date(b.d)-new Date(a.d));
+ const week=rijen.filter(r=>Date.now()-new Date(r.d)<7*864e5);
+ const perVak={};for(const r of rijen){const p=perVak[r.v]||(perVak[r.v]={week:0,keer:0,laatst:r.d,stand:r.s});if(Date.now()-new Date(r.d)<7*864e5){p.week+=r.m;p.keer++}}
+ const max=Math.max(1,...Object.values(perVak).map(p=>p.week));
+ $('#t-leren').innerHTML=`<div class="chips">${namen.map(n=>`<button data-w="${n}" style="--c:${KLEUR[n]}" aria-pressed="${n===wie}">${n}</button>`).join('')}</div>
+ <div class="kaart"><div class="zacht">Afgelopen 7 dagen</div><div class="rij"><span class="groot">${nf(week.reduce((a,r)=>a+r.m,0))} <span style="font-size:16px">min</span></span><span class="zacht">${week.length} keer · ${new Set(week.map(r=>r.d.slice(0,10))).size} dagen</span></div>
+  ${rijen[0]?`<div class="zacht" style="margin-top:6px">Laatst: ${esc(VAK[rijen[0].v]||rijen[0].v)}, ${geleden(rijen[0].d)}</div>`:'<div class="zacht" style="margin-top:6px">Nog niets geoefend (of de spreadsheet is nog niet bijgewerkt).</div>'}</div>
+ ${Object.keys(perVak).length?`<h2>Per vak</h2>${Object.entries(perVak).sort((a,b)=>b[1].week-a[1].week||new Date(b[1].laatst)-new Date(a[1].laatst)).map(([v,p])=>`<div class="kaart" style="--c:${KLEUR[wie]}"><div class="rij"><h3>${esc(VAK[v]||v)}</h3><span class="zacht">${nf(p.week)} min deze week</span></div><div class="balk"><i style="width:${p.week/max*100}%"></i></div><div class="zacht" style="margin-top:6px">${esc(p.stand||'')}${p.stand?'<br>':''}laatst ${geleden(p.laatst)}</div></div>`).join('')}`:''}
+ ${rijen.length?`<h2>Logboek</h2><div class="log">${rijen.slice(0,60).map(r=>`<div class="kaart"><div class="rij"><b>${esc(VAK[r.v]||r.v)}</b><span class="zacht">${dag(r.d)} ${tijd(r.d)} · ${nf(r.m)} min</span></div><div class="zacht">${esc(r.w)}</div></div>`).join('')}</div>`:''}`;
+ document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{wie=b.dataset.w;ls.set('scores-wie',wie);teken()})}
+
+/* ---------- Spelletjes ---------- */
+const SPEL=o=>o.startsWith('ork3d_')?'Orkenstorm 3D':o.startsWith('koek3d_')?'Koekjesschuiver 3D':'Fladderfeest';
+const mooi=o=>o.replace(/^(ork3d|koek3d)_/,'').replace(/_/g,' ');
+function lijsten(){const g={};for(const [rij,d,n,o,m,s] of (D.scores||[])){const k=o+' · '+m,laag=String(o).includes('tijd');const x=g[k]||(g[k]={spel:SPEL(String(o)),naam:mooi(String(o))+' ('+m+')',laag,beste:{}});const v=Number(s);if(x.beste[n]===undefined||(laag?v<x.beste[n]:v>x.beste[n]))x.beste[n]=v}
+ for(const x of Object.values(g))x.top=Object.entries(x.beste).sort((a,b)=>x.laag?a[1]-b[1]:b[1]-a[1]);return g}
+function tekenSpel(){const g=lijsten();const per={};for(const x of Object.values(g))(per[x.spel]=per[x.spel]||[]).push(x);
+ $('#t-spel').innerHTML=Object.keys(per).length?Object.entries(per).map(([sp,ls])=>`<h2>${esc(sp)}</h2>${ls.map(x=>`<div class="kaart"><h3 style="text-transform:capitalize">${esc(x.naam)}</h3><table>${x.top.slice(0,5).map(([n,s],i)=>`<tr><td style="width:28px">${['🥇','🥈','🥉'][i]||i+1}</td><td>${esc(n)}</td><td class="n">${x.laag?nf(s)+' s':s}</td></tr>`).join('')}</table></div>`).join('')}`).join(''):'<p class="zacht">Nog geen scores.</p>'}
+
+/* ---------- Beheer: scores wissen ---------- */
+function tekenBeheer(){const g=lijsten();
+ const vreemd=(o,m,n,s)=>{const x=g[o+' · '+m];if(!x||x.laag)return false;const anderen=x.top.filter(t=>t[0]!==n).map(t=>t[1]);return anderen.length>0&&s>3*Math.max(...anderen)};
+ const rijen=(D.scores||[]).slice().reverse().slice(0,150);
+ $('#t-beheer').innerHTML=`<p class="zacht">De nieuwste scores bovenaan. Een <span class="let">⚠️</span> betekent: meer dan 3 keer zo hoog als de beste score van iemand anders. Wissen haalt de score uit de spreadsheet en dus van het scorebord.</p>
+ <table><tr><th>Wanneer</th><th>Wie</th><th>Wat</th><th class="n">Score</th><th></th></tr>${rijen.map(([rij,d,n,o,m,s])=>`<tr><td class="zacht">${dag(d)}</td><td>${esc(n)}</td><td><span class="zacht">${esc(SPEL(String(o)))}</span><br>${esc(mooi(String(o)))} (${esc(m)})</td><td class="n">${vreemd(o,m,n,Number(s))?'<span class="let">⚠️ </span>':''}${esc(s)}</td><td><button class="wis" data-rij="${rij}" data-n="${esc(n)}" data-s="${esc(s)}" aria-label="Wis">🗑</button></td></tr>`).join('')}</table>`;
+ document.querySelectorAll('.wis').forEach(b=>b.onclick=()=>{if(confirm(`Score ${b.dataset.s} van ${b.dataset.n} wissen?`))haal(`actie=wis&rij=${b.dataset.rij}&naam=${encodeURIComponent(b.dataset.n)}&score=${encodeURIComponent(b.dataset.s)}`)})}
+
+if(D)teken();haal();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js').catch(()=>{});
+</script>
+</body></html>

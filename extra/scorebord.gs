@@ -5,6 +5,9 @@
 // Onderdelen met "tijd" in de naam zijn snelste tijden (laag is beter), de rest is hoog is beter.
 // Leerhoek (deweef/leren, leerlog.js): POST ?actie=leer&naam=ben|dana&vak=..&min=..&wat=..&stand=.. schrijft een regel
 // in tabblad 'Leerhoek'. Dat tabblad wordt nooit teruggegeven: alleen te zien door de spreadsheet zelf te openen.
+// Scores-app (spelletjes/scores/): ?actie=ouder&sleutel=.. geeft alle scores en het leerlogboek, ?actie=wis&sleutel=..&rij=..
+// &naam=..&score=.. wist een score. De eerste sleutel die ooit gebruikt wordt, wordt de vaste sleutel (Script-eigenschap
+// OUDER_SLEUTEL; wis die eigenschap in Projectinstellingen om opnieuw te beginnen).
 // Na het aanpassen: Implementeren > Implementaties beheren > potlood > Versie: Nieuwe versie (dan blijft de URL gelijk).
 
 function blad() {
@@ -16,6 +19,7 @@ function blad() {
 
 function doGet(e) {
   const p = (e && e.parameter) || {};
+  if (p.actie === 'ouder' || p.actie === 'wis') return ouder(p);
   if (p.actie === 'opslaan') {
     const naam = String(p.naam || '').replace(/[<>]/g, '').trim().slice(0, 16);
     const onderdeel = String(p.onderdeel || ''), modus = String(p.modus || '');
@@ -58,10 +62,10 @@ function doPost(e) {
 
 function leerRegel(p) {
   const naam = String(p.naam || ''), vak = String(p.vak || ''), min = Math.round(Number(p.min) * 10) / 10;
-  if (!/^(ben|dana)$/.test(naam) || !/^[a-z0-9-]{1,30}$/.test(vak) || !(min >= 0 && min <= 300)) return;
+  if (!/^(ben|dana|ouder)$/.test(naam) || !/^[a-z0-9-]{1,30}$/.test(vak) || !(min >= 0 && min <= 300)) return;
   const tekst = (v) => String(v || '').replace(/[<>=]/g, '').slice(0, 200).replace(/^([+\-@])/, "'$1"); // nooit als formule lezen
   const lock = LockService.getScriptLock(); lock.waitLock(5000);
-  try { leerBlad().appendRow([new Date(), naam === 'ben' ? 'Ben' : 'Dana', vak, min, tekst(p.wat), tekst(p.stand)]); }
+  try { leerBlad().appendRow([new Date(), { ben: 'Ben', dana: 'Dana', ouder: 'Ouder' }[naam], vak, min, tekst(p.wat), tekst(p.stand)]); }
   finally { lock.releaseLock(); }
 }
 
@@ -79,4 +83,29 @@ function leerBlad() {
     o.getRange('H2').setFormula('=IFERROR(QUERY(Leerhoek!A2:F,"select B, C, sum(D), count(D), max(A) group by B, C order by B, sum(D) desc label sum(D) \'Minuten\', count(D) \'Keren\', max(A) \'Laatst\'",0),"nog niets")');
   }
   return b;
+}
+
+// ---------- Scores-app voor de ouder: alles zien en rare scores wissen ----------
+function json(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
+
+function ouder(p) {
+  const props = PropertiesService.getScriptProperties(), sleutel = String(p.sleutel || '');
+  let goed = props.getProperty('OUDER_SLEUTEL'), nieuw = false;
+  if (!goed && sleutel.length >= 6) { props.setProperty('OUDER_SLEUTEL', sleutel); goed = sleutel; nieuw = true; }
+  if (!goed || sleutel !== goed) { Utilities.sleep(1000); return json({ fout: 'sleutel' }); }
+  if (p.actie === 'wis') {
+    const b = blad(), rij = Math.floor(Number(p.rij));
+    const lock = LockService.getScriptLock(); lock.waitLock(5000);
+    try {
+      if (rij < 2 || rij > b.getLastRow()) return json({ fout: 'veranderd' });
+      const r = b.getRange(rij, 1, 1, 5).getValues()[0];
+      if (String(r[1]) !== String(p.naam) || String(r[4]) !== String(p.score)) return json({ fout: 'veranderd' });
+      b.deleteRow(rij);
+    } finally { lock.releaseLock(); }
+  }
+  const datum = (d) => (d instanceof Date ? d.toISOString() : String(d));
+  const sc = blad().getDataRange().getValues().map((r, i) => [i + 1, datum(r[0]), r[1], r[2], r[3], r[4]]).slice(1).slice(-1000);
+  const lb = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leerhoek');
+  const lr = lb ? lb.getDataRange().getValues().slice(1).slice(-1500).map((r) => [datum(r[0]), r[1], r[2], r[3], r[4], r[5]]) : [];
+  return json({ nieuw, scores: sc, leer: lr });
 }
