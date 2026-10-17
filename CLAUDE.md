@@ -91,11 +91,15 @@ hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde bl
 (knop bij de badges). Winkel (`#winkel`): achtergronden in `THEMAS` (bakkerij gratis, mint met roze; halloween, kermis, strand,
 winternacht met sneeuw, ruimte), elk met lucht, kastkleuren, tafeltint (`tafel`), lampjes (`lamp`) en een plaatje op de
 achterwand (`zetThema`). Gewonnen koekjes vallen in een opvangbak (`BAK`, met natuurkunde) en verdwijnen na 2,5 s.
-De terugknop sluit eerst een open scherm. "Nieuwe tafel" wist alleen
-tafel, punten en gebakjes. Online scorebord (zelfde Apps Script, geen aanpassing nodig: de lijst zonder `spel` bevat
-alles behalve ork3d): `koek3d_punten` (beste tafel) en `koek3d_munten` (alle munten ooit, `muntenTotaal`), modus `gewoon`.
-Insturen gaat vanzelf (`autoInsturen`: met naam, alleen verbeteringen, hooguit eens per minuut en bij weggaan);
-knop 🏆 Scorebord in het badgescherm (`#bordscherm`). Plannen: tafels (ook kerst), speciale koekjes, extra krachten,
+Hoofdscherm (`#menu`, `modus`: menu/vrij/wedstrijd/einde): Verder met je tafel (vrij spelen), Wedstrijd, Scorebord,
+Winkel, Badges en je tafels (alleen de gekochte, `tekenMenu`). De natuurkunde staat stil in het menu. De terugknop gaat
+altijd eerst naar het hoofdscherm, vanuit het hoofdscherm naar alle spellen. "Nieuwe tafel" (bij de badges) wist alleen
+tafel, punten en gebakjes. Wedstrijd (`startWedstrijd`): nieuwe volle tafel, 50 koekjes, geen aanvulling en geen koekjes
+terug bij winst; klaar als de koekjes op zijn en er 7 s niets valt (25 s als er nog een Koekjesregen/Bakplaat klaarstaat).
+Je eigen tafel blijft intussen in de opslag (`bewaar` schrijft dan alleen munten, badges e.d.). Beste wedstrijd in
+`wedBest`. Online scorebord (zelfde Apps Script, geen aanpassing nodig: de lijst zonder `spel` bevat alles behalve
+ork3d): alleen `koek3d_wedstrijd`, modus `gewoon`, automatisch ingestuurd na een wedstrijd (met naam, alleen
+verbeteringen). Plannen: tafels (ook kerst), speciale koekjes, extra krachten,
 badges met niveaus.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
