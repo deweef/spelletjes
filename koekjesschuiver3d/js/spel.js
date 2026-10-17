@@ -285,7 +285,7 @@ const THEMAS = [
       g.fillRect(cx - 155, cy + 60, 310, 34); for (const [dx, k] of [[-100, '#ff3a5a'], [0, '#3ad8ff'], [100, '#5aff8a']]) bol(g, cx + dx, cy + 77, 12, k);
       for (const dx of [-170, 0, 170]) bol(g, cx + dx, dx ? cy - 64 : cy - 94, 12, '#fff4c0');
       for (let i = 0; i < 16; i++) bol(g, (i + 0.5) * w / 16, h * 0.93, 7, i % 2 ? '#fff' : '#ffd84a'); } },
-  { id: 'draak', n: 'Drakenburcht', prijs: 25000, kast: '#6a1a12', donker: '#1a0806', vloer: '#1a0806', mist: '#2a0c06', tafel: '#ffcf7a', lamp: '#ff9a2a', vonken: true,
+  { id: 'draak', n: 'Drakenburcht', prijs: 100000, kast: '#6a1a12', donker: '#1a0806', vloer: '#1a0806', mist: '#2a0c06', tafel: '#ffcf7a', lamp: '#ff9a2a', vonken: true,
     lucht(g, w, h) { verloop(g, w, h, ['#0a0302', '#2a0c06', '#5a1a08']);
       g.fillStyle = '#120403'; for (let x = 0; x < w; x += w / 9) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + w / 18, h * (0.12 + ((x * 7) % 5) / 40)); g.lineTo(x + w / 9, 0); g.fill(); } // stalactieten
       const gr = g.createLinearGradient(0, h * 0.75, 0, h); gr.addColorStop(0, 'rgba(255,90,0,0)'); gr.addColorStop(1, 'rgba(255,120,20,.7)'); g.fillStyle = gr; g.fillRect(0, h * 0.75, w, h * 0.25); // lavagloed
