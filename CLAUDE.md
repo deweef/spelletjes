@@ -35,6 +35,11 @@ bedenk dat de site openbaar is.
   `tekenStreken`): roodborst sneeuwbui (`bui`), meeuw patatdieven en papegaai kanonskogels (`gevaren`, met een rood !
   vooraf), hommel windvlagen (alleen met streken), kip schuivende hooibalen en kraai dansende versterkers (`p.amp`),
   pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links).
+  Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/fladderfeest-scorebord.gs` (web-app,
+  `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
+  = insturen. Knop 🏆 Scorebord op het beginscherm (`scorebordScherm`), knop Insturen op de eindschermen; laatste lijst
+  in `fladderfeest_bord` voor offline. script.google.com is vanuit de cloudomgeving niet bereikbaar: test met
+  Playwright `route` en een nagemaakt antwoord.
   Een nieuw dier = regel in `FIGUREN`, deuntje in `MUZIEK`, wereld in `WERELDEN`, plaatje in `tekenDier()`. Elke wereld staat in `WERELDEN` (achtergrond,
   grond, hindernis, bonus, wat er valt, het figuur). `fladderfeest.html#tegel` tekent het plaatje voor de startpagina.
   Muziek: per figuur een eigen deuntje in `MUZIEK` (zelf gecomponeerd, Web Audio, geen bestanden), knopje

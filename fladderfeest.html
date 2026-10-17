@@ -31,6 +31,62 @@ addEventListener('resize', fit); fit();
 
 // ---------- speler en records (per naam, zie de startpagina) ----------
 let speler = ''; try { speler = localStorage.getItem('speler') || ''; } catch (e) {}
+// ---------- online scorebord (Google Spreadsheet met een Apps Script, zie extra/fladderfeest-scorebord.gs) ----------
+const BORD_URL = 'https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
+let bord = null, bordStatus = '', ingestuurd = '';
+try { bord = JSON.parse(localStorage.getItem('fladderfeest_bord') || 'null'); } catch (e) {}
+function bordBewaar(d) { bord = d; try { localStorage.setItem('fladderfeest_bord', JSON.stringify(d)); } catch (e) {} }
+function bordHalen(extra = '') {
+  bordStatus = 'laden';
+  return fetch(BORD_URL + extra, { redirect: 'follow' }).then((r) => r.json()).then((d) => { bordBewaar(d); bordStatus = 'ok'; return true; })
+    .catch(() => { bordStatus = 'fout'; return false; });
+}
+function insturen(onderdeel, punten) {
+  let naam = speler;
+  if (!naam) { try { naam = localStorage.getItem('fladderfeest_naam') || ''; } catch (e) {} }
+  if (!naam) { naam = (prompt('Met welke naam wil je op het scorebord?') || '').trim().slice(0, 16); try { localStorage.setItem('fladderfeest_naam', naam); } catch (e) {} }
+  if (!naam) return;
+  ingestuurd = 'bezig';
+  const q = '?actie=opslaan&naam=' + encodeURIComponent(naam) + '&onderdeel=' + onderdeel + '&modus=' + (streken ? 'streken' : 'gewoon') + '&score=' + punten;
+  bordHalen(q).then((ok) => { ingestuurd = ok ? 'ok' : 'fout'; if (ok) sPunt(); });
+}
+function insturenKnop(x, y, w, onderdeel, punten) {
+  if (punten <= 0) return;
+  const tekstKnop = ingestuurd == 'ok' ? 'Ingestuurd ✓' : ingestuurd == 'bezig' ? 'Even geduld…' : ingestuurd == 'fout' ? 'Lukt niet (internet?) · opnieuw' : '🏆 Insturen naar het scorebord';
+  knop(x, y, w, 40, tekstKnop, ingestuurd == 'ok' ? '#8a9aa8' : '#e8a22a', () => { if (ingestuurd != 'ok' && ingestuurd != 'bezig') insturen(onderdeel, punten); });
+}
+let bordTab = 'tocht';
+function scorebordScherm() {
+  ctx.fillStyle = 'rgba(15,30,55,.82)'; ctx.fillRect(0, 0, W, H);
+  tekst('🏆 Scorebord', W / 2, 46, 30, '#ffe14d', 'center', '#1d3b57');
+  const tabs = [['tocht', 'Tocht'], ...FIGUREN.map((f) => [f.id, f.naam.replace('Jetpack', '').replace('Piraten', '')])];
+  tabs.forEach(([id, lbl], i) => {
+    const kx = 14 + (i % 4) * ((W - 28) / 4), ky = 76 + Math.floor(i / 4) * 34, kw = (W - 28) / 4 - 4;
+    ctx.fillStyle = bordTab == id ? '#ffb43a' : 'rgba(255,255,255,.18)'; rrect(kx, ky, kw, 28, 8); ctx.fill();
+    tekst(lbl, kx + kw / 2, ky + 14, 11, '#fff', 'center', null);
+    knoppen.push({ x: kx, y: ky, w: kw, h: 30, doe: () => { bordTab = id; sClick(); } });
+  });
+  for (const [k, lbl, aan] of [[0, 'Gewoon', !streken], [1, 'Met streken', streken]]) {
+    const bx = 14 + k * ((W - 28) / 2), bw = (W - 28) / 2 - 4;
+    ctx.fillStyle = aan ? (k ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.18)'; rrect(bx, 148, bw, 26, 8); ctx.fill();
+    tekst(lbl, bx + bw / 2, 161, 12, '#fff', 'center', null);
+    knoppen.push({ x: bx, y: 146, w: bw, h: 30, doe: () => { streken = !!k; try { localStorage.setItem('fladderfeest_streken', streken ? '1' : '0'); } catch (e) {} } });
+  }
+  const lijst = bord && bord[bordTab + '_' + (streken ? 'streken' : 'gewoon')];
+  ctx.fillStyle = 'rgba(255,248,230,.95)'; rrect(20, 186, W - 40, 350, 16); ctx.fill();
+  if (!lijst || !lijst.length) {
+    tekst(bordStatus == 'laden' ? 'Scores ophalen…' : bordStatus == 'fout' && !bord ? 'Geen internet: scorebord niet bereikbaar' : 'Nog niemand! Word jij de eerste?', W / 2, 360, 15, '#4d6478', 'center', null);
+  } else lijst.forEach((rij, i) => {
+    const y = 214 + i * 32, ik = speler && rij.naam == speler;
+    if (ik) { ctx.fillStyle = '#ffe9a8'; rrect(28, y - 14, W - 56, 28, 8); ctx.fill(); }
+    tekst(i < 3 ? ['🥇', '🥈', '🥉'][i] : (i + 1) + '.', 48, y, i < 3 ? 18 : 15, '#4d6478', 'center', null);
+    tekst(String(rij.naam), 72, y, 16, '#1d3b57', 'left', null);
+    tekst(String(rij.score), W - 40, y, 18, '#c0792a', 'right', null);
+  });
+  if (bordStatus == 'fout' && bord) tekst('(geen internet: dit zijn de laatst bekende scores)', W / 2, 526, 11, '#c0392b', 'center', null);
+  knop(W / 2 - 80, 550, 160, 44, 'Terug', '#3f8fd8', () => { staat = 'menu'; zorgMuziek(); });
+}
+
 // Gewoon of Met streken (elk dier een eigen pesterij); records apart per modus
 let streken = false; try { streken = localStorage.getItem('fladderfeest_streken') == '1'; } catch (e) {}
 const sleutel = (f, m = streken) => 'fladderfeest_' + f + (m ? '_streken' : '') + (speler ? ':' + speler : '');
@@ -321,7 +377,7 @@ const totaal = () => (tocht ? tocht.totaal + score : score);
 let vrijgespeeld = null, veren = [], juich = 0, wind = null, volgendeWind = 0;
 function startTocht() { stopMuziek(false); tocht = { i: 0, totaal: 0, levens: 0, volgendLeven: 25 }; fig = FIGUREN[0]; nieuwSpel(); }
 function nieuwSpel() {
-  vrijgespeeld = null; finish = null; onkw = 0; melding = null; vuurwerk = [];
+  vrijgespeeld = null; finish = null; onkw = 0; ingestuurd = ''; melding = null; vuurwerk = [];
   veren = [];
   vogel = { x: W * 0.28, y: H * 0.42, vy: 0, flapT: 0, hoek: 0 };
   palen = []; score = 0; frietjes = 0; snelheid = 2.3; afstand = 215; nieuwRecord = false; vallend = null;
@@ -371,6 +427,7 @@ addEventListener('keydown', (e) => {
     else if (staat == 'over' && doodT > 40) { if (tocht) startTocht(); else nieuwSpel(); }
     else if (staat == 'menu') { tocht = null; fig = FIGUREN[0]; nieuwSpel(); }
   }
+  if (e.code == 'Escape' && staat == 'bord') { staat = 'menu'; return; }
   if (e.code == 'Escape' && staat != 'menu') { staat = 'menu'; zorgMuziek(); }
   if (e.code == 'KeyM') wisselMuziek();
 });
@@ -389,7 +446,7 @@ function stap() {
   if (melding && --melding.t <= 0) melding = null;
   for (const v of vuurwerk) { v.x += v.vx; v.y += v.vy; v.vy += 0.04; v.vx *= 0.98; v.l--; }
   vuurwerk = vuurwerk.filter((v) => v.l > 0);
-  if (staat == 'menu' || staat == 'klaar') { schuif += 1.2; return; }
+  if (staat == 'menu' || staat == 'klaar' || staat == 'bord') { schuif += 1.2; return; }
   if (staat == 'finish') { // vrij vliegen door de finish, met vuurwerk; daarna het volgende dier
     schuif += snelheid; doodT++;
     for (const p of palen) p.x -= snelheid;
@@ -1561,7 +1618,7 @@ function knop(x, y, w, h, t, kleur, doe) {
   ctx.fillStyle = 'rgba(0,0,0,.18)'; rrect(x, y + 4, w, h, 14); ctx.fill();
   ctx.fillStyle = kleur; rrect(x, y, w, h, 14); ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2; ctx.stroke();
-  tekst(t, x + w / 2, y + h / 2 + 1, 19, '#fff', 'center', 'rgba(0,0,0,.25)');
+  tekst(t, x + w / 2, y + h / 2 + 1, t.length > 16 ? 15 : 19, '#fff', 'center', 'rgba(0,0,0,.25)');
   knoppen.push({ x, y, w, h, doe });
 }
 
@@ -1616,7 +1673,11 @@ function menu() {
     }
   });
   if (tekstje && beeld - doodT < 150 && staat == 'menu') tekst(tekstje, W / 2, H - 22, 15, '#fff');
-  else tekst(speler ? 'Speler: ' + speler : 'Kies je naam op de startpagina voor je eigen record', W / 2, H - 22, speler ? 16 : 12);
+  else tekst(speler ? 'Speler: ' + speler : 'Geen naam gekozen', 24, H - 22, 14, '#fff', 'left');
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; rrect(W - 146, H - 35, 128, 30, 12); ctx.fill();
+  ctx.fillStyle = '#ffb43a'; rrect(W - 146, H - 37, 128, 30, 12); ctx.fill();
+  tekst('🏆 Scorebord', W - 82, H - 22, 14, '#fff', 'center', 'rgba(0,0,0,.25)');
+  knoppen.push({ x: W - 146, y: H - 40, w: 128, h: 38, doe: () => { staat = 'bord'; bordTab = 'tocht'; sClick(); bordHalen(); } });
 }
 // een dier met zijn bonus erbij, voor het beginscherm
 function tekenDier(id, x, y, fl, s) {
@@ -1648,7 +1709,7 @@ function scorebord() {
 
 function eindschermTocht() {
   const a = Math.min(1, doodT / 15); ctx.globalAlpha = a;
-  const x = 34, y = 140, w = W - 68, h = 320, t = totaal();
+  const x = 34, y = 130, w = W - 68, h = 370, t = totaal();
   ctx.fillStyle = 'rgba(255,248,230,.96)'; rrect(x, y, w, h, 20); ctx.fill();
   ctx.strokeStyle = '#e8762a'; ctx.lineWidth = 4; ctx.stroke();
   tekst(tekstje, W / 2, y + 30, 16, '#d6453b', 'center', null);
@@ -1661,6 +1722,7 @@ function eindschermTocht() {
   for (let k = 0; k < FIGUREN.length; k++) { ctx.fillStyle = k < tocht.i ? '#3fae5a' : k == tocht.i ? '#e8762a' : '#d8d0c0'; ctx.beginPath(); ctx.arc(W / 2 + (k - 3) * 22, y + 214, 7, 0, 7); ctx.fill(); }
   ctx.globalAlpha = 1;
   if (doodT > 25) {
+    insturenKnop(x + 14, y + h - 112, w - 28, 'tocht', t);
     knop(x + 14, y + h - 62, w / 2 - 20, 46, 'Nog een tocht', '#3fae5a', startTocht);
     knop(x + w / 2 + 6, y + h - 62, w / 2 - 20, 46, 'Menu', '#3f8fd8', () => { staat = 'menu'; tocht = null; tekstje = ''; zorgMuziek(); });
   }
@@ -1670,7 +1732,7 @@ function eindscherm() {
   if (tocht) return eindschermTocht();
   const a = Math.min(1, doodT / 15);
   ctx.globalAlpha = a;
-  const x = 34, y = 150, w = W - 68, h = 300;
+  const x = 34, y = 130, w = W - 68, h = 350;
   ctx.fillStyle = 'rgba(255,248,230,.96)'; rrect(x, y, w, h, 20); ctx.fill();
   ctx.strokeStyle = '#c0792a'; ctx.lineWidth = 4; ctx.stroke();
   tekst(tekstje, W / 2, y + 34, 17, '#d6453b', 'center', null);
@@ -1695,6 +1757,7 @@ function eindscherm() {
   } else if (frietjes) tekst(frietjes + ' ' + fig.bonus[frietjes == 1 ? 0 : 1] + ' gepikt', W / 2, y + 220, 14, '#c0792a', 'center', null);
   ctx.globalAlpha = 1;
   if (doodT > 25) {
+    insturenKnop(x + 14, y + h - 112, w - 28, fig.id, score);
     knop(x + 14, y + h - 62, w / 2 - 20, 46, 'Nog een keer', '#3fae5a', nieuwSpel);
     knop(x + w / 2 + 6, y + h - 62, w / 2 - 20, 46, 'Ander dier', '#3f8fd8', () => { staat = 'menu'; tekstje = ''; zorgMuziek(); });
   }
@@ -1763,6 +1826,7 @@ function teken() {
   if (finish && staat != 'menu') finishVlag(finish.x);
   wd.grond();
   if (staat == 'menu') { menu(); muziekKnop(); return; }
+  if (staat == 'bord') { scorebordScherm(); return; }
   if (vallend) wd.valt(vallend.x, vallend.y, vallend.r);
   for (const v of veren) veer(v.x, v.y, v.r);
   const zweef = staat == 'klaar' ? Math.sin(beeld * 0.08) * 8 : 0;
