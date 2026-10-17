@@ -32,9 +32,11 @@ bedenk dat de site openbaar is.
   record van dat dier en speelt het volgende vrij.
   Met streken (links, standaard) / Gewoon (rechts) op het beginscherm (`streken`, onthouden in `fladderfeest_streken`): records per modus
   (`fladderfeest_<dier>_streken:<naam>`, ook de tocht), vrijspelen telt beide modi. Streken vanaf 3 punten (`strekenStap`,
-  `tekenStreken`): roodborst sneeuwbui (`bui`), meeuw patatdieven en papegaai kanonskogels (`gevaren`, met een rood !
-  vooraf), hommel windvlagen (alleen met streken), kip schuivende hooibalen en kraai dansende versterkers (`p.amp`),
-  pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links).
+  `tekenStreken`): roodborst sneeuwbui (`bui`), meeuw patatdieven en papegaai kanonskogels (`gevaren`, zonder waarschuwing; het kanon knalt
+  hoorbaar), papegaai ook een magneetpiraat op de tonnen die het goudstuk wegtrekt (`p.piraat`, `magneet`, `piraat`; duikt
+  in de ton als je over hem heen vliegt), hommel windvlagen (alleen met streken), kip schuivende hooibalen en kraai dansende versterkers (`p.amp`),
+  pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links). Moeilijkheid: gat en snelheid tot ~40 punten (`gat`,
+  `tempo`), na 50 punten nog heel langzaam wat krapper en sneller.
   Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
   `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
   = insturen. Knop 🏆 Scorebord op het beginscherm (`scorebordScherm`), insturen gaat automatisch op het eindscherm (`autoInsturen`: alleen met een gekozen naam en alleen een persoonlijk record dat beter is dan wat al ingestuurd is, bijgehouden in `fladderfeest_ingestuurd:<naam>`); laatste lijst
