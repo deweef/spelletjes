@@ -96,8 +96,8 @@ function unlock() { try { ac = ac || new (window.AudioContext || window.webkitAu
 let stemOk = false, nlStem = null;
 function zoekStem() { try { nlStem = speechSynthesis.getVoices().find((v) => v.lang && v.lang.replace('_', '-').toLowerCase().startsWith('nl')) || nlStem; } catch (e) {} }
 try { zoekStem(); speechSynthesis.addEventListener('voiceschanged', zoekStem); } catch (e) {}
-let stemU = null; // vasthouden, anders ruimt de browser hem op voor hij praat
-function stemWakker() { if (stemOk) return; try { const u = stemU = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); stemOk = true; zoekStem(); } catch (e) {} }
+let stemU = null, stemPogingen = 0; // vasthouden, anders ruimt de browser hem op voor hij praat
+function stemWakker() { if (stemOk) return; try { const u = stemU = new SpeechSynthesisUtterance(' '); u.volume = 0; u.onstart = u.onend = () => { stemOk = true; }; if (++stemPogingen > 30) stemOk = true; speechSynthesis.speak(u); zoekStem(); } catch (e) {} }
 ['pointerdown', 'keydown'].forEach((t) => document.addEventListener(t, unlock, { passive: true }));
 // een iPhone laat de stem pas praten na een echte klik (loslaten), niet al bij het aanraken
 ['click', 'touchend', 'keydown'].forEach((t) => document.addEventListener(t, stemWakker, { passive: true }));

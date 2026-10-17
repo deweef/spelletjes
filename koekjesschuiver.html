@@ -37,9 +37,9 @@ addEventListener('resize',fit);fit();
 
 // ---------- geluid ----------
 // spraak: telefoons laten pas praten als de stem een keer tijdens een tik is 'gewekt', en Nederlandse stemmen laden later
-let stemOk=false,nlStem=null;function zoekStem(){try{nlStem=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.replace('_','-').toLowerCase().startsWith('nl'))||nlStem;}catch(e){}}
+window.stemPog=0;let stemOk=false,nlStem=null;function zoekStem(){try{nlStem=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.replace('_','-').toLowerCase().startsWith('nl'))||nlStem;}catch(e){}}
 try{zoekStem();speechSynthesis.addEventListener('voiceschanged',zoekStem);}catch(e){}
-function stemWakker(){if(stemOk)return;try{const u=window.stemU=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);stemOk=true;zoekStem();}catch(e){}}
+function stemWakker(){if(stemOk)return;try{const u=window.stemU=new SpeechSynthesisUtterance(' ');u.volume=0;u.onstart=u.onend=()=>{stemOk=true};if(++window.stemPog>30)stemOk=true;speechSynthesis.speak(u);zoekStem();}catch(e){}}
 let ac=null;function unlock(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state!='running')ac.resume();if(!ac._ok){const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);ac._ok=1}}catch(e){}}
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,unlock,{passive:true}));
 ['touchend','click','keydown'].forEach(t=>document.addEventListener(t,stemWakker,{passive:true}));
