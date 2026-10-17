@@ -58,6 +58,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 #themalijst div.gekozen{box-shadow:0 0 0 2px var(--goud) inset}
 #figlijst{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin:6px 0;text-align:left;font-size:13px}
 #figlijst div{background:rgba(255,244,220,.08);border-radius:8px;padding:6px 8px}#figlijst div.niet{opacity:.45}
+#bordtabs{display:flex;gap:6px;margin:8px 0}#bordtabs button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--rand);background:none;font-weight:700}#bordtabs button.aan{background:var(--goud);color:#5a1a10;border-color:var(--goud)}
+#bordlijst{list-style:none;padding:0;margin:8px 0;text-align:left}#bordlijst li{display:flex;justify-content:space-between;padding:7px 10px;border-radius:8px}#bordlijst li:nth-child(odd){background:rgba(255,244,220,.08)}#bordlijst li.ik{background:rgba(242,194,48,.3)}
 .stilknop{background:none;border:1px solid var(--rand);border-radius:10px;padding:7px 14px;margin-top:6px;font-size:13px}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.js","cannon":"./lib/cannon-es.js"}}</script>
@@ -79,6 +81,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 <div id="badges" class="scherm" hidden>
   <div class="kaart">
     <h2>Koekie-badges</h2>
+    <button id="bordknop" class="groot">🏆 Scorebord</button>
     <p id="badgetel"></p>
     <div id="badgelijst"></div>
     <h3>Koekjesfiguren</h3>
@@ -86,6 +89,15 @@ button{font:inherit;color:inherit;cursor:pointer}
     <button id="ruilknop" class="groot"></button>
     <button id="badgesdicht" class="groot">Sluiten</button>
     <button id="nieuwknop" class="stilknop">Nieuwe tafel</button>
+  </div>
+</div>
+<div id="bordscherm" class="scherm" hidden>
+  <div class="kaart">
+    <h2>🏆 Scorebord</h2>
+    <div id="bordtabs"></div>
+    <ol id="bordlijst"></ol>
+    <p class="klein" id="bordmelding"></p>
+    <button id="borddicht" class="groot">Sluiten</button>
   </div>
 </div>
 <div id="winkel" class="scherm" hidden>

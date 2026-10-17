@@ -326,7 +326,7 @@ function weg(k) { world.removeBody(k.body); scene.remove(k.mesh); koekjes.splice
 function randCookie() { const r = Math.random(); return r < 0.04 ? 3 : r < 0.24 ? 2 : r < 0.44 ? 1 : 0; }
 
 // ---------- toestand ----------
-let munten = 0, gekocht = ['bakkerij'], themaId = 'bakkerij';
+let munten = 0, muntenTotaal = 0, gekocht = ['bakkerij'], themaId = 'bakkerij', ingestuurd = {};
 let supply = 40, score = 0, best = 0, coll = [0, 0, 0, 0, 0], found = [0, 0, 0, 0, 0, 0, 0, 0], wonTotal = 0, goldWon = 0, powersUsed = [], badges = [];
 let goldQ = 0, rainQ = 0, wallT = 0, regen = 0, t = 0, laatsteVal = -1, mikX = 0;
 // opslag per speler (koekjesschuiver3d:<naam>), met de oude sleutel zonder naam als beginwaarde
@@ -347,14 +347,14 @@ function vulTafel() { // minder, grotere koekjes dan in 2D; een paar al op elkaa
 }
 function bewaar() {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ supply, score, best, coll, found, wonTotal, goldWon, powersUsed, badges, munten, gekocht, thema: themaId,
+    localStorage.setItem(KEY, JSON.stringify({ supply, score, best, coll, found, wonTotal, goldWon, powersUsed, badges, munten, muntenTotaal, gekocht, thema: themaId, ingestuurd,
       c: koekjes.filter((k) => !k.geteld && k.body.position.y > -0.3).map((k) => { const p = k.body.position, q = k.body.quaternion; return [p.x, p.y, p.z, q.x, q.y, q.z, q.w, k.code].map((v, i) => (i == 7 ? v : +v.toFixed(3))); }) }));
   } catch (e) {}
 }
 function laad() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(KEY0)); if (!s || !s.c || !s.c.length) return false;
-    ({ supply, score, best = 0, coll = coll, found = found, wonTotal = 0, goldWon = 0, powersUsed = [], badges = [], munten = 0, gekocht = ['bakkerij'], thema: themaId = 'bakkerij' } = s);
+    ({ supply, score, best = 0, coll = coll, found = found, wonTotal = 0, goldWon = 0, powersUsed = [], badges = [], munten = 0, muntenTotaal = munten, gekocht = ['bakkerij'], thema: themaId = 'bakkerij', ingestuurd = {} } = s);
     for (const [x, y, z, qx, qy, qz, qw, c] of s.c) nieuwKoekje(c, x, y + 0.01, z, [qx, qy, qz, qw]);
     return true;
   } catch (e) { return false; }
@@ -409,12 +409,12 @@ function gewonnen(k) {
   }
   checkBadges(); tekenHud(true);
 }
-function verdien(n, x, y) { munten += n; if (x != null) setTimeout(() => pop('+' + n + ' 🪙', x, y, 'goud'), 250); setTimeout(() => snd(1568, 0.08, 'square', 0.03), 250); tekenHud(); }
+function verdien(n, x, y) { munten += n; muntenTotaal += n; if (x != null) setTimeout(() => pop('+' + n + ' 🪙', x, y, 'goud'), 250); setTimeout(() => snd(1568, 0.08, 'square', 0.03), 250); tekenHud(); }
 let weggevallen = 0;
 function verloren(k) { weggevallen++; const p = schermPunt(k.body.position.x, 0, k.body.position.z); pop('weg', p.x, p.y, 'weg'); snd(200, 0.25, 'sine', 0.04, 90); }
 let toastRij = [];
 function checkBadges() {
-  const add = (id) => { if (badges.includes(id)) return; badges.push(id); munten += 10; toastRij.push(BADGES.find((b) => b.id == id)); bewaar(); };
+  const add = (id) => { if (badges.includes(id)) return; badges.push(id); munten += 10; muntenTotaal += 10; toastRij.push(BADGES.find((b) => b.id == id)); bewaar(); };
   found.forEach((v, i) => { if (v) add('kar' + i); });
   if (wonTotal >= 1) add('eerste'); if (wonTotal >= 100) add('honderd'); if (wonTotal >= 500) add('vijfhonderd'); if (goldWon >= 5) add('goud');
   if (coll.some((c) => c >= 3) || powersUsed.length) add('set'); if (powersUsed.length >= 5) add('krachten'); if (found.every(Boolean)) add('meester');
@@ -465,7 +465,7 @@ $('badgeknop').onclick = () => {
 // dubbele koekjesfiguren ruilen voor munten (je houdt er van elk één)
 $('ruilknop').onclick = () => {
   const dubbel = found.reduce((a, v) => a + Math.max(0, v - 1), 0); if (!dubbel) return;
-  found = found.map((v) => Math.min(v, 1)); munten += dubbel * 5; sPrize(); bewaar(); tekenHud(); $('badgeknop').onclick();
+  found = found.map((v) => Math.min(v, 1)); munten += dubbel * 5; muntenTotaal += dubbel * 5; sPrize(); bewaar(); tekenHud(); $('badgeknop').onclick();
 };
 // winkel: achtergronden kopen en kiezen
 function tekenWinkel() {
@@ -481,6 +481,34 @@ function tekenWinkel() {
 }
 $('muntknop').onclick = () => { unlock(); tekenWinkel(); $('winkel').hidden = false; };
 $('winkeldicht').onclick = () => { $('winkel').hidden = true; };
+
+// ---------- online scorebord (zelfde Google Spreadsheet als Fladderfeest, zie extra/scorebord.gs) ----------
+// koek3d_punten = beste tafel, koek3d_munten = alle munten ooit verdiend. Gaat vanzelf: alleen met een gekozen naam
+// en alleen als het beter is dan wat al ingestuurd is (hooguit eens per minuut, en als je weggaat).
+const BORD_URL = 'https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
+const BORDEN = [['koek3d_punten', 'Beste tafel', 'punten'], ['koek3d_munten', 'Munten verdiend', '🪙']];
+let bord = null, bordTab = BORDEN[0][0], laatsteInzend = -99;
+try { bord = JSON.parse(localStorage.getItem('koekjesschuiver3d_bord')); } catch (e) {}
+function bordHalen(extra = '') {
+  return fetch(BORD_URL + extra, { redirect: 'follow', keepalive: true }).then((r) => r.json())
+    .then((d) => { bord = d; try { localStorage.setItem('koekjesschuiver3d_bord', JSON.stringify(d)); } catch (e) {} return true; }).catch(() => false);
+}
+function autoInsturen(nu) {
+  if (!SPELER || TEGEL || (!nu && t - laatsteInzend < 60)) return;
+  const stuur = [[BORDEN[0][0], best], [BORDEN[1][0], muntenTotaal]].filter(([o, v]) => v > 0 && v > (ingestuurd[o] || 0));
+  if (!stuur.length) return;
+  laatsteInzend = t;
+  for (const [o, v] of stuur) bordHalen('?actie=opslaan&naam=' + encodeURIComponent(SPELER) + '&onderdeel=' + o + '&modus=gewoon&score=' + v).then((ok) => { if (ok) { ingestuurd[o] = Math.max(ingestuurd[o] || 0, v); bewaar(); } });
+}
+function tekenBord(melding) {
+  $('bordtabs').innerHTML = BORDEN.map(([o, n]) => `<button data-o="${o}" class="${o == bordTab ? 'aan' : ''}">${n}</button>`).join('');
+  $('bordtabs').querySelectorAll('button').forEach((b) => b.onclick = () => { bordTab = b.dataset.o; tekenBord(melding); });
+  const rij = (bord && bord[bordTab + '_gewoon']) || [], eenheid = BORDEN.find((x) => x[0] == bordTab)[2];
+  $('bordlijst').innerHTML = rij.length ? rij.map((r, i) => `<li class="${r.naam == SPELER ? 'ik' : ''}"><span>${i + 1}. ${r.naam.replace(/[<>&]/g, '')}</span><b>${r.score} ${eenheid}</b></li>`).join('') : '<li>Nog niemand. Wees de eerste!</li>';
+  $('bordmelding').textContent = melding || (SPELER ? '' : 'Kies je naam op de startpagina om op het scorebord te komen.');
+}
+$('bordknop').onclick = () => { $('badges').hidden = true; $('bordscherm').hidden = false; tekenBord('Scores ophalen…'); autoInsturen(true); bordHalen().then((ok) => tekenBord(ok ? '' : 'Geen internet: dit zijn de laatst bekende scores.')); };
+$('borddicht').onclick = () => { $('bordscherm').hidden = true; };
 $('badgesdicht').onclick = () => { $('badges').hidden = true; };
 $('nieuwknop').onclick = () => { if (confirm('Nieuwe tafel? Je begint weer met 40 koekjes en 0 punten. Je badges, figuren, munten en achtergronden blijf je houden.')) { $('badges').hidden = true; opnieuw(); } };
 
@@ -501,10 +529,10 @@ addEventListener('keydown', (e) => {
   if (e.code == 'ArrowRight') mikX = Math.min(HB - KR, mikX + 0.3);
   const n = +e.key; if (n >= 1 && n <= 5) gebruikKracht(n - 1);
   if (e.code == 'KeyB') $('badges').hidden ? $('badgeknop').onclick() : ($('badges').hidden = true);
-  if (e.code == 'Escape') { $('badges').hidden = true; $('winkel').hidden = true; }
+  if (e.code == 'Escape') { $('badges').hidden = true; $('winkel').hidden = true; $('bordscherm').hidden = true; }
 });
-addEventListener('pagehide', bewaar);
-document.addEventListener('visibilitychange', () => { if (document.hidden) bewaar(); });
+addEventListener('pagehide', () => { bewaar(); autoInsturen(true); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { bewaar(); autoInsturen(true); } });
 
 // ---------- de lus ----------
 if (TEGEL) document.body.classList.add('tegel');
@@ -540,7 +568,7 @@ function stap(dt) {
   if (wallT > 0 && (wallT -= dt) <= 0) zetMuurtjes(false);
   if (supply < REGEN_MAX) { if ((regen += dt) >= REGEN) { regen = 0; supply++; tekenHud(); } } else regen = 0;
   if (score > best) best = score;
-  if ((bewaarT += dt) > 3) { bewaarT = 0; bewaar(); }
+  if ((bewaarT += dt) > 3) { bewaarT = 0; bewaar(); autoInsturen(); }
 }
 function lus(nu) {
   requestAnimationFrame(lus);
@@ -554,4 +582,4 @@ function lus(nu) {
   renderer.render(scene, camera);
 }
 requestAnimationFrame(lus);
-window.__test = { world, get koekjes() { return koekjes; }, laatVallen, gebruikKracht, stap, get toestand() { return { weggevallen, supply, score, coll, found, badges, wonTotal, munten, gekocht, themaId }; }, zetMunten: (n) => { munten = n; tekenHud(); }, zetFound: (f) => { found = f; }, zetColl: (c) => { coll = c; tekenHud(true); } };
+window.__test = { world, get koekjes() { return koekjes; }, laatVallen, gebruikKracht, stap, autoInsturen, get toestand() { return { muntenTotaal, ingestuurd, best, weggevallen, supply, score, coll, found, badges, wonTotal, munten, gekocht, themaId }; }, zetMunten: (n) => { munten = n; tekenHud(); }, zetFound: (f) => { found = f; }, zetColl: (c) => { coll = c; tekenHud(true); } };

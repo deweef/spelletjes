@@ -89,8 +89,11 @@ hebben een bolle, aflopende rand (`bolKoek`, alleen het beeld; de natuurkunde bl
 (`koekjesschuiver3d:<naam>`). Munten (🪙): gouden koekje en gebakje 1, figuur 3, badge 10, dubbele figuren ruilen 5
 (knop bij de badges). Winkel (`#winkel`): achtergronden in `THEMAS` (bakkerij gratis, kermis, strand, winternacht met
 sneeuw, ruimte), elk met lucht, kastkleuren en een plaatje op de achterwand (`zetThema`). "Nieuwe tafel" wist alleen
-tafel, punten en gebakjes. Plannen: tafels (ook kerst), speciale koekjes, extra krachten, badges met niveaus en een
-online scorebord.
+tafel, punten en gebakjes. Online scorebord (zelfde Apps Script, geen aanpassing nodig: de lijst zonder `spel` bevat
+alles behalve ork3d): `koek3d_punten` (beste tafel) en `koek3d_munten` (alle munten ooit, `muntenTotaal`), modus `gewoon`.
+Insturen gaat vanzelf (`autoInsturen`: met naam, alleen verbeteringen, hooguit eens per minuut en bij weggaan);
+knop 🏆 Scorebord in het badgescherm (`#bordscherm`). Plannen: tafels (ook kerst), speciale koekjes, extra krachten,
+badges met niveaus.
 
 ## Orkenstorm 3D (`orkenstorm3d/`)
 Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee blokken op de
