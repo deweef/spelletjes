@@ -833,6 +833,13 @@ function speelTussen() {
 $('opnieuw').onclick = () => start(G.lvl);
 $('naarmenu').onclick = () => { Tussen.stop(); G.state = 'titel'; tekenTitel(); };
 $('menuknop').onclick = () => { Tussen.stop(); G.state = 'titel'; zetPauze(false); tekenTitel(); };
+// De terugknop linksboven: in het spel (of op het scorebord) eerst terug naar het menu van Orkenstorm,
+// alleen vanuit dat menu naar alle spelletjes
+document.querySelector('.terug').addEventListener('click', (e) => {
+  if (G.state == 'titel' && $('bord').hidden) return;
+  e.preventDefault();
+  Tussen.stop(); G.state = 'titel'; zetPauze(false); tekenTitel();
+});
 
 // ---------- de lus ----------
 let acc = 0, vorige = performance.now(), hudT = 0, eindGetoond = false;
