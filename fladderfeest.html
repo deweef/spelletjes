@@ -103,12 +103,12 @@ function winkelScherm() {
   const dieren = FIGUREN.filter((f, i) => f.klaar && open(i));
   if (!dieren.some((f) => f.id == winkelDier)) winkelDier = dieren[0].id;
   dieren.forEach((f, i) => { // dierenkeuze: twee rijen van vijf
-    const bw = (W - 28) / 6, bx = 14 + (i % 6) * bw, by = 88 + Math.floor(i / 6) * 48;
+    const pr = dieren.length > 12 ? 7 : 6, bw = (W - 28) / pr, bx = 14 + (i % pr) * bw, by = 88 + Math.floor(i / pr) * 48;
     ctx.fillStyle = f.id == winkelDier ? '#ffb43a' : 'rgba(255,255,255,.16)'; rrect(bx + 2, by, bw - 4, 44, 10); ctx.fill();
-    ctx.save(); ctx.beginPath(); ctx.rect(bx + 2, by, bw - 4, 44); ctx.clip(); dierAlleen(f.id, bx + bw / 2 + 2, by + 25, 0, 0.6); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(bx + 2, by, bw - 4, 44); ctx.clip(); dierAlleen(f.id, bx + bw / 2 + 2, by + 25, 0, bw < 50 ? 0.52 : 0.6); ctx.restore();
     knoppen.push({ x: bx, y: by, w: bw, h: 44, doe: () => { winkelDier = f.id; pasKleding = null; sClick(); } });
   });
-  const y0 = 88 + Math.ceil(dieren.length / 6) * 48 + 6, f = FIGUREN.find((q) => q.id == winkelDier);
+  const y0 = 88 + Math.ceil(dieren.length / (dieren.length > 12 ? 7 : 6)) * 48 + 6, f = FIGUREN.find((q) => q.id == winkelDier);
   ctx.fillStyle = 'rgba(255,248,230,.95)'; rrect(20, y0, W - 40, 112, 16); ctx.fill(); // groot voorbeeld
   const bob = Math.sin(beeld * 0.08) * 3, fl = beeld % 40 < 12 ? 12 - beeld % 40 : 0;
   ctx.save(); ctx.beginPath(); ctx.rect(20, y0, W - 40, 112); ctx.clip(); dierAlleen(f.id, W / 2 + 10, y0 + 64 + bob, fl, 2.1); ctx.restore();
@@ -188,6 +188,9 @@ const sKoekoek = (v = 0.05, d = 0) => { snd(784, 0.2, 'sine', v, 760, d); snd(65
 const sArend = (v = 0.05) => { snd(2400, 0.35, 'sawtooth', v * 0.6, 1600); snd(2200, 0.6, 'sine', v, 1200, 0.3); };
 const sOehoe = (v = 0.05) => { snd(420, 0.28, 'sine', v, 380); snd(400, 0.5, 'sine', v, 340, 0.36); };
 const sDisco = (v = 0.035) => [523, 659, 784, 1047].forEach((f, i) => snd(f, 0.12, 'square', v, 0, i * 0.06));
+const sKroek = (v = 0.04) => { snd(700, 0.08, 'square', v, 900); snd(650, 0.12, 'square', v, 500, 0.12); };
+const sFluit = (op = true, v = 0.04, d = 0) => snd(op ? 400 : 1400, 0.5, 'sine', v, op ? 1500 : 300, d); // glijfluitje
+const sHik = () => { snd(300, 0.06, 'square', 0.05, 900); snd(900, 0.08, 'sine', 0.04, 1200, 0.05); };
 const sVuur = () => { ruis(0.6, 0.14, 'bandpass', 900); snd(300, 0.4, 'sawtooth', 0.03, 120); };
 // tijdens het spelen roept elk dier af en toe iets (vrolijk geluidje plus een tekstwolkje)
 const ROEP = {
@@ -201,6 +204,8 @@ const ROEP = {
   koekoek: { s: () => sKoekoek(0.04), t: ['Koekoek!', 'Koekoek! Hoe laat is het?', 'Tijd voor taart!', 'Tik tak!', 'Jodelahiti!'] },
   uil: { s: () => sOehoe(0.04), t: ['Oehoe!', 'Wie? Wie?', 'Boe!', 'Ik zie alles!', 'Spookachtig, hè?'] },
   flamingo: { s: () => sDisco(), t: ['Disco!', 'Dansen!', 'Op één been!', 'Glitter!', 'Feest!'] },
+  toekan: { s: () => sKroek(), t: ['Kroek!', 'Banaan!', 'Wat een snavel, hè?', 'Samba!', 'Jungle!'] },
+  vreemd: { s: () => { sFluit(true); sFluit(false, 0.04, 0.5); }, t: ['Blub?', 'Kwek-miauw!', 'Ik ben uniek!', 'Tadaa!', 'Wie ben ik eigenlijk?'] },
   arend: { s: () => sArend(0.035), t: ['Kriiiaa!', 'Ik ben de koning!', 'Hoger!', 'Wie houdt mij bij?', 'Uitzicht!'] },
   draak: { s: () => { sRoar(); vogel.adem = 40; }, t: ['Rrroaar!', 'Iemand een marshmallow?', 'Heet hè?', 'Mijn schat!', 'Brandje blussen? Nee hoor.'] },
 };
@@ -306,6 +311,26 @@ const MUZIEK = {
     ],
     akkoorden: [[45, 48, 52], [41, 45, 48], [43, 47, 50], [45, 48, 52], [38, 41, 45], [45, 48, 52], [40, 44, 47], [45, 48, 52]],
   },
+  toekan: { // samba: marimba-melodie, surdo, tamboerijn en agogo
+    tempo: 140, stijl: 'samba',
+    melodie: [
+      72, -1, 76, 79, -1, 76, 72, -1,   74, -1, 77, 81, -1, 77, 74, -1,
+      72, -1, 76, 79, -1, 81, 79, 77,   76, -1, 74, -1, 72, -1, 0, 0,
+      79, -1, 81, 79, 77, -1, 76, -1,   74, -1, 76, 77, 79, -1, -1, 0,
+      81, 79, 77, 76, 74, -1, 71, -1,   72, -1, -1, -1, -1, -1, 0, 0,
+    ],
+    akkoorden: [[48, 52, 55], [50, 53, 57], [48, 52, 55], [43, 47, 50], [41, 45, 48], [43, 47, 50], [43, 47, 53], [48, 52, 55]],
+  },
+  vreemd: { // circusmars met hoempa
+    tempo: 168, stijl: 'hoempa',
+    melodie: [
+      76, 75, 76, -1, 72, -1, 76, -1,   79, 78, 79, -1, 76, -1, 72, -1,
+      74, 73, 74, -1, 71, -1, 74, -1,   77, 76, 77, -1, 74, -1, 71, -1,
+      72, -1, 76, -1, 79, -1, 84, -1,   83, 81, 79, 77, 76, -1, 74, -1,
+      72, -1, 74, 76, 77, 79, 81, 83,   84, -1, -1, -1, 72, -1, 0, 0,
+    ],
+    akkoorden: [[48, 52, 55], [48, 52, 55], [43, 47, 53], [43, 47, 53], [48, 52, 55], [45, 48, 52], [43, 47, 53], [48, 52, 55]],
+  },
   arend: { // plechtig orkest: koperblazers, strijkers en pauken
     tempo: 120, stijl: 'orkest',
     melodie: [
@@ -364,6 +389,7 @@ function speelStap(i, t) {
     else if (mz.stijl == 'synth') { noot(n, t, d * len * 0.9, 'square', 0.02); noot(n + 12.07, t, d * len * 0.6, 'sawtooth', 0.007); }
     else if (mz.stijl == 'speeldoos') { noot(n + 12, t, 0.7, 'sine', 0.06); noot(n + 24, t, 0.25, 'sine', 0.015); }
     else if (mz.stijl == 'wals') { noot(n, t, d * len * 0.9, 'square', 0.016); noot(n + 12, t, d * len * 0.85, 'sine', 0.03); noot(n + 19, t, d * len * 0.5, 'sine', 0.006); }
+    else if (mz.stijl == 'samba') { noot(n, t, 0.28, 'triangle', 0.05); noot(n + 12, t, 0.12, 'sine', 0.02); }
     else if (mz.stijl == 'orgel') { noot(n, t, d * len * 0.95, 'square', 0.01); noot(n + 12, t, d * len * 0.95, 'sine', 0.025); noot(n - 12, t, d * len * 0.95, 'sine', 0.02); }
     else if (mz.stijl == 'disco') { noot(n, t, d * len * 0.85, 'sawtooth', 0.012); noot(n + 12, t, d * len * 0.6, 'square', 0.006); }
     else if (mz.stijl == 'orkest') { noot(n, t, d * len * 0.95, 'sawtooth', 0.012); noot(n - 12, t, d * len * 0.95, 'triangle', 0.025); noot(n + 0.08, t, d * len * 0.9, 'square', 0.004); }
@@ -404,6 +430,13 @@ function speelStap(i, t) {
     if (tel == 0 || tel == 3 || tel == 4) drum('kick', t);
     if (tel == 2 || tel == 6) drum('snare', t);
     drum('hihat', t);
+    return;
+  }
+  if (mz.stijl == 'samba') { // surdo op 4 (hard) en 0, tamboerijn gesyncopeerd, akkoordjes op de gitaar
+    if (tel == 0 || tel == 4) noot(ak[0] - 12, t, d * 1.2, 'sine', tel == 4 ? 0.13 : 0.07);
+    if (tel == 0 || tel == 4) drum('kick', t);
+    if (tel == 0 || tel == 2 || tel == 3 || tel == 5 || tel == 7) drum('hihat', t);
+    if (tel == 3 || tel == 6) { drum('snare', t); for (const a of ak) noot(a + 12, t, d * 0.4, 'triangle', 0.012); }
     return;
   }
   if (mz.stijl == 'orgel') { // lange orgelakkoorden en een diepe bas, af en toe een klokje
@@ -523,6 +556,14 @@ const FIGUREN = [
   { id: 'flamingo', naam: 'Discoflamingo', wereld: 'De disco', zwaarte: 0.39, flap: -6.7, max: 9.4, klaar: true, ruimer: -10,
     bonus: ['muzieknootje', 'muzieknootjes'], top: 'Discokoning', palen: 'de discozuilen',
     au: ['Au! Mijn hakken!', 'Uit de maat gevlogen.', 'De DJ draaide te snel.', 'Even op één been uitrusten.', 'Wie zette die discobal daar?', 'Ik blijf roze, ook met een buil.'] },
+  // de toekan: met streken vallen er kokosnoten uit de lianen (eerst wiebelen ze even)
+  { id: 'toekan', naam: 'Toekan', wereld: 'De jungle', zwaarte: 0.38, flap: -6.6, max: 9.4, klaar: true, ruimer: -11,
+    bonus: ['banaantje', 'banaantjes'], top: 'Junglekoning', palen: 'de tempelzuilen en lianen',
+    au: ['Kroek… au!', 'Mijn snavel zit klem.', 'Wie hangt daar nou lianen op?', 'Even bijkomen in een bananenboom.', 'Die tempel stond er al duizend jaar. Ik niet.', 'Te veel snavel, te weinig kijken.'] },
+  // de vreemde vogel: een lapjesvogel in het circus; met streken krijgt hij de hik (een onverwacht sprongetje)
+  { id: 'vreemd', naam: 'Vreemde Vogel', wereld: 'Het circus', zwaarte: 0.40, flap: -6.8, max: 9.6, klaar: true, ruimer: -12,
+    bonus: ['ballonnetje', 'ballonnetjes'], top: 'Circusdirecteur', palen: 'de circustrommels en het tentdoek',
+    au: ['Blub? Au!', 'Ik ben vreemd, niet onbreekbaar.', 'Hik… boem.', 'Was dat de clown?', 'Ik weet niet eens wat voor vogel ik ben.', 'Tadaa… nee, niet tadaa.'] },
   // geheim dier voor de pro's: pas te zien met goud (50) bij alle andere dieren; sneller (snel) en de krapste gaten
   { id: 'arend', naam: 'Gouden Arend', wereld: 'De bergtoppen', zwaarte: 0.42, flap: -7.0, max: 10, klaar: true, ruimer: -14, snel: 1.12, geheim: true,
     bonus: ['sterretje', 'sterretjes'], top: 'Legende', palen: 'de bergtoppen en onweerswolken',
@@ -545,10 +586,11 @@ const knoppen = []; // klikbare vlakken in het huidige scherm
 // pinguïn heeft geen finish), de punten tellen op en elke 25 punten levert een extra vogeltje (leven) op.
 // streken: sneeuwbui (roodborst), patatdieven (meeuw), wind (hommel), schuivende hooibalen (kip),
 // dansende versterkers (kraai), kanonskogels (papegaai), brandstof (pinguïn); ze beginnen vanaf 3 punten
-let gevaren = [], bui = null, volgendeStreek = 0, brandstof = 100, flits = null;
+let gevaren = [], bui = null, volgendeStreek = 0, brandstof = 100, flits = null, hik = null;
 const strekenAan = () => streken && score >= 3;
 const STREEK = { roodborst: 'Pas op: sneeuwbuien!', meeuw: 'Pas op: patatdieven!', hommel: 'Pas op: windvlagen!', kip: 'De boer schuift met de hooibalen!',
-  kraai: 'De versterkers dansen op de maat!', papegaai: 'Pas op: kanonskogels!', pinguin: 'Let op je brandstof: visjes vullen bij!', draak: 'Pas op: katapultstenen!', koekoek: 'Pas op: koekoekjes uit de klok!', arend: 'Pas op: bliksem! Kijk naar de flitsen.', uil: 'Pas op: spookjes tussen de palen!', flamingo: 'Pas op: slingerende discoballen!' };
+  kraai: 'De versterkers dansen op de maat!', papegaai: 'Pas op: kanonskogels!', pinguin: 'Let op je brandstof: visjes vullen bij!', draak: 'Pas op: katapultstenen!', koekoek: 'Pas op: koekoekjes uit de klok!', arend: 'Pas op: bliksem! Kijk naar de flitsen.', uil: 'Pas op: spookjes tussen de palen!', flamingo: 'Pas op: slingerende discoballen!',
+  toekan: 'Pas op: vallende kokosnoten!', vreemd: 'Pas op: hij krijgt de hik!' };
 let tocht = null, finish = null, onkw = 0, melding = null, vuurwerk = [];
 const doelTocht = () => (tocht && tocht.i < TOCHT.length - 1 ? nodig(tocht.i + 1) : 0);
 const totaal = () => (tocht ? tocht.totaal + score : score);
@@ -560,7 +602,7 @@ function nieuwSpel() {
   vogel = { x: W * 0.28, y: H * 0.42, vy: 0, flapT: 0, hoek: 0, adem: 0 };
   palen = []; score = 0; frietjes = 0; snelheid = 2.3 * (fig.snel || 1); afstand = 215; nieuwRecord = false; vallend = null;
   wind = null; volgendeWind = 60 * 8;
-  gevaren = []; bui = null; flits = null; volgendeStreek = 60 * 4; brandstof = 100; roepT = 60 * (5 + Math.random() * 4); roepBel = null;
+  gevaren = []; bui = null; flits = null; hik = null; volgendeStreek = 60 * 4; brandstof = 100; roepT = 60 * (5 + Math.random() * 4); roepBel = null;
   staat = 'klaar'; zorgMuziek();
 }
 
@@ -579,6 +621,7 @@ function nieuwePaal(x) {
   if (palen.length && Math.random() < kans) { const dy = (Math.random() - 0.5) * (g * 0.4); p.friet = { y: midden + dy, dy, weg: false }; }
   if (fig.id == 'koekoek' && strekenAan() && Math.random() < 0.5) p.klok = { t: 0, uit: 0 };
   if (fig.id == 'flamingo' && strekenAan() && Math.random() < 0.45) p.bal = { fase: Math.random() * 7, x: 0, y: 0 };
+  if (fig.id == 'toekan' && strekenAan() && Math.random() < 0.5) p.noot = true;
   // streek van de papegaai: een piraat op de tonnen trekt het goudstuk met een magneet weg vlak voordat je erbij bent
   if (p.friet && fig.id == 'papegaai' && strekenAan() && Math.random() < 0.45) p.piraat = { van: 85 + Math.random() * 55, trek: 0, lach: 0 };
   palen.push(p);
@@ -671,6 +714,7 @@ function stap() {
       if (p.amp) { p.midden = p.basis + Math.sin(fig.id == 'kraai' ? beeld * 0.105 : beeld * 0.03 + p.fase) * p.amp; if (p.friet) p.friet.y = p.midden + p.friet.dy; }
       if (!p.voorbij && p.x + PAAL < vogel.x) { p.voorbij = true; score++; sPunt(); juich = 24; extraLeven(); snelheid = tempo(); }
       if (p.piraat) magneet(p);
+      if (p.noot && p.x - vogel.x < 170) { p.noot = false; gevaren.push({ soort: 'kokos', p, x: p.x + PAAL / 2, y: p.midden - p.gat / 2 + 9, vx: 0, vy: 0, r: 9, t: 0, wacht: 28 }); } // kokosnoot: wiebelt, valt dan
       if (p.bal) { const b = p.bal, a = Math.sin(beeld * 0.055 + b.fase) * 0.95; b.x = p.x + PAAL / 2 + Math.sin(a) * 58; b.y = p.midden - p.gat / 2 + Math.cos(a) * 58;
         if (onkw <= 0 && Math.hypot(b.x - vogel.x, b.y - vogel.y) < 11 + STRAAL - 2) return geraakt(); }
       if (p.klok) { const k = p.klok; // deurtje gaat open, dan springt het koekoekje omhoog het gat in en weer terug
@@ -730,10 +774,11 @@ function spuw() {
 function strekenStap() {
   if (fig.id == 'pinguin') brandstof = Math.min(100, brandstof + 0.12);
   if (!strekenAan()) return;
-  for (const g of gevaren) { g.t++; if (g.t > g.wacht) { g.x += g.vx; if (g.zw) { g.y += g.vy; g.vy += g.zw; } if (g.amp) { g.vx = -snelheid; g.y = g.basis + Math.sin(g.t * 0.05) * g.amp; } } }
+  for (const g of gevaren) { g.t++; if (g.p) { g.x = g.p.x + PAAL / 2; if (g.t > g.wacht) { g.y += g.vy; g.vy += 0.28; } continue; } if (g.t > g.wacht) { g.x += g.vx; if (g.zw) { g.y += g.vy; g.vy += g.zw; } if (g.amp) { g.vx = -snelheid; g.y = g.basis + Math.sin(g.t * 0.05) * g.amp; } } }
   gevaren = gevaren.filter((g) => g.x > -40 && g.y < H + 40);
   if (onkw <= 0) for (const g of gevaren) if (g.t > g.wacht && Math.hypot(g.x - vogel.x, g.y - vogel.y) < g.r + STRAAL - 2) { g.x = -99; return geraakt(); }
   if (bui) { bui.t++; if (bui.t > 260) bui = null; }
+  if (hik) { hik.t++; if (hik.t == 25) { vogel.vy = Math.min(vogel.vy, -4.6); sHik(); } if (hik.t > 60) hik = null; } // de hik: na een 'h…' een sprongetje
   if (flits) { // bliksem: eerst 50 beelden een knipperende waarschuwing, dan slaat hij in
     flits.t++; flits.x -= snelheid;
     if (flits.t == 50) { ruis(1.2, 0.25, 'lowpass', 300); ruis(0.15, 0.2, 'highpass', 2000); }
@@ -751,6 +796,7 @@ function strekenStap() {
     if (q && q.x > vogel.x + 120 && !finish) gevaren.push({ soort: 'spook', x: q.x + PAAL + afstand / 2 - 14, y: q.midden, basis: q.midden, amp: 55, vx: -snelheid, r: 11, t: 0, wacht: 0 });
     else volgendeStreek = 15; // nu even geen goede plek: zo meteen opnieuw proberen
   }
+  if (fig.id == 'vreemd') { hik = { t: 0 }; volgendeStreek = 60 * (4 + Math.random() * 3); }
   if (fig.id == 'arend') { flits = { x: vogel.x + 110 + Math.random() * 90, t: 0 }; volgendeStreek = 60 * (3 + Math.random() * 3); }
   if (fig.id == 'draak') { // katapultsteen: komt rechtsonder omhoog en valt in een boog terug
     const zw = 0.13, top = 70 + Math.random() * (GROND - 220);
@@ -813,10 +859,10 @@ function volgendeEtappe() {
 }
 
 function dood() {
-  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa, hommel: sBrom, roodborst: sPiep, papegaai: sKraak, pinguin: sSputter, draak: sRoar, koekoek: () => { sKoekoek(0.05); snd(500, 0.5, 'sine', 0.04, 200, 0.6); }, arend: () => { sArend(0.05); snd(800, 0.6, 'sawtooth', 0.03, 200, 0.5); }, uil: () => { sOehoe(0.05); snd(300, 0.6, 'sine', 0.04, 120, 0.8); }, flamingo: () => { [1047, 784, 659, 523].forEach((f, i) => snd(f, 0.15, 'square', 0.035, 0, i * 0.08)); } }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
+  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa, hommel: sBrom, roodborst: sPiep, papegaai: sKraak, pinguin: sSputter, draak: sRoar, koekoek: () => { sKoekoek(0.05); snd(500, 0.5, 'sine', 0.04, 200, 0.6); }, arend: () => { sArend(0.05); snd(800, 0.6, 'sawtooth', 0.03, 200, 0.5); }, uil: () => { sOehoe(0.05); snd(300, 0.6, 'sine', 0.04, 120, 0.8); }, flamingo: () => { [1047, 784, 659, 523].forEach((f, i) => snd(f, 0.15, 'square', 0.035, 0, i * 0.08)); }, toekan: () => { sKroek(0.05); snd(500, 0.5, 'square', 0.03, 150, 0.3); }, vreemd: () => sFluit(false, 0.05) }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
   vogel.vy = -5;
   vallend = fig.id == 'kip' ? { x: vogel.x - 6, y: vogel.y + 8, vy: 0, r: 0 } // van schrik een ei
-    : fig.id == 'papegaai' || fig.id == 'pinguin' || fig.id == 'draak' || fig.id == 'koekoek' || fig.id == 'arend' || fig.id == 'uil' || fig.id == 'flamingo' ? { x: vogel.x + 10, y: vogel.y, vy: -3, r: 0 } // goudstuk of visje vliegt weg
+    : fig.id == 'papegaai' || fig.id == 'pinguin' || fig.id == 'draak' || fig.id == 'koekoek' || fig.id == 'arend' || fig.id == 'uil' || fig.id == 'flamingo' || fig.id == 'toekan' || fig.id == 'vreemd' ? { x: vogel.x + 10, y: vogel.y, vy: -3, r: 0 } // goudstuk of visje vliegt weg
     : fig.id == 'roodborst' ? { x: vogel.x + 10, y: vogel.y + 4, vy: -2, r: 0 } // een besje rolt weg
     : fig.id == 'hommel' ? { x: vogel.x + 4, y: vogel.y + 6, vy: 0, r: 0 } // zijn nectar druppelt eruit
     : fig.id == 'kraai' ? { x: vogel.x + 12, y: vogel.y - 8, vy: -4, r: 0 } // zijn zonnebril vliegt eraf
@@ -1771,7 +1817,8 @@ const ANKER = {
   kraai: { kop: [12, -7, 9], oog: [15, -9], nek: [6, -1] }, papegaai: { kop: [11, -8, 9], oog: [11, -9], nek: [5, -1] },
   pinguin: { kop: [8, -10, 8], oog: [11, -10], nek: [7, -2] }, draak: { kop: [13, -7, 8], oog: [15, -9], nek: [7, -3] },
   koekoek: { kop: [12, -7, 8], oog: [14, -8], nek: [6, -2] }, uil: { kop: [9, -8, 10], oog: [9.5, -8], nek: [7, 3] },
-  flamingo: { kop: [17, -25, 5.5], oog: [18, -26], nek: [9, -8] }, arend: { kop: [12, -8, 8.5], oog: [14.5, -10], nek: [6, -3] },
+  flamingo: { kop: [17, -25, 5.5], oog: [18, -26], nek: [9, -8] }, toekan: { kop: [10, -8, 7.5], oog: [11, -10], nek: [6, -1] },
+  vreemd: { kop: [11, -9, 8.5], oog: [12, -10], nek: [6, -1] }, arend: { kop: [12, -8, 8.5], oog: [14.5, -10], nek: [6, -3] },
 };
 const KLEDING = [ // id, dier, plek (hoed/bril/lijf), naam, prijs, tekening
   ['rb_muts', 'roodborst', 'hoed', 'Gebreide muts', 25, () => muts('#d8302a', '#fff')], ['rb_hart', 'roodborst', 'bril', 'Hartjesbril', 20, () => hartjesbril('#ff4f8a')],
@@ -1796,6 +1843,10 @@ const KLEDING = [ // id, dier, plek (hoed/bril/lijf), naam, prijs, tekening
   ['ui_cape', 'uil', 'lijf', 'Vampiercape', 45, () => cape('#1a1a1a')], ['ui_heks', 'uil', 'hoed', 'Heksenhoed', 50, () => heksenhoed('#2a1a3a', '#9a4fd6')],
   ['fl_afro', 'flamingo', 'hoed', 'Afro', 40, () => afro('#3a2410')], ['fl_bril', 'flamingo', 'bril', 'Discobril', 25, () => sterbril('#4af0ff')],
   ['fl_boa', 'flamingo', 'lijf', 'Verenboa', 35, () => boa('#9a4fd6')], ['fl_hoed', 'flamingo', 'hoed', 'Glitterhoed', 55, () => hogeHoed('#c0c0d8', '#ff4fd8')],
+  ['to_fruit', 'toekan', 'hoed', 'Fruithoed', 45, () => fruithoed()], ['to_zon', 'toekan', 'bril', 'Tropische zonnebril', 25, () => zonnebril2('#1a8a6a')],
+  ['to_lei', 'toekan', 'lijf', 'Bloemenslinger', 35, () => lei()], ['to_stro', 'toekan', 'hoed', 'Strohoedje', 30, () => strohoed('#3fae5a')],
+  ['vr_neus', 'vreemd', 'bril', 'Clownsneus', 25, () => clownsneus()], ['vr_kraag', 'vreemd', 'lijf', 'Clownskraag', 30, () => kraag()],
+  ['vr_dir', 'vreemd', 'hoed', 'Directeurshoed', 45, () => hogeHoed('#c0392b', '#ffd34d')], ['vr_prop', 'vreemd', 'hoed', 'Propellerpet', 50, () => propellerpet()],
   ['ar_helm', 'arend', 'hoed', 'Gouden helm', 60, () => helm('#ffd34d')], ['ar_pil', 'arend', 'bril', 'Pilotenbril', 40, () => pilotenbril()],
   ['ar_cape', 'arend', 'lijf', 'Rode cape', 60, () => cape('#c0392b')], ['ar_hoge', 'arend', 'hoed', 'Hoge hoed', 80, () => hogeHoed('#1a1a3a', '#ffd34d')],
 ].map(([id, dier, plek, naam, prijs, teken]) => ({ id, dier, plek, naam, prijs, teken }));
@@ -1854,6 +1905,14 @@ function afstudeerhoed() { ctx.fillStyle = '#1a1a2a'; ctx.fillRect(-6, -4, 12, 5
 function heksenhoed(k, band) { ctx.fillStyle = k; ctx.beginPath(); ctx.ellipse(0, 0, 13, 3, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(-7, 0); ctx.quadraticCurveTo(-2, -12, 4, -20); ctx.quadraticCurveTo(3, -10, 7, 0); ctx.fill(); ctx.fillStyle = band; ctx.fillRect(-7, -3, 14, 2.5); ctx.fillStyle = '#ffd34d'; ctx.fillRect(-1.5, -3.5, 3, 3.5); }
 function afro(k) { ctx.fillStyle = k; for (const [x, y, r] of [[0, -6, 9], [-7, -3, 6], [7, -3, 6], [-4, -11, 6], [4, -11, 6], [0, -1, 6]]) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); } ctx.fillStyle = '#ff4fd8'; ctx.fillRect(6, -10, 5, 1.6); ctx.fillRect(9, -12, 1.6, 6); }
 function boa(k) { ctx.fillStyle = k; for (let i = 0; i < 9; i++) { const a = Math.PI * 0.15 + i * 0.32; ctx.beginPath(); ctx.arc(Math.cos(a) * 7, -2 + Math.sin(a) * 6, 3, 0, 7); ctx.fill(); } ctx.beginPath(); ctx.arc(-6, 8, 3, 0, 7); ctx.arc(-7, 12, 2.6, 0, 7); ctx.fill(); }
+function fruithoed() { ctx.fillStyle = '#e8c86a'; ctx.beginPath(); ctx.ellipse(0, 0, 11, 3, 0, 0, 7); ctx.fill();
+  for (const [x, y, r, k] of [[-5, -4, 4, '#ff7a1a'], [4, -4, 4, '#e8384f'], [0, -8, 4.5, '#9a4fd6'], [-1, -2, 3, '#ffd34d']]) { ctx.fillStyle = k; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#3fae5a'; ctx.beginPath(); ctx.ellipse(5, -11, 2, 5, 0.6, 0, 7); ctx.ellipse(-4, -11, 2, 5, -0.6, 0, 7); ctx.fill(); }
+function lei() { const kl = ['#ff4f8a', '#ffd34d', '#fff', '#ff7a1a']; for (let i = 0; i < 9; i++) { const a = Math.PI * 0.1 + i * 0.33; ctx.fillStyle = kl[i % 4]; ctx.beginPath(); ctx.arc(Math.cos(a) * 8, -2 + Math.sin(a) * 7, 2.4, 0, 7); ctx.fill(); } }
+function clownsneus() { ctx.fillStyle = '#e8202a'; ctx.beginPath(); ctx.arc(11, 2, 4, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(10, 0.5, 1.3, 0, 7); ctx.fill(); }
+function kraag() { for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; ctx.fillStyle = i % 2 ? '#fff' : '#ffd34d'; ctx.beginPath(); ctx.ellipse(Math.cos(a) * 5, Math.sin(a) * 3, 4, 2.5, a, 0, 7); ctx.fill(); } }
+function propellerpet() { ctx.fillStyle = '#3a8ae8'; ctx.beginPath(); ctx.ellipse(0, 1, 8.5, 6.5, 0, Math.PI, 0); ctx.fill(); ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.moveTo(0, -5.5); ctx.lineTo(-8.5, 1); ctx.lineTo(-3, 1); ctx.fill(); ctx.fillStyle = '#e8384f'; ctx.beginPath(); ctx.moveTo(0, -5.5); ctx.lineTo(8.5, 1); ctx.lineTo(3, 1); ctx.fill();
+  ctx.fillStyle = '#222'; ctx.fillRect(-0.7, -10, 1.4, 5); const w = Math.cos(beeld * 0.5) * 8; ctx.fillStyle = '#e8384f'; ctx.beginPath(); ctx.ellipse(0, -10, Math.abs(w), 1.6, 0, 0, 7); ctx.fill(); }
 function bretels(k) { ctx.strokeStyle = k; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-6, -2); ctx.lineTo(-4, 10); ctx.moveTo(3, -2); ctx.lineTo(4, 10); ctx.moveTo(-5, 4); ctx.lineTo(4, 4); ctx.stroke(); ctx.fillStyle = '#3a8a3a'; ctx.beginPath(); ctx.arc(-0.5, 4, 1.5, 0, 7); ctx.fill(); }
 
 // ---------- het spookbos (Spookuil) ----------
@@ -2010,6 +2069,139 @@ function grondDisco() { // lichtgevende dansvloer
   ctx.globalAlpha = 1;
 }
 
+// ---------- de jungle (Toekan) ----------
+function toekan(x, y, hoek, flapT, s = 1, dood = false) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(s, s);
+  ctx.fillStyle = '#16161c'; ctx.beginPath(); ctx.moveTo(-11, -2); ctx.lineTo(-24, -1); ctx.lineTo(-23, 6); ctx.lineTo(-11, 5); ctx.fill(); // staart
+  ctx.fillStyle = '#e8384f'; ctx.beginPath(); ctx.ellipse(-12, 6, 3, 2, 0, 0, 7); ctx.fill(); // rood onder de staart
+  ctx.fillStyle = '#1e1e26'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 10, 0, 0, 7); ctx.fill(); // zwart lijf
+  ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.ellipse(8, -2, 6, 6, 0, 0, 7); ctx.fill(); // gele borst
+  ctx.fillStyle = '#1e1e26'; ctx.beginPath(); ctx.arc(10, -8, 7.5, 0, 7); ctx.fill(); // kop
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(12, -6, 4, 3.5, 0, 0, 7); ctx.fill(); // witte wang
+  // reuzensnavel: groen bij de kop, oranje, met een rood puntje
+  const sn = ctx.createLinearGradient(15, 0, 36, 0); sn.addColorStop(0, '#5ac84a'); sn.addColorStop(0.3, '#ffd34d'); sn.addColorStop(0.75, '#ff8a1a'); sn.addColorStop(1, '#e8384f');
+  ctx.fillStyle = sn; ctx.beginPath(); ctx.moveTo(15, -13); ctx.quadraticCurveTo(30, -15, 37, -6); ctx.quadraticCurveTo(30, -4, 15, -3); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#1e1e26'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(16, -7); ctx.quadraticCurveTo(28, -8, 36, -6); ctx.stroke();
+  if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(9, -12); ctx.lineTo(13, -8); ctx.moveTo(13, -12); ctx.lineTo(9, -8); ctx.stroke(); }
+  else { ctx.fillStyle = '#4ab8e8'; ctx.beginPath(); ctx.arc(11, -10, 2.8, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(11.5, -10, 1.4, 0, 7); ctx.fill(); }
+  const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
+  ctx.save(); ctx.translate(-2, -2); ctx.rotate(v); ctx.fillStyle = '#2a2a34'; ctx.beginPath(); ctx.ellipse(-5, 0, 12, 6, 0, 0, 7); ctx.fill(); ctx.restore();
+  if (kleren) aankleden(dood);
+  ctx.restore();
+}
+function banaantje(x, y) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(-0.4 + Math.sin(beeld * 0.06 + x) * 0.2);
+  ctx.fillStyle = '#ffd84a'; ctx.beginPath(); ctx.arc(0, -6, 11, 0.35, Math.PI - 0.35); ctx.arc(0, -10, 10, Math.PI - 0.45, 0.45, true); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#c8a020'; ctx.lineWidth = 1; ctx.stroke(); ctx.fillStyle = '#5a4a1a'; ctx.fillRect(9, 0, 3, 2); ctx.fillRect(-12, 0, 2, 2);
+  ctx.restore();
+}
+// onder: een oude tempelzuil met een gezicht en mos; boven: een bos lianen met grote bladeren
+function tempelzuil(x, y, h) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 6, y, PAAL + 12, h); ctx.clip();
+  ctx.fillStyle = '#8a8a6a'; ctx.fillRect(x, y + 8, PAAL, h);
+  ctx.fillStyle = '#9a9a78'; ctx.fillRect(x - 4, y, PAAL + 8, 10); // bovenste plaat
+  ctx.strokeStyle = '#6a6a50'; ctx.lineWidth = 1.5; for (let j = y + 52; j < y + h; j += 22) { ctx.beginPath(); ctx.moveTo(x, j); ctx.lineTo(x + PAAL, j); ctx.stroke(); }
+  // gezicht in de steen
+  ctx.fillStyle = '#5a5a42'; ctx.fillRect(x + 10, y + 18, 12, 7); ctx.fillRect(x + PAAL - 22, y + 18, 12, 7); ctx.fillRect(x + 16, y + 34, PAAL - 32, 5);
+  ctx.fillStyle = '#3fae5a'; ctx.globalAlpha = 0.8; for (let j = y + 10; j < y + h; j += 30) { ctx.beginPath(); ctx.ellipse(x + 4, j + 8, 5, 9, 0.2, 0, 7); ctx.ellipse(x + PAAL - 5, j + 22, 4, 7, -0.3, 0, 7); ctx.fill(); } ctx.globalAlpha = 1; // mos
+  ctx.restore();
+}
+function lianen(x, y, h) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 8, y, PAAL + 16, h); ctx.clip();
+  ctx.fillStyle = '#1e5a2a'; ctx.fillRect(x + 3, y, PAAL - 6, h - 10);
+  ctx.strokeStyle = '#2e7a3a'; ctx.lineWidth = 3;
+  for (let k = 0; k < 5; k++) { const lx = x + 6 + k * 11; ctx.beginPath(); ctx.moveTo(lx, y); for (let j = y; j < y + h; j += 12) ctx.lineTo(lx + Math.sin(j * 0.08 + k) * 3, j); ctx.stroke(); }
+  ctx.fillStyle = '#3fae5a'; for (let j = y + 10; j < y + h - 4; j += 18) for (const [dx, a] of [[2, -0.8], [PAAL - 2, 0.8], [PAAL / 2, 0]]) { ctx.beginPath(); ctx.ellipse(x + dx, j + (a ? 0 : 9), 7, 3.5, a, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#5ac84a'; ctx.beginPath(); ctx.ellipse(x + PAAL / 2, y + h - 6, 12, 5, 0, 0, 7); ctx.fill(); // groot blad onderaan
+  ctx.fillStyle = '#e8384f'; for (let j = y + 30; j < y + h - 20; j += 50) { ctx.beginPath(); ctx.arc(x + 14 + (j % 3) * 10, j, 3, 0, 7); ctx.fill(); } // bloemetjes
+  ctx.restore();
+}
+function kokosnoot(x, y, t) {
+  ctx.fillStyle = '#6a4220'; ctx.beginPath(); ctx.arc(x, y, 9, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#4a2a10'; ctx.lineWidth = 1; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(x, y, 9, k * 1.6 + 0.3, k * 1.6 + 0.9); ctx.stroke(); }
+  ctx.fillStyle = '#2a1a08'; for (const [dx, dy] of [[-2.5, -2], [2.5, -2], [0, 2]]) { ctx.beginPath(); ctx.arc(x + dx, y + dy, 1.4, 0, 7); ctx.fill(); }
+}
+function palm(x, y, s) { ctx.strokeStyle = '#3a2a14'; ctx.lineWidth = 5 * s; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 10 * s, y - 50 * s, x + 4 * s, y - 100 * s); ctx.stroke();
+  ctx.fillStyle = '#1e4a26'; for (const a of [-2.8, -2.2, -1.5, -0.9, -0.3]) { ctx.save(); ctx.translate(x + 4 * s, y - 100 * s); ctx.rotate(a); ctx.beginPath(); ctx.ellipse(24 * s, 0, 26 * s, 6 * s, 0.3, 0, 7); ctx.fill(); ctx.restore(); } }
+function achtergrondJungle() {
+  const lucht = ctx.createLinearGradient(0, 0, 0, GROND);
+  lucht.addColorStop(0, '#8ad8c8'); lucht.addColorStop(1, '#e8f4c8');
+  ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, GROND);
+  ctx.fillStyle = 'rgba(255,255,220,.25)'; for (let i = 0; i < 4; i++) { const x = W * (0.1 + i * 0.28); ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 40, 0); ctx.lineTo(x + 120, GROND); ctx.lineTo(x + 60, GROND); ctx.fill(); } // zonnestralen
+  const wx = W + 60 - ((schuif * 0.12) % (W + 200)); // waterval in de verte
+  ctx.fillStyle = '#5a7a5a'; ctx.fillRect(wx - 40, GROND - 220, 80, 220); ctx.fillStyle = 'rgba(220,240,255,.85)'; ctx.fillRect(wx - 12, GROND - 220, 24, 220);
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; for (let j = 0; j < 8; j++) ctx.fillRect(wx - 10 + (j % 3) * 7, GROND - 220 + ((beeld * 3 + j * 30) % 220), 3, 14);
+  for (let i = -1; i < W / 60 + 2; i++) palm(i * 60 - ((schuif * 0.3) % 60) + 20, GROND - 20, 0.8 + ((i * 7 + 100) % 3) * 0.15);
+  ctx.fillStyle = '#2a6a3a'; for (let i = -1; i < W / 30 + 2; i++) { const x = i * 30 - ((schuif * 0.5) % 30); ctx.beginPath(); ctx.ellipse(x, GROND - 8, 22, 18, 0, Math.PI, 0); ctx.fill(); } // struiken
+  for (let i = 0; i < 2; i++) { const bx = ((i * 200 + beeld * (1.2 + i * 0.4)) % (W + 80)) - 40, by = 60 + i * 50 + Math.sin(beeld * 0.07 + i) * 8; // vlinders
+    ctx.fillStyle = i ? '#4ab8e8' : '#ff7a1a'; const w = beeld % 10 < 5 ? 5 : 2; ctx.beginPath(); ctx.ellipse(bx - 3, by, w, 4, 0, 0, 7); ctx.ellipse(bx + 3, by, w, 4, 0, 0, 7); ctx.fill(); }
+}
+function grondJungle() {
+  ctx.fillStyle = '#4a3a1a'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#2e7a3a'; ctx.fillRect(0, GROND, W, 8);
+  for (let i = -1; i < W / 26 + 2; i++) { const x = i * 26 - (schuif % 26); ctx.fillStyle = '#3fae5a'; // varens
+    ctx.beginPath(); ctx.moveTo(x, GROND + 8); ctx.quadraticCurveTo(x + 4, GROND - 10, x + 14, GROND - 12); ctx.quadraticCurveTo(x + 6, GROND - 4, x + 8, GROND + 8); ctx.fill(); }
+  ctx.fillStyle = '#5a4a2a'; for (let i = -1; i < W / 60 + 2; i++) { const x = i * 60 - (schuif % 60); ctx.beginPath(); ctx.ellipse(x + 30, GROND + 36 + (i % 2) * 14, 10, 4, 0, 0, 7); ctx.fill(); }
+}
+
+// ---------- het circus (Vreemde Vogel) ----------
+function vreemdeVogel(x, y, hoek, flapT, s = 1, dood = false) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(s, s);
+  ctx.lineWidth = 2; for (const [lx, k] of [[-4, 0], [2, 1]]) { for (let j = 0; j < 4; j++) { ctx.strokeStyle = (j + k) % 2 ? '#fff' : '#e8384f'; ctx.beginPath(); ctx.moveTo(lx - j * 2.5, 8 + j * 3); ctx.lineTo(lx - (j + 1) * 2.5, 8 + (j + 1) * 3); ctx.stroke(); } } // gestreepte pootjes
+  ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.moveTo(-12, -2); ctx.lineTo(-24, -10); ctx.lineTo(-20, 0); ctx.lineTo(-26, 4); ctx.lineTo(-12, 4); ctx.fill(); // rare staart
+  ctx.save(); ctx.beginPath(); ctx.ellipse(0, 0, 15, 11, 0, 0, 7); ctx.clip(); // lapjeslijf
+  for (const [px, k] of [[-15, '#9a4fd6'], [-6, '#3fae5a'], [2, '#ff7a1a'], [9, '#4ab8e8']]) { ctx.fillStyle = k; ctx.fillRect(px, -12, 9, 24); }
+  ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.setLineDash([2, 2]); ctx.lineWidth = 1; for (const px of [-6, 2, 9]) { ctx.beginPath(); ctx.moveTo(px, -12); ctx.lineTo(px, 12); ctx.stroke(); } ctx.setLineDash([]); // naadjes
+  ctx.restore();
+  ctx.fillStyle = '#ff9ac0'; ctx.beginPath(); ctx.arc(11, -9, 8.5, 0, 7); ctx.fill(); // roze kop
+  ctx.strokeStyle = '#9a4fd6'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(9, -17); ctx.quadraticCurveTo(6, -26, 12, -26); ctx.quadraticCurveTo(16, -26, 13, -22); ctx.stroke(); // krulveer
+  ctx.fillStyle = '#4ab8e8'; ctx.beginPath(); ctx.moveTo(18, -10); ctx.lineTo(24, -11); ctx.lineTo(21, -8); ctx.lineTo(25, -6); ctx.lineTo(18, -5); ctx.fill(); // zigzagsnavel
+  if (dood) { ctx.strokeStyle = '#333'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(8, -13); ctx.lineTo(12, -9); ctx.moveTo(12, -13); ctx.lineTo(8, -9); ctx.stroke(); }
+  else { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(10, -11, 3.6, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(15.5, -10, 2, 0, 7); ctx.fill(); // één groot en één klein oog
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(10.5 + Math.sin(beeld * 0.05) * 1.2, -11, 1.7, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(15.8, -10 + Math.cos(beeld * 0.07), 1, 0, 7); ctx.fill(); }
+  const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
+  ctx.save(); ctx.translate(-2, -2); ctx.rotate(v); ctx.fillStyle = '#3fae5a'; ctx.beginPath(); ctx.ellipse(-5, 0, 12, 6, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#ff7a1a'; ctx.beginPath(); ctx.ellipse(-12, 1, 5, 4, 0, 0, 7); ctx.fill(); ctx.restore(); // groen-oranje vleugel
+  if (kleren) aankleden(dood);
+  ctx.restore();
+}
+function ballonnetje(x, y) {
+  const kl = ['#e8384f', '#3a8ae8', '#ffd34d', '#3fae5a'][Math.floor(Math.abs(x) / 71) % 4], z = Math.sin(beeld * 0.07 + x) * 2;
+  ctx.strokeStyle = '#666'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.quadraticCurveTo(x + 3 + z, y + 10, x, y + 16); ctx.stroke();
+  ctx.fillStyle = kl; ctx.beginPath(); ctx.ellipse(x, y - 4, 7, 9, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(x - 2, y + 6); ctx.lineTo(x + 2, y + 6); ctx.lineTo(x, y + 3); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.ellipse(x - 2.5, y - 7, 2, 3, -0.4, 0, 7); ctx.fill();
+}
+// onder: opgestapelde circustrommels met sterren; boven: gestreept tentdoek met een gouden franje
+function circustrommels(x, y, h) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 6, y, PAAL + 12, h); ctx.clip();
+  for (let j = 0; j * 32 < h; j++) { const ty = y + j * 32, sm = j == 0 ? 0 : 2;
+    ctx.fillStyle = j % 2 ? '#3a8ae8' : '#e8384f'; ctx.fillRect(x + sm, ty + 4, PAAL - 2 * sm, 28);
+    ctx.fillStyle = '#ffd34d'; ctx.fillRect(x - 2 + sm, ty, PAAL + 4 - 2 * sm, 5); ctx.fillRect(x - 2 + sm, ty + 28, PAAL + 4 - 2 * sm, 4);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); for (let k = 0; k < 10; k++) { const r = k % 2 ? 3 : 7, a = -Math.PI / 2 + k * Math.PI / 5; ctx.lineTo(x + PAAL / 2 + Math.cos(a) * r, ty + 17 + Math.sin(a) * r); } ctx.fill(); }
+  ctx.restore();
+}
+function tentdoek(x, y, h) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 4, y, PAAL + 8, h + 8); ctx.clip();
+  for (let k = 0; k < 4; k++) { ctx.fillStyle = k % 2 ? '#fff4e0' : '#d8202a'; ctx.fillRect(x + k * PAAL / 4, y, PAAL / 4 + 0.5, h - 6); }
+  ctx.fillStyle = '#ffd34d'; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(x + 7 + k * 14, y + h - 6, 7, 0, Math.PI); ctx.fill(); } // gouden franje
+  ctx.fillStyle = '#c8a020'; for (let k = 0; k < 8; k++) ctx.fillRect(x + 3 + k * 7, y + h - 2, 1.5, 4);
+  ctx.restore();
+}
+function achtergrondCircus() {
+  ctx.fillStyle = '#5a1020'; ctx.fillRect(0, 0, W, GROND);
+  for (let k = 0; k < 16; k++) { ctx.fillStyle = k % 2 ? '#a8202a' : '#f4e8d0'; ctx.beginPath(); ctx.moveTo(W / 2, -20); ctx.lineTo(W / 2 + (k - 8) * 70, GROND); ctx.lineTo(W / 2 + (k - 7) * 70, GROND); ctx.fill(); } // tentbanen
+  ctx.fillStyle = 'rgba(40,10,20,.45)'; ctx.fillRect(0, 0, W, GROND);
+  ctx.fillStyle = 'rgba(255,240,180,.18)'; for (const sx of [W * 0.25, W * 0.75]) { ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx - 70, GROND); ctx.lineTo(sx + 70, GROND); ctx.fill(); } // spotlights
+  const zw = Math.sin(beeld * 0.03) * 0.5; ctx.save(); ctx.translate(W * 0.6, 0); ctx.rotate(zw); ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-12, 120); ctx.moveTo(12, 0); ctx.lineTo(12, 120); ctx.stroke(); ctx.fillStyle = '#ffd34d'; ctx.fillRect(-14, 118, 28, 4); ctx.restore(); // trapeze
+  for (let r = 0; r < 2; r++) for (let i = -1; i < W / 18 + 2; i++) { const x = i * 18 - ((schuif * (0.3 + r * 0.1)) % 18) + r * 9, hop = (i + r + Math.floor(beeld / 20)) % 7 == 0 ? 4 : 0; // publiek
+    ctx.fillStyle = r ? '#1a0810' : '#2a1018'; ctx.beginPath(); ctx.arc(x, GROND - 30 + r * 16 - hop, 6, 0, 7); ctx.fill(); ctx.fillRect(x - 7, GROND - 24 + r * 16 - hop, 14, 20); }
+}
+function grondCircus() { // de piste met zaagsel
+  ctx.fillStyle = '#c8904a'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#d8202a'; ctx.fillRect(0, GROND, W, 10); ctx.fillStyle = '#ffd34d'; for (let i = -1; i < W / 30 + 2; i++) ctx.fillRect(i * 30 - (schuif % 30), GROND + 3, 12, 4); // pisterand
+  ctx.fillStyle = '#b07a3a'; for (let i = 0; i < 40; i++) ctx.fillRect(((i * 47 - schuif) % W + W) % W, GROND + 16 + (i * 13) % 60, 3, 1.5); // zaagsel
+}
+
 const WERELDEN = {
   meeuw: { achter: () => achtergrond(), grond: () => grond(), paal: (x, y, h, b, nr) => paal(x, y, h, b, nr), bonus: (x, y, r) => frietje(x, y, r),
     valt: (x, y, r) => frietje(x, y, r), held: (x, y, h, f, s, d) => meeuw(x, y, h, f, s, d) },
@@ -2028,6 +2220,10 @@ const WERELDEN = {
     valt: (x, y) => snoepje(x, y), held: (x, y, h, f, s, d) => uil(x, y, h, f, s, d), body: 'linear-gradient(#1a1030 50%,#2a2a22 50%)' },
   flamingo: { achter: achtergrondDisco, grond: grondDisco, paal: (x, y, h, b) => discozuil(x, y, h, b), bonus: (x, y) => muzieknootje(x, y - 4),
     valt: (x, y) => muzieknootje(x, y), held: (x, y, h, f, s, d) => flamingo(x, y, h, f, s, d), body: 'linear-gradient(#140a2a 50%,#201436 50%)' },
+  toekan: { achter: achtergrondJungle, grond: grondJungle, paal: (x, y, h, b) => (b ? lianen(x, y, h) : tempelzuil(x, y, h)), bonus: (x, y) => banaantje(x, y - 4),
+    valt: (x, y) => banaantje(x, y), held: (x, y, h, f, s, d) => toekan(x, y, h, f, s, d), body: 'linear-gradient(#2a6a3a 50%,#4a3a1a 50%)' },
+  vreemd: { achter: achtergrondCircus, grond: grondCircus, paal: (x, y, h, b) => (b ? tentdoek(x, y, h) : circustrommels(x, y, h)), bonus: (x, y) => ballonnetje(x, y - 6),
+    valt: (x, y) => ballonnetje(x, y), held: (x, y, h, f, s, d) => vreemdeVogel(x, y, h, f, s, d), body: 'linear-gradient(#5a1020 50%,#c8904a 50%)' },
   arend: { achter: achtergrondBergen, grond: grondWolken, paal: (x, y, h, b) => (b ? onweerswolk(x, y, h) : bergtop(x, y, h)), bonus: (x, y) => sterretje(x, y - 4),
     valt: (x, y) => sterretje(x, y), held: (x, y, h, f, s, d) => arend(x, y, h, f, s, d), body: 'linear-gradient(#1a2a5a 50%,#f4f0ff 50%)' },
   koekoek: { achter: achtergrondWoud, grond: grondWoud, paal: (x, y, h, b) => (b ? gewichten(x, y, h) : klokToren(x, y, h)), smal: 8, bonus: (x, y) => taartje(x, y - 4),
@@ -2233,6 +2429,8 @@ function tekenDierKaal(id, x, y, fl, s) {
   if (id == 'pinguin') { pinguin(x, y + 6, -0.1, fl, s); visje(x + 32, y + 20); }
   if (id == 'uil') { uil(x - 2, y + 6, -0.05, fl, s); snoepje(x + 32, y + 20); }
   if (id == 'flamingo') { flamingo(x - 4, y + 10, -0.05, fl, s * 0.95); muzieknootje(x + 32, y + 16); }
+  if (id == 'toekan') { toekan(x - 6, y + 6, -0.05, fl, s * 0.95); banaantje(x + 34, y + 20); }
+  if (id == 'vreemd') { vreemdeVogel(x - 2, y + 6, -0.05, fl, s); ballonnetje(x + 32, y + 14); }
   if (id == 'arend') { arend(x - 2, y + 6, -0.1, fl, s); sterretje(x + 32, y + 18); }
   if (id == 'koekoek') { koekoek(x, y + 6, -0.1, fl, s); taartje(x + 32, y + 20); }
   if (id == 'draak') { draak(x - 2, y + 8, -0.1, fl, s * 0.95); edelsteen(x + 32, y + 20); }
@@ -2313,12 +2511,14 @@ function eindscherm() {
 
 function tekenStreken() {
   for (const g of gevaren) {
+    if (g.soort == 'kokos' && g.t <= g.wacht) { kokosnoot(g.x + Math.sin(g.t * 1.3) * 2.5, g.y, g.t); continue; }
     if (g.t <= g.wacht) { // nog buiten beeld; het kanon knalt als de kogel vertrekt
       if (g.soort == 'kogel' && g.t == g.wacht) { ruis(0.5, 0.18, 'lowpass', 160); }
       continue;
     }
     if (g.soort == 'dief') { ctx.save(); ctx.translate(g.x, g.y); ctx.scale(-1, 1); meeuw(0, 0, 0, beeld % 20 < 10 ? 8 : 0, 1, false); ctx.restore(); tekst('Mijn patat!', g.x, g.y - 26, 11, '#fff', 'center', '#1d3b57'); }
     if (g.soort == 'spook') spookje(g.x, g.y, g.t);
+    if (g.soort == 'kokos') kokosnoot(g.x + (g.t <= g.wacht ? Math.sin(g.t * 1.3) * 2.5 : 0), g.y, g.t);
     if (g.soort == 'steen') {
       ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(g.t * 0.15);
       ctx.fillStyle = '#7a7480'; ctx.beginPath(); ctx.moveTo(-10, -4); ctx.lineTo(-4, -10); ctx.lineTo(7, -8); ctx.lineTo(11, 2); ctx.lineTo(4, 10); ctx.lineTo(-8, 7); ctx.closePath(); ctx.fill();
@@ -2329,6 +2529,7 @@ function tekenStreken() {
       ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.arc(g.x - 3, g.y - 3, 3, 0, 7); ctx.fill();
     }
   }
+  if (hik && staat == 'spel') tekst(hik.t < 25 ? 'h…' : 'HIK!', vogel.x + 18, vogel.y - 30, hik.t < 25 ? 12 : 16, '#fff', 'center', '#1d3b57');
   if (flits) { // bliksem: waarschuwing als stippellijn, inslag als zigzag met een witte flits
     if (flits.t <= 50) { if (beeld % 10 < 6) { ctx.strokeStyle = 'rgba(255,240,120,.8)'; ctx.lineWidth = 2; ctx.setLineDash([6, 8]); ctx.beginPath(); ctx.moveTo(flits.x, 0); ctx.lineTo(flits.x, GROND); ctx.stroke(); ctx.setLineDash([]); tekst('⚡', flits.x, 30, 20, '#fff', 'center', null); } }
     else if (flits.t < 62) {
@@ -2464,7 +2665,7 @@ document.querySelector('.terug').addEventListener('click', (e) => {
 });
 if (TEGEL) { document.querySelector('.terug').hidden = true; tegelPlaatje(); }
 else { nieuwSpel(); staat = 'menu'; requestAnimationFrame(lus); }
-window.__test = { get roepBel() { return roepBel; }, get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, get kast() { return kast; }, kies: (id) => { fig = FIGUREN.find((f) => f.id == id); }, get vuurballen() { return vuurballen; }, get flits() { return flits; }, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
+window.__test = { get roepBel() { return roepBel; }, get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, get kast() { return kast; }, kies: (id) => { fig = FIGUREN.find((f) => f.id == id); }, get vuurballen() { return vuurballen; }, get flits() { return flits; }, get hik() { return hik; }, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
 </script>
 </body>
 </html>

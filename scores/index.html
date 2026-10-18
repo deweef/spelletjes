@@ -107,7 +107,7 @@ function tekenLeren(){const L=(D.leer||[]).map(([d,n,v,m,w,s])=>({d,n,v,m:Number
 /* ---------- Spelletjes ---------- */
 const SPEL=o=>o.startsWith('ork3d_')?'Orkenstorm 3D':o.startsWith('koek3d_')?'Koekjesschuiver 3D':'Fladderfeest';
 // nette namen; de onderdelen van Fladderfeest zijn de dieren (id uit FIGUREN in fladderfeest.html) en de tocht
-const FIG={tocht:'Grote tocht',roodborst:'Roodborstje',meeuw:'Patatmeeuw',hommel:'Hommelbrom',kip:'Fladderkip',kraai:'Rockkraai',papegaai:'Piratenpapegaai',pinguin:'Jetpackpinguïn',draak:'Vuurdraak',koekoek:'Koekoek',uil:'Spookuil',flamingo:'Discoflamingo',arend:'Gouden Arend'};
+const FIG={tocht:'Grote tocht',roodborst:'Roodborstje',meeuw:'Patatmeeuw',hommel:'Hommelbrom',kip:'Fladderkip',kraai:'Rockkraai',papegaai:'Piratenpapegaai',pinguin:'Jetpackpinguïn',draak:'Vuurdraak',koekoek:'Koekoek',uil:'Spookuil',flamingo:'Discoflamingo',toekan:'Toekan',vreemd:'Vreemde Vogel',arend:'Gouden Arend'};
 const mooi=o=>{let m;if(FIG[o])return FIG[o];if(o==='koek3d_wedstrijd')return 'Wedstrijd';if(/^ork3d_ver_/.test(o))return 'Verst gekomen';if((m=o.match(/^ork3d_tijd_l(\d+)_/)))return 'Snelste tijd level '+m[1];return o.replace(/^(ork3d|koek3d)_/,'').replace(/_/g,' ')};
 function lijsten(){const g={};for(const [rij,d,n,o,m,s] of (D.scores||[])){const k=o+' · '+m,laag=String(o).includes('tijd');const x=g[k]||(g[k]={spel:SPEL(String(o)),naam:mooi(String(o))+' ('+m+')',laag,beste:{}});const v=Number(s);if(x.beste[n]===undefined||(laag?v<x.beste[n]:v>x.beste[n]))x.beste[n]=v}
  for(const [k,x] of Object.entries(g)){x.top=Object.entries(x.beste).sort((a,b)=>x.laag?a[1]-b[1]:b[1]-a[1]);x.k=k}return g}
