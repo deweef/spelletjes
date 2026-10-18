@@ -8,6 +8,8 @@
 // Scores-app (spelletjes/scores/): ?actie=ouder&sleutel=.. geeft alle scores en het leerlogboek, ?actie=wis&sleutel=..&rij=..
 // &naam=..&score=.. wist een score. De eerste sleutel die ooit gebruikt wordt, wordt de vaste sleutel (Script-eigenschap
 // OUDER_SLEUTEL; wis die eigenschap in Projectinstellingen om opnieuw te beginnen).
+// Leerhoek-voortgang (zelfde op elk apparaat): POST actie=bewaar&naam&sleutel&tijd&data bewaart de stand van één pagina in
+// tabblad 'Leerhoek opslag' (alleen als die nieuwer is); GET ?actie=stand&naam=.. geeft alle standen van die persoon.
 // Na het aanpassen: Implementeren > Implementaties beheren > potlood > Versie: Nieuwe versie (dan blijft de URL gelijk).
 
 function blad() {
@@ -20,6 +22,7 @@ function blad() {
 function doGet(e) {
   const p = (e && e.parameter) || {};
   if (p.actie === 'ouder' || p.actie === 'wis') return ouder(p);
+  if (p.actie === 'stand') return stand(p);
   if (p.actie === 'opslaan') {
     const naam = String(p.naam || '').replace(/[<>]/g, '').trim().slice(0, 16);
     const onderdeel = String(p.onderdeel || ''), modus = String(p.modus || '');
@@ -57,6 +60,7 @@ function lijsten(spel) {
 function doPost(e) {
   const p = (e && e.parameter) || {};
   if (p.actie === 'leer') leerRegel(p);
+  if (p.actie === 'bewaar') bewaar(p);
   return ContentService.createTextOutput('ok');
 }
 
@@ -108,4 +112,39 @@ function ouder(p) {
   const lb = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leerhoek');
   const lr = lb ? lb.getDataRange().getValues().slice(1).slice(-1500).map((r) => [datum(r[0]), r[1], r[2], r[3], r[4], r[5]]) : [];
   return json({ nieuw, scores: sc, leer: lr });
+}
+
+// ---------- Leerhoek: voortgang per persoon bewaren, zodat die op elk apparaat hetzelfde is ----------
+function opslagBlad() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let b = ss.getSheetByName('Leerhoek opslag');
+  if (!b) { b = ss.insertSheet('Leerhoek opslag'); b.appendRow(['Naam', 'Sleutel', 'Tijd', 'Gegevens (in stukken)']); b.setFrozenRows(1); }
+  return b;
+}
+
+function bewaar(p) {
+  const naam = String(p.naam || ''), sleutel = String(p.sleutel || ''), tijd = Math.floor(Number(p.tijd)), data = String(p.data || '');
+  if (!/^(ben|dana|ouder)$/.test(naam) || !/^[A-Za-z0-9_-]{1,40}$/.test(sleutel) || !(tijd > 0) || !data || data.length > 400000) return;
+  try { JSON.parse(data); } catch (e) { return; }
+  const stukken = data.match(/[\s\S]{1,40000}/g).map((x) => "'" + x); // ' = altijd als tekst, nooit als formule of getal
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    const b = opslagBlad(), rijen = b.getDataRange().getValues();
+    const i = rijen.findIndex((r, j) => j > 0 && r[0] === naam && r[1] === sleutel);
+    if (i > 0 && Number(rijen[i][2]) >= tijd) return; // wat er al staat is nieuwer
+    const rij = i > 0 ? i + 1 : b.getLastRow() + 1;
+    if (i > 0) b.getRange(rij, 1, 1, b.getLastColumn()).clearContent();
+    b.getRange(rij, 1, 1, 3 + stukken.length).setValues([[naam, sleutel, tijd].concat(stukken)]);
+  } finally { lock.releaseLock(); }
+}
+
+function stand(p) {
+  const naam = String(p.naam || '');
+  if (!/^(ben|dana|ouder)$/.test(naam)) return json({ fout: 'naam' });
+  const uit = {};
+  for (const r of opslagBlad().getDataRange().getValues().slice(1)) {
+    if (r[0] !== naam) continue;
+    uit[r[1]] = { t: Number(r[2]), d: r.slice(3).map(String).join('') };
+  }
+  return json({ stand: uit });
 }
