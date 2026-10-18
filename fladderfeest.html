@@ -64,7 +64,9 @@ let bordTab = 'tocht';
 function scorebordScherm() {
   ctx.fillStyle = 'rgba(15,30,55,.82)'; ctx.fillRect(0, 0, W, H);
   icoonTekst('🏆', 'Scorebord', W / 2, 46, 30, '#ffe14d', '#1d3b57');
-  const tabs = [['tocht', 'Tocht'], ...FIGUREN.map((f) => [f.id, f.naam.replace('Jetpack', '').replace('Piraten', '')])];
+  // het geheime dier staat er pas bij als je het zelf hebt vrijgespeeld
+  const tabs = [['tocht', 'Tocht'], ...FIGUREN.filter((f, i) => !f.geheim || open(i)).map((f) => [f.id, f.naam.replace('Jetpack', '').replace('Piraten', '')])];
+  if (!tabs.some((t) => t[0] == bordTab)) bordTab = 'tocht';
   const dy = Math.max(0, Math.ceil(tabs.length / 4) - 2) * 30; // meer dieren: een extra rij tabbladen, de rest schuift omlaag
   tabs.forEach(([id, lbl], i) => {
     const kx = 14 + (i % 4) * ((W - 28) / 4), ky = 76 + Math.floor(i / 4) * (dy ? 30 : 34), kw = (W - 28) / 4 - 4;

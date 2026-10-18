@@ -35,7 +35,7 @@ bedenk dat de site openbaar is.
   Geheim dier Gouden Arend (`geheim: true`, laatste in `FIGUREN`): in het menu een kaartje met "?" tot je met alle andere
   dieren goud (50) hebt; bergtoppen boven de wolken, onweerswolken boven, sterretjes, orkestmuziek (`stijl: 'orkest'`), sneller
   (`snel: 1.12`) en de krapste gaten; streek: bliksem (`flits`, 50 beelden waarschuwing met een stippellijn, dan inslag).
-  De Grote tocht gaat langs `TOCHT` (alle dieren behalve het geheime). Kroontje (`kroon`) op een dier in het menu bij 100 punten.
+  De Grote tocht gaat langs `TOCHT` (alle dieren behalve het geheime); op het scorebord staat zijn tabblad pas als je hem zelf hebt. Kroontje (`kroon`) op een dier in het menu bij 100 punten.
   Winkel (knop 🛍️ Winkel bovenaan in het menu, `winkelScherm`, dieren zonder bonus getekend via `dierAlleen`): elke gepikte bonus = 1 muntje in de spaarpot (`spaar`, ook
   in de tocht per etappe); 20 muntjes cadeau om te beginnen. Per dier 4 spulletjes in `KLEDING` (de kraai 5, met een elektrische gitaar) (plek hoed/bril/lijf, prijs
   20-80), eerst passen (`pasKleding`), dan kopen en aan-/uittrekken. Opslag per speler in `fladderfeest_kast:<naam>`
