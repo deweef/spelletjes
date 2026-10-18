@@ -26,7 +26,11 @@ bedenk dat de site openbaar is.
   `stuw`/`stuwKracht`) en Vuurdraak (drakenburcht bij nacht met vulkaan, kasteeltorens, edelstenen, doedelzakmuziek met bromtoon;
   elke edelsteen = een vuurbal (`spuw`, `vuurballen`) die de volgende toren wegbrandt: het gat wordt 60 groter, `p.brand`) en Koekoek
   (Zwarte Woud met bergen en dennen, koekoeksklokken op dennenstammen onder en klokgewichten boven, taartpuntjes, polka) zijn klaar.
-  Vanaf 9 dieren worden de kaartjes in het menu compacter (`klein`). Volgorde in `FIGUREN` = van makkelijk naar
+  Vanaf 9 dieren worden de kaartjes in het menu compacter (`klein`).
+  Geheim dier Gouden Arend (`geheim: true`, laatste in `FIGUREN`): in het menu een kaartje met "?" tot je met alle andere
+  dieren goud (50) hebt; bergtoppen boven de wolken, onweerswolken boven, sterretjes, orkestmuziek (`stijl: 'orkest'`), sneller
+  (`snel: 1.12`) en de krapste gaten; streek: bliksem (`flits`, 50 beelden waarschuwing met een stippellijn, dan inslag).
+  De Grote tocht gaat langs `TOCHT` (alle dieren behalve het geheime). Kroontje (`kroon`) op een dier in het menu bij 100 punten. Volgorde in `FIGUREN` = van makkelijk naar
   moeilijk (roodborstje, meeuw, hommel, kip, kraai, papegaai, pinguïn, draak, koekoek); elk dier speel je vrij met 20, 25, ... 45
   punten met het dier ervoor, nieuwere dieren (vanaf de draak) steeds met 30 (`nodig`/`open`; wie al een record heeft met een dier houdt het open).
   Grote tocht (knop bovenaan, `tocht`): alle dieren achter elkaar vanaf het Roodborstje; finishvlag bij 20, 25, 30, ...
