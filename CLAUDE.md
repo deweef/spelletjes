@@ -83,7 +83,8 @@ bedenk dat de site openbaar is.
   Zoomen met twee vingers of muiswiel, schuiven door op een lege plek te slepen. Voortgang in `fotopuzzel:<naam>`
   (zaadje voor de vormen + posities), record per foto/aantal in `fotopuzzel_<foto>_<n>[d]:<naam>`.
 - Zoekplaatje (`zoekplaatje.html`, concept, met wachtwoord): zoek 25 voorwerpen in een plaatje; bovenin staan er steeds 10
-  (`actief`), een gevonden voorwerp wordt vervangen door het volgende uit `rij`. Zoomen met twee vingers/muiswiel, slepen =
+  (`actief`); eerst bovenin een vakje kiezen (`kiesVak`, `gekozen`, geel), dan het voorwerp aantikken; zonder keuze of bij een
+  ander voorwerp een melding (`meld`). Een gevonden voorwerp wordt vervangen door het volgende uit `rij`. Zoomen met twee vingers/muiswiel, slepen =
   schuiven, tik = zoeken (marge 14 schermpixels), 💡 Hint (15 s wachten). Level 1 "De rommelkamer" is getekend in de code
   (`kamerAchter`/`kamerVoor`, voorwerpen in `STRIP` met tekening uit `TEKEN`), level 2 "Bij ons thuis" is een foto van Marcel
   en Anja, versleuteld in `zoek/kamer.bin` (zout 16 + iv 12 + AES-GCM; sleutel = PBKDF2-SHA256 van het wachtwoord in kleine
