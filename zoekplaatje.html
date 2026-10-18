@@ -368,7 +368,7 @@ function muzikant(x, y, s, o) {
   if (o.wangen) { ctx.fillStyle = '#ff6a6a'; ctx.beginPath(); ctx.arc(-6, -41, 3.5, 0, 7); ctx.arc(6, -41, 3.5, 0, 7); ctx.fill(); }
   ctx.strokeStyle = '#2a1f2a'; ctx.lineWidth = 1.3; ctx.beginPath(); if (o.mond == 'o') ctx.arc(0, -40, 1.8, 0, 7); else ctx.arc(0, -42, 3.5, 0.3, Math.PI - 0.3); ctx.stroke();
   lijn(2);
-  armKleur = pak;
+  armKleur = o.arm || pak;
   if (!o.instr && o.armen !== 0 && !['pakje', 'brief', 'krant', 'selfie', 'breien'].includes(o.gag)) { arm(-12, -30, -16, -6); arm(12, -30, 16, -6); }
   (INSTR[o.instr] || (() => {}))(o);
   if (o.gag) GAG[o.gag](o);
@@ -654,6 +654,128 @@ const POST = [ // op het plaatje van 2000 x 1300
   ['Boterham', 'boterham', 232, 862, 0.59, 0.2, 1],
 ];
 
+// ---------- level 4: het strand, een druk stripplaatje (2000 x 1300) ----------
+const SW = 2000, SH = 1300;
+const BADPAK = ['#e8384f', '#3a8ae8', '#ffd34d', '#3fae5a', '#ff9ac0', '#9a4fd6', '#ff7a1a', '#4ab8e8', '#1a1a2a'];
+function badgast(x, y, s, r, extra = {}) { // iemand in zwemkleding (staand)
+  const huid = HUID[Math.floor(r() * HUID.length)], jurk = r() < 0.45;
+  muzikant(x, y, s, Object.assign({ staat: 1, pak: BADPAK[Math.floor(r() * BADPAK.length)], broek: huid, arm: huid, huid, haar: HAAR[Math.floor(r() * HAAR.length)],
+    kapsel: jurk ? ['lang', 'knot', 'staart', 'krul'][Math.floor(r() * 4)] : ['kort', 'kort', 'kaal', 'krul'][Math.floor(r() * 4)], baard: !jurk && r() < 0.15, instr: '' }, extra));
+}
+function ligger(x, y, s, a, r, extra = {}) { // iemand die op een handdoek ligt te zonnen
+  const kl = BADPAK[Math.floor(r() * BADPAK.length)];
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a); lijn(2.5); vorm(['#ff9ac0', '#4ab8e8', '#ffd34d', '#3fae5a', '#e8384f'][Math.floor(r() * 5)], () => rr(-30 * s, -70 * s, 60 * s, 130 * s, 6));
+  ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 4 * s; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(-30 * s, (-40 + k * 40) * s); ctx.lineTo(30 * s, (-40 + k * 40) * s); ctx.stroke(); }
+  badgast(0, -4 * s, s, r, Object.assign({ pak: kl }, extra)); ctx.restore();
+}
+function parasol(x, y, h, k1, k2, a = 0) {
+  lijn(3); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.sin(a) * h, y - h); ctx.stroke();
+  const tx = x + Math.sin(a) * h, ty = y - h;
+  for (let i = 0; i < 6; i++) vorm(i % 2 ? k1 : k2, () => { ctx.moveTo(tx, ty - 20); ctx.lineTo(tx - 90 + i * 30, ty + 16); ctx.quadraticCurveTo(tx - 75 + i * 30, ty + 26, tx - 60 + i * 30, ty + 16); ctx.closePath(); });
+}
+function windscherm(x, y, w, k) { lijn(2.5); const n = Math.round(w / 30); for (let i = 0; i < n; i++) vorm(i % 2 ? k : '#fff', () => ctx.rect(x + i * 30, y - 60, 30, 60)); for (let i = 0; i <= n; i++) { ctx.beginPath(); ctx.moveTo(x + i * 30, y - 66); ctx.lineTo(x + i * 30, y + 6); ctx.stroke(); } }
+function zandkasteel(x, y, s) { ctx.save(); ctx.translate(x, y); ctx.scale(s, s); lijn(2.5); vorm('#e0b870', () => { ctx.rect(-50, -40, 100, 40); ctx.rect(-60, -70, 30, 70); ctx.rect(30, -70, 30, 70); ctx.rect(-15, -90, 30, 50); });
+  for (const [cx, cy] of [[-45, -70], [45, -70], [0, -90]]) vorm('#e0b870', () => { for (let k = 0; k < 3; k++) ctx.rect(cx - 15 + k * 11, cy - 8, 8, 8); });
+  vorm('#8a5a30', () => ctx.arc(0, -10, 10, Math.PI, 0)); ctx.beginPath(); ctx.moveTo(0, -90); ctx.lineTo(0, -120); ctx.stroke(); vorm('#e8384f', () => { ctx.moveTo(0, -120); ctx.lineTo(20, -113); ctx.lineTo(0, -106); }); ctx.restore(); }
+function strandAchter() {
+  const r = rng(23); lijn(3);
+  // lucht met zon, wolken, vliegtuigje met spandoek, vliegers en meeuwen
+  const lucht = ctx.createLinearGradient(0, 0, 0, 300); lucht.addColorStop(0, '#5ab8f0'); lucht.addColorStop(1, '#bfe8fa'); ctx.fillStyle = lucht; ctx.fillRect(0, 0, SW, 300);
+  vorm('#ffe14d', () => ctx.arc(1780, 90, 60, 0, 7)); ctx.strokeStyle = '#ffe14d'; ctx.lineWidth = 6; for (let k = 0; k < 12; k++) { const a = k * 0.524; ctx.beginPath(); ctx.moveTo(1780 + Math.cos(a) * 74, 90 + Math.sin(a) * 74); ctx.lineTo(1780 + Math.cos(a) * 96, 90 + Math.sin(a) * 96); ctx.stroke(); } lijn(3);
+  ctx.fillStyle = '#fff'; for (const [x, y, s] of [[200, 80, 1.2], [700, 50, 0.9], [1200, 110, 1.1], [1500, 40, 0.8]]) { ctx.beginPath(); ctx.arc(x, y, 30 * s, 0, 7); ctx.arc(x + 34 * s, y - 12 * s, 36 * s, 0, 7); ctx.arc(x + 70 * s, y, 28 * s, 0, 7); ctx.fill(); }
+  vorm('#e8e8f0', () => { ctx.ellipse(380, 170, 50, 14, 0, 0, 7); }); vorm('#e8384f', () => { ctx.moveTo(350, 168); ctx.lineTo(330, 140); ctx.lineTo(348, 140); ctx.lineTo(372, 166); }); vorm('#3a8ae8', () => ctx.ellipse(390, 176, 30, 5, 0, 0, 7));
+  ctx.beginPath(); ctx.moveTo(330, 170); ctx.lineTo(300, 170); ctx.stroke(); vorm('#fff8e8', () => ctx.rect(-10, 150, 310, 40)); ctx.fillStyle = '#e8384f'; ctx.font = 'bold 24px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('ZOEK ZE ALLEMAAL!', 145, 179);
+  for (const [x, y, k] of [[980, 120, '#e8384f'], [1350, 200, '#ffd34d']]) { vorm(k, () => { ctx.moveTo(x, y - 40); ctx.lineTo(x + 30, y); ctx.lineTo(x, y + 50); ctx.lineTo(x - 30, y); ctx.closePath(); }); ctx.beginPath(); ctx.moveTo(x, y + 50); ctx.bezierCurveTo(x + 20, y + 120, x - 30, y + 200, x - 10, y + 420); ctx.stroke(); for (let k = 0; k < 3; k++) vorm('#3a8ae8', () => { ctx.save(); ctx.translate(x + 6 - k * 4, y + 70 + k * 30); ctx.rotate(0.6); ctx.rect(-6, -3, 12, 6); ctx.restore(); }); }
+  ctx.lineWidth = 3; for (let k = 0; k < 9; k++) { const x = 300 + r() * 1400, y = 40 + r() * 200; ctx.beginPath(); ctx.arc(x - 8, y, 8, Math.PI * 1.1, Math.PI * 1.9); ctx.arc(x + 8, y, 8, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); } lijn(3);
+  // zee met golven, zeilboot, surfer, zwemmers en een opblaasflamingo
+  const zee = ctx.createLinearGradient(0, 280, 0, 560); zee.addColorStop(0, '#2a7ac8'); zee.addColorStop(1, '#5ac8e0'); ctx.fillStyle = zee; ctx.fillRect(0, 280, SW, 300);
+  ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 3; for (let k = 0; k < 40; k++) { const x = r() * SW, y = 300 + r() * 240; ctx.beginPath(); ctx.arc(x, y, 12, Math.PI * 1.15, Math.PI * 1.85); ctx.arc(x + 22, y, 12, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke(); } lijn(3);
+  vorm('#8a5a30', () => { ctx.moveTo(560, 330); ctx.lineTo(700, 330); ctx.lineTo(680, 352); ctx.lineTo(580, 352); ctx.closePath(); }); ctx.beginPath(); ctx.moveTo(630, 330); ctx.lineTo(630, 220); ctx.stroke(); vorm('#fff', () => { ctx.moveTo(634, 226); ctx.lineTo(690, 322); ctx.lineTo(634, 322); ctx.closePath(); }); vorm('#e8384f', () => { ctx.moveTo(626, 232); ctx.lineTo(586, 322); ctx.lineTo(626, 322); ctx.closePath(); });
+  vorm('#3a3a44', () => { ctx.moveTo(1620, 300); ctx.lineTo(1780, 300); ctx.lineTo(1760, 316); ctx.lineTo(1640, 316); ctx.closePath(); }); vorm('#3a3a44', () => ctx.rect(1690, 270, 40, 30)); vorm('#1a1a22', () => { ctx.rect(1660, 286, 20, 14); }); // piratenschip in de verte
+  vorm('#1a1a22', () => { ctx.moveTo(1700, 270); ctx.lineTo(1700, 220); ctx.lineTo(1740, 230); ctx.lineTo(1700, 240); }); ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif'; ctx.fillText('☠', 1716, 236);
+  vorm('#ffd34d', () => { ctx.save(); ctx.translate(1100, 450); ctx.rotate(-0.2); ctx.ellipse(0, 0, 60, 10, 0, 0, 7); ctx.restore(); }); badgast(1095, 400, 1.3, r, { gag: 'zonnebril' }); // surfer
+  vorm('#ff9ac0', () => { ctx.ellipse(1420, 470, 50, 22, 0, 0, 7); }); vorm('#ff9ac0', () => { ctx.moveTo(1450, 460); ctx.quadraticCurveTo(1490, 380, 1470, 360); ctx.lineTo(1480, 350); ctx.quadraticCurveTo(1510, 390, 1462, 470); ctx.closePath(); }); vorm('#ffd34d', () => { ctx.moveTo(1480, 352); ctx.lineTo(1500, 362); ctx.lineTo(1482, 366); }); // flamingo
+  for (let k = 0; k < 10; k++) { const x = 100 + r() * 1800, y = 400 + r() * 120; vorm('#4ab8e8', () => ctx.ellipse(x, y + 10, 22, 7, 0, 0, 7), false); vorm(HUID[Math.floor(r() * 6)], () => ctx.arc(x, y, 11, 0, 7)); vorm(HAAR[Math.floor(r() * 8)], () => ctx.arc(x, y - 3, 11, Math.PI, 0)); if (k % 3 == 0) { ctx.beginPath(); ctx.moveTo(x + 12, y); ctx.lineTo(x + 26, y - 22); ctx.stroke(); } }
+  vorm('#3a3a44', () => { ctx.moveTo(840, 520); ctx.lineTo(860, 470); ctx.lineTo(872, 520); ctx.closePath(); }); // haaienvin? nee, een man met een vinnenmuts
+  // strand
+  ctx.fillStyle = '#f2d8a0'; ctx.beginPath(); ctx.moveTo(0, 560); for (let x = 0; x <= SW; x += 100) ctx.quadraticCurveTo(x + 50, 540 + (x / 100 % 2) * 20, x + 100, 556); ctx.lineTo(SW, SH); ctx.lineTo(0, SH); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(0, 560); for (let x = 0; x <= SW; x += 100) ctx.quadraticCurveTo(x + 50, 540 + (x / 100 % 2) * 20, x + 100, 556); ctx.stroke(); lijn(3);
+  ctx.fillStyle = '#e4c88a'; for (let k = 0; k < 500; k++) { ctx.fillRect(r() * SW, 580 + r() * 720, 3, 3); }
+  // strandtent links
+  vorm('#c8925a', () => ctx.rect(20, 380, 380, 260)); for (let x = 30; x < 400; x += 30) { ctx.strokeStyle = '#a8743a'; ctx.beginPath(); ctx.moveTo(x, 380); ctx.lineTo(x, 640); ctx.stroke(); } lijn(3);
+  vorm('#e8384f', () => { ctx.moveTo(0, 390); ctx.lineTo(210, 300); ctx.lineTo(420, 390); ctx.closePath(); }); vorm('#fff', () => rr(70, 400, 280, 50, 8)); ctx.fillStyle = '#c8202a'; ctx.font = 'bold 28px "Trebuchet MS",sans-serif'; ctx.fillText('DE ZOETE ZEE', 210, 436);
+  vorm('#9ad8f0', () => ctx.rect(60, 470, 120, 90)); vorm('#9ad8f0', () => ctx.rect(240, 470, 120, 90)); vorm('#fff8e8', () => rr(120, 580, 180, 40, 6)); ctx.fillStyle = '#2a1f2a'; ctx.font = 'bold 15px sans-serif'; ctx.fillText('PATAT · IJS · BIER', 210, 606);
+  muzikant(120, 560, 1.3, { staat: 1, pak: '#fff', broek: '#2a2a2a', huid: HUID[2], haar: HAAR[0], kapsel: 'kort', instr: '', gag: 'pet' }); muzikant(300, 560, 1.3, { staat: 1, pak: '#fff', broek: '#2a2a2a', huid: HUID[4], haar: HAAR[2], kapsel: 'staart', jurk: 1, instr: '' });
+  for (const [x, y] of [[90, 700], [330, 700]]) { vorm('#fff', () => ctx.ellipse(x, y, 60, 16, 0, 0, 7)); ctx.beginPath(); ctx.moveTo(x, y + 16); ctx.lineTo(x, y + 60); ctx.stroke(); vorm('#e8384f', () => { ctx.moveTo(x, y - 100); ctx.lineTo(x - 70, y - 40); ctx.lineTo(x + 70, y - 40); ctx.closePath(); }); ctx.beginPath(); ctx.moveTo(x, y - 100); ctx.lineTo(x, y); ctx.stroke(); }
+  vorm('#ffd34d', () => { ctx.rect(60, 670, 20, 26); ctx.rect(340, 670, 20, 26); }); // biertjes op het terras
+  // strandwacht op zijn toren
+  lijn(4); ctx.beginPath(); ctx.moveTo(960, 760); ctx.lineTo(990, 560); ctx.moveTo(1100, 760); ctx.lineTo(1070, 560); ctx.moveTo(970, 690); ctx.lineTo(1090, 690); ctx.moveTo(980, 620); ctx.lineTo(1080, 620); ctx.stroke(); lijn(3);
+  vorm('#fff', () => ctx.rect(970, 540, 120, 30)); vorm('#e8384f', () => ctx.rect(970, 540, 120, 10), false);
+  badgast(1030, 470, 1.5, r, { pak: '#e8384f', gag: 'pet' }); vorm('#1a1a22', () => { ctx.rect(1018, 392, 9, 10); ctx.rect(1033, 392, 9, 10); }); // met verrekijker
+  vorm('#e8384f', () => ctx.arc(1110, 600, 26, 0, 7)); vorm('#fff', () => ctx.arc(1110, 600, 12, 0, 7)); ctx.strokeStyle = '#fff'; ctx.lineWidth = 7; ctx.beginPath(); for (let k = 0; k < 4; k++) { ctx.moveTo(1110 + Math.cos(k * 1.57 + 0.78) * 14, 600 + Math.sin(k * 1.57 + 0.78) * 14); ctx.lineTo(1110 + Math.cos(k * 1.57 + 0.78) * 25, 600 + Math.sin(k * 1.57 + 0.78) * 25); } ctx.stroke(); lijn(3); // reddingsboei
+  vorm('#ffd34d', () => ctx.rect(1140, 580, 8, 120)); vorm('#e8384f', () => { ctx.moveTo(1148, 584); ctx.lineTo(1200, 600); ctx.lineTo(1148, 616); }); // vlag
+  // ijskar rechts met een rij
+  vorm('#fff', () => rr(1650, 560, 260, 120, 12)); vorm('#ff9ac0', () => ctx.rect(1650, 600, 260, 20), false); vorm('#2a1f2a', () => { ctx.arc(1690, 686, 18, 0, 7); ctx.arc(1870, 686, 18, 0, 7); });
+  parasol(1780, 560, 120, '#ff9ac0', '#fff'); ctx.fillStyle = '#e8384f'; ctx.font = 'bold 30px "Trebuchet MS",sans-serif'; ctx.fillText('IJS!', 1780, 660);
+  for (let k = 0; k < 4; k++) vorm(['#ff9ac0', '#fff4c0', '#8a5a3a', '#7ad07a'][k], () => ctx.arc(1690 + k * 26, 552, 11, 0, 7));
+  for (let k = 0; k < 5; k++) badgast(1580 - k * 70, 650 + (k % 2) * 20, 1.5, r, { gag: ['pet', undefined, 'kroon', undefined, 'bloem'][k] });
+  // strandvolleybal
+  lijn(3); ctx.beginPath(); ctx.moveTo(560, 760); ctx.lineTo(560, 610); ctx.moveTo(860, 760); ctx.lineTo(860, 610); ctx.stroke(); ctx.lineWidth = 1.5; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(560, 620 + k * 12); ctx.lineTo(860, 620 + k * 12); ctx.stroke(); } for (let x = 570; x < 860; x += 14) { ctx.beginPath(); ctx.moveTo(x, 620); ctx.lineTo(x, 656); ctx.stroke(); } lijn(3);
+  badgast(500, 680, 1.6, r, { mond: 'o' }); badgast(640, 700, 1.6, r); badgast(790, 690, 1.6, r, { mond: 'o' }); badgast(920, 700, 1.6, r);
+  vorm('#fff', () => ctx.arc(720, 560, 16, 0, 7)); ctx.beginPath(); ctx.arc(720, 560, 16, 0.5, 2.6); ctx.stroke();
+  // windschermen, parasols en handdoeken met zonaanbidders
+  windscherm(80, 860, 270, '#3a8ae8'); windscherm(1420, 840, 240, '#e8384f'); windscherm(600, 1010, 210, '#3fae5a');
+  parasol(470, 900, 150, '#e8384f', '#fff', -0.1); parasol(1300, 880, 150, '#3a8ae8', '#fff', 0.1); parasol(1820, 940, 150, '#3fae5a', '#ffd34d', -0.05); parasol(860, 1080, 160, '#ff7a1a', '#fff', 0.08);
+  const liggers = [[200, 930, 1.5, 1.57], [380, 980, 1.5, -1.57], [1100, 920, 1.5, 1.6], [1600, 950, 1.5, -1.5], [1760, 1060, 1.55, 1.57], [300, 1170, 1.6, 1.5], [1220, 1150, 1.6, -1.6]];
+  const lgag = ['krant', 'zzz', undefined, 'koffie', 'selfie', undefined, 'boterham'];
+  liggers.forEach(([x, y, s, a], i) => ligger(x, y, s, a, r, { gag: lgag[i], slaapt: lgag[i] == 'zzz' || lgag[i] == 'krant' }));
+  // verbrande man (rood als een kreeft)
+  muzikant(1450, 1010, 1.7, { staat: 1, pak: '#3a8ae8', broek: '#ff5a4a', arm: '#ff5a4a', huid: '#ff5a4a', haar: HAAR[2], kapsel: 'kaal', instr: '', mond: 'o' });
+  // man tot zijn nek ingegraven, met kinderen die nog meer zand scheppen
+  vorm('#e0b870', () => ctx.ellipse(1010, 1240, 90, 26, 0, 0, 7)); vorm(HUID[0], () => ctx.arc(1010, 1214, 22, 0, 7)); vorm(HAAR[6], () => ctx.arc(1010, 1206, 22, Math.PI, 0)); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(1002, 1214, 2.5, 0, 7); ctx.arc(1018, 1214, 2.5, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(1010, 1224, 4, 0, 7); ctx.stroke();
+  badgast(920, 1160, 1.3, r); badgast(1100, 1170, 1.3, r);
+  // zandkastelen en een kuil
+  zandkasteel(660, 1240, 1.1); zandkasteel(1560, 1260, 0.9);
+  vorm('#d8b878', () => ctx.ellipse(1840, 1240, 80, 24, 0, 0, 7)); badgast(1840, 1190, 1.2, r, { gag: 'pet' });
+  // hond die er met een worstje vandoor gaat, meeuw met patat
+  vorm('#3a3a3a', () => ctx.ellipse(1240, 790, 40, 18, 0, 0, 7)); vorm('#3a3a3a', () => ctx.arc(1284, 776, 16, 0, 7)); vorm('#1a1a1a', () => ctx.ellipse(1278, 764, 6, 12, -0.4, 0, 7)); for (const x of [1212, 1228, 1252, 1266]) { ctx.beginPath(); ctx.moveTo(x, 800); ctx.lineTo(x + 6, 820); ctx.stroke(); }
+  vorm('#c8603a', () => ctx.ellipse(1308, 780, 16, 5, 0.2, 0, 7));
+  vorm('#fff', () => ctx.ellipse(760, 860, 26, 14, 0, 0, 7)); vorm('#fff', () => ctx.arc(784, 846, 10, 0, 7)); vorm('#ffb43a', () => { ctx.moveTo(792, 846); ctx.lineTo(806, 849); ctx.lineTo(792, 852); }); vorm('#a8a8b8', () => { ctx.moveTo(750, 856); ctx.lineTo(730, 836); ctx.lineTo(770, 852); });
+  vorm('#e8384f', () => { ctx.moveTo(700, 880); ctx.lineTo(730, 880); ctx.lineTo(726, 900); ctx.lineTo(704, 900); ctx.closePath(); }); for (let k = 0; k < 5; k++) vorm('#ffd34d', () => ctx.rect(704 + k * 5, 866 - (k % 2) * 6, 4, 16));
+  // strandballen, schelpen en rommel in het zand
+  for (let k = 0; k < 40; k++) { const x = 40 + r() * 1920, y = 780 + r() * 500, t = Math.floor(r() * 5); ctx.save(); ctx.translate(x, y); ctx.rotate(r() * 6); lijn(2);
+    if (t == 0) { vorm('#fff', () => ctx.arc(0, 0, 6, Math.PI, 0)); } else if (t == 1) vorm('#c8c8d0', () => rr(-4, -10, 8, 14, 2)); else if (t == 2) vorm('#8a5a3a', () => ctx.ellipse(0, 0, 8, 4, 0, 0, 7)); else if (t == 3) vorm('#ffe8a0', () => ctx.rect(-6, -4, 12, 8)); else { ctx.beginPath(); ctx.arc(0, 0, 6, 0, 7); ctx.stroke(); }
+    ctx.restore(); }
+  // nog veel meer badgasten op de vrije plekken (staand, van achter naar voren), zodat het lekker druk is
+  const bezet = [[0, 300, 430, 770], [450, 530, 970, 790], [930, 370, 1220, 780], [1230, 530, 1930, 770], [60, 780, 370, 1030], [1400, 760, 1680, 860], [580, 930, 830, 1030],
+    [190, 1100, 420, 1240], [1100, 1080, 1330, 1210], [1490, 890, 1700, 1010], [1660, 1000, 1880, 1110], [990, 860, 1210, 980], [1400, 900, 1500, 1100], [880, 1150, 1140, 1300],
+    [580, 1100, 740, 1260], [1490, 1140, 1630, 1270], [1750, 1100, 1930, 1270], [380, 720, 560, 910], [1200, 730, 1340, 830], [690, 820, 820, 910], [100, 1210, 210, 1290], [420, 1040, 540, 1300], [1300, 1060, 1420, 1300], [1890, 1050, 2000, 1300]];
+  const plekken = [];
+  for (let k = 0; k < 900 && plekken.length < 34; k++) { const x = 30 + r() * 1940, y = 790 + r() * 470;
+    if (bezet.some(([a, b, c, d]) => x > a - 25 && x < c + 25 && y > b - 90 && y < d + 10) || plekken.some(([px, py]) => Math.abs(px - x) < 70 && Math.abs(py - y) < 120)) continue; plekken.push([x, y]); }
+  const sgag = ['pet', 'kroon', 'bloem', 'nest', 'ooglap', 'selfie', 'koffie', 'boterham', 'knuffel', 'bel', 'zzz'];
+  plekken.sort((a, b) => a[1] - b[1]).forEach(([x, y], i) => badgast(x, y - 70, 1.25 + (y - 790) / 470 * 0.5, r, { gag: r() < 0.5 ? sgag[i % sgag.length] : undefined, mond: r() < 0.2 ? 'o' : undefined }));
+  vorm('#3a8ae8', () => ctx.arc(160, 1250, 26, 0, 7)); vorm('#ffd34d', () => ctx.arc(160, 1250, 26, -0.6, 0.6)); vorm('#e8384f', () => { ctx.moveTo(160, 1250); ctx.arc(160, 1250, 26, 2.4, 3.6); ctx.closePath(); }); // strandbal
+}
+function strandVoor() {
+  const r = rng(77); lijn(3);
+  badgast(480, 1200, 2.0, r, { gag: 'selfie' }); badgast(1360, 1210, 2.0, r, { gag: 'koffie' }); badgast(1950, 1180, 1.9, r);
+}
+const STRAND = [ // op het plaatje van 2000 x 1300
+  ['Ballon', 'ballon', 520, 120, 0.94, 0.2, 1], ['Hoge hoed', 'hogehoed', 1722, 212, 0.68, 0.1, 1], ['Badeendje', 'eendje', 300, 470, 0.88, 0, 1],
+  ['Kat', 'kat', 690, 318, 0.74, 0, 1], ['Vlinder', 'vlinder', 1640, 200, 0.81, 0.3, 1], ['Paraplu', 'paraplu', 1560, 515, 0.94, 2.8, 1],
+  ['Voetbal', 'voetbal', 800, 410, 0.81, 0, 1], ['Sok', 'sok', 980, 150, 0.68, 0.3, 1], ['Zonnebril', 'zonnebril', 210, 345, 0.81, 0.1, 1],
+  ['Zeester', 'zeester', 240, 1272, 0.81, 0.3, 1], ['Schepje', 'schepje', 722, 1205, 0.81, 0.3, 1], ['Emmertje', 'emmertje', 1760, 1252, 0.81, 0, 1],
+  ['Slipper', 'slipper', 870, 1262, 0.81, 1.2, 1], ['Krab', 'krab', 1478, 1098, 0.74, 0, 1], ['Schelp', 'schelp', 1700, 842, 0.74, 0.2, 1],
+  ['Sleutelbos', 'sleutels', 1662, 975, 0.74, 0.3, 1], ['Mobieltje', 'telefoon', 1735, 1030, 0.68, 1.3, 1], ['Horloge', 'horloge', 370, 870, 0.68, 1.2, 1],
+  ['Muntje', 'munt', 1950, 1000, 0.68, 0, 1], ['Bril', 'bril', 1030, 688, 0.68, 0, 1], ['Banaan', 'banaan', 1860, 552, 0.74, 0.2, 1],
+  ['Appel', 'appel', 112, 686, 0.61, 0, 1], ['Pizzapunt', 'pizza', 300, 690, 0.61, 0.4, 1], ['Boterham', 'boterham', 200, 790, 0.68, 0.2, 1],
+  ['Mok', 'mok', 165, 548, 0.61, 0, 1], ['Cadeautje', 'cadeau', 1610, 1282, 0.68, 0.1, 1], ['Lolly', 'lolly', 1250, 862, 0.74, 0.3, 1],
+  ['Postzegel', 'postzegel', 275, 170, 0.57, 0.1, 1], ['Roos', 'roos', 1040, 1196, 0.61, 1.2, 1], ['Tandenborstel', 'tandenborstel', 715, 856, 0.68, -1.2, 1],
+  ['Dobbelsteen', 'dobbelsteen', 860, 604, 0.61, 0.3, 1], ['Wekker', 'wekker', 1540, 764, 0.68, 0.1, 1], ['Vergrootglas', 'vergrootglas', 60, 1268, 0.74, 0.4, 1],
+  ['Koptelefoon', 'koptelefoon', 1288, 768, 0.57, 0.2, 1], ['Muisje', 'muis', 660, 1232, 0.61, 0, 1], ['Strikje', 'strikje', 790, 838, 0.54, 0.2, 1],
+];
+
 // ---------- spelstatus ----------
 let autoGevonden = false, autoMelding = 0, gekozen = -1, melding = null; // gekozen: welk vakje bovenin je hebt aangetikt
 let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, totaal = 25, start = 0, hints = 0, hintKlaar = 0, hintPuls = null, effecten = [];
@@ -662,6 +784,7 @@ const LEVELS = [
   { id: 'kamer', naam: 'De rommelkamer', uitleg: 'Een kamer vol troep', achter: () => kamerAchter(), voor: () => kamerVoor(), items: STRIP, w: KW, h: KH, auto: [1040, 772, 0.5, 0] },
   { id: 'post', naam: 'Het postkantoor', uitleg: 'Druk, druk, druk bij de loketten', achter: () => postAchter(), voor: () => postVoor(), items: POST, w: PW, h: PH, auto: [120, 138, 0.5, 0] },
   { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
+  { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', achter: () => strandAchter(), voor: () => strandVoor(), items: STRAND, w: SW, h: SH, auto: [560, 548, 0.5, 0.1] },
 ];
 // voortgang per level-id: zoek_tijd_<id> (snelste tijd in seconden, een hint telt als 20 s) en zoek_auto_<id> (oldtimer gevonden)
 for (const [n, id] of [[1, 'kamer'], [3, 'orkest']]) for (const k of ['zoek_tijd', 'zoek_auto']) { const v = opslag.get(k + n); if (v && !opslag.get(k + '_' + id)) opslag.set(k + '_' + id, v); } // oude sleutels met levelnummers

@@ -89,8 +89,11 @@ bedenk dat de site openbaar is.
   (marge 14 schermpixels), 💡 Hint (15 s wachten, telt als `HINT_STRAF` = 20 s extra). Levels in `LEVELS` met een `id`, tekening `achter`/`voor`,
   voorwerpen `items` ([naam, tekening uit `TEKEN`, x, y, schaal, draai, voorFlag]), `w`/`h` en `auto`. Elke laag wordt één keer vooraf op een eigen
   doek getekend (`vooraf(L, laag)`), dus zware tekeningen kunnen. 1 De rommelkamer (`kamerAchter`/`kamerVoor`/`kamerRommel`/`kruimel`, `STRIP`),
-  2 Het orkest (2000x1300, `OW`/`OH`; ruim 100 muzikanten via `muzikant(x, y, s, o)` met `INSTR` en grapjes `GAG`, `o.staat` = staand figuur, vaste willekeur
-  via `rng(zaad)`; `ORKEST` = 35 voorwerpen). Voortgang per speler en per level-id: `zoek_tijd_<id>:<naam>` (snelste tijd incl. hintstraf; een level is
+  2 Het postkantoor (2000x1300, `PW`/`PH`, `postAchter`/`postVoor`, `POST`; loketten, postvakjes, rij met klanten via `mens`, postbode met hond, slakkenpost),
+  3 Het orkest (2000x1300, `OW`/`OH`; ruim 100 muzikanten via `muzikant(x, y, s, o)` met `INSTR` en grapjes `GAG`, `o.staat` = staand figuur, `o.pak`/`o.broek`/`o.arm`
+  = kleuren, vaste willekeur via `rng(zaad)`; `ORKEST` = 35 voorwerpen), 4 Het strand (2000x1300, `SW`/`SH`, `strandAchter`/`strandVoor`, `STRAND`; badgasten
+  via `badgast`, zonnebaders via `ligger`, parasols, windschermen, strandtent, ijskar, strandwacht). Een voorwerp nooit ook als afleider tekenen (geen
+  tweede kat, ijsje of zonnebril in hetzelfde level), anders tikt iemand op de verkeerde. Voortgang per speler en per level-id: `zoek_tijd_<id>:<naam>` (snelste tijd incl. hintstraf; een level is
   open als het vorige een tijd heeft, `isOpen`) en `zoek_auto_<id>:<naam>`. De vroegere fotolevel met wachtwoord is weg (oude sleutels met
   levelnummers worden bij het laden omgezet). Online scorebord (zelfde Apps Script, geen aanpassing nodig): onderdeel `zoek_tijd_<id>`, modus `gewoon`,
   automatisch ingestuurd op het eindscherm (`insturen`, alleen met naam en alleen verbeteringen, `zoek_ingestuurd:<naam>`), 🏆 Scorebord in de
