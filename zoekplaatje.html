@@ -35,6 +35,12 @@ html,body{margin:0;height:100%;background:var(--bg);color:#fff;font:16px/1.3 "Tr
 .level.dicht{opacity:.55;border-color:#ccc;cursor:default}
 .level b{font-size:18px;display:block}
 .level span{font-size:13px;color:#6a5a7a}
+#bordtabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0 10px}
+#bordtabs button{font:700 13px inherit;font-family:inherit;border:2px solid var(--paars);border-radius:10px;padding:5px 9px;background:#fff;color:var(--paars);cursor:pointer}
+#bordtabs button.aan{background:var(--paars);color:#fff}
+#bordlijst table{width:100%;border-collapse:collapse;font-size:16px}#bordlijst td{padding:5px 4px;border-bottom:1px solid #eadfcf;text-align:left}#bordlijst td.n{text-align:right;font-weight:700}
+#bordlijst tr.ik td{background:#fff1b8}
+.zacht{color:#7a6a8a;font-size:13px}
 .level .nr{font-size:26px;width:40px;text-align:center}
 [hidden]{display:none!important}
 </style></head><body>
@@ -44,34 +50,35 @@ html,body{margin:0;height:100%;background:var(--bg);color:#fff;font:16px/1.3 "Tr
   <div id="info"><span class="titel" id="titel"></span><span id="teller"></span><span id="tijd">0:00</span><button id="hint">💡 Hint</button></div>
   <div id="balk"></div>
 </div>
-<div class="scherm" id="slot" hidden>
-  <form class="kaart" id="slotform">
-    <h1>🔍 Zoekplaatje</h1>
-    <p>Dit spelletje is (nog) geheim. Wat is het wachtwoord?</p>
-    <input id="ww" type="password" autocomplete="off" placeholder="wachtwoord">
-    <button class="knop" type="submit">Spelen</button>
-    <div class="fout" id="wwfout"></div>
-  </form>
-</div>
 <div class="scherm" id="menu" hidden>
   <div class="kaart">
     <h1>🔍 Zoekplaatje</h1>
     <p>Zoek de spullen die bovenin staan. Vind je er één, dan komt er een nieuwe bij, tot je ze allemaal hebt. Bovenin zie je hoeveel er nog te vinden zijn. Inzoomen met twee vingers (of het muiswiel), schuiven door te slepen.</p><p>🚗 En let op: in elk level staat ergens de zilveren oldtimer verstopt…</p>
     <div id="levels"></div>
+    <button class="knop blauw" id="bordknop">🏆 Scorebord</button>
+  </div>
+</div>
+<div class="scherm" id="bord" hidden>
+  <div class="kaart">
+    <h1>🏆 Scorebord</h1>
+    <div id="bordtabs"></div>
+    <div id="bordlijst"></div>
+    <p class="zacht" id="bordnoot"></p>
+    <button class="knop blauw" id="bordterug">Terug</button>
   </div>
 </div>
 <div class="scherm" id="klaar" hidden>
   <div class="kaart">
     <h1>🎉 Alles gevonden!</h1>
     <p id="klaartekst"></p>
+    <p class="zacht" id="bordmelding"></p>
     <button class="knop" id="volgende">Volgend level</button>
     <button class="knop blauw" id="naarmenu">Naar de levels</button>
   </div>
 </div>
 <script>
 // Zoekplaatje: zoek alle voorwerpen (25 of meer) in een plaatje. Bovenin staan er steeds 10; vind je er één, dan schuift er een nieuwe in.
-// Level 1 is een getekende stripkamer (hieronder in de code), level 2 een foto die met het wachtwoord versleuteld is
-// (zoek/kamer.bin: zout(16) + iv(12) + AES-GCM, sleutel = PBKDF2-SHA256 van het wachtwoord in kleine letters, 150000 keer).
+// Alle levels zijn getekend in de code (stripstijl, zoals een Van Haasteren-puzzel). Snelste tijden gaan naar het online scorebord.
 const $ = (id) => document.getElementById(id);
 const TEGEL = location.hash == '#tegel';
 const cv = $('c'); let ctx = cv.getContext('2d');
@@ -517,14 +524,16 @@ function orkestVoor() {
 // ---------- spelstatus ----------
 let autoGevonden = false, autoMelding = 0, gekozen = -1, melding = null; // gekozen: welk vakje bovenin je hebt aangetikt
 let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, totaal = 25, start = 0, hints = 0, hintKlaar = 0, hintPuls = null, effecten = [];
-let fotoData = null, fotoBeeld = null, wachtwoord = '';
 // achter/voor/items: tekening en voorwerpen van een getekend level; auto: waar de zilveren oldtimer staat [x, y, schaal, draai]
 const LEVELS = [
-  { naam: 'De rommelkamer', uitleg: 'Een getekende kamer vol troep', soort: 'strip', achter: () => kamerAchter(), voor: () => kamerVoor(), items: STRIP, w: KW, h: KH, auto: [1040, 772, 0.5, 0] },
-  { naam: 'Bij ons thuis', menu: 'De verrassingskamer', uitleg: 'Wat zou hier te zien zijn…?', soort: 'foto', auto: [712, 262, 0.55, 0] },
-  { naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', soort: 'strip', achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
+  { id: 'kamer', naam: 'De rommelkamer', uitleg: 'Een kamer vol troep', achter: () => kamerAchter(), voor: () => kamerVoor(), items: STRIP, w: KW, h: KH, auto: [1040, 772, 0.5, 0] },
+  { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
 ];
-const vrij = () => +(opslag.get('zoek_lvl') || 1);
+// voortgang per level-id: zoek_tijd_<id> (snelste tijd in seconden, een hint telt als 20 s) en zoek_auto_<id> (oldtimer gevonden)
+for (const [n, id] of [[1, 'kamer'], [3, 'orkest']]) for (const k of ['zoek_tijd', 'zoek_auto']) { const v = opslag.get(k + n); if (v && !opslag.get(k + '_' + id)) opslag.set(k + '_' + id, v); } // oude sleutels met levelnummers
+const klaarMet = (i) => !!opslag.get('zoek_tijd_' + LEVELS[i].id);
+const isOpen = (i) => i == 0 || klaarMet(i) || klaarMet(i - 1); // een level gaat open als het vorige klaar is
+const HINT_STRAF = 20;
 // camera: wereld -> scherm
 let zoom = 1, ox = 0, oy = 0, minZoom = 1, maxZoom = 4, BW = KW, BH = KH;
 function maat() {
@@ -546,23 +555,19 @@ addEventListener('resize', () => { maat(); });
 
 function schud(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function voorwerpen() { // per level: lijst met { naam, raak(x, y, marge), midden: [x, y], icoon(canvas) }
-  if (level.soort == 'strip') return level.items.map((st) => ({ naam: st[0], st, midden: [st[2], st[3]], r: 30 * st[4] + 8,
+  return level.items.map((st) => ({ naam: st[0], st, midden: [st[2], st[3]], r: 30 * st[4] + 8,
     raak(x, y, m) { return Math.hypot(x - st[2], y - st[3]) < this.r + m; },
     icoon(c) { const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); const o = ctx; ctxWissel(g); g.save(); g.translate(c.width / 2, c.height / 2); g.scale(c.height / 56, c.height / 56); TEKEN[st[1]](); g.restore(); ctxWissel(o); } }));
-  return fotoData.items.map((it) => ({ naam: it.n, b: it.b, midden: [(it.b[0][0] + it.b[0][2]) / 2, (it.b[0][1] + it.b[0][3]) / 2],
-    raak(x, y, m) { return this.b.some(([a, b, c, d]) => x > a - m && x < c + m && y > b - m && y < d + m); },
-    icoon(c) { const g = c.getContext('2d'), [a, b, cc, d] = this.b[0], s = Math.min(c.width / (cc - a), c.height / (d - b)); g.clearRect(0, 0, c.width, c.height);
-      g.drawImage(fotoBeeld, a, b, cc - a, d - b, (c.width - (cc - a) * s) / 2, (c.height - (d - b) * s) / 2, (cc - a) * s, (d - b) * s); } }));
 }
 const ctxEcht = ctx; function ctxWissel(g) { ctx = g; } // tekenfuncties gebruiken ctx; voor de icoontjes even een ander doek
 
 function startLevel(n) {
   level = LEVELS[n - 1]; level.nr = n;
-  if (level.soort == 'foto') { BW = fotoData.w; BH = fotoData.h; } else { BW = level.w; BH = level.h; }
+  BW = level.w; BH = level.h;
   rij = schud(voorwerpen()); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
   autoGevonden = false; autoMelding = 0; gekozen = -1; melding = null;
-  $('titel').textContent = 'Level ' + n + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true;
+  $('titel').textContent = 'Level ' + n + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
   vulBalk(); maat.klaar = false; maat(); start = performance.now();
 }
 function vulBalk() {
@@ -586,7 +591,7 @@ function tik(sx, sy) {
   const x = (sx - ox) / zoom, y = (sy - oy) / zoom, m = 14 / zoom;
   const au = level.auto;
   if (!autoGevonden && Math.hypot(x - au[0], y - au[1]) < 34 * au[2] + m) { // de zilveren oldtimer: geen voorwerp van het lijstje, wel een verrassing
-    autoGevonden = true; autoMelding = performance.now(); opslag.set('zoek_auto' + level.nr, '1'); sToet();
+    autoGevonden = true; autoMelding = performance.now(); opslag.set('zoek_auto_' + level.id, '1'); sToet();
     effecten.push({ soort: 'goed', x: au[0], y: au[1], t: 0 }); return;
   }
   const raak = actief.findIndex((v) => v && v.raak(x, y, m));
@@ -612,15 +617,17 @@ function vind(i) {
     { transform: `translate(${dx - 34}px,${dy - 30}px) scale(.2)`, opacity: 0 },
   ], { duration: 900, easing: 'ease-in-out', fill: 'forwards' });
   setTimeout(() => d.classList.add('weg'), 700);
-  vlucht.onfinish = () => { c.remove(); actief[i] = rij.shift() || null; zetVak(i); if (gevonden >= totaal) setTimeout(klaar, 300); };
+  vlucht.onfinish = () => { c.remove(); actief[i] = rij.shift() || null; zetVak(i); };
+  if (gevonden >= totaal) setTimeout(klaar, 1100);
 }
 function klaar() {
-  const s = Math.round((performance.now() - start) / 1000), n = level.nr;
-  const best = +(opslag.get('zoek_tijd' + n) || 0); if (!best || s < best) opslag.set('zoek_tijd' + n, s);
-  if (vrij() <= n && n < LEVELS.length) opslag.set('zoek_lvl', n + 1);
+  const s = Math.round((performance.now() - start) / 1000), n = level.nr, stand = s + hints * HINT_STRAF;
+  const best = +(opslag.get('zoek_tijd_' + level.id) || 0); if (!best || stand < best) opslag.set('zoek_tijd_' + level.id, stand);
   sKlaar(); for (let k = 0; k < 60; k++) effecten.push({ soort: 'confetti', x: Math.random() * innerWidth, y: -20 - Math.random() * 200, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3, k: ['#ffd34d', '#e8384f', '#3fae5a', '#3a8ae8', '#e84ad8'][k % 5], t: 0, scherm: true });
-  $('klaartekst').innerHTML = `Je vond alle ${totaal} spullen in <b>${tijd(s)}</b>${hints ? ' (met ' + hints + ' hint' + (hints > 1 ? 's' : '') + ')' : ''}.` + (autoGevonden ? '<br>🚗 En de oldtimer had je ook gevonden!' : '<br>🚗 Maar de zilveren oldtimer heb je gemist…') + (best && s >= best ? `<br>Je snelste tijd: ${tijd(best)}` : best ? '<br>Nieuw record!' : '');
+  $('klaartekst').innerHTML = `Je vond alle ${totaal} spullen in <b>${tijd(s)}</b>` + (hints ? ` met ${hints} hint${hints > 1 ? 's' : ''} (+${hints * HINT_STRAF} s), dat wordt <b>${tijd(stand)}</b>` : '') + '.'
+    + (autoGevonden ? '<br>🚗 En de oldtimer had je ook gevonden!' : '<br>🚗 Maar de zilveren oldtimer heb je gemist…') + (best && stand >= best ? `<br>Je snelste tijd: ${tijd(best)}` : best ? '<br>Nieuw record!' : '');
   $('volgende').hidden = n >= LEVELS.length; $('klaar').hidden = false;
+  insturen(level, stand);
 }
 const tijd = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 $('hint').onclick = () => {
@@ -637,7 +644,7 @@ function teken() {
   ctx = ctxEcht; ctx.save(); ctx.fillStyle = '#2a1f3a'; ctx.fillRect(0, 0, innerWidth, innerHeight);
   if (level || TEGEL) {
     ctx.translate(ox, oy); ctx.scale(zoom, zoom);
-    if (!level || level.soort == 'strip') {
+    {
       const L = level || LEVELS[0]; ctx.drawImage(vooraf(L, 'achter'), 0, 0, L.w, L.h);
       if (level && !autoGevonden) tekenAuto();
       const lijst = level ? [...actief, ...rij].filter(Boolean) : null;
@@ -645,9 +652,8 @@ function teken() {
       for (const st of L.items) if (!st[6] && zicht(st)) tekenVoorwerp(st);
       ctx.drawImage(vooraf(L, 'voor'), 0, 0, L.w, L.h);
       for (const st of L.items) if (st[6] && zicht(st)) tekenVoorwerp(st);
-    } else if (fotoBeeld) { ctx.drawImage(fotoBeeld, 0, 0, BW, BH); if (!autoGevonden) tekenAuto(); }
+    }
     if (level) {
-      if (level.soort == 'foto') for (const v of fotoGevonden()) { ctx.strokeStyle = '#3fae5a'; ctx.lineWidth = 4 / zoom; ctx.fillStyle = 'rgba(63,174,90,.25)'; ctx.beginPath(); ctx.arc(v.midden[0], v.midden[1], 22 / zoom + 10, 0, 7); ctx.fill(); ctx.stroke(); }
       if (hintPuls) { const p = hintPuls; p.t++; const r = (34 + Math.sin(p.t * 0.25) * 8) / zoom * 1.2; ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 5 / zoom; ctx.beginPath(); ctx.arc(p.v.midden[0], p.v.midden[1], r + 20, 0, 7); ctx.stroke(); if (p.t > 150 || p.v.gevonden) hintPuls = null; }
     }
     for (const e of effecten) if (!e.scherm) {
@@ -666,7 +672,6 @@ function teken() {
   if (level && $('klaar').hidden) { $('tijd').textContent = tijd(Math.floor((performance.now() - start) / 1000)); const h = $('hint'); const wacht = hintKlaar - performance.now(); h.disabled = wacht > 0; h.textContent = wacht > 0 ? '💡 ' + Math.ceil(wacht / 1000) : '💡 Hint'; }
   requestAnimationFrame(teken);
 }
-function fotoGevonden() { return gevondenLijst; }
 
 // ---------- aanraken: slepen = schuiven, twee vingers = zoomen, tikken = zoeken ----------
 const vingers = new Map(); let neer = null, knijp = null;
@@ -691,36 +696,51 @@ cv.addEventListener('pointerup', los); cv.addEventListener('pointercancel', (e) 
 cv.addEventListener('wheel', (e) => { e.preventDefault(); const f = Math.exp(-e.deltaY * 0.0015), nz = Math.max(minZoom, Math.min(maxZoom, zoom * f)); const wx = (e.clientX - ox) / zoom, wy = (e.clientY - oy) / zoom; zoom = nz; ox = e.clientX - wx * nz; oy = e.clientY - wy * nz; begrens(); }, { passive: false });
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 
-// ---------- wachtwoord: de foto ontsleutelen ----------
-async function ontsleutel(ww) {
-  const ruw = new Uint8Array(await (await fetch('zoek/kamer.bin')).arrayBuffer());
-  const zout = ruw.slice(0, 16), iv = ruw.slice(16, 28), data = ruw.slice(28);
-  const basis = await crypto.subtle.importKey('raw', new TextEncoder().encode(ww.trim().toLowerCase()), 'PBKDF2', false, ['deriveKey']);
-  const sleutel = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: zout, iterations: 150000, hash: 'SHA-256' }, basis, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-  const uit = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, sleutel, data);
-  fotoData = JSON.parse(new TextDecoder().decode(uit));
-  fotoBeeld = new Image(); fotoBeeld.src = fotoData.img; await fotoBeeld.decode();
-}
-async function probeer(ww, stil) {
-  try { await ontsleutel(ww); wachtwoord = ww; try { localStorage.setItem('zoek_ww', ww); } catch (e) {} $('slot').hidden = true; toonMenu(); return true; }
-  catch (e) { if (!stil) { $('wwfout').textContent = e instanceof TypeError ? 'Kon het spel niet laden (internet?).' : 'Dat is niet het goede wachtwoord.'; } $('slot').hidden = false; return false; }
-}
-$('slotform').onsubmit = async (e) => { e.preventDefault(); unlock(); $('wwfout').textContent = 'Even kijken…'; await probeer($('ww').value); };
 function toonMenu() {
-  level = null; $('boven').hidden = true; $('klaar').hidden = true; $('menu').hidden = false; BW = KW; BH = KH; maat.klaar = false; maat();
-  const v = vrij();
-  $('levels').innerHTML = LEVELS.map((l, i) => { const open = i + 1 <= v, best = +(opslag.get('zoek_tijd' + (i + 1)) || 0);
-    return `<div class="level ${open ? '' : 'dicht'}" data-l="${i + 1}"><div class="nr">${open ? (best ? '⭐' : i + 1) : '🔒'}</div><div><b>Level ${i + 1}: ${l.menu || l.naam}${opslag.get('zoek_auto' + (i + 1)) ? ' 🚗' : ''}</b><span>${open ? l.uitleg + (best ? ' · snelste tijd ' + tijd(best) : '') : 'Maak eerst level ' + i + ' af'}</span></div></div>`; }).join('');
-  document.querySelectorAll('.level').forEach((el) => el.onclick = () => { const n = +el.dataset.l; if (n <= vrij()) { unlock(); startLevel(n); } });
+  level = null; $('boven').hidden = true; $('klaar').hidden = true; $('bord').hidden = true; $('menu').hidden = false; BW = KW; BH = KH; maat.klaar = false; maat();
+  $('levels').innerHTML = LEVELS.map((l, i) => { const open = isOpen(i), best = +(opslag.get('zoek_tijd_' + l.id) || 0);
+    return `<div class="level ${open ? '' : 'dicht'}" data-l="${i + 1}"><div class="nr">${open ? (best ? '⭐' : i + 1) : '🔒'}</div><div><b>Level ${i + 1}: ${l.naam}${opslag.get('zoek_auto_' + l.id) ? ' 🚗' : ''}</b><span>${open ? l.uitleg + (best ? ' · snelste tijd ' + tijd(best) : '') : 'Maak eerst level ' + i + ' af'}</span></div></div>`; }).join('');
+  document.querySelectorAll('.level').forEach((el) => el.onclick = () => { const n = +el.dataset.l; if (isOpen(n - 1)) { unlock(); startLevel(n); } });
 }
+
+// ---------- online scorebord (zelfde Google Spreadsheet als de andere spelletjes, extra/scorebord.gs) ----------
+// onderdeel zoek_tijd_<id>, modus gewoon; "tijd" in de naam = laag is beter. Insturen alleen met een naam en alleen verbeteringen.
+const BORD_URL = 'https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
+let bordTab = 0;
+function bordHalen(extra = '') { return fetch(BORD_URL + extra, { redirect: 'follow' }).then((r) => r.json()).then((d) => { try { localStorage.setItem('zoek_bord', JSON.stringify(d)); } catch (e) {} return d; }); }
+function bewaardBord() { try { return JSON.parse(localStorage.getItem('zoek_bord') || 'null'); } catch (e) { return null; } }
+function insturen(L, stand) {
+  const m = $('bordmelding'); m.textContent = '';
+  if (!speler) { m.textContent = 'Kies op de startpagina je naam, dan komt je tijd op het scorebord.'; return; }
+  let ing = {}; try { ing = JSON.parse(opslag.get('zoek_ingestuurd') || '{}'); } catch (e) {}
+  if (ing[L.id] && ing[L.id] <= stand) return;
+  m.textContent = 'Tijd insturen…';
+  bordHalen('?actie=opslaan&naam=' + encodeURIComponent(speler) + '&onderdeel=zoek_tijd_' + L.id + '&modus=gewoon&score=' + stand)
+    .then(() => { ing[L.id] = stand; opslag.set('zoek_ingestuurd', JSON.stringify(ing)); m.textContent = '🏆 Je tijd staat op het scorebord!'; })
+    .catch(() => { m.textContent = 'Scorebord niet bereikbaar (internet?). Volgende keer opnieuw.'; });
+}
+function toonBord() {
+  $('menu').hidden = true; $('bord').hidden = false;
+  tekenBord(bewaardBord(), 'Even ophalen…');
+  bordHalen().then((d) => tekenBord(d, '')).catch(() => tekenBord(bewaardBord(), 'Scorebord niet bereikbaar (internet?). Dit is de laatst bekende lijst.'));
+}
+function tekenBord(d, noot) {
+  $('bordtabs').innerHTML = LEVELS.map((l, i) => `<button class="${i == bordTab ? 'aan' : ''}" data-t="${i}">${i + 1}. ${l.naam}</button>`).join('');
+  document.querySelectorAll('#bordtabs button').forEach((b) => b.onclick = () => { bordTab = +b.dataset.t; tekenBord(d, noot); });
+  const lijst = (d && d['zoek_tijd_' + LEVELS[bordTab].id + '_gewoon']) || [];
+  $('bordlijst').innerHTML = lijst.length ? '<table>' + lijst.map((r, i) => `<tr class="${r.naam == speler ? 'ik' : ''}"><td style="width:30px">${['🥇', '🥈', '🥉'][i] || i + 1}</td><td>${String(r.naam).replace(/[<>&]/g, '')}</td><td class="n">${tijd(r.score)}</td></tr>`).join('') + '</table>' : '<p>Nog niemand heeft dit level gehaald.</p>';
+  $('bordnoot').textContent = (noot ? noot + ' ' : '') + 'Snelste tijden; een hint telt als ' + HINT_STRAF + ' seconden.';
+}
+$('bordknop').onclick = () => { unlock(); toonBord(); };
+$('bordterug').onclick = toonMenu;
 $('volgende').onclick = () => startLevel(level.nr + 1);
 $('naarmenu').onclick = toonMenu;
-// de terugknop gaat tijdens het spelen eerst naar de levels
-$('terug').onclick = (e) => { if (level) { e.preventDefault(); toonMenu(); } };
+// de terugknop gaat tijdens het spelen (en vanaf het scorebord) eerst naar de levels
+$('terug').onclick = (e) => { if (level || !$('bord').hidden) { e.preventDefault(); toonMenu(); } };
 
 maat(); requestAnimationFrame(teken);
 if (TEGEL) { $('terug').hidden = true; }
-else { let ww = ''; try { ww = localStorage.getItem('zoek_ww') || ''; } catch (e) {} if (ww) probeer(ww, true); else $('slot').hidden = false; }
-window.__test = { kiesVak, get gekozen() { return gekozen; }, get melding() { return melding; }, get autoGevonden() { return autoGevonden; }, get level() { return level; }, get actief() { return actief; }, get rij() { return rij; }, tik, startLevel, get zoom() { return zoom; }, get ox() { return ox; }, get oy() { return oy; }, wereldNaarScherm: (x, y) => [ox + x * zoom, oy + y * zoom], probeer, toonMenu };
+else { try { localStorage.removeItem('zoek_ww'); } catch (e) {} toonMenu(); }
+window.__test = { kiesVak, get gekozen() { return gekozen; }, get melding() { return melding; }, get autoGevonden() { return autoGevonden; }, get level() { return level; }, get actief() { return actief; }, get rij() { return rij; }, tik, startLevel, get zoom() { return zoom; }, get ox() { return ox; }, get oy() { return oy; }, wereldNaarScherm: (x, y) => [ox + x * zoom, oy + y * zoom], toonMenu, toonBord, LEVELS };
 </script>
 </body></html>

@@ -82,24 +82,21 @@ bedenk dat de site openbaar is.
   (groepen) en op het bord vast (`vastklikken`). Hulpjes: Voorbeeld (klein rechtsboven `#mini`, tik = groot met zoomen/schuiven/dubbeltik `#groot`), Randjes, Sorteren op kleur, alles in beeld.
   Zoomen met twee vingers of muiswiel, schuiven door op een lege plek te slepen. Voortgang in `fotopuzzel:<naam>`
   (zaadje voor de vormen + posities), record per foto/aantal in `fotopuzzel_<foto>_<n>[d]:<naam>`.
-- Zoekplaatje (`zoekplaatje.html`, concept, met wachtwoord): zoek alle voorwerpen van een level (25 of meer; het orkest heeft er 35, teller "🔍 nog N" via `totaal`/`zetTeller`) in een plaatje; bovenin staan er steeds 10
-  (`actief`); tik op een voorwerp in het plaatje: staat het bovenin, dan zweeft het naar zijn vakje en verdwijnt (`vind`, `.vlieg`),
-  daarna schuift het volgende uit `rij` in. Een voorwerp dat pas later komt geeft een melding (`meld`); `kiesVak` licht alleen een vakje op bij een hint. Zoomen met twee vingers/muiswiel, slepen =
-  schuiven, tik = zoeken (marge 14 schermpixels), 💡 Hint (15 s wachten). Level 1 "De rommelkamer" is getekend in de code
-  (`kamerAchter`/`kamerVoor`, voorwerpen in `STRIP` met tekening uit `TEKEN`), level 2 "Bij ons thuis" is een foto van Marcel
-  en Anja, versleuteld in `zoek/kamer.bin` (zout 16 + iv 12 + AES-GCM; sleutel = PBKDF2-SHA256 van het wachtwoord in kleine
-  letters, 150000 keer; daarin JSON met het plaatje als data-URL en per voorwerp naam + vakjes `b` in pixels). Het wachtwoord
-  staat nergens in de code: wie het goede intypt kan het bestand ontsleutelen (onthouden in `zoek_ww`). De originele foto nooit
-  los in de repo zetten. Voortgang per speler: `zoek_lvl:<naam>` (hoogste open level) en `zoek_tijd<n>:<naam>` (snelste tijd).
-  Een level pas open als het vorige klaar is. `#tegel` tekent de stripkamer voor de startpagina.
-  Levels in `LEVELS` (getekend: `achter`/`voor`/`items`; foto: uit kamer.bin): 1 De rommelkamer, 2 Bij ons thuis (foto; in de levelkeuze heet hij "De verrassingskamer", `menu`),
-  3 Het orkest (2000x1300, `OW`/`OH`; stijl van een Van Haasteren-puzzel: ruim 100 muzikanten dicht op elkaar in 5 halve
-  cirkels via `muzikant(x, y, s, o)` met `INSTR` en grapjes `GAG`, orgel, scherm met programma en LIVE-beeld, harp met hond, pizzabezorger,
-  schoonmaakster; vaste willekeur via `rng(zaad)`; `ORKEST` = 35 voorwerpen). Level 1 is rommelig gemaakt met `kamerRommel`/`kruimel`.
-  Getekende levels hebben `w`/`h` en worden één keer vooraf op een eigen doek getekend (`vooraf(L, laag)`), dus zware tekeningen kunnen.
+- Zoekplaatje (`zoekplaatje.html`, concept): zoek alle voorwerpen van een level (25 of meer; teller "🔍 nog N" via `totaal`/`zetTeller`) in een druk
+  stripplaatje in de stijl van een Van Haasteren-puzzel; bovenin staan er steeds 10 (`actief`). Tik op een voorwerp in het plaatje: staat het bovenin,
+  dan zweeft het naar zijn vakje en verdwijnt (`vind`, `.vlieg`), daarna schuift het volgende uit `rij` in. Een voorwerp dat pas later komt geeft
+  een melding (`meld`); `kiesVak` licht alleen een vakje op bij een hint. Zoomen met twee vingers/muiswiel, slepen = schuiven, tik = zoeken
+  (marge 14 schermpixels), 💡 Hint (15 s wachten, telt als `HINT_STRAF` = 20 s extra). Levels in `LEVELS` met een `id`, tekening `achter`/`voor`,
+  voorwerpen `items` ([naam, tekening uit `TEKEN`, x, y, schaal, draai, voorFlag]), `w`/`h` en `auto`. Elke laag wordt één keer vooraf op een eigen
+  doek getekend (`vooraf(L, laag)`), dus zware tekeningen kunnen. 1 De rommelkamer (`kamerAchter`/`kamerVoor`/`kamerRommel`/`kruimel`, `STRIP`),
+  2 Het orkest (2000x1300, `OW`/`OH`; ruim 100 muzikanten via `muzikant(x, y, s, o)` met `INSTR` en grapjes `GAG`, `o.staat` = staand figuur, vaste willekeur
+  via `rng(zaad)`; `ORKEST` = 35 voorwerpen). Voortgang per speler en per level-id: `zoek_tijd_<id>:<naam>` (snelste tijd incl. hintstraf; een level is
+  open als het vorige een tijd heeft, `isOpen`) en `zoek_auto_<id>:<naam>`. De vroegere fotolevel met wachtwoord is weg (oude sleutels met
+  levelnummers worden bij het laden omgezet). Online scorebord (zelfde Apps Script, geen aanpassing nodig): onderdeel `zoek_tijd_<id>`, modus `gewoon`,
+  automatisch ingestuurd op het eindscherm (`insturen`, alleen met naam en alleen verbeteringen, `zoek_ingestuurd:<naam>`), 🏆 Scorebord in de
+  levelkeuze (`toonBord`, tabjes per level, laatste lijst in `zoek_bord`). `#tegel` tekent de rommelkamer voor de startpagina.
   In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
-  `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!",
-  bewaard in `zoek_auto<n>:<naam>` en een 🚗 bij het level in de levelkeuze.
+  `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!" en een 🚗 bij het level.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een
