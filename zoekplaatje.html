@@ -21,6 +21,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:#fff;font:16px/1.3 "Tr
 .vak.gekozen{outline:4px solid var(--geel);outline-offset:-1px;transform:scale(1.06);background:#fff1b8}
 .vak{cursor:pointer}
 .vak.weg{transform:scale(.2);opacity:0}
+.vlieg{position:fixed;left:0;top:0;z-index:40;pointer-events:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))}
 .vak.leeg{background:rgba(255,255,255,.12)}
 .scherm{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(20,14,30,.92);padding:20px}
 .kaart{background:#fff8e8;color:#2a1f3a;border-radius:18px;padding:22px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px #000a}
@@ -128,15 +129,15 @@ const TEKEN = {
 };
 // naam, tekening, plek in de kamer, schaal, draaiing; voor = boven de voorgrond getekend (anders er half achter)
 const STRIP = [
-  ['Sleutelbos', 'sleutels', 330, 618, 0.51, 0.3], ['Bril', 'bril', 1012, 262, 0.47, 0, 1], ['Banaan', 'banaan', 628, 588, 0.51, -0.3],
-  ['Badeendje', 'eendje', 112, 348, 0.55, 0, 1], ['Mobieltje', 'telefoon', 452, 468, 0.47, 1.2, 1], ['Sok', 'sok', 838, 200, 0.47, 0.4, 1],
-  ['Mok', 'mok', 772, 590, 0.51, 0, 1], ['Potlood', 'potlood', 508, 728, 0.51, 0.9, 1], ['Schaar', 'schaar', 1106, 158, 0.42, 0.2, 1],
-  ['Horloge', 'horloge', 978, 706, 0.42, 1.3, 1], ['Appel', 'appel', 938, 350, 0.42, 0, 1], ['Kaars', 'kaars', 548, 590, 0.51, 0, 1],
-  ['Ballon', 'ballon', 610, 50, 0.59, 0.2, 1], ['Vergrootglas', 'vergrootglas', 196, 462, 0.51, -0.4], ['Muntje', 'munt', 868, 762, 0.38, 0, 1],
-  ['Paraplu', 'paraplu', 300, 410, 0.64, -0.25], ['Muisje', 'muis', 760, 548, 0.42, 0, 1], ['Dobbelsteen', 'dobbelsteen', 1128, 432, 0.38, 0.3, 1],
-  ['Schelp', 'schelp', 236, 350, 0.42, 0.2, 1], ['Tandenborstel', 'tandenborstel', 640, 418, 0.47, -0.4, 1], ['Pizzapunt', 'pizza', 706, 688, 0.51, 0.5],
-  ['Vlinder', 'vlinder', 46, 210, 0.42, 0.3, 1], ['Hamer', 'hamer', 86, 712, 0.51, 1.2, 1], ['Voetbal', 'voetbal', 478, 608, 0.51, 0],
-  ['Cadeautje', 'cadeau', 1006, 102, 0.51, 0, 1],
+  ['Sleutelbos', 'sleutels', 330, 618, 0.64, 0.3], ['Bril', 'bril', 1012, 262, 0.59, 0, 1], ['Banaan', 'banaan', 628, 588, 0.64, -0.3],
+  ['Badeendje', 'eendje', 112, 348, 0.69, 0, 1], ['Mobieltje', 'telefoon', 452, 468, 0.59, 1.2, 1], ['Sok', 'sok', 838, 200, 0.59, 0.4, 1],
+  ['Mok', 'mok', 772, 590, 0.64, 0, 1], ['Potlood', 'potlood', 508, 728, 0.64, 0.9, 1], ['Schaar', 'schaar', 1106, 158, 0.53, 0.2, 1],
+  ['Horloge', 'horloge', 978, 706, 0.53, 1.3, 1], ['Appel', 'appel', 938, 350, 0.53, 0, 1], ['Kaars', 'kaars', 548, 590, 0.64, 0, 1],
+  ['Ballon', 'ballon', 610, 50, 0.74, 0.2, 1], ['Vergrootglas', 'vergrootglas', 196, 462, 0.64, -0.4], ['Muntje', 'munt', 868, 762, 0.47, 0, 1],
+  ['Paraplu', 'paraplu', 300, 410, 0.8, -0.25], ['Muisje', 'muis', 760, 548, 0.53, 0, 1], ['Dobbelsteen', 'dobbelsteen', 1128, 432, 0.47, 0.3, 1],
+  ['Schelp', 'schelp', 236, 350, 0.53, 0.2, 1], ['Tandenborstel', 'tandenborstel', 640, 418, 0.59, -0.4, 1], ['Pizzapunt', 'pizza', 706, 688, 0.64, 0.5],
+  ['Vlinder', 'vlinder', 46, 210, 0.53, 0.3, 1], ['Hamer', 'hamer', 86, 712, 0.64, 1.2, 1], ['Voetbal', 'voetbal', 478, 608, 0.64, 0],
+  ['Cadeautje', 'cadeau', 1006, 102, 0.64, 0, 1],
 ];
 function vooraf(L, laag) { // tekent een laag één keer op een eigen doek (scherp genoeg om in te zoomen)
   const k = '_' + laag; if (L[k]) return L[k];
@@ -575,9 +576,9 @@ function zetVak(i) {
   if (!v) { d.className = 'vak leeg'; d.innerHTML = ''; return; }
   d.className = 'vak'; d.innerHTML = ''; const c = document.createElement('canvas'); c.width = 68; c.height = 60; d.appendChild(c); v.icoon(c);
   const s = document.createElement('span'); s.textContent = v.naam; d.appendChild(s);
-  d.onclick = () => { unlock(); kiesVak(gekozen == i ? -1 : i); };
+  d.onclick = () => unlock();
 }
-// eerst bovenin kiezen wat je gevonden hebt, dan het voorwerp in het plaatje aantikken
+// een vakje oplichten (bij een hint)
 function kiesVak(i) { gekozen = i; [...$('balk').children].forEach((d, j) => d.classList.toggle('gekozen', j == i)); if (i >= 0) snd(660, 0.06, 'triangle', 0.04); }
 function meld(tekst) { melding = { tekst, t: performance.now() }; }
 function tik(sx, sy) {
@@ -589,24 +590,29 @@ function tik(sx, sy) {
     effecten.push({ soort: 'goed', x: au[0], y: au[1], t: 0 }); return;
   }
   const raak = actief.findIndex((v) => v && v.raak(x, y, m));
-  if (gekozen < 0) { // nog niets gekozen
-    effecten.push({ soort: raak >= 0 ? 'later' : 'mis', x, y, t: 0 }); sMis();
-    meld(raak >= 0 ? 'Kies eerst bovenin wat je gevonden hebt!' : 'Kies eerst bovenin wat je zoekt.'); return;
-  }
-  const i = gekozen;
-  if (actief[i] && actief[i].raak(x, y, m)) {
-    kiesVak(-1);
-    const v = actief[i]; v.gevonden = true; gevondenLijst.push(v); gevonden++; sGevonden();
-    effecten.push({ soort: 'goed', x: v.midden[0], y: v.midden[1], t: 0 });
-    const d = $('balk').children[i]; d.classList.add('weg');
-    setTimeout(() => { actief[i] = rij.shift() || null; zetVak(i); }, 260);
-    zetTeller();
-    if (gevonden >= totaal) setTimeout(klaar, 700);
-    return;
-  }
-  const ander = raak >= 0 || rij.some((v) => v.raak(x, y, 0));
-  effecten.push({ soort: ander ? 'later' : 'mis', x, y, t: 0 }); sMis();
-  if (ander) meld('Dat is iets anders!');
+  if (raak >= 0) { vind(raak); return; }
+  const later = rij.some((v) => v.raak(x, y, 0));
+  effecten.push({ soort: later ? 'later' : 'mis', x, y, t: 0 }); sMis();
+  if (later) meld('Goed gezien, maar die zoeken we nu nog niet!');
+}
+// gevonden: het voorwerp zweeft naar zijn vakje bovenin en verdwijnt, daarna schuift het volgende in
+function vind(i) {
+  kiesVak(-1);
+  const v = actief[i]; actief[i] = null; v.gevonden = true; gevondenLijst.push(v); gevonden++; sGevonden();
+  effecten.push({ soort: 'goed', x: v.midden[0], y: v.midden[1], t: 0 });
+  zetTeller();
+  const d = $('balk').children[i], doel = d.getBoundingClientRect();
+  const c = document.createElement('canvas'); c.width = 68; c.height = 60; c.className = 'vlieg'; v.icoon(c); document.body.appendChild(c);
+  const sx = ox + v.midden[0] * zoom, sy = oy + v.midden[1] * zoom, groot = Math.max(0.5, Math.min(2.5, (v.r ? v.r * 2 : 60) * zoom / 56));
+  const dx = doel.left + doel.width / 2, dy = doel.top + doel.height / 2 - 6;
+  const vlucht = c.animate([
+    { transform: `translate(${sx - 34}px,${sy - 30}px) scale(${groot})`, opacity: 1 },
+    { transform: `translate(${(sx + dx) / 2 - 34}px,${Math.min(sy, dy) - 60}px) scale(${(groot + 1.3) / 2})`, opacity: 1, offset: 0.45 },
+    { transform: `translate(${dx - 34}px,${dy - 30}px) scale(1)`, opacity: 1, offset: 0.8 },
+    { transform: `translate(${dx - 34}px,${dy - 30}px) scale(.2)`, opacity: 0 },
+  ], { duration: 900, easing: 'ease-in-out', fill: 'forwards' });
+  setTimeout(() => d.classList.add('weg'), 700);
+  vlucht.onfinish = () => { c.remove(); actief[i] = rij.shift() || null; zetVak(i); if (gevonden >= totaal) setTimeout(klaar, 300); };
 }
 function klaar() {
   const s = Math.round((performance.now() - start) / 1000), n = level.nr;
