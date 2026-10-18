@@ -394,6 +394,18 @@ const ORKEST = [ // op het plaatje van 2000 x 1300; alleen dingen die bij een co
   ['Blauwe viool', 'blauweviool', 1966, 1118, 0.9, 0, 1],
 ];
 // ---------- level 3: het orkest, een druk stripplaatje (2000 x 1300) ----------
+// het orkest als plaatje (gemaakt met Gemini, 1376 x 768): [naam, x1, y1, x2, y2, (nog een vakje)...]
+const ORKEST_BEELD = [
+  ['Wekker', 250, 0, 280, 32], ['Ukelele', 585, 0, 670, 30], ['Panfluit', 95, 183, 131, 217], ['Banjo', 33, 210, 80, 302],
+  ['Tamboerijn', 225, 240, 264, 274, 187, 298, 224, 334], ['Microfoon', 235, 172, 256, 195], ['Duif', 741, 3, 775, 27],
+  ['Koffiemok', 1078, 12, 1105, 33, 1206, 200, 1227, 219, 1268, 285, 1292, 307], ['Muzieknootje', 916, 48, 968, 104], ['Gong', 1076, 220, 1142, 277],
+  ['Triangel', 1148, 220, 1177, 252], ['Doedelzak', 1036, 258, 1075, 304], ['Elektrische gitaar', 1318, 198, 1367, 307], ['Castagnetten', 1191, 300, 1230, 320],
+  ['Hondje', 30, 584, 80, 636], ['Blauwe viool', 148, 579, 174, 621], ['Blokfluit', 78, 634, 157, 671], ['Pizza', 180, 610, 249, 668, 1268, 336, 1322, 370],
+  ['Mobieltje', 252, 659, 292, 688], ['Metronoom', 290, 634, 332, 686], ['Horloge', 513, 629, 559, 658], ['Toegangskaartje', 593, 659, 642, 686],
+  ['Hoge hoed', 243, 697, 274, 726], ['Wortel', 648, 484, 684, 536], ['Accordeon', 831, 607, 915, 664], ['Dirigeerstokje', 763, 657, 825, 688],
+  ['Popcorn', 713, 704, 745, 739], ['Vergrootglas', 1215, 483, 1239, 505], ['Emmer', 1251, 654, 1282, 688], ['Dweil', 1168, 672, 1208, 692],
+  ['Boek', 748, 539, 787, 559],
+];
 const OW = 2000, OH = 1300;
 function rng(zaad) { return () => { zaad |= 0; zaad = zaad + 0x6D2B79F5 | 0; let t = Math.imul(zaad ^ zaad >>> 15, 1 | zaad); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const HUID = ['#f2c8a0', '#e8b088', '#c8905a', '#8a5a3a', '#f4d4b8', '#a86a42'], HAAR = ['#2a1a10', '#6a3a1a', '#d8b060', '#a8a8a8', '#e8e8e8', '#8a3a1a', '#1a1a1a', '#c86a2a'];
@@ -947,7 +959,8 @@ let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, totaa
 const LEVELS = [
   { id: 'kamer', naam: 'De rommelkamer', uitleg: 'Een kamer vol troep', achter: () => kamerAchter(), voor: () => kamerVoor(), items: STRIP, w: KW, h: KH, auto: [1040, 772, 0.5, 0] },
   { id: 'post', naam: 'Het postkantoor', uitleg: 'Druk, druk, druk bij de loketten', achter: () => postAchter(), voor: () => postVoor(), items: POST, w: PW, h: PH, auto: [120, 138, 0.5, 0] },
-  { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
+  { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', beeld: 'zoek/orkest.jpg', items: ORKEST_BEELD, auto: [1323, 637, 1376, 674] },
+  // reserve, de getekende versie: { id: 'orkest', ..., achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
   { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', achter: () => strandAchter(), voor: () => strandVoor(), items: STRAND, w: SW, h: SH, auto: [560, 548, 0.5, 0.1] },
   { id: 'schip', naam: 'Het piratenschip', uitleg: 'Ahoy! Wat hebben die piraten allemaal verstopt?', achter: () => schipAchter(), voor: () => schipVoor(), items: SCHIP, w: ZW, h: ZH, auto: [1000, 1250, 0.5, 0] },
 ];
