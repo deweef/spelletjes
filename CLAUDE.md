@@ -82,6 +82,15 @@ bedenk dat de site openbaar is.
   (groepen) en op het bord vast (`vastklikken`). Hulpjes: Voorbeeld (klein rechtsboven `#mini`, tik = groot met zoomen/schuiven/dubbeltik `#groot`), Randjes, Sorteren op kleur, alles in beeld.
   Zoomen met twee vingers of muiswiel, schuiven door op een lege plek te slepen. Voortgang in `fotopuzzel:<naam>`
   (zaadje voor de vormen + posities), record per foto/aantal in `fotopuzzel_<foto>_<n>[d]:<naam>`.
+- Zoekplaatje (`zoekplaatje.html`, concept, met wachtwoord): zoek 25 voorwerpen in een plaatje; bovenin staan er steeds 10
+  (`actief`), een gevonden voorwerp wordt vervangen door het volgende uit `rij`. Zoomen met twee vingers/muiswiel, slepen =
+  schuiven, tik = zoeken (marge 14 schermpixels), 💡 Hint (15 s wachten). Level 1 "De rommelkamer" is getekend in de code
+  (`kamerAchter`/`kamerVoor`, voorwerpen in `STRIP` met tekening uit `TEKEN`), level 2 "Bij ons thuis" is een foto van Marcel
+  en Anja, versleuteld in `zoek/kamer.bin` (zout 16 + iv 12 + AES-GCM; sleutel = PBKDF2-SHA256 van het wachtwoord in kleine
+  letters, 150000 keer; daarin JSON met het plaatje als data-URL en per voorwerp naam + vakjes `b` in pixels). Het wachtwoord
+  staat nergens in de code: wie het goede intypt kan het bestand ontsleutelen (onthouden in `zoek_ww`). De originele foto nooit
+  los in de repo zetten. Voortgang per speler: `zoek_lvl:<naam>` (hoogste open level) en `zoek_tijd<n>:<naam>` (snelste tijd).
+  Een level pas open als het vorige klaar is. `#tegel` tekent de stripkamer voor de startpagina.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een

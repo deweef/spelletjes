@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2a1f3a">
+<title>Zoekplaatje</title>
+<style>
+:root{--bg:#2a1f3a;--paars:#5a3a8a;--geel:#ffd34d;--groen:#3fae5a;--rood:#e8384f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:#fff;font:16px/1.3 "Trebuchet MS",Verdana,sans-serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#c{position:fixed;left:0;right:0;bottom:0;top:0;display:block;width:100%;height:100%}
+.terug{position:fixed;z-index:30;left:calc(8px + env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));width:40px;height:40px;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;text-decoration:none;font-size:28px;line-height:36px;text-align:center;border:1.5px solid rgba(255,255,255,.5)}
+#boven{position:fixed;z-index:20;left:0;right:0;top:0;padding:calc(6px + env(safe-area-inset-top)) 8px 6px 56px;background:linear-gradient(rgba(42,31,58,.96),rgba(42,31,58,.88));box-shadow:0 2px 8px #0006}
+#info{display:flex;gap:8px;align-items:center;font-weight:700;font-size:14px;margin:0 0 5px}
+#info .titel{flex:1;color:var(--geel);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#info button{font:700 14px inherit;font-family:inherit;border:0;border-radius:10px;padding:6px 10px;color:#fff;background:var(--paars);cursor:pointer}
+#info button:disabled{opacity:.45}
+#balk{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+@media (max-width:700px){#balk{grid-template-columns:repeat(5,1fr)}}
+.vak{hyphens:auto;-webkit-hyphens:auto;word-break:break-word;background:#fff8e8;border-radius:9px;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#2a1f3a;font-size:10px;font-weight:700;text-align:center;line-height:1.05;padding:2px;transition:transform .25s,opacity .25s;overflow:hidden}
+.vak canvas{width:34px;height:30px;display:block}
+.vak.weg{transform:scale(.2);opacity:0}
+.vak.leeg{background:rgba(255,255,255,.12)}
+.scherm{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;background:rgba(20,14,30,.92);padding:20px}
+.kaart{background:#fff8e8;color:#2a1f3a;border-radius:18px;padding:22px 20px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 40px #000a}
+.kaart h1{margin:0 0 6px;font-size:30px;color:var(--paars)}
+.kaart p{margin:6px 0 14px}
+.kaart input{font:inherit;font-size:20px;padding:10px 12px;border-radius:12px;border:2px solid #c8b8e0;width:100%;text-align:center}
+.knop{display:block;width:100%;font:700 18px inherit;font-family:inherit;border:0;border-radius:14px;padding:13px;margin-top:10px;color:#fff;background:var(--groen);cursor:pointer}
+.knop.blauw{background:#3f8fd8}
+.fout{color:var(--rood);font-weight:700;min-height:1.3em;margin-top:8px}
+.level{display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:3px solid var(--geel);border-radius:14px;padding:10px 12px;margin:10px 0;cursor:pointer}
+.level.dicht{opacity:.55;border-color:#ccc;cursor:default}
+.level b{font-size:18px;display:block}
+.level span{font-size:13px;color:#6a5a7a}
+.level .nr{font-size:26px;width:40px;text-align:center}
+[hidden]{display:none!important}
+</style></head><body>
+<a class="terug" href="./" id="terug">‹</a>
+<canvas id="c"></canvas>
+<div id="boven" hidden>
+  <div id="info"><span class="titel" id="titel"></span><span id="teller">0/25</span><span id="tijd">0:00</span><button id="hint">💡 Hint</button></div>
+  <div id="balk"></div>
+</div>
+<div class="scherm" id="slot" hidden>
+  <form class="kaart" id="slotform">
+    <h1>🔍 Zoekplaatje</h1>
+    <p>Dit spelletje is (nog) geheim. Wat is het wachtwoord?</p>
+    <input id="ww" type="password" autocomplete="off" placeholder="wachtwoord">
+    <button class="knop" type="submit">Spelen</button>
+    <div class="fout" id="wwfout"></div>
+  </form>
+</div>
+<div class="scherm" id="menu" hidden>
+  <div class="kaart">
+    <h1>🔍 Zoekplaatje</h1>
+    <p>Zoek de spullen die bovenin staan. Vind je er één, dan komt er een nieuwe bij, tot je alle 25 hebt. Inzoomen met twee vingers (of het muiswiel), schuiven door te slepen.</p>
+    <div id="levels"></div>
+  </div>
+</div>
+<div class="scherm" id="klaar" hidden>
+  <div class="kaart">
+    <h1>🎉 Alles gevonden!</h1>
+    <p id="klaartekst"></p>
+    <button class="knop" id="volgende">Volgend level</button>
+    <button class="knop blauw" id="naarmenu">Naar de levels</button>
+  </div>
+</div>
+<script>
+// Zoekplaatje: zoek 25 voorwerpen in een plaatje. Bovenin staan er steeds 10; vind je er één, dan schuift er een nieuwe in.
+// Level 1 is een getekende stripkamer (hieronder in de code), level 2 een foto die met het wachtwoord versleuteld is
+// (zoek/kamer.bin: zout(16) + iv(12) + AES-GCM, sleutel = PBKDF2-SHA256 van het wachtwoord in kleine letters, 150000 keer).
+const $ = (id) => document.getElementById(id);
+const TEGEL = location.hash == '#tegel';
+const cv = $('c'); let ctx = cv.getContext('2d');
+let speler = ''; try { speler = localStorage.getItem('speler') || ''; } catch (e) {}
+const opslag = { get(k) { try { return localStorage.getItem(k + (speler ? ':' + speler : '')); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k + (speler ? ':' + speler : ''), v); } catch (e) {} } };
+
+// ---------- geluidjes ----------
+let ac = null;
+function unlock() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state != 'running') ac.resume(); } catch (e) {} }
+function snd(f, d, type = 'sine', v = 0.06, naar = 0, wacht = 0) {
+  if (!ac) return; try { const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + wacht;
+    o.type = type; o.frequency.setValueAtTime(f, t); if (naar) o.frequency.exponentialRampToValueAtTime(naar, t + d);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + 0.05); } catch (e) {}
+}
+const sGevonden = () => { snd(880, 0.12, 'triangle', 0.07); snd(1320, 0.18, 'triangle', 0.06, 0, 0.08); };
+const sMis = () => snd(200, 0.15, 'square', 0.035, 120);
+const sKlaar = () => [523, 659, 784, 1047, 1319].forEach((f, i) => snd(f, 0.25, 'triangle', 0.07, 0, i * 0.11));
+
+// ---------- level 1: de getekende rommelkamer (1200 x 800) ----------
+const KW = 1200, KH = 800;
+function lijn(w = 3, k = '#2a1f2a') { ctx.lineWidth = w; ctx.strokeStyle = k; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; }
+function vorm(kleur, pad, rand = true) { ctx.fillStyle = kleur; ctx.beginPath(); pad(); ctx.fill(); if (rand) ctx.stroke(); }
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+// de voorwerpen, elk getekend rond (0,0) in ongeveer 50 x 50
+const TEKEN = {
+  sleutels() { lijn(2.5); vorm('#ffd34d', () => ctx.arc(-6, -4, 8, 0, 7)); ctx.fillStyle = '#fff8e8'; ctx.beginPath(); ctx.arc(-6, -4, 3, 0, 7); ctx.fill();
+    for (const [a, k] of [[0.5, '#c8c8d0'], [1.1, '#e8a030']]) { ctx.save(); ctx.translate(-6, -4); ctx.rotate(a); vorm(k, () => { ctx.rect(6, -3, 22, 6); }); vorm(k, () => { ctx.rect(22, 3, 4, 5); ctx.rect(16, 3, 3, 4); }); ctx.restore(); } },
+  bril() { lijn(3); ctx.fillStyle = 'rgba(180,220,255,.55)'; for (const x of [-11, 11]) { ctx.beginPath(); ctx.arc(x, 0, 9, 0, 7); ctx.fill(); ctx.stroke(); } ctx.beginPath(); ctx.moveTo(-2, -2); ctx.quadraticCurveTo(0, -6, 2, -2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-20, -2); ctx.lineTo(-26, -6); ctx.moveTo(20, -2); ctx.lineTo(26, -6); ctx.stroke(); },
+  banaan() { lijn(2.5); vorm('#ffd84a', () => { ctx.moveTo(-20, -8); ctx.quadraticCurveTo(0, 22, 22, -10); ctx.quadraticCurveTo(0, 8, -20, -8); }); ctx.fillStyle = '#5a4a1a'; ctx.fillRect(19, -13, 5, 5); },
+  eendje() { lijn(2.5); vorm('#ffd34d', () => ctx.ellipse(0, 6, 17, 11, 0, 0, 7)); vorm('#ffd34d', () => ctx.arc(9, -8, 9, 0, 7)); vorm('#ff8a1a', () => { ctx.moveTo(16, -9); ctx.lineTo(26, -6); ctx.lineTo(16, -3); }); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(11, -10, 1.8, 0, 7); ctx.fill(); },
+  telefoon() { lijn(2.5); ctx.fillStyle = '#2a2a3a'; rr(-11, -20, 22, 40, 5); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#7ad0f0'; ctx.fillRect(-8, -15, 16, 27); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 16, 1.6, 0, 7); ctx.fill(); },
+  sok() { lijn(2.5); vorm('#e8384f', () => { ctx.moveTo(-8, -20); ctx.lineTo(8, -20); ctx.lineTo(8, 6); ctx.quadraticCurveTo(10, 18, -4, 18); ctx.lineTo(-18, 18); ctx.quadraticCurveTo(-24, 8, -12, 4); ctx.lineTo(-8, 2); ctx.closePath(); }); ctx.fillStyle = '#fff'; ctx.fillRect(-8, -20, 16, 5); ctx.fillRect(-8, -8, 16, 3); },
+  mok() { lijn(2.5); vorm('#3a8ae8', () => { ctx.moveTo(-12, -14); ctx.lineTo(12, -14); ctx.lineTo(10, 16); ctx.lineTo(-10, 16); ctx.closePath(); }); ctx.beginPath(); ctx.arc(14, 0, 7, -1.4, 1.4); ctx.stroke(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 2, 4, 0, 7); ctx.fill(); },
+  potlood() { lijn(2.5); vorm('#ffb43a', () => ctx.rect(-20, -4, 32, 8)); vorm('#f2d8a8', () => { ctx.moveTo(12, -4); ctx.lineTo(22, 0); ctx.lineTo(12, 4); }); ctx.fillStyle = '#ff9ac0'; ctx.fillRect(-25, -4, 5, 8); ctx.strokeRect(-25, -4, 5, 8); },
+  schaar() { lijn(2.5); ctx.fillStyle = '#ccc'; for (const s of [-1, 1]) { ctx.save(); ctx.rotate(s * 0.25); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(24, -2 * s); ctx.lineTo(0, 3 * s); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    ctx.fillStyle = 'transparent'; ctx.strokeStyle = '#e8384f'; ctx.lineWidth = 4; for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(-10, s * 8, 7, 5, 0, 0, 7); ctx.stroke(); } },
+  horloge() { lijn(2.5); vorm('#7a4a24', () => ctx.rect(-5, -22, 10, 44)); vorm('#ffd34d', () => ctx.arc(0, 0, 11, 0, 7)); vorm('#fff', () => ctx.arc(0, 0, 8, 0, 7), false); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -6); ctx.moveTo(0, 0); ctx.lineTo(4, 2); ctx.stroke(); },
+  appel() { lijn(2.5); vorm('#e8384f', () => { ctx.arc(-6, 2, 12, 0, 7); ctx.arc(6, 2, 12, 0, 7); }); ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(2, -18); ctx.stroke(); vorm('#3fae5a', () => ctx.ellipse(8, -15, 6, 3, -0.5, 0, 7)); },
+  kaars() { lijn(2.5); vorm('#fff4e0', () => ctx.rect(-7, -10, 14, 28)); ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, -15); ctx.stroke(); vorm('#ffb43a', () => { ctx.moveTo(0, -27); ctx.quadraticCurveTo(6, -18, 0, -15); ctx.quadraticCurveTo(-6, -18, 0, -27); }, false); },
+  ballon() { lijn(2.5); vorm('#e84ad8', () => ctx.ellipse(0, -6, 14, 17, 0, 0, 7)); ctx.beginPath(); ctx.moveTo(0, 11); ctx.quadraticCurveTo(6, 20, 0, 28); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(-5, -12, 3, 5, -0.4, 0, 7); ctx.fill(); },
+  vergrootglas() { lijn(3); ctx.save(); ctx.rotate(0.7); vorm('#7a4a24', () => ctx.rect(10, -4, 18, 8)); ctx.restore(); vorm('rgba(180,230,255,.7)', () => ctx.arc(-4, -4, 12, 0, 7)); ctx.lineWidth = 4; ctx.strokeStyle = '#555'; ctx.beginPath(); ctx.arc(-4, -4, 12, 0, 7); ctx.stroke(); },
+  munt() { lijn(2.5); vorm('#ffd34d', () => ctx.arc(0, 0, 12, 0, 7)); ctx.strokeStyle = '#b8860b'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, 7); ctx.stroke(); ctx.fillStyle = '#b8860b'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('€', 0, 1); },
+  paraplu() { lijn(2.5); vorm('#3fae5a', () => { ctx.moveTo(-24, -4); ctx.quadraticCurveTo(0, -30, 24, -4); ctx.quadraticCurveTo(12, -10, 0, -4); ctx.quadraticCurveTo(-12, -10, -24, -4); }); ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(0, 22); ctx.arc(-5, 22, 5, 0, Math.PI); ctx.stroke(); },
+  muis() { lijn(2.5); vorm('#a8a8b8', () => ctx.ellipse(0, 4, 15, 10, 0, 0, 7)); vorm('#ffb0c8', () => ctx.arc(-6, -6, 5, 0, 7)); vorm('#ffb0c8', () => ctx.arc(4, -6, 5, 0, 7)); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(10, 2, 1.8, 0, 7); ctx.fill(); ctx.fillStyle = '#ff6a8a'; ctx.beginPath(); ctx.arc(15, 5, 2, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(-15, 6); ctx.quadraticCurveTo(-26, 12, -22, 20); ctx.stroke(); },
+  dobbelsteen() { lijn(2.5); ctx.fillStyle = '#fff'; rr(-13, -13, 26, 26, 5); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#e8384f'; for (const [x, y] of [[-6, -6], [0, 0], [6, 6], [6, -6], [-6, 6]]) { ctx.beginPath(); ctx.arc(x, y, 2.4, 0, 7); ctx.fill(); } },
+  schelp() { lijn(2.5); vorm('#ffc8a8', () => { ctx.moveTo(-16, 8); ctx.quadraticCurveTo(-18, -16, 0, -18); ctx.quadraticCurveTo(18, -16, 16, 8); ctx.lineTo(0, 14); ctx.closePath(); }); for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(0, 12); ctx.lineTo(k * 6, -14); ctx.stroke(); } },
+  tandenborstel() { lijn(2.5); ctx.fillStyle = '#4ab8e8'; rr(-24, -3, 38, 6, 3); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect(12, -10, 12, 7); ctx.strokeRect(12, -10, 12, 7); },
+  pizza() { lijn(2.5); vorm('#ffd060', () => { ctx.moveTo(-18, -14); ctx.lineTo(20, -6); ctx.lineTo(-8, 18); ctx.closePath(); }); ctx.fillStyle = '#c8501a'; ctx.beginPath(); ctx.moveTo(-18, -14); ctx.lineTo(20, -6); ctx.lineTo(18, -1); ctx.lineTo(-17, -9); ctx.fill(); ctx.fillStyle = '#d8302a'; for (const [x, y] of [[-6, 0], [4, 2], [-6, 9]]) { ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); } },
+  vlinder() { lijn(2); for (const s of [-1, 1]) { vorm('#ff7a1a', () => ctx.ellipse(s * 9, -5, 9, 11, s * 0.4, 0, 7)); vorm('#ffd34d', () => ctx.ellipse(s * 7, 9, 6, 7, s * -0.4, 0, 7)); } vorm('#2a1f2a', () => ctx.ellipse(0, 1, 2.5, 13, 0, 0, 7), false); },
+  hamer() { lijn(2.5); vorm('#c8904a', () => ctx.rect(-4, -10, 8, 34)); vorm('#8a8a98', () => { rr(-16, -20, 32, 12, 3); }); },
+  voetbal() { lijn(2.5); vorm('#fff', () => ctx.arc(0, 0, 15, 0, 7)); ctx.fillStyle = '#2a1f2a'; ctx.beginPath(); for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + k * 2 * Math.PI / 5; ctx.lineTo(Math.cos(a) * 5, Math.sin(a) * 5); } ctx.fill(); for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + k * 2 * Math.PI / 5; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 5, Math.sin(a) * 5); ctx.lineTo(Math.cos(a) * 15, Math.sin(a) * 15); ctx.stroke(); } },
+  cadeau() { lijn(2.5); vorm('#9a4fd6', () => ctx.rect(-15, -10, 30, 24)); ctx.fillStyle = '#ffd34d'; ctx.fillRect(-3, -10, 6, 24); ctx.fillRect(-15, -1, 30, 5); ctx.strokeRect(-15, -10, 30, 24);
+    vorm('#ffd34d', () => { ctx.ellipse(-6, -14, 7, 4, 0.4, 0, 7); ctx.ellipse(6, -14, 7, 4, -0.4, 0, 7); }); },
+};
+// naam, tekening, plek in de kamer, schaal, draaiing; voor = boven de voorgrond getekend (anders er half achter)
+const STRIP = [
+  ['Sleutelbos', 'sleutels', 330, 618, 0.6, 0.3], ['Bril', 'bril', 1012, 262, 0.55, 0, 1], ['Banaan', 'banaan', 628, 588, 0.6, -0.3],
+  ['Badeendje', 'eendje', 112, 348, 0.65, 0, 1], ['Mobieltje', 'telefoon', 452, 468, 0.55, 1.2, 1], ['Sok', 'sok', 838, 200, 0.55, 0.4, 1],
+  ['Mok', 'mok', 772, 590, 0.6, 0, 1], ['Potlood', 'potlood', 508, 728, 0.6, 0.9, 1], ['Schaar', 'schaar', 1106, 158, 0.5, 0.2, 1],
+  ['Horloge', 'horloge', 978, 706, 0.5, 1.3, 1], ['Appel', 'appel', 938, 350, 0.5, 0, 1], ['Kaars', 'kaars', 548, 590, 0.6, 0, 1],
+  ['Ballon', 'ballon', 610, 50, 0.7, 0.2, 1], ['Vergrootglas', 'vergrootglas', 196, 462, 0.6, -0.4], ['Muntje', 'munt', 868, 762, 0.45, 0, 1],
+  ['Paraplu', 'paraplu', 300, 410, 0.75, -0.25], ['Muisje', 'muis', 760, 548, 0.5, 0, 1], ['Dobbelsteen', 'dobbelsteen', 1128, 432, 0.45, 0.3, 1],
+  ['Schelp', 'schelp', 236, 350, 0.5, 0.2, 1], ['Tandenborstel', 'tandenborstel', 640, 418, 0.55, -0.4, 1], ['Pizzapunt', 'pizza', 706, 688, 0.6, 0.5],
+  ['Vlinder', 'vlinder', 46, 210, 0.5, 0.3, 1], ['Hamer', 'hamer', 86, 712, 0.6, 1.2, 1], ['Voetbal', 'voetbal', 478, 608, 0.6, 0],
+  ['Cadeautje', 'cadeau', 1006, 102, 0.6, 0, 1],
+];
+function tekenVoorwerp(st, g = ctx) { ctx.save(); ctx.translate(st[2], st[3]); ctx.rotate(st[5]); ctx.scale(st[4], st[4]); TEKEN[st[1]](); ctx.restore(); }
+function boek(x, y, w, h, k) { ctx.fillStyle = k; ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(x + 2, y + 6, w - 4, 3); }
+// de kamer zelf: eerst alles wat achter de voorwerpen zit
+function kamerAchter() {
+  lijn(3);
+  ctx.fillStyle = '#f4dfbf'; ctx.fillRect(0, 0, KW, 560); // muur
+  ctx.fillStyle = '#ead2ac'; for (let y = 20; y < 560; y += 40) for (let x = (y / 40 % 2) * 20; x < KW; x += 40) { ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); } // behangstipjes
+  ctx.fillStyle = '#b8783a'; ctx.fillRect(0, 560, KW, 240); // vloer
+  ctx.strokeStyle = '#9a6230'; ctx.lineWidth = 2; for (let y = 600; y < KH; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(KW, y); ctx.stroke(); for (let x = (y / 40 % 2) * 90; x < KW; x += 180) { ctx.beginPath(); ctx.moveTo(x, y - 40); ctx.lineTo(x, y); ctx.stroke(); } }
+  lijn(3); ctx.fillStyle = '#fff8e8'; ctx.fillRect(0, 548, KW, 14); ctx.strokeRect(-5, 548, KW + 10, 14); // plint
+  vorm('#1a1210', () => { ctx.moveTo(744, 562); ctx.arc(760, 562, 16, Math.PI, 0); }); // muizenholletje
+  // raam met gordijnen
+  vorm('#9ad8f0', () => ctx.rect(70, 70, 220, 270)); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(140, 140, 18, 0, 7); ctx.arc(162, 132, 22, 0, 7); ctx.arc(185, 142, 16, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(180, 70); ctx.lineTo(180, 340); ctx.moveTo(70, 205); ctx.lineTo(290, 205); ctx.stroke();
+  vorm('#fff8e8', () => ctx.rect(56, 336, 248, 18)); // vensterbank
+  vorm('#d8402a', () => { ctx.moveTo(20, 50); ctx.lineTo(90, 50); ctx.quadraticCurveTo(70, 200, 100, 360); ctx.lineTo(20, 360); ctx.closePath(); });
+  vorm('#d8402a', () => { ctx.moveTo(340, 50); ctx.lineTo(270, 50); ctx.quadraticCurveTo(290, 200, 260, 360); ctx.lineTo(340, 360); ctx.closePath(); });
+  ctx.fillStyle = '#ffd34d'; for (let y = 80; y < 350; y += 34) { ctx.beginPath(); ctx.arc(45, y, 5, 0, 7); ctx.arc(315, y + 17, 5, 0, 7); ctx.fill(); }
+  vorm('#7a4a24', () => ctx.rect(10, 40, 340, 12)); // gordijnroede
+  // schilderij en klok
+  vorm('#c8904a', () => ctx.rect(410, 90, 150, 110)); vorm('#8ad0a0', () => ctx.rect(422, 102, 126, 86)); vorm('#4a9a5a', () => { ctx.moveTo(422, 188); ctx.lineTo(470, 130); ctx.lineTo(510, 170); ctx.lineTo(548, 140); ctx.lineTo(548, 188); });
+  vorm('#ffd34d', () => ctx.arc(520, 120, 10, 0, 7));
+  vorm('#fff8e8', () => ctx.arc(700, 120, 42, 0, 7)); ctx.beginPath(); ctx.moveTo(700, 120); ctx.lineTo(700, 92); ctx.moveTo(700, 120); ctx.lineTo(720, 128); ctx.stroke();
+  for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; ctx.fillStyle = '#2a1f2a'; ctx.fillRect(700 + Math.cos(a) * 34 - 2, 120 + Math.sin(a) * 34 - 2, 4, 4); }
+  // boekenkast
+  vorm('#8a5a30', () => ctx.rect(900, 120, 270, 440));
+  for (const y of [210, 300, 390, 480]) vorm('#6a4220', () => ctx.rect(900, y, 270, 12));
+  const kl = ['#e8384f', '#3a8ae8', '#3fae5a', '#ffd34d', '#9a4fd6', '#ff7a1a', '#4ab8e8'];
+  let i = 0; for (const [y, h] of [[132, 78], [222, 78], [312, 78], [402, 78], [492, 68]]) for (let x = 910; x < 1160; x += 22) { if ((i * 7 + y) % 11 < 4) { x += 30; i++; continue; } boek(x, y + (i % 3) * 6, 18, h - (i % 3) * 6, kl[i++ % kl.length]); }
+  vorm('#ff9ac0', () => { ctx.moveTo(1120, 300); ctx.lineTo(1150, 300); ctx.lineTo(1145, 260); ctx.lineTo(1125, 260); ctx.closePath(); }); // vaasje
+  vorm('#3fae5a', () => { ctx.ellipse(1128, 248, 8, 16, -0.4, 0, 7); ctx.ellipse(1142, 248, 8, 16, 0.4, 0, 7); });
+  // staande lamp (paal)
+  ctx.lineWidth = 6; ctx.strokeStyle = '#2a1f2a'; ctx.beginPath(); ctx.moveTo(840, 250); ctx.lineTo(840, 600); ctx.stroke(); lijn(3); vorm('#2a1f2a', () => ctx.ellipse(840, 605, 30, 8, 0, 0, 7));
+  // vloerkleed
+  vorm('#d8607a', () => ctx.ellipse(650, 715, 330, 70, 0, 0, 7)); ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(650, 715, 290, 52, 0, 0, 7); ctx.stroke(); lijn(3);
+  // bank
+  vorm('#3aa8a0', () => rr(240, 380, 430, 120, 30)); vorm('#2e8a84', () => rr(220, 460, 470, 110, 22));
+  vorm('#3aa8a0', () => rr(200, 430, 70, 140, 20)); vorm('#3aa8a0', () => rr(640, 430, 70, 140, 20));
+  vorm('#ffd34d', () => rr(290, 410, 90, 70, 18)); vorm('#ff9ac0', () => rr(530, 410, 90, 70, 18));
+  vorm('#2a1f2a', () => { ctx.rect(240, 570, 14, 20); ctx.rect(660, 570, 14, 20); });
+  // salontafel
+  vorm('#c8904a', () => ctx.rect(520, 610, 300, 18)); vorm('#a8743a', () => { ctx.rect(535, 628, 14, 60); ctx.rect(790, 628, 14, 60); });
+  vorm('#e8e0d0', () => ctx.ellipse(650, 600, 50, 12, 0, 0, 7)); // fruitschaal
+  vorm('#ff8a1a', () => ctx.arc(664, 588, 12, 0, 7)); vorm('#8a4ad6', () => { ctx.arc(686, 592, 6, 0, 7); ctx.arc(696, 594, 6, 0, 7); ctx.arc(691, 586, 6, 0, 7); });
+  vorm('#fff', () => { ctx.moveTo(700, 610); ctx.lineTo(760, 604); ctx.lineTo(764, 610); ctx.closePath(); }); // tijdschrift
+  // spullen op de grond (afleiders)
+  for (let k = 0; k < 4; k++) boek(1030 + k * 3, 680 - k * 16, 80, 16, kl[k + 2]); // stapel boeken
+  vorm('#ff9ac0', () => ctx.ellipse(160, 760, 30, 12, 0.2, 0, 7)); vorm('#ff9ac0', () => ctx.ellipse(210, 772, 30, 12, -0.1, 0, 7)); // sloffen
+  for (const [x, y, k] of [[260, 730, '#e8384f'], [290, 742, '#3a8ae8'], [272, 712, '#ffd34d']]) vorm(k, () => ctx.rect(x, y, 26, 22)); // blokken
+  vorm('#d8b880', () => rr(1080, 700, 100, 80, 10)); ctx.strokeStyle = '#a8884a'; for (let x = 1090; x < 1180; x += 14) { ctx.beginPath(); ctx.moveTo(x, 702); ctx.lineTo(x, 778); ctx.stroke(); } lijn(3); // wasmand
+  vorm('#fff8e8', () => { ctx.moveTo(560, 760); ctx.lineTo(640, 750); ctx.lineTo(650, 785); ctx.lineTo(570, 792); ctx.closePath(); }); // krant
+  // plantenpot
+  vorm('#c8603a', () => { ctx.moveTo(150, 540); ctx.lineTo(240, 540); ctx.lineTo(228, 620); ctx.lineTo(162, 620); ctx.closePath(); });
+  // gitaar tegen de kast
+  vorm('#c8803a', () => { ctx.ellipse(880, 520, 26, 30, 0, 0, 7); ctx.ellipse(880, 476, 20, 22, 0, 0, 7); }); vorm('#3a2410', () => ctx.arc(880, 500, 8, 0, 7)); vorm('#6a3a14', () => ctx.rect(875, 380, 10, 90));
+}
+// wat ervoor staat: bladeren van de plant, de lampenkap
+function kamerVoor() {
+  lijn(3);
+  for (const [a, l] of [[-2.3, 70], [-1.9, 85], [-1.5, 90], [-1.15, 80], [-0.8, 70], [-2.7, 60], [-0.4, 55]]) { ctx.save(); ctx.translate(195, 545); ctx.rotate(a); vorm('#3fae5a', () => ctx.ellipse(l / 2, 0, l / 2, 13, 0, 0, 7)); ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(l - 6, 0); ctx.stroke(); ctx.restore(); }
+  vorm('#ffe8a0', () => { ctx.moveTo(800, 270); ctx.lineTo(880, 270); ctx.lineTo(862, 210); ctx.lineTo(818, 210); ctx.closePath(); });
+}
+
+// ---------- spelstatus ----------
+let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, start = 0, hints = 0, hintKlaar = 0, hintPuls = null, effecten = [];
+let fotoData = null, fotoBeeld = null, wachtwoord = '';
+const LEVELS = [
+  { naam: 'De rommelkamer', uitleg: 'Een getekende kamer vol troep', soort: 'strip' },
+  { naam: 'Bij ons thuis', uitleg: 'Een echte foto. Succes!', soort: 'foto' },
+];
+const vrij = () => +(opslag.get('zoek_lvl') || 1);
+// camera: wereld -> scherm
+let zoom = 1, ox = 0, oy = 0, minZoom = 1, maxZoom = 4, BW = KW, BH = KH;
+function maat() {
+  const dpr = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const top = TEGEL ? 0 : $('boven').offsetHeight, ch = innerHeight - top, cw = innerWidth;
+  const past = Math.min(cw / BW, ch / BH), vult = Math.max(cw / BW, ch / BH);
+  minZoom = past; maxZoom = vult * 4;
+  if (!maat.klaar || TEGEL) { zoom = vult; /* het hele scherm vullen; je schuift om de rest te zien */ maat.klaar = true; ox = (cw - BW * zoom) / 2; oy = top + (ch - BH * zoom) / 2; }
+  begrens();
+}
+function begrens() {
+  const top = TEGEL ? 0 : $('boven').offsetHeight, ch = innerHeight - top, cw = innerWidth;
+  zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+  const w = BW * zoom, h = BH * zoom;
+  ox = w <= cw ? (cw - w) / 2 : Math.min(0, Math.max(cw - w, ox));
+  oy = h <= ch ? top + (ch - h) / 2 : Math.min(top, Math.max(top + ch - h, oy));
+}
+addEventListener('resize', () => { maat(); });
+
+function schud(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function voorwerpen() { // per level: lijst met { naam, raak(x, y, marge), midden: [x, y], icoon(canvas) }
+  if (level.soort == 'strip') return STRIP.map((st) => ({ naam: st[0], st, midden: [st[2], st[3]], r: 30 * st[4] + 8,
+    raak(x, y, m) { return Math.hypot(x - st[2], y - st[3]) < this.r + m; },
+    icoon(c) { const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); const o = ctx; ctxWissel(g); g.save(); g.translate(c.width / 2, c.height / 2); g.scale(c.height / 56, c.height / 56); TEKEN[st[1]](); g.restore(); ctxWissel(o); } }));
+  return fotoData.items.map((it) => ({ naam: it.n, b: it.b, midden: [(it.b[0][0] + it.b[0][2]) / 2, (it.b[0][1] + it.b[0][3]) / 2],
+    raak(x, y, m) { return this.b.some(([a, b, c, d]) => x > a - m && x < c + m && y > b - m && y < d + m); },
+    icoon(c) { const g = c.getContext('2d'), [a, b, cc, d] = this.b[0], s = Math.min(c.width / (cc - a), c.height / (d - b)); g.clearRect(0, 0, c.width, c.height);
+      g.drawImage(fotoBeeld, a, b, cc - a, d - b, (c.width - (cc - a) * s) / 2, (c.height - (d - b) * s) / 2, (cc - a) * s, (d - b) * s); } }));
+}
+const ctxEcht = ctx; function ctxWissel(g) { ctx = g; } // tekenfuncties gebruiken ctx; voor de icoontjes even een ander doek
+
+function startLevel(n) {
+  level = LEVELS[n - 1]; level.nr = n;
+  if (level.soort == 'foto') { BW = fotoData.w; BH = fotoData.h; } else { BW = KW; BH = KH; }
+  rij = schud(voorwerpen()); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
+  for (const v of [...actief, ...rij]) v.gevonden = false;
+  $('titel').textContent = 'Level ' + n + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true;
+  vulBalk(); maat.klaar = false; maat(); start = performance.now();
+}
+function vulBalk() {
+  const b = $('balk'); b.innerHTML = '';
+  for (let i = 0; i < 10; i++) { const d = document.createElement('div'); d.className = 'vak'; b.appendChild(d); zetVak(i); }
+  $('teller').textContent = gevonden + '/25';
+}
+function zetVak(i) {
+  const d = $('balk').children[i], v = actief[i];
+  if (!v) { d.className = 'vak leeg'; d.innerHTML = ''; return; }
+  d.className = 'vak'; d.innerHTML = ''; const c = document.createElement('canvas'); c.width = 68; c.height = 60; d.appendChild(c); v.icoon(c);
+  const s = document.createElement('span'); s.textContent = v.naam; d.appendChild(s);
+}
+function tik(sx, sy) {
+  if (!level || !$('klaar').hidden) return;
+  const x = (sx - ox) / zoom, y = (sy - oy) / zoom, m = 14 / zoom;
+  const i = actief.findIndex((v) => v && v.raak(x, y, m));
+  if (i >= 0) {
+    const v = actief[i]; v.gevonden = true; gevondenLijst.push(v); gevonden++; sGevonden();
+    effecten.push({ soort: 'goed', x: v.midden[0], y: v.midden[1], t: 0 });
+    const d = $('balk').children[i]; d.classList.add('weg');
+    setTimeout(() => { actief[i] = rij.shift() || null; zetVak(i); }, 260);
+    $('teller').textContent = gevonden + '/25';
+    if (gevonden >= 25) setTimeout(klaar, 700);
+    return;
+  }
+  const ander = rij.find((v) => v.raak(x, y, 0));
+  effecten.push({ soort: ander ? 'later' : 'mis', x, y, t: 0 }); sMis();
+}
+function klaar() {
+  const s = Math.round((performance.now() - start) / 1000), n = level.nr;
+  const best = +(opslag.get('zoek_tijd' + n) || 0); if (!best || s < best) opslag.set('zoek_tijd' + n, s);
+  if (vrij() <= n && n < LEVELS.length) opslag.set('zoek_lvl', n + 1);
+  sKlaar(); for (let k = 0; k < 60; k++) effecten.push({ soort: 'confetti', x: Math.random() * innerWidth, y: -20 - Math.random() * 200, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3, k: ['#ffd34d', '#e8384f', '#3fae5a', '#3a8ae8', '#e84ad8'][k % 5], t: 0, scherm: true });
+  $('klaartekst').innerHTML = `Je vond alle 25 spullen in <b>${tijd(s)}</b>${hints ? ' (met ' + hints + ' hint' + (hints > 1 ? 's' : '') + ')' : ''}.` + (best && s >= best ? `<br>Je snelste tijd: ${tijd(best)}` : best ? '<br>Nieuw record!' : '');
+  $('volgende').hidden = n >= LEVELS.length; $('klaar').hidden = false;
+}
+const tijd = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+$('hint').onclick = () => {
+  unlock(); if (!level || performance.now() < hintKlaar) return;
+  const kies = actief.filter(Boolean); if (!kies.length) return;
+  const v = kies[Math.floor(Math.random() * kies.length)]; hints++; hintKlaar = performance.now() + 15000;
+  hintPuls = { v, t: 0 };
+  // als hij buiten beeld is: er naartoe schuiven
+  const top = $('boven').offsetHeight; ox = innerWidth / 2 - v.midden[0] * zoom; oy = top + (innerHeight - top) / 2 - v.midden[1] * zoom; begrens();
+};
+
+// ---------- tekenen ----------
+function teken() {
+  ctx = ctxEcht; ctx.save(); ctx.fillStyle = '#2a1f3a'; ctx.fillRect(0, 0, innerWidth, innerHeight);
+  if (level || TEGEL) {
+    ctx.translate(ox, oy); ctx.scale(zoom, zoom);
+    if (!level || level.soort == 'strip') {
+      kamerAchter();
+      const lijst = level ? [...actief, ...rij].filter(Boolean) : null;
+      const zicht = (st) => !lijst || lijst.some((v) => v.st == st && !v.gevonden);
+      for (const st of STRIP) if (!st[6] && zicht(st)) tekenVoorwerp(st);
+      kamerVoor();
+      for (const st of STRIP) if (st[6] && zicht(st)) tekenVoorwerp(st);
+    } else if (fotoBeeld) ctx.drawImage(fotoBeeld, 0, 0, BW, BH);
+    if (level) {
+      if (level.soort == 'foto') for (const v of fotoGevonden()) { ctx.strokeStyle = '#3fae5a'; ctx.lineWidth = 4 / zoom; ctx.fillStyle = 'rgba(63,174,90,.25)'; ctx.beginPath(); ctx.arc(v.midden[0], v.midden[1], 22 / zoom + 10, 0, 7); ctx.fill(); ctx.stroke(); }
+      if (hintPuls) { const p = hintPuls; p.t++; const r = (34 + Math.sin(p.t * 0.25) * 8) / zoom * 1.2; ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 5 / zoom; ctx.beginPath(); ctx.arc(p.v.midden[0], p.v.midden[1], r + 20, 0, 7); ctx.stroke(); if (p.t > 150 || p.v.gevonden) hintPuls = null; }
+    }
+    for (const e of effecten) if (!e.scherm) {
+      e.t++; const a = Math.max(0, 1 - e.t / 40);
+      if (e.soort == 'goed') { ctx.strokeStyle = `rgba(63,174,90,${a})`; ctx.lineWidth = 6 / zoom; ctx.beginPath(); ctx.arc(e.x, e.y, (20 + e.t * 1.5) / zoom + 10, 0, 7); ctx.stroke(); ctx.fillStyle = `rgba(255,211,77,${a})`; for (let k = 0; k < 8; k++) { const h = k * Math.PI / 4; ctx.beginPath(); ctx.arc(e.x + Math.cos(h) * (e.t * 2) / zoom * 1.5, e.y + Math.sin(h) * (e.t * 2) / zoom * 1.5, 4 / zoom, 0, 7); ctx.fill(); } }
+      else { ctx.strokeStyle = e.soort == 'later' ? `rgba(255,211,77,${a})` : `rgba(232,56,79,${a})`; ctx.lineWidth = 5 / zoom; const r = 12 / zoom; ctx.beginPath(); ctx.moveTo(e.x - r, e.y - r); ctx.lineTo(e.x + r, e.y + r); ctx.moveTo(e.x + r, e.y - r); ctx.lineTo(e.x - r, e.y + r); ctx.stroke(); }
+    }
+  }
+  ctx.restore();
+  for (const e of effecten) if (e.scherm) { e.t++; e.x += e.vx; e.y += e.vy; ctx.fillStyle = e.k; ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.t * 0.1); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); }
+  const later = effecten.find((e) => e.soort == 'later' && e.t < 50);
+  if (later) { ctx.font = 'bold 15px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(0,0,0,.6)'; const tx = innerWidth / 2, ty = innerHeight - 40; ctx.fillRect(tx - 150, ty - 16, 300, 30); ctx.fillStyle = '#ffd34d'; ctx.fillText('Dat staat nog niet op je lijstje!', tx, ty + 5); }
+  effecten = effecten.filter((e) => (e.scherm ? e.y < innerHeight + 20 : e.t < 60));
+  if (level && $('klaar').hidden) { $('tijd').textContent = tijd(Math.floor((performance.now() - start) / 1000)); const h = $('hint'); const wacht = hintKlaar - performance.now(); h.disabled = wacht > 0; h.textContent = wacht > 0 ? '💡 ' + Math.ceil(wacht / 1000) : '💡 Hint'; }
+  requestAnimationFrame(teken);
+}
+function fotoGevonden() { return gevondenLijst; }
+
+// ---------- aanraken: slepen = schuiven, twee vingers = zoomen, tikken = zoeken ----------
+const vingers = new Map(); let neer = null, knijp = null;
+cv.addEventListener('pointerdown', (e) => {
+  unlock(); cv.setPointerCapture(e.pointerId); vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (vingers.size == 1) neer = { x: e.clientX, y: e.clientY, ox, oy, t: performance.now(), bewogen: false };
+  if (vingers.size == 2) { const [a, b] = [...vingers.values()]; knijp = { d: Math.hypot(a.x - b.x, a.y - b.y), zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, ox, oy }; neer = null; }
+});
+cv.addEventListener('pointermove', (e) => {
+  if (!vingers.has(e.pointerId)) return; vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (knijp && vingers.size >= 2) { const [a, b] = [...vingers.values()], d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    const nz = Math.max(minZoom, Math.min(maxZoom, knijp.zoom * d / knijp.d)); const wx = (knijp.mx - knijp.ox) / knijp.zoom, wy = (knijp.my - knijp.oy) / knijp.zoom;
+    zoom = nz; ox = mx - wx * nz; oy = my - wy * nz; begrens(); return; }
+  if (neer) { const dx = e.clientX - neer.x, dy = e.clientY - neer.y; if (Math.hypot(dx, dy) > 8) neer.bewogen = true; if (neer.bewogen) { ox = neer.ox + dx; oy = neer.oy + dy; begrens(); } }
+});
+function los(e) {
+  vingers.delete(e.pointerId);
+  if (neer && !neer.bewogen && performance.now() - neer.t < 600) tik(e.clientX, e.clientY);
+  if (vingers.size < 2) knijp = null; neer = null;
+}
+cv.addEventListener('pointerup', los); cv.addEventListener('pointercancel', (e) => { vingers.delete(e.pointerId); neer = null; knijp = null; });
+cv.addEventListener('wheel', (e) => { e.preventDefault(); const f = Math.exp(-e.deltaY * 0.0015), nz = Math.max(minZoom, Math.min(maxZoom, zoom * f)); const wx = (e.clientX - ox) / zoom, wy = (e.clientY - oy) / zoom; zoom = nz; ox = e.clientX - wx * nz; oy = e.clientY - wy * nz; begrens(); }, { passive: false });
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+
+// ---------- wachtwoord: de foto ontsleutelen ----------
+async function ontsleutel(ww) {
+  const ruw = new Uint8Array(await (await fetch('zoek/kamer.bin')).arrayBuffer());
+  const zout = ruw.slice(0, 16), iv = ruw.slice(16, 28), data = ruw.slice(28);
+  const basis = await crypto.subtle.importKey('raw', new TextEncoder().encode(ww.trim().toLowerCase()), 'PBKDF2', false, ['deriveKey']);
+  const sleutel = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: zout, iterations: 150000, hash: 'SHA-256' }, basis, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const uit = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, sleutel, data);
+  fotoData = JSON.parse(new TextDecoder().decode(uit));
+  fotoBeeld = new Image(); fotoBeeld.src = fotoData.img; await fotoBeeld.decode();
+}
+async function probeer(ww, stil) {
+  try { await ontsleutel(ww); wachtwoord = ww; try { localStorage.setItem('zoek_ww', ww); } catch (e) {} $('slot').hidden = true; toonMenu(); return true; }
+  catch (e) { if (!stil) { $('wwfout').textContent = e instanceof TypeError ? 'Kon het spel niet laden (internet?).' : 'Dat is niet het goede wachtwoord.'; } $('slot').hidden = false; return false; }
+}
+$('slotform').onsubmit = async (e) => { e.preventDefault(); unlock(); $('wwfout').textContent = 'Even kijken…'; await probeer($('ww').value); };
+function toonMenu() {
+  level = null; $('boven').hidden = true; $('klaar').hidden = true; $('menu').hidden = false; BW = KW; BH = KH; maat.klaar = false; maat();
+  const v = vrij();
+  $('levels').innerHTML = LEVELS.map((l, i) => { const open = i + 1 <= v, best = +(opslag.get('zoek_tijd' + (i + 1)) || 0);
+    return `<div class="level ${open ? '' : 'dicht'}" data-l="${i + 1}"><div class="nr">${open ? (best ? '⭐' : i + 1) : '🔒'}</div><div><b>Level ${i + 1}: ${l.naam}</b><span>${open ? l.uitleg + (best ? ' · snelste tijd ' + tijd(best) : '') : 'Maak eerst level ' + i + ' af'}</span></div></div>`; }).join('');
+  document.querySelectorAll('.level').forEach((el) => el.onclick = () => { const n = +el.dataset.l; if (n <= vrij()) { unlock(); startLevel(n); } });
+}
+$('volgende').onclick = () => startLevel(level.nr + 1);
+$('naarmenu').onclick = toonMenu;
+// de terugknop gaat tijdens het spelen eerst naar de levels
+$('terug').onclick = (e) => { if (level) { e.preventDefault(); toonMenu(); } };
+
+maat(); requestAnimationFrame(teken);
+if (TEGEL) { $('terug').hidden = true; }
+else { let ww = ''; try { ww = localStorage.getItem('zoek_ww') || ''; } catch (e) {} if (ww) probeer(ww, true); else $('slot').hidden = false; }
+window.__test = { get actief() { return actief; }, get rij() { return rij; }, tik, startLevel, get zoom() { return zoom; }, get ox() { return ox; }, get oy() { return oy; }, wereldNaarScherm: (x, y) => [ox + x * zoom, oy + y * zoom], probeer, toonMenu };
+</script>
+</body></html>
