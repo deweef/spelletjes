@@ -109,6 +109,8 @@ bedenk dat de site openbaar is.
   geladen bij het starten (`L.img`), de vakjes bovenin tonen een uitsnede uit het plaatje en gevonden voorwerpen krijgen een groen rondje.
   Gemini-plaatjes staan in `zoek/`. Level 3 Het orkest gebruikt nu `zoek/orkest.jpg` (Gemini, 1376x768) met `ORKEST_BEELD` (33 voorwerpen); de
   getekende versie (`orkestAchter`, `ORKEST`) staat als reserve in een commentaarregel in `LEVELS`. `orkest-gemini.jpg` is een eerdere versie.
+  Level 4 Het strand gebruikt `zoek/strand.jpg` (Gemini, 1376x768) met `STRAND_BEELD` (36 voorwerpen); daar zat geen oldtimer in, dus
+  `autoTeken: true` tekent onze eigen oldtimer op het plaatje (`auto` is dan [x, y, schaal, draai] zoals bij getekende levels).
   Vakjes nalopen: geen twee voorwerpen mogen elkaars midden raken, en voorwerpen die vaker voorkomen (koffiemok, tamboerijn, pizza) krijgen meer vakjes.
   In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
   `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!" en een 🚗 bij het level.

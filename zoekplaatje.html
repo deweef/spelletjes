@@ -406,6 +406,20 @@ const ORKEST_BEELD = [
   ['Popcorn', 713, 704, 745, 739], ['Vergrootglas', 1215, 483, 1239, 505], ['Emmer', 1251, 654, 1282, 688], ['Dweil', 1168, 672, 1208, 692],
   ['Boek', 748, 539, 787, 559], ['Knuffelkonijn', 84, 250, 111, 303], ['Teddybeer', 125, 250, 171, 305],
 ];
+// het strand als plaatje (gemaakt met Gemini, 1376 x 768); de oldtimer is er zelf in getekend (autoTeken)
+const STRAND_BEELD = [
+  ['Krab', 333, 290, 374, 322, 198, 714, 264, 758], ['Frisbee', 420, 303, 464, 327], ['Schepje', 290, 268, 320, 310, 285, 350, 337, 374, 10, 664, 82, 741],
+  ['Reddingsboei', 736, 250, 767, 297], ['Strandbal', 801, 325, 838, 360, 213, 517, 257, 561], ['Kroon', 962, 262, 988, 282],
+  ['Vuurtorentje', 1333, 295, 1360, 337, 1313, 654, 1348, 733], ['Opblaasflamingo', 1078, 116, 1148, 188], ['Zeester', 10, 577, 77, 628],
+  ['Slipper', 83, 532, 117, 553, 298, 697, 364, 731], ['Boek', 468, 537, 517, 573, 473, 617, 517, 646], ['Plantje', 495, 484, 517, 521],
+  ['Mobieltje', 593, 722, 630, 746, 798, 647, 825, 663], ['Speelkaarten', 628, 734, 670, 763], ['Klompen', 648, 694, 710, 732],
+  ['Flesje', 691, 387, 710, 418, 1328, 552, 1353, 621], ['Banaan', 973, 382, 1002, 406, 1046, 517, 1088, 546], ['Zwemband', 1021, 412, 1098, 456],
+  ['Kokosnoot', 1103, 402, 1135, 432], ['Snorkel', 1095, 440, 1148, 466], ['Verrekijker', 1148, 424, 1202, 458, 738, 717, 785, 761],
+  ['Badeendje', 1008, 454, 1048, 491], ['Vlieger', 1211, 477, 1278, 533], ['Visnetje', 1258, 529, 1308, 573], ['Sleutelbos', 851, 547, 893, 583],
+  ['Volleybal', 691, 497, 720, 528], ['Zonnebrandcrème', 743, 617, 798, 651, 1278, 624, 1310, 676], ['Koptelefoon', 938, 672, 998, 718],
+  ['Zak chips', 1003, 694, 1045, 751], ['Fluitje', 928, 709, 975, 741], ['Nekkussen', 1201, 702, 1280, 761], ['Kompas', 1268, 727, 1305, 756],
+  ['Spelletjesdoos', 693, 667, 760, 711], ['Hond', 886, 567, 1005, 666], ['Bodyboard', 806, 429, 857, 461], ['Ingegraven man', 763, 494, 798, 536],
+];
 const OW = 2000, OH = 1300;
 function rng(zaad) { return () => { zaad |= 0; zaad = zaad + 0x6D2B79F5 | 0; let t = Math.imul(zaad ^ zaad >>> 15, 1 | zaad); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const HUID = ['#f2c8a0', '#e8b088', '#c8905a', '#8a5a3a', '#f4d4b8', '#a86a42'], HAAR = ['#2a1a10', '#6a3a1a', '#d8b060', '#a8a8a8', '#e8e8e8', '#8a3a1a', '#1a1a1a', '#c86a2a'];
@@ -961,7 +975,8 @@ const LEVELS = [
   { id: 'post', naam: 'Het postkantoor', uitleg: 'Druk, druk, druk bij de loketten', achter: () => postAchter(), voor: () => postVoor(), items: POST, w: PW, h: PH, auto: [120, 138, 0.5, 0] },
   { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', beeld: 'zoek/orkest.jpg', items: ORKEST_BEELD, auto: [1323, 637, 1376, 674] },
   // reserve, de getekende versie: { id: 'orkest', ..., achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
-  { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', achter: () => strandAchter(), voor: () => strandVoor(), items: STRAND, w: SW, h: SH, auto: [560, 548, 0.5, 0.1] },
+  { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', beeld: 'zoek/strand.jpg', items: STRAND_BEELD, autoTeken: true, auto: [62, 328, 0.4, 0] },
+  // reserve, de getekende versie: { id: 'strand', ..., achter: () => strandAchter(), voor: () => strandVoor(), items: STRAND, w: SW, h: SH, auto: [560, 548, 0.5, 0.1] },
   { id: 'schip', naam: 'Het piratenschip', uitleg: 'Ahoy! Wat hebben die piraten allemaal verstopt?', achter: () => schipAchter(), voor: () => schipVoor(), items: SCHIP, w: ZW, h: ZH, auto: [1000, 1250, 0.5, 0] },
 ];
 // voortgang per level-id: zoek_tijd_<id> (snelste tijd in seconden, een hint telt als 20 s) en zoek_auto_<id> (oldtimer gevonden)
@@ -1037,9 +1052,9 @@ function tik(sx, sy) {
   if (!level || !$('klaar').hidden) return;
   const x = (sx - ox) / zoom, y = (sy - oy) / zoom, m = 14 / zoom;
   const au = level.auto;
-  if (!autoGevonden && (level.beeld ? x > au[0] - m && x < au[2] + m && y > au[1] - m && y < au[3] + m : Math.hypot(x - au[0], y - au[1]) < 34 * au[2] + m)) { // de zilveren oldtimer: geen voorwerp van het lijstje, wel een verrassing
-    autoGevonden = true; autoMelding = performance.now(); if (level.beeld) gevondenLijst.push({ midden: [(au[0] + au[2]) / 2, (au[1] + au[3]) / 2], r: Math.max(au[2] - au[0], au[3] - au[1]) / 2 }); opslag.set('zoek_auto_' + level.id, '1'); sToet();
-    effecten.push(level.beeld ? { soort: 'goed', x: (au[0] + au[2]) / 2, y: (au[1] + au[3]) / 2, t: 0 } : { soort: 'goed', x: au[0], y: au[1], t: 0 }); return;
+  if (!autoGevonden && (level.beeld && !level.autoTeken ? x > au[0] - m && x < au[2] + m && y > au[1] - m && y < au[3] + m : Math.hypot(x - au[0], y - au[1]) < 34 * au[2] + m)) { // de zilveren oldtimer: geen voorwerp van het lijstje, wel een verrassing
+    autoGevonden = true; autoMelding = performance.now(); if (level.beeld && !level.autoTeken) gevondenLijst.push({ midden: [(au[0] + au[2]) / 2, (au[1] + au[3]) / 2], r: Math.max(au[2] - au[0], au[3] - au[1]) / 2 }); opslag.set('zoek_auto_' + level.id, '1'); sToet();
+    effecten.push(level.beeld && !level.autoTeken ? { soort: 'goed', x: (au[0] + au[2]) / 2, y: (au[1] + au[3]) / 2, t: 0 } : { soort: 'goed', x: au[0], y: au[1], t: 0 }); return;
   }
   const raak = actief.findIndex((v) => v && v.raak(x, y, m));
   if (raak >= 0) { vind(raak); return; }
@@ -1092,7 +1107,7 @@ function teken() {
   if (level || TEGEL) {
     ctx.translate(ox, oy); ctx.scale(zoom, zoom);
     if (level && level.beeld) { // plaatje: gevonden voorwerpen krijgen een groen rondje
-      ctx.drawImage(level.img, 0, 0, BW, BH);
+      ctx.drawImage(level.img, 0, 0, BW, BH); if (level.autoTeken && !autoGevonden) tekenAuto();
       for (const v of gevondenLijst) { ctx.strokeStyle = '#3fae5a'; ctx.lineWidth = 4 / zoom; ctx.fillStyle = 'rgba(63,174,90,.22)'; ctx.beginPath(); ctx.arc(v.midden[0], v.midden[1], v.r + 6 / zoom, 0, 7); ctx.fill(); ctx.stroke(); }
     } else {
       const L = level || LEVELS[0]; ctx.drawImage(vooraf(L, 'achter'), 0, 0, L.w, L.h);
