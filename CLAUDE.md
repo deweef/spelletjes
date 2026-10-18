@@ -23,9 +23,10 @@ bedenk dat de site openbaar is.
   (wintertuin met sneeuw, vogelhuisjes en ijspegels, besjes, speeldoosmuziek, iets ruimere gaten via `ruimer`), Piratenpapegaai
   (piratenzee bij zonsondergang, masten met zeil en rumtonnen, goudstukken, accordeon in 6/8, krappere gaten) en
   Jetpackpinguïn (Zuidpool met zuiderlicht, ijsbergen, visjes, synthmuziek; een tik geeft een korte raketduw via
-  `stuw`/`stuwKracht`) zijn klaar. Volgorde in `FIGUREN` = van makkelijk naar
-  moeilijk (roodborstje, meeuw, hommel, kip, kraai, papegaai, pinguïn); elk dier speel je vrij met 20, 25, 30, ...
-  punten met het dier ervoor (`nodig`/`open`; wie al een record heeft met een dier houdt het open).
+  `stuw`/`stuwKracht`) en Vuurdraak (drakenburcht bij nacht met vulkaan, kasteeltorens, edelstenen, doedelzakmuziek met bromtoon;
+  elke edelsteen = een vuurbal (`spuw`, `vuurballen`) die de volgende toren wegbrandt: het gat wordt 60 groter, `p.brand`) zijn klaar. Volgorde in `FIGUREN` = van makkelijk naar
+  moeilijk (roodborstje, meeuw, hommel, kip, kraai, papegaai, pinguïn, draak); elk dier speel je vrij met 20, 25, ... 45
+  punten met het dier ervoor, nieuwere dieren (vanaf de draak) steeds met 30 (`nodig`/`open`; wie al een record heeft met een dier houdt het open).
   Grote tocht (knop bovenaan, `tocht`): alle dieren achter elkaar vanaf het Roodborstje; finishvlag bij 20, 25, 30, ...
   punten (`doelTocht`, pinguïn heeft geen finish), punten tellen op (`totaal`), elke 25 punten een extra vogeltje
   (`geraakt`: leven eraf, 100 beelden onkwetsbaar), beste tocht in `fladderfeest_tocht:<naam>`; een finish telt ook als
@@ -35,7 +36,7 @@ bedenk dat de site openbaar is.
   `tekenStreken`): roodborst sneeuwbui (`bui`), meeuw patatdieven en papegaai kanonskogels (`gevaren`, zonder waarschuwing; het kanon knalt
   hoorbaar), papegaai ook een magneetpiraat op de tonnen die het goudstuk wegtrekt (`p.piraat`, `magneet`, `piraat`; duikt
   in de ton als je over hem heen vliegt), hommel windvlagen (alleen met streken), kip schuivende hooibalen en kraai dansende versterkers (`p.amp`),
-  pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links). Moeilijkheid: gat en snelheid tot ~40 punten (`gat`,
+  pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links), draak katapultstenen die in een boog omhoog komen (`steen`, `zw`). Moeilijkheid: gat en snelheid tot ~40 punten (`gat`,
   `tempo`), na 50 punten nog heel langzaam wat krapper en sneller. Elk dier roept tijdens het spelen om de 8-16 seconden
   iets met een geluidje en een tekstwolkje (`ROEP`, `roepT`, `roepBel`).
   Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
@@ -52,7 +53,7 @@ bedenk dat de site openbaar is.
   Muziek: per figuur een eigen deuntje in `MUZIEK` (zelf gecomponeerd, Web Audio, geen bestanden), knopje
   rechtsboven of toets M, onthouden in `fladderfeest_muziek`. Meeuw = zeemansliedje met hoempa; kip = boerendeuntje
   met getokkel; kraai = rock (`stijl: 'rock'`); roodborstje = speeldoos; hommel = draaiorgelwals;
-  papegaai = accordeon; pinguïn = synth.
+  papegaai = accordeon; pinguïn = synth; draak = doedelzak (`stijl: 'doedelzak'`).
 - Fotopuzzel (`fotopuzzel.html`, concept): legpuzzel van een foto uit `FOTOS` (foto's in `puzzel/`, ongeveer 2000 px breed;
   nu Athene) of een eigen foto van het toestel (wordt niet geüpload en niet bewaard). Aantal stukjes kiezen (`AANTALLEN`,
   12 t/m 500; `raster` kiest kolommen x rijen), keuze "Allemaal recht" of "Door elkaar gedraaid" (`#liggen`; tik = kwartslag, alleen rechte stukjes klikken vast).

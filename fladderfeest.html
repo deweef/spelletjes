@@ -65,24 +65,25 @@ function scorebordScherm() {
   ctx.fillStyle = 'rgba(15,30,55,.82)'; ctx.fillRect(0, 0, W, H);
   tekst('🏆 Scorebord', W / 2, 46, 30, '#ffe14d', 'center', '#1d3b57');
   const tabs = [['tocht', 'Tocht'], ...FIGUREN.map((f) => [f.id, f.naam.replace('Jetpack', '').replace('Piraten', '')])];
+  const dy = Math.max(0, Math.ceil(tabs.length / 4) - 2) * 30; // meer dieren: een extra rij tabbladen, de rest schuift omlaag
   tabs.forEach(([id, lbl], i) => {
-    const kx = 14 + (i % 4) * ((W - 28) / 4), ky = 76 + Math.floor(i / 4) * 34, kw = (W - 28) / 4 - 4;
-    ctx.fillStyle = bordTab == id ? '#ffb43a' : 'rgba(255,255,255,.18)'; rrect(kx, ky, kw, 28, 8); ctx.fill();
-    tekst(lbl, kx + kw / 2, ky + 14, 11, '#fff', 'center', null);
+    const kx = 14 + (i % 4) * ((W - 28) / 4), ky = 76 + Math.floor(i / 4) * (dy ? 30 : 34), kw = (W - 28) / 4 - 4;
+    ctx.fillStyle = bordTab == id ? '#ffb43a' : 'rgba(255,255,255,.18)'; rrect(kx, ky, kw, dy ? 26 : 28, 8); ctx.fill();
+    tekst(lbl, kx + kw / 2, ky + (dy ? 13 : 14), 11, '#fff', 'center', null);
     knoppen.push({ x: kx, y: ky, w: kw, h: 30, doe: () => { bordTab = id; sClick(); } });
   });
   for (const [k, lbl, val] of [[0, 'Met streken', true], [1, 'Gewoon', false]]) { const aan = streken == val;
     const bx = 14 + k * ((W - 28) / 2), bw = (W - 28) / 2 - 4;
-    ctx.fillStyle = aan ? (val ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.18)'; rrect(bx, 148, bw, 26, 8); ctx.fill();
-    tekst(lbl, bx + bw / 2, 161, 12, '#fff', 'center', null);
-    knoppen.push({ x: bx, y: 146, w: bw, h: 30, doe: () => { streken = val; try { localStorage.setItem('fladderfeest_streken', streken ? '1' : '0'); } catch (e) {} } });
+    ctx.fillStyle = aan ? (val ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.18)'; rrect(bx, 148 + dy, bw, 26, 8); ctx.fill();
+    tekst(lbl, bx + bw / 2, 161 + dy, 12, '#fff', 'center', null);
+    knoppen.push({ x: bx, y: 146 + dy, w: bw, h: 30, doe: () => { streken = val; try { localStorage.setItem('fladderfeest_streken', streken ? '1' : '0'); } catch (e) {} } });
   }
   const lijst = bord && bord[bordTab + '_' + (streken ? 'streken' : 'gewoon')];
-  ctx.fillStyle = 'rgba(255,248,230,.95)'; rrect(20, 186, W - 40, 350, 16); ctx.fill();
+  ctx.fillStyle = 'rgba(255,248,230,.95)'; rrect(20, 186 + dy, W - 40, 350 - dy, 16); ctx.fill();
   if (!lijst || !lijst.length) {
-    tekst(bordStatus == 'laden' ? 'Scores ophalen…' : bordStatus == 'fout' && !bord ? 'Geen internet: scorebord niet bereikbaar' : 'Nog niemand! Word jij de eerste?', W / 2, 360, 15, '#4d6478', 'center', null);
+    tekst(bordStatus == 'laden' ? 'Scores ophalen…' : bordStatus == 'fout' && !bord ? 'Geen internet: scorebord niet bereikbaar' : 'Nog niemand! Word jij de eerste?', W / 2, 360 + dy / 2, 15, '#4d6478', 'center', null);
   } else lijst.forEach((rij, i) => {
-    const y = 214 + i * 32, ik = speler && rij.naam == speler;
+    const y = 214 + dy + i * (dy ? 29 : 32), ik = speler && rij.naam == speler;
     if (ik) { ctx.fillStyle = '#ffe9a8'; rrect(28, y - 14, W - 56, 28, 8); ctx.fill(); }
     tekst(i < 3 ? ['🥇', '🥈', '🥉'][i] : (i + 1) + '.', 48, y, i < 3 ? 18 : 15, '#4d6478', 'center', null);
     tekst(String(rij.naam), 72, y, 16, '#1d3b57', 'left', null);
@@ -139,6 +140,8 @@ const sPfoef = () => { ruis(0.22, 0.09, 'lowpass', 700); snd(160, 0.15, 'sawtoot
 const sKraak = () => { ruis(0.5, 0.2, 'lowpass', 180); snd(950, 0.2, 'sawtooth', 0.05, 620, 0.25); snd(1000, 0.3, 'sawtooth', 0.05, 560, 0.5); }; // kanonschot en "kraak!"
 const sSputter = () => { for (let i = 0; i < 5; i++) ruis(0.08, 0.08, 'lowpass', 900 - i * 120, i * 0.14); snd(300, 0.8, 'sawtooth', 0.04, 60, 0.1); };
 const sClick = () => snd(660, 0.05, 'square', 0.03);
+const sRoar = () => { ruis(0.9, 0.16, 'lowpass', 500); snd(190, 0.8, 'sawtooth', 0.05, 70); snd(240, 0.6, 'square', 0.02, 90, 0.05); };
+const sVuur = () => { ruis(0.6, 0.14, 'bandpass', 900); snd(300, 0.4, 'sawtooth', 0.03, 120); };
 // tijdens het spelen roept elk dier af en toe iets (vrolijk geluidje plus een tekstwolkje)
 const ROEP = {
   roodborst: { s: () => [0, 0.09, 0.18, 0.3].forEach((d, i) => snd(2600 + (i % 2) * 500, 0.07, 'sine', 0.035, 3200, d)), t: ['Tjiep!', 'Tjiep tjiep!', 'Fijne winter!', 'Besjes!'] },
@@ -148,6 +151,7 @@ const ROEP = {
   kraai: { s: () => { snd(720, 0.18, 'sawtooth', 0.035, 430); snd(680, 0.22, 'sawtooth', 0.035, 400, 0.22); }, t: ['Kraa!', 'Rock on!', 'Kraa kraa!', 'Harder!'] },
   papegaai: { s: () => { snd(1000, 0.18, 'sawtooth', 0.035, 620); snd(1100, 0.25, 'sawtooth', 0.03, 560, 0.2); }, t: ['Kraa!', 'Polly wil goud!', 'Arrr!', 'Kraa! Land in zicht!', 'Hoera, ik vlieg!'] },
   pinguin: { s: () => { snd(900, 0.12, 'square', 0.03, 1400); snd(1200, 0.2, 'square', 0.025, 1800, 0.13); }, t: ['Wiieee!', 'Raket aan!', 'Koud hè?', 'Visje?'] },
+  draak: { s: () => { sRoar(); vogel.adem = 40; }, t: ['Rrroaar!', 'Iemand een marshmallow?', 'Heet hè?', 'Mijn schat!', 'Brandje blussen? Nee hoor.'] },
 };
 const sMedaille = () => [660, 880, 1046, 1318].forEach((f, i) => snd(f, 0.2, 'triangle', 0.06, 0, i * 0.09));
 
@@ -211,6 +215,16 @@ const MUZIEK = {
     ],
     akkoorden: [[41, 45, 48], [41, 45, 48], [36, 40, 46], [36, 40, 46], [36, 40, 46], [36, 40, 46], [41, 45, 48], [41, 45, 48]],
   },
+  draak: { // middeleeuws: doedelzak met een bromtoon, trommel en tamboerijn
+    tempo: 132, stijl: 'doedelzak',
+    melodie: [
+      62, -1, 64, 66, 67, -1, 66, 64,   62, -1, 57, -1, 62, -1, 64, -1,
+      66, -1, 69, -1, 71, 69, 67, 66,   64, -1, -1, -1, 62, -1, 64, -1,
+      66, -1, 69, 71, 72, -1, 71, 69,   67, -1, 66, 64, 66, -1, 69, -1,
+      71, -1, 69, 67, 66, -1, 64, -1,   62, -1, -1, -1, -1, -1, 0, 0,
+    ],
+    akkoorden: [[38, 45, 50], [38, 45, 50], [38, 45, 50], [36, 43, 48], [38, 45, 50], [36, 43, 48], [38, 45, 50], [38, 45, 50]],
+  },
   kip: { // boerendeuntje met banjo-getokkel
     tempo: 128, stijl: 'banjo',
     melodie: [
@@ -259,6 +273,7 @@ function speelStap(i, t) {
     else if (mz.stijl == 'synth') { noot(n, t, d * len * 0.9, 'square', 0.02); noot(n + 12.07, t, d * len * 0.6, 'sawtooth', 0.007); }
     else if (mz.stijl == 'speeldoos') { noot(n + 12, t, 0.7, 'sine', 0.06); noot(n + 24, t, 0.25, 'sine', 0.015); }
     else if (mz.stijl == 'wals') { noot(n, t, d * len * 0.9, 'square', 0.016); noot(n + 12, t, d * len * 0.85, 'sine', 0.03); noot(n + 19, t, d * len * 0.5, 'sine', 0.006); }
+    else if (mz.stijl == 'doedelzak') { noot(n + 5, t, 0.035, 'square', 0.008); noot(n, t + 0.03, d * len * 0.95, 'sawtooth', 0.014); noot(n + 12, t + 0.03, d * len * 0.9, 'square', 0.004); }
     else if (mz.stijl == 'rock') { noot(n, t, d * len * 0.95, 'sawtooth', 0.02, gitaar()); noot(n + 0.1, t, d * len * 0.95, 'square', 0.006); }
     else { noot(n, t, d * len * 0.95, 'square', 0.022); noot(n + 12, t, d * len * 0.6, 'triangle', 0.012); }
   }
@@ -294,6 +309,12 @@ function speelStap(i, t) {
     if (tel == 0 || tel == 3 || tel == 4) drum('kick', t);
     if (tel == 2 || tel == 6) drum('snare', t);
     drum('hihat', t);
+    return;
+  }
+  if (mz.stijl == 'doedelzak') { // bromtoon de hele maat, trommel op 1 en 5, tamboerijn op 3 en 7
+    if (tel == 0) { noot(ak[0], t, d * maat * 0.98, 'sawtooth', 0.012); noot(ak[1], t, d * maat * 0.98, 'sawtooth', 0.008); }
+    if (tel == 0 || tel == 4 || tel == 5) drum('kick', t);
+    if (tel == 2 || tel == 6) drum('hihat', t);
     return;
   }
   if (mz.stijl == 'banjo') { // getokkel op elke achtste, bas op 1 en 3
@@ -368,8 +389,12 @@ const FIGUREN = [
   { id: 'pinguin', naam: 'Jetpackpinguïn', wereld: 'De Zuidpool', zwaarte: 0.44, flap: -4.4, stuw: 7, stuwKracht: 0.52, max: 10, klaar: true, ruimer: -8,
     bonus: ['visje', 'visjes'], top: 'Raketpinguïn', palen: 'de ijsbergen',
     au: ['Pfoe… brandstof op!', 'Pinguïns horen gewoon te zwemmen.', 'Mijn jetpack hapert!', 'Brr… en nu ook nog pijn.', 'Wie heeft die ijsberg daar laten liggen?', 'Houston, we hebben een probleem.'] },
+  // de vuurdraak: zwaar en snel; elke edelsteen = een vuurbal die de volgende toren wegbrandt (het gat wordt groter)
+  { id: 'draak', naam: 'Vuurdraak', wereld: 'De drakenburcht', zwaarte: 0.41, flap: -6.9, max: 9.6, klaar: true, ruimer: -8,
+    bonus: ['edelsteen', 'edelstenen'], top: 'Drakenkoning', palen: 'de kasteeltorens', pak: 'en pak edelstenen: dan spuw je vuur!',
+    au: ['Rrroaar… au!', 'Mijn vleugel zit in de knoop.', 'Wie bouwt er nou zo’n hoge toren?', 'Even afkoelen in de gracht.', 'Au! Mijn staart staat in de fik.', 'Draken huilen niet. Echt niet.'] },
 ];
-const nodig = (i) => 15 + 5 * i; // punten met het vorige dier: 20, 25, 30, ...
+const nodig = (i) => (i >= 7 ? 30 : 15 + 5 * i); // punten met het vorige dier: 20, 25, ... 45; de nieuwere dieren steeds 30
 const open = (i) => i == 0 || recordBeide(FIGUREN[i].id) > 0 || recordBeide(FIGUREN[i - 1].id) >= nodig(i);
 const MEDAILLES = [[100, '', '#b9f2ff'], [50, 'Goud', '#ffd34d'], [25, 'Zilver', '#d6dde3'], [10, 'Brons', '#d08a4a']];
 const medaille = (n, f = fig) => { const m = MEDAILLES.find(([g]) => n >= g); return m && (m[0] == 100 ? [100, f.top, m[2]] : m); };
@@ -388,16 +413,16 @@ const knoppen = []; // klikbare vlakken in het huidige scherm
 let gevaren = [], bui = null, volgendeStreek = 0, brandstof = 100;
 const strekenAan = () => streken && score >= 3;
 const STREEK = { roodborst: 'Pas op: sneeuwbuien!', meeuw: 'Pas op: patatdieven!', hommel: 'Pas op: windvlagen!', kip: 'De boer schuift met de hooibalen!',
-  kraai: 'De versterkers dansen op de maat!', papegaai: 'Pas op: kanonskogels!', pinguin: 'Let op je brandstof: visjes vullen bij!' };
+  kraai: 'De versterkers dansen op de maat!', papegaai: 'Pas op: kanonskogels!', pinguin: 'Let op je brandstof: visjes vullen bij!', draak: 'Pas op: katapultstenen!' };
 let tocht = null, finish = null, onkw = 0, melding = null, vuurwerk = [];
 const doelTocht = () => (tocht && tocht.i < FIGUREN.length - 1 ? nodig(tocht.i + 1) : 0);
 const totaal = () => (tocht ? tocht.totaal + score : score);
-let vrijgespeeld = null, veren = [], juich = 0, wind = null, volgendeWind = 0;
+let vrijgespeeld = null, veren = [], juich = 0, wind = null, volgendeWind = 0, vuurballen = [];
 function startTocht() { stopMuziek(false); tocht = { i: 0, totaal: 0, levens: 0, volgendLeven: 25 }; fig = FIGUREN[0]; nieuwSpel(); }
 function nieuwSpel() {
   vrijgespeeld = null; finish = null; onkw = 0; ingestuurd = ''; melding = null; vuurwerk = [];
-  veren = [];
-  vogel = { x: W * 0.28, y: H * 0.42, vy: 0, flapT: 0, hoek: 0 };
+  veren = []; vuurballen = [];
+  vogel = { x: W * 0.28, y: H * 0.42, vy: 0, flapT: 0, hoek: 0, adem: 0 };
   palen = []; score = 0; frietjes = 0; snelheid = 2.3; afstand = 215; nieuwRecord = false; vallend = null;
   wind = null; volgendeWind = 60 * 8;
   gevaren = []; bui = null; volgendeStreek = 60 * 4; brandstof = 100; roepT = 60 * (5 + Math.random() * 4); roepBel = null;
@@ -493,6 +518,14 @@ function stap() {
     vogel.y += vogel.vy;
     if (vogel.flapT > 0) vogel.flapT--;
     if (vogel.stuw > 0) { vogel.vy -= fig.stuwKracht; vogel.stuw--; }
+    if (vogel.adem > 0) vogel.adem--;
+    for (const v of vuurballen) {
+      const doelX = v.p.x + PAAL / 2, doelY = v.y < v.p.midden ? v.p.midden - v.p.gat / 2 : v.p.midden + v.p.gat / 2;
+      const dx = doelX - v.x, dy = doelY - v.y, d = Math.hypot(dx, dy);
+      if (d < 12) { v.weg = true; if (!v.p.brand) { v.p.brand = 1; v.p.gat0 = v.p.gat; } ruis(0.5, 0.15, 'lowpass', 400); } else { v.x += dx / d * 9; v.y += dy / d * 9; }
+    }
+    vuurballen = vuurballen.filter((v) => !v.weg);
+    for (const p of palen) if (p.brand && p.brand < 40) { p.brand++; p.gat = p.gat0 + 60 * Math.min(1, p.brand / 25); }
     if (--roepT <= 0) { roepT = 60 * (8 + Math.random() * 8); const r = ROEP[fig.id]; if (r) { r.s(); roepBel = { tekst: r.t[Math.floor(Math.random() * r.t.length)], t: 80 }; } }
     if (roepBel && --roepBel.t <= 0) roepBel = null;
     if (vogel.y < 10) { vogel.y = 10; vogel.vy = Math.max(0, vogel.vy); }
@@ -501,7 +534,7 @@ function stap() {
       if (p.amp) { p.midden = p.basis + Math.sin(fig.id == 'kraai' ? beeld * 0.105 : beeld * 0.03 + p.fase) * p.amp; if (p.friet) p.friet.y = p.midden + p.friet.dy; }
       if (!p.voorbij && p.x + PAAL < vogel.x) { p.voorbij = true; score++; sPunt(); juich = 24; extraLeven(); snelheid = tempo(); }
       if (p.piraat) magneet(p);
-      if (p.friet && !p.friet.weg && Math.hypot(p.x + PAAL / 2 - vogel.x, bonusY(p) - vogel.y) < 22) { p.friet.weg = true; frietjes++; score++; sHap(); extraLeven(); if (fig.id == 'pinguin') brandstof = Math.min(100, brandstof + 40); }
+      if (p.friet && !p.friet.weg && Math.hypot(p.x + PAAL / 2 - vogel.x, bonusY(p) - vogel.y) < 22) { p.friet.weg = true; frietjes++; score++; sHap(); extraLeven(); if (fig.id == 'pinguin') brandstof = Math.min(100, brandstof + 40); if (fig.id == 'draak') spuw(); }
       const boven = p.midden - p.gat / 2, onder = p.midden + p.gat / 2;
       const ins = wereld().smal || 0; // smallere steel onder de bloem (tulp)
       if (onkw <= 0 && (botst(vogel.x, vogel.y, STRAAL, p.x, -50, PAAL, boven + 50) || botst(vogel.x, vogel.y, STRAAL, p.x, onder, PAAL, 34) || botst(vogel.x, vogel.y, STRAAL, p.x + ins, onder + 34, PAAL - 2 * ins, GROND - onder))) return geraakt();
@@ -541,12 +574,18 @@ function stap() {
   }
 }
 
+// de vuurdraak spuwt een vuurbal naar de eerstvolgende toren die nog niet brandt
+function spuw() {
+  const p = palen.find((q) => !q.voorbij && !q.brand && q.x > vogel.x + 10 && !vuurballen.some((v) => v.p == q));
+  vogel.adem = 25; sVuur();
+  if (p) vuurballen.push({ x: vogel.x + 22, y: vogel.y - 5, p });
+}
 // de streken per dier; geeft geraakt() terug als de vogel iets raakt
 function strekenStap() {
   if (fig.id == 'pinguin') brandstof = Math.min(100, brandstof + 0.12);
   if (!strekenAan()) return;
-  for (const g of gevaren) { g.t++; if (g.t > g.wacht) g.x += g.vx; }
-  gevaren = gevaren.filter((g) => g.x > -40);
+  for (const g of gevaren) { g.t++; if (g.t > g.wacht) { g.x += g.vx; if (g.zw) { g.y += g.vy; g.vy += g.zw; } } }
+  gevaren = gevaren.filter((g) => g.x > -40 && g.y < H + 40);
   if (onkw <= 0) for (const g of gevaren) if (g.t > g.wacht && Math.hypot(g.x - vogel.x, g.y - vogel.y) < g.r + STRAAL - 2) { g.x = -99; return geraakt(); }
   if (bui) { bui.t++; if (bui.t > 260) bui = null; }
   if (--volgendeStreek > 0) return;
@@ -555,6 +594,10 @@ function strekenStap() {
   if (fig.id == 'meeuw') { gevaren.push({ soort: 'dief', x: W + 30, y, vx: -(snelheid + 2.4), r: 12, t: 0, wacht: 60 }); meld('Patatdief!', '#fff'); }
   if (fig.id == 'papegaai') { gevaren.push({ soort: 'kogel', x: W + 20, y, vx: -(snelheid + 3.6), r: 9, t: 0, wacht: 60 }); }
   if (fig.id == 'roodborst') { bui = { t: 0 }; meld('Sneeuwbui!', '#fff'); }
+  if (fig.id == 'draak') { // katapultsteen: komt rechtsonder omhoog en valt in een boog terug
+    const zw = 0.13, top = 70 + Math.random() * (GROND - 220);
+    gevaren.push({ soort: 'steen', x: W + 10, y: GROND, vx: -(snelheid + 1.6), vy: -Math.sqrt(2 * zw * (GROND - top)), zw, r: 10, t: 0, wacht: 40 }); meld('Katapult!', '#fff');
+  }
 }
 // de magneetpiraat: zodra je dichtbij komt, vliegt het goudstuk naar zijn magneet (onderweg kun je het nog pakken)
 function bonusY(p) { const tr = p.piraat ? p.piraat.trek : 0; return p.friet.y + (p.midden + p.gat / 2 - 46 - p.friet.y) * tr * tr; }
@@ -612,10 +655,10 @@ function volgendeEtappe() {
 }
 
 function dood() {
-  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa, hommel: sBrom, roodborst: sPiep, papegaai: sKraak, pinguin: sSputter }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
+  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa, hommel: sBrom, roodborst: sPiep, papegaai: sKraak, pinguin: sSputter, draak: sRoar }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
   vogel.vy = -5;
   vallend = fig.id == 'kip' ? { x: vogel.x - 6, y: vogel.y + 8, vy: 0, r: 0 } // van schrik een ei
-    : fig.id == 'papegaai' || fig.id == 'pinguin' ? { x: vogel.x + 10, y: vogel.y, vy: -3, r: 0 } // goudstuk of visje vliegt weg
+    : fig.id == 'papegaai' || fig.id == 'pinguin' || fig.id == 'draak' ? { x: vogel.x + 10, y: vogel.y, vy: -3, r: 0 } // goudstuk of visje vliegt weg
     : fig.id == 'roodborst' ? { x: vogel.x + 10, y: vogel.y + 4, vy: -2, r: 0 } // een besje rolt weg
     : fig.id == 'hommel' ? { x: vogel.x + 4, y: vogel.y + 6, vy: 0, r: 0 } // zijn nectar druppelt eruit
     : fig.id == 'kraai' ? { x: vogel.x + 12, y: vogel.y - 8, vy: -4, r: 0 } // zijn zonnebril vliegt eraf
@@ -1255,6 +1298,123 @@ function ijsbergBoven(x, y, h) {
 }
 
 // per figuur: lucht en achtergrond, grond, hindernis, bonus, wat er valt als je af bent, en het figuur zelf
+// ---------- de drakenburcht (Vuurdraak) ----------
+function draak(x, y, hoek, flapT, s = 1, dood = false) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(s, s);
+  const v = flapT > 0 ? -1.0 + (12 - flapT) * 0.16 : Math.sin(beeld * 0.2) * 0.2 + 0.2;
+  const vleugel = (kleur, dx) => { // vleermuisvleugel met punten
+    ctx.save(); ctx.translate(-2 + dx, -6); ctx.rotate(v);
+    ctx.fillStyle = kleur; ctx.beginPath(); ctx.moveTo(4, 0); ctx.lineTo(-4, -24); ctx.lineTo(-10, -15); ctx.lineTo(-17, -21); ctx.lineTo(-20, -9); ctx.lineTo(-27, -10); ctx.lineTo(-15, 3); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(-10, -15); ctx.moveTo(2, 0); ctx.lineTo(-20, -9); ctx.stroke();
+    ctx.restore();
+  };
+  vleugel('#8a1e12', 5); // de vleugel aan de andere kant
+  ctx.strokeStyle = '#c8381e'; ctx.lineWidth = 5; ctx.lineCap = 'round'; // staart met een pijlpunt
+  ctx.beginPath(); ctx.moveTo(-10, 2); ctx.quadraticCurveTo(-22, 12, -31, 3); ctx.stroke(); ctx.lineCap = 'butt';
+  ctx.fillStyle = '#f2a12a'; ctx.beginPath(); ctx.moveTo(-29, 3); ctx.lineTo(-38, -3); ctx.lineTo(-36, 8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#d8422a'; ctx.beginPath(); ctx.ellipse(0, 0, 15, 10, 0, 0, 7); ctx.fill(); // lijf
+  ctx.fillStyle = '#f6c35a'; ctx.beginPath(); ctx.ellipse(2, 4.5, 10, 4.5, 0, 0, 7); ctx.fill(); // gele buik
+  ctx.strokeStyle = '#e0a040'; ctx.lineWidth = 1; for (const bx of [-3, 2, 7]) { ctx.beginPath(); ctx.moveTo(bx, 1); ctx.lineTo(bx, 8); ctx.stroke(); }
+  ctx.fillStyle = '#f2a12a'; for (const sx of [-9, -4, 1]) { ctx.beginPath(); ctx.moveTo(sx - 3, -8); ctx.lineTo(sx, -14); ctx.lineTo(sx + 3, -8); ctx.fill(); } // stekels
+  ctx.fillStyle = '#d8422a'; ctx.beginPath(); ctx.ellipse(13, -7, 9, 7, -0.3, 0, 7); ctx.fill(); // kop
+  ctx.beginPath(); ctx.ellipse(20, -4.5, 6.5, 4.2, 0.1, 0, 7); ctx.fill(); // snuit
+  ctx.fillStyle = '#f4ead0'; ctx.beginPath(); ctx.moveTo(8, -12); ctx.lineTo(3, -21); ctx.lineTo(11, -13); ctx.fill(); ctx.beginPath(); ctx.moveTo(13, -13); ctx.lineTo(12, -22); ctx.lineTo(16, -12); ctx.fill(); // hoorntjes
+  ctx.fillStyle = '#5a1a0a'; ctx.beginPath(); ctx.arc(24, -6, 1.2, 0, 7); ctx.fill(); // neusgat
+  ctx.strokeStyle = '#5a1a0a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(16, -2); ctx.quadraticCurveTo(20, 0, 25, -2.5); ctx.stroke(); // mond
+  if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(13, -11); ctx.lineTo(17, -7); ctx.moveTo(17, -11); ctx.lineTo(13, -7); ctx.stroke(); }
+  else { ctx.fillStyle = '#fff6c0'; ctx.beginPath(); ctx.arc(15, -9, 2.8, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.fillRect(15.2, -11, 1.4, 4); }
+  vleugel('#b8301c', 0);
+  ctx.restore();
+}
+function edelsteen(x, y) {
+  const kl = [['#e8384f', '#ff9aa8'], ['#3a8ae8', '#a8d4ff'], ['#3fc86a', '#b0f5c4']][Math.floor(Math.abs(x) / 97) % 3];
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = kl[0]; ctx.beginPath(); ctx.moveTo(-9, -3); ctx.lineTo(-5, -8); ctx.lineTo(5, -8); ctx.lineTo(9, -3); ctx.lineTo(0, 9); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = kl[1]; ctx.beginPath(); ctx.moveTo(-5, -8); ctx.lineTo(5, -8); ctx.lineTo(3, -3); ctx.lineTo(-3, -3); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-9, -3); ctx.lineTo(9, -3); ctx.moveTo(-3, -3); ctx.lineTo(0, 9); ctx.lineTo(3, -3); ctx.stroke();
+  if (beeld % 50 < 12) { ctx.fillStyle = '#fff'; const f = (beeld % 50) / 12; ctx.globalAlpha = 1 - f; ctx.fillRect(-6, -7, 2, 6 * f + 2); ctx.fillRect(-8 + f, -5, 6, 2); ctx.globalAlpha = 1; }
+  ctx.restore();
+}
+// kasteeltoren van grijze steen; onder met kantelen bovenop, boven hangend met de kantelen naar beneden
+function toren(x, y, h, vanBoven) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 6, y, PAAL + 12, h); ctx.clip();
+  const rand = vanBoven ? y + h - 20 : y; // waar de kantelen zitten
+  ctx.fillStyle = '#7d7888'; ctx.fillRect(x, y, PAAL, h);
+  ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(x + PAAL - 12, y, 12, h); // schaduwkant
+  ctx.strokeStyle = '#5e5a68'; ctx.lineWidth = 1.5;
+  for (let j = 0; j < h; j += 12) { const jy = vanBoven ? y + h - 20 - j : y + 20 + j; ctx.beginPath(); ctx.moveTo(x, jy); ctx.lineTo(x + PAAL, jy); ctx.stroke();
+    const sch = (Math.floor(j / 12) % 2) * 9; for (let k = sch; k < PAAL; k += 18) { ctx.beginPath(); ctx.moveTo(x + k, jy); ctx.lineTo(x + k, jy + (vanBoven ? -12 : 12)); ctx.stroke(); } }
+  // de rand met kantelen
+  ctx.fillStyle = '#8c8798'; ctx.fillRect(x - 5, vanBoven ? rand : rand + 8, PAAL + 10, 12);
+  ctx.fillStyle = '#5e5a68'; ctx.fillRect(x - 5, vanBoven ? rand + 10 : rand + 18, PAAL + 10, 2);
+  ctx.fillStyle = '#8c8798'; for (let k = 0; k < 4; k++) ctx.fillRect(x - 5 + k * 18.7, vanBoven ? rand + 12 : rand, 10, 8);
+  // raampje met warm licht (onder) of een rode banier (boven)
+  if (h > 80) {
+    if (!vanBoven) { ctx.fillStyle = '#2a1a1a'; rrect(x + PAAL / 2 - 7, y + 36, 14, 22, 7); ctx.fill(); ctx.fillStyle = `rgba(255,170,60,${0.6 + Math.sin(beeld * 0.2 + x) * 0.2})`; rrect(x + PAAL / 2 - 5, y + 39, 10, 18, 5); ctx.fill(); }
+    else { const by = y + h - 70; ctx.fillStyle = '#b8241c'; ctx.beginPath(); ctx.moveTo(x + 14, by); ctx.lineTo(x + PAAL - 14, by); ctx.lineTo(x + PAAL - 14, by + 40); ctx.lineTo(x + PAAL / 2, by + 32); ctx.lineTo(x + 14, by + 40); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f2c230'; ctx.beginPath(); ctx.arc(x + PAAL / 2, by + 15, 6, 0, 7); ctx.fill(); }
+  }
+  ctx.restore();
+}
+// een toren die door een vuurbal geraakt is: zwartgeblakerd, met vlammen langs de rand van het gat
+function brandendeToren(p, boven, onder) {
+  const a = Math.min(0.55, p.brand / 40);
+  ctx.fillStyle = `rgba(30,12,6,${a})`; ctx.fillRect(p.x - 5, 0, PAAL + 10, boven); ctx.fillRect(p.x - 5, onder, PAAL + 10, GROND - onder);
+  for (const [ry, r] of [[boven, -1], [onder, 1]]) for (let k = 0; k < 5; k++) {
+    const fx = p.x + 4 + k * 12, fh = 10 + Math.sin(beeld * 0.4 + k * 1.7 + p.nr) * 5;
+    ctx.fillStyle = k % 2 ? '#ff7a1a' : '#ffc23a'; ctx.beginPath(); ctx.moveTo(fx - 6, ry); ctx.quadraticCurveTo(fx, ry + r * fh * 1.6, fx + 6, ry); ctx.fill();
+  }
+}
+function vuurTekenen() {
+  for (const v of vuurballen) {
+    for (let k = 3; k > 0; k--) { ctx.fillStyle = `rgba(255,${120 + k * 30},40,${0.25 * k})`; ctx.beginPath(); ctx.arc(v.x - k * 6, v.y + Math.sin(beeld * 0.5 + k) * 2, 4 + k, 0, 7); ctx.fill(); }
+    const g = ctx.createRadialGradient(v.x, v.y, 1, v.x, v.y, 9); g.addColorStop(0, '#fff6b0'); g.addColorStop(0.5, '#ffb02a'); g.addColorStop(1, 'rgba(255,60,20,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(v.x, v.y, 9, 0, 7); ctx.fill();
+  }
+  if (vogel.adem > 0 && staat == 'spel') { // vuur uit de snuit
+    const l = Math.min(1, vogel.adem / 10) * 34, hk = Math.max(-0.45, Math.min(1.3, vogel.vy * 0.09));
+    ctx.save(); ctx.translate(vogel.x, vogel.y); ctx.rotate(hk); ctx.translate(25, -5);
+    for (let k = 0; k < 3; k++) { ctx.fillStyle = ['rgba(255,80,20,.7)', 'rgba(255,160,40,.8)', 'rgba(255,240,150,.9)'][k];
+      const ll = l * (1 - k * 0.25), bb = 7 - k * 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(ll * 0.5, -bb - Math.sin(beeld * 0.6) * 2, ll, 0); ctx.quadraticCurveTo(ll * 0.5, bb + Math.cos(beeld * 0.6) * 2, 0, 0); ctx.fill(); }
+    ctx.restore();
+  }
+}
+function vulkaan(x, y) {
+  ctx.fillStyle = '#2a1820'; ctx.beginPath(); ctx.moveTo(x - 110, y); ctx.lineTo(x - 22, y - 120); ctx.lineTo(x + 22, y - 120); ctx.lineTo(x + 110, y); ctx.fill();
+  ctx.fillStyle = '#ff6a1a'; ctx.beginPath(); ctx.ellipse(x, y - 120, 22, 5, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#ff7a1a'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x - 6, y - 118); ctx.quadraticCurveTo(x - 16, y - 70, x - 34, y - 30); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x + 8, y - 118); ctx.quadraticCurveTo(x + 18, y - 80, x + 30, y - 52); ctx.stroke();
+  for (let i = 0; i < 4; i++) { const t = (beeld * 0.4 + i * 40) % 160; ctx.fillStyle = `rgba(70,50,60,${0.5 - t / 330})`; ctx.beginPath(); ctx.arc(x + Math.sin(t * 0.05 + i) * 10, y - 130 - t, 10 + t * 0.15, 0, 7); ctx.fill(); }
+}
+function burcht(x, y, s) { // donker silhouet van een kasteel in de verte
+  ctx.fillStyle = '#3a2238';
+  ctx.fillRect(x - 40 * s, y - 40 * s, 80 * s, 40 * s);
+  for (const [dx, hh] of [[-44, 70], [30, 80], [-8, 100]]) { ctx.fillRect(x + dx * s, y - hh * s, 16 * s, hh * s); ctx.beginPath(); ctx.moveTo(x + (dx - 3) * s, y - hh * s); ctx.lineTo(x + (dx + 8) * s, y - (hh + 18) * s); ctx.lineTo(x + (dx + 19) * s, y - hh * s); ctx.fill(); }
+  ctx.fillStyle = 'rgba(255,170,60,.7)'; ctx.fillRect(x - 4 * s, y - 80 * s, 5 * s, 7 * s); ctx.fillRect(x + 34 * s, y - 60 * s, 5 * s, 7 * s);
+}
+function achtergrondDraak() {
+  const lucht = ctx.createLinearGradient(0, 0, 0, GROND);
+  lucht.addColorStop(0, '#1a0a26'); lucht.addColorStop(0.55, '#6a1a2a'); lucht.addColorStop(1, '#e8602a');
+  ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, GROND);
+  ctx.fillStyle = '#fff'; for (let i = 0; i < 24; i++) { ctx.globalAlpha = 0.3 + 0.3 * Math.sin(beeld * 0.05 + i); ctx.fillRect((i * 67) % W, (i * 41) % (GROND * 0.4), 1.5, 1.5); } ctx.globalAlpha = 1;
+  ctx.fillStyle = '#ffe8c0'; ctx.beginPath(); ctx.arc(W * 0.75, 70, 22, 0, 7); ctx.fill(); ctx.fillStyle = '#1a0a26'; ctx.beginPath(); ctx.arc(W * 0.75 + 9, 64, 20, 0, 7); ctx.fill(); // maansikkel
+  const vx = W + 140 - ((schuif * 0.1) % (W + 280)); vulkaan(vx, GROND - 40);
+  for (let i = 0; i < 2; i++) { const bx = W + 90 - ((schuif * (0.2 + i * 0.1) + i * 230) % (W + 180)); burcht(bx, GROND - 30 + i * 12, 0.8 + i * 0.3); }
+  ctx.fillStyle = '#2a1424'; ctx.beginPath(); ctx.moveTo(0, GROND); // heuvels vooraan
+  for (let i = 0; i <= W; i += 20) ctx.lineTo(i, GROND - 34 - Math.sin((i + schuif * 0.35) * 0.02) * 14);
+  ctx.lineTo(W, GROND); ctx.fill();
+  for (let i = 0; i < 14; i++) { const t = (beeld * (0.6 + (i % 3) * 0.3) + i * 53) % GROND; ctx.fillStyle = i % 2 ? '#ffb03a' : '#ff6a1a'; ctx.globalAlpha = 1 - t / GROND; // opstijgende vonkjes
+    ctx.fillRect(((i * 89 - schuif * 0.4) % W + W) % W + Math.sin(t * 0.05 + i) * 8, GROND - t, 2, 2); } ctx.globalAlpha = 1;
+}
+function grondDraak() { // kinderkopjes met gloeiende lavaspleten
+  ctx.fillStyle = '#3a3038'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#2a2228'; ctx.fillRect(0, GROND, W, 5);
+  for (let r = 0; r < 4; r++) for (let i = -1; i < W / 28 + 2; i++) { const x = i * 28 - (schuif % 28) + (r % 2) * 14, y = GROND + 12 + r * 17;
+    ctx.fillStyle = (i + r) % 3 ? '#4a4048' : '#544a52'; rrect(x, y, 24, 13, 5); ctx.fill(); }
+  ctx.strokeStyle = `rgba(255,110,30,${0.6 + Math.sin(beeld * 0.1) * 0.25})`; ctx.lineWidth = 2;
+  for (let i = -1; i < W / 120 + 1; i++) { const x = i * 120 - (schuif % 120); ctx.beginPath(); ctx.moveTo(x + 20, GROND + 6); ctx.lineTo(x + 30, GROND + 26); ctx.lineTo(x + 24, GROND + 40); ctx.lineTo(x + 36, GROND + 62); ctx.stroke(); }
+}
+
 const WERELDEN = {
   meeuw: { achter: () => achtergrond(), grond: () => grond(), paal: (x, y, h, b, nr) => paal(x, y, h, b, nr), bonus: (x, y, r) => frietje(x, y, r),
     valt: (x, y, r) => frietje(x, y, r), held: (x, y, h, f, s, d) => meeuw(x, y, h, f, s, d) },
@@ -1269,6 +1429,8 @@ const WERELDEN = {
     body: 'linear-gradient(#7f9fd0 50%,#ffffff 50%)' },
   hommel: { achter: achtergrondBollen, grond: grondBollen, paal: (x, y, h, b, nr) => (b ? molenwiek(x, y, h) : reuzentulp(x, y, h, TULPKLEUR[nr % 5])),
     smal: 12, bonus: (x, y) => nectar(x, y - 4), valt: (x, y) => nectar(x, y), held: (x, y, h, f, s, d) => hommel(x, y, s, h, d) },
+  draak: { achter: achtergrondDraak, grond: grondDraak, paal: (x, y, h, b) => toren(x, y, h, b), bonus: (x, y) => edelsteen(x, y - 4),
+    valt: (x, y) => edelsteen(x, y), held: (x, y, h, f, s, d) => draak(x, y, h, f, s, d), body: 'linear-gradient(#2a0f2e 50%,#3a3038 50%)' },
   kip: { achter: achtergrondBoerderij, grond: grondBoerderij, paal: (x, y, h, b) => hooibalen(x, y, h, b), bonus: (x, y, r) => mais(x, y - 6, r),
     valt: (x, y) => ei(x, y), held: (x, y, h, f, s, d) => kip(x, y, s, h, f, d) },
 };
@@ -1450,6 +1612,7 @@ function tekenDier(id, x, y, fl, s) {
   if (id == 'roodborst') { roodborstje(x, y + 4, 0, fl, s * 1.1); besjes(x + 30, y + 18); }
   if (id == 'papegaai') { papegaai(x, y + 6, -0.1, fl, s); goudstuk(x + 32, y + 18); }
   if (id == 'pinguin') { pinguin(x, y + 6, -0.1, fl, s); visje(x + 32, y + 20); }
+  if (id == 'draak') { draak(x - 2, y + 8, -0.1, fl, s * 0.95); edelsteen(x + 32, y + 20); }
 }
 
 function scorebord() {
@@ -1532,6 +1695,11 @@ function tekenStreken() {
       continue;
     }
     if (g.soort == 'dief') { ctx.save(); ctx.translate(g.x, g.y); ctx.scale(-1, 1); meeuw(0, 0, 0, beeld % 20 < 10 ? 8 : 0, 1, false); ctx.restore(); tekst('Mijn patat!', g.x, g.y - 26, 11, '#fff', 'center', '#1d3b57'); }
+    if (g.soort == 'steen') {
+      ctx.save(); ctx.translate(g.x, g.y); ctx.rotate(g.t * 0.15);
+      ctx.fillStyle = '#7a7480'; ctx.beginPath(); ctx.moveTo(-10, -4); ctx.lineTo(-4, -10); ctx.lineTo(7, -8); ctx.lineTo(11, 2); ctx.lineTo(4, 10); ctx.lineTo(-8, 7); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#4a4450'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-3, -6); ctx.lineTo(1, 0); ctx.lineTo(-2, 5); ctx.stroke(); ctx.restore();
+    }
     if (g.soort == 'kogel') {
       ctx.fillStyle = 'rgba(200,200,200,.5)'; for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.arc(g.x + k * 14, g.y + Math.sin(beeld * 0.3 + k) * 2, 5 - k, 0, 7); ctx.fill(); }
       ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.arc(g.x - 3, g.y - 3, 3, 0, 7); ctx.fill();
@@ -1581,6 +1749,7 @@ function teken() {
       const boven = p.midden - p.gat / 2, onder = p.midden + p.gat / 2;
       wd.paal(p.x, -20, boven + 20, true, p.nr);
       wd.paal(p.x, onder, GROND - onder, false, p.nr);
+      if (p.brand) brandendeToren(p, boven, onder);
       if (p.piraat) piraat(p.x + PAAL / 2, onder, p);
       if (p.friet && !p.friet.weg) wd.bonus(p.x + PAAL / 2, bonusY(p) + (p.piraat && p.piraat.trek ? 0 : Math.sin(beeld * 0.1 + p.nr) * 3) + 8);
     }
@@ -1609,13 +1778,14 @@ function teken() {
     if (tocht) tekst(doelTocht() ? 'Finish bij ' + doelTocht() + ' punten' : 'Laatste dier: vlieg zo ver als je kunt!', W / 2, H * 0.6 - 30, 16, '#ffe14d');
     tekst('Tik om te fladderen!', W / 2, H * 0.6, 22);
     tekst('Vlieg tussen ' + fig.palen + ' door', W / 2, H * 0.6 + 32, 15);
-    tekst('en pik onderweg wat ' + fig.bonus[1] + ' mee', W / 2, H * 0.6 + 54, 15);
+    tekst(fig.pak || 'en pik onderweg wat ' + fig.bonus[1] + ' mee', W / 2, H * 0.6 + 54, 15);
     if (streken) tekst(STREEK[fig.id] + ' (vanaf 3 punten)', W / 2, H * 0.6 + 140, 14, '#ffb4a8', 'center', '#1d3b57');
     // handje dat tikt
     const t = (beeld % 60) < 10 ? 4 : 0;
     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(W / 2, H * 0.6 + 100 + t, 12, 0, 7); ctx.fill();
     ctx.fillRect(W / 2 - 4, H * 0.6 + 76 + t, 8, 24);
   }
+  if (fig.id == 'draak' && staat != 'menu') vuurTekenen();
   if (wind && staat == 'spel') windStrepen();
   if (staat != 'menu') tekenStreken();
   if (staat == 'spel' || staat == 'dood' || staat == 'finish') scorebord();
@@ -1658,7 +1828,7 @@ document.querySelector('.terug').addEventListener('click', (e) => {
 });
 if (TEGEL) { document.querySelector('.terug').hidden = true; tegelPlaatje(); }
 else { nieuwSpel(); staat = 'menu'; requestAnimationFrame(lus); }
-window.__test = { get roepBel() { return roepBel; }, get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
+window.__test = { get roepBel() { return roepBel; }, get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, kies: (id) => { fig = FIGUREN.find((f) => f.id == id); }, get vuurballen() { return vuurballen; }, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
 </script>
 </body>
 </html>
