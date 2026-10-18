@@ -92,12 +92,13 @@ bedenk dat de site openbaar is.
   2 Het postkantoor (2000x1300, `PW`/`PH`, `postAchter`/`postVoor`, `POST`; loketten, postvakjes, rij met klanten via `mens`, postbode met hond, slakkenpost),
   3 Het orkest (2000x1300, `OW`/`OH`; ruim 100 muzikanten via `muzikant(x, y, s, o)` met `INSTR` en grapjes `GAG`, `o.staat` = staand figuur, `o.pak`/`o.broek`/`o.arm`
   = kleuren, vaste willekeur via `rng(zaad)`; `ORKEST` = 35 voorwerpen), 4 Het strand (2000x1300, `SW`/`SH`, `strandAchter`/`strandVoor`, `STRAND`; badgasten
-  via `badgast`, zonnebaders via `ligger`, parasols, windschermen, strandtent, ijskar, strandwacht). Voorwerpen passen bij het plaatje (orkest: instrumenten die
+  via `badgast`, zonnebaders via `ligger`, parasols, windschermen, strandtent, ijskar, strandwacht). 5 Het piratenschip (2000x1300, `ZW`/`ZH`, `schipAchter`/`schipVoor`,
+  `SCHIP`; opengewerkt schip `ROMP` met dek, kanonnendek en ruim, piraten via `piraat` (bandana `GAG.bandana`, streepjestrui `o.streep`), het water over
+  de onderkant buiten de romp in `schipVoor`; de doodskopvlag hangt als voorwerp aan de waslijn, de mast heeft een rode wimpel). Voorwerpen passen bij het plaatje (orkest: instrumenten die
   niemand bespeelt, popcorn, operaglas; postkantoor: postzegel, ansichtkaart, plakband, nummertje; strand: schepje, snorkel, zwemband) en een
   voorwerp wordt nooit ook als afleider getekend (geen muzikant met hetzelfde instrument, geen tweede ijsje, telefoon of zonnebril bij de mensen:
   daarom laten de grapjeslijsten selfie/koffie/boterham weg), anders tikt iemand op de verkeerde. De rommelkamer mag allerlei spul hebben.
-  Ideeën voor nieuwe levels (Marcel en Anja): supermarkt, kermis, spookkasteel, camping, piratenschip (haak, vlag, piratenhoed, zwaard, houten poot,
-  papegaai), Orkenstorm-dorp (rolstoel, helm, kaas, pizza, stokbrood, bier, ork), restaurantkeuken. Plus: per level een "stoute figuur" om te vinden
+  Ideeën voor nieuwe levels (Marcel en Anja): supermarkt, kermis, spookkasteel, camping, Orkenstorm-dorp (rolstoel, helm, kaas, pizza, stokbrood, bier, ork), restaurantkeuken, plaats delict (iemand onder een laken met een been eruit). Plus: per level een "stoute figuur" om te vinden
   (zoals de oldtimer) en een nachtlevel waarin je alleen ziet wat in de lichtbundel van je zaklamp valt. Voortgang per speler en per level-id: `zoek_tijd_<id>:<naam>` (snelste tijd incl. hintstraf; een level is
   open als het vorige een tijd heeft, `isOpen`) en `zoek_auto_<id>:<naam>`. De vroegere fotolevel met wachtwoord is weg (oude sleutels met
   levelnummers worden bij het laden omgezet). Online scorebord (zelfde Apps Script, geen aanpassing nodig): onderdeel `zoek_tijd_<id>`, modus `gewoon`,

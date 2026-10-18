@@ -348,6 +348,29 @@ Object.assign(TEKEN, {
   waterpistool() { lijn(2.5); vorm('#3fae5a', () => rr(-20, -10, 34, 14, 6)); vorm('#ff7a1a', () => rr(-6, 2, 12, 18, 3)); vorm('#ffd34d', () => ctx.rect(14, -6, 10, 6)); vorm('#4ab8e8', () => ctx.arc(-12, -14, 6, 0, 7)); },
   visnetje() { lijn(2.5); ctx.beginPath(); ctx.moveTo(-22, 20); ctx.lineTo(2, -4); ctx.stroke(); vorm('rgba(255,255,255,.5)', () => ctx.arc(10, -12, 12, 0, 7)); ctx.lineWidth = 1; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(4 + k * 4, -24); ctx.lineTo(4 + k * 4, 0); ctx.moveTo(-2, -12 + k * 4); ctx.lineTo(22, -12 + k * 4); ctx.stroke(); } lijn(2.5, '#ff7a1a'); ctx.beginPath(); ctx.arc(10, -12, 12, 0, 7); ctx.stroke(); lijn(2.5); },
   strandbal() { lijn(2.5); vorm('#fff', () => ctx.arc(0, 0, 17, 0, 7)); for (const [k, a] of [['#e8384f', 0], ['#3a8ae8', 2.1], ['#ffd34d', 4.2]]) vorm(k, () => { ctx.moveTo(0, 0); ctx.arc(0, 0, 17, a, a + 1.05); ctx.closePath(); }); ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.stroke(); },
+  haak() { lijn(3); vorm('#8a5a30', () => rr(-8, 4, 16, 18, 4)); ctx.strokeStyle = '#a8b0b8'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, 4); ctx.lineTo(0, -8); ctx.arc(-8, -8, 8, 0, Math.PI * 1.2, true); ctx.stroke(); lijn(2.5); },
+  vlag() { lijn(2.5); ctx.beginPath(); ctx.moveTo(-20, -22); ctx.lineTo(-20, 24); ctx.stroke(); vorm('#1a1a1a', () => { ctx.moveTo(-20, -22); ctx.lineTo(22, -18); ctx.quadraticCurveTo(16, -6, 22, 6); ctx.lineTo(-20, 4); ctx.closePath(); }); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, -11, 6, 0, 7); ctx.fill(); ctx.fillRect(-3, -6, 6, 4); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-9, -4); ctx.lineTo(9, 2); ctx.moveTo(9, -4); ctx.lineTo(-9, 2); ctx.stroke(); ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.arc(-2, -12, 1.5, 0, 7); ctx.arc(2, -12, 1.5, 0, 7); ctx.fill(); lijn(2.5); },
+  piratenhoed() { lijn(2.5); vorm('#1a1a2a', () => { ctx.moveTo(-26, 6); ctx.quadraticCurveTo(-18, -4, -12, -14); ctx.quadraticCurveTo(0, -24, 12, -14); ctx.quadraticCurveTo(18, -4, 26, 6); ctx.quadraticCurveTo(0, -2, -26, 6); }); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, -8, 4.5, 0, 7); ctx.fill(); ctx.strokeStyle = '#ffd34d'; ctx.beginPath(); ctx.moveTo(-24, 5); ctx.quadraticCurveTo(0, -3, 24, 5); ctx.stroke(); lijn(2.5); },
+  sabel() { lijn(2.5); ctx.save(); ctx.rotate(-0.6); vorm('#d8dde4', () => { ctx.moveTo(-2, -8); ctx.quadraticCurveTo(10, -30, 2, -40); ctx.quadraticCurveTo(16, -26, 4, -8); ctx.closePath(); }); vorm('#ffd34d', () => { ctx.ellipse(1, -6, 10, 3, 0, 0, 7); }); vorm('#6a3a1a', () => ctx.rect(-2, -4, 6, 14)); ctx.restore(); },
+  houtenpoot() { lijn(2.5); vorm('#a8743a', () => { ctx.moveTo(-8, -24); ctx.lineTo(8, -24); ctx.lineTo(4, 16); ctx.lineTo(-4, 16); ctx.closePath(); }); vorm('#6a4220', () => rr(-10, -28, 20, 8, 3)); vorm('#4a2a10', () => ctx.ellipse(0, 18, 5, 3, 0, 0, 7)); ctx.strokeStyle = '#6a4220'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-3, -14); ctx.lineTo(-1, 6); ctx.stroke(); lijn(2.5); },
+  papegaai() { lijn(2.5); vorm('#3fae5a', () => ctx.ellipse(0, 4, 9, 14, 0.2, 0, 7)); vorm('#e8384f', () => ctx.arc(2, -12, 8, 0, 7)); vorm('#ffd34d', () => { ctx.moveTo(8, -14); ctx.quadraticCurveTo(16, -12, 10, -4); ctx.lineTo(7, -9); ctx.closePath(); }); vorm('#3a8ae8', () => { ctx.moveTo(-6, 0); ctx.lineTo(-14, 22); ctx.lineTo(-2, 14); ctx.closePath(); }); vorm('#3a8ae8', () => { ctx.moveTo(0, 16); ctx.lineTo(-4, 30); ctx.lineTo(4, 30); ctx.closePath(); }); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(3, -14, 2.8, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(4, -14, 1.4, 0, 7); ctx.fill(); },
+  schatkist() { lijn(2.5); vorm('#8a5a30', () => rr(-22, -4, 44, 22, 3)); vorm('#a8743a', () => { ctx.moveTo(-22, -4); ctx.quadraticCurveTo(0, -24, 22, -4); ctx.closePath(); }); vorm('#ffd34d', () => { ctx.rect(-24, -6, 48, 4); ctx.rect(-14, -4, 4, 22); ctx.rect(10, -4, 4, 22); ctx.rect(-4, 0, 8, 8); }); },
+  schatkaart() { lijn(2.5); vorm('#f0dca0', () => { ctx.moveTo(-22, -16); ctx.lineTo(22, -14); ctx.lineTo(20, 16); ctx.lineTo(-20, 14); ctx.closePath(); }); ctx.setLineDash([3, 3]); ctx.strokeStyle = '#8a5a30'; ctx.beginPath(); ctx.moveTo(-14, 8); ctx.quadraticCurveTo(-4, -10, 8, 2); ctx.stroke(); ctx.setLineDash([]); ctx.strokeStyle = '#e8384f'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(6, -4); ctx.lineTo(14, 4); ctx.moveTo(14, -4); ctx.lineTo(6, 4); ctx.stroke(); lijn(2.5); },
+  verrekijker() { lijn(2.5); ctx.save(); ctx.rotate(-0.3); vorm('#a8743a', () => ctx.rect(-24, -5, 16, 10)); vorm('#ffd34d', () => ctx.rect(-8, -6, 14, 12)); vorm('#a8743a', () => ctx.rect(6, -8, 16, 16)); vorm('#bfe4f4', () => ctx.ellipse(22, 0, 3, 8, 0, 0, 7)); ctx.restore(); },
+  kompas() { lijn(2.5); vorm('#ffd34d', () => ctx.arc(0, 0, 16, 0, 7)); vorm('#fff8e8', () => ctx.arc(0, 0, 12, 0, 7)); vorm('#e8384f', () => { ctx.moveTo(0, -10); ctx.lineTo(4, 0); ctx.lineTo(-4, 0); ctx.closePath(); }, false); vorm('#2a1f2a', () => { ctx.moveTo(0, 10); ctx.lineTo(4, 0); ctx.lineTo(-4, 0); ctx.closePath(); }, false); ctx.fillStyle = '#2a1f2a'; ctx.font = 'bold 6px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('N', 0, -5); },
+  anker() { lijn(4, '#5a6470'); ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(0, 18); ctx.moveTo(-10, -12); ctx.lineTo(10, -12); ctx.moveTo(-18, 6); ctx.quadraticCurveTo(0, 26, 18, 6); ctx.stroke(); ctx.beginPath(); ctx.arc(0, -24, 4, 0, 7); ctx.stroke(); lijn(2.5); },
+  rumfles() { lijn(2.5); vorm('#6a3a1a', () => { ctx.moveTo(-9, 20); ctx.lineTo(-9, -2); ctx.quadraticCurveTo(-9, -8, -3, -10); ctx.lineTo(-3, -20); ctx.lineTo(3, -20); ctx.lineTo(3, -10); ctx.quadraticCurveTo(9, -8, 9, -2); ctx.lineTo(9, 20); ctx.closePath(); }); vorm('#fff8e8', () => ctx.rect(-7, 2, 14, 10), false); ctx.fillStyle = '#e8384f'; ctx.font = 'bold 7px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('RUM', 0, 10); vorm('#c8a060', () => ctx.rect(-3, -24, 6, 5)); },
+  lantaarn() { lijn(2.5); ctx.beginPath(); ctx.arc(0, -22, 5, Math.PI, 0); ctx.stroke(); vorm('#2a2a2a', () => { ctx.moveTo(-10, -16); ctx.lineTo(10, -16); ctx.lineTo(6, -22); ctx.lineTo(-6, -22); ctx.closePath(); }); vorm('#ffe48a', () => ctx.rect(-9, -16, 18, 26)); vorm('#ff9a3a', () => ctx.ellipse(0, -2, 3, 6, 0, 0, 7), false); ctx.beginPath(); ctx.moveTo(-9, -16); ctx.lineTo(-9, 10); ctx.moveTo(9, -16); ctx.lineTo(9, 10); ctx.moveTo(0, -16); ctx.lineTo(0, -8); ctx.stroke(); vorm('#2a2a2a', () => ctx.rect(-11, 10, 22, 5)); },
+  flessenpost() { lijn(2.5); ctx.save(); ctx.rotate(-0.8); vorm('rgba(150,220,180,.7)', () => { ctx.moveTo(-8, 18); ctx.lineTo(-8, -4); ctx.lineTo(-3, -10); ctx.lineTo(-3, -18); ctx.lineTo(3, -18); ctx.lineTo(3, -10); ctx.lineTo(8, -4); ctx.lineTo(8, 18); ctx.closePath(); }); vorm('#fff8e8', () => ctx.rect(-4, -2, 8, 16), false); vorm('#a8743a', () => ctx.rect(-3, -22, 6, 5)); ctx.restore(); },
+  sleutel() { lijn(3, '#a8803a'); ctx.beginPath(); ctx.arc(-14, 0, 8, 0, 7); ctx.moveTo(-6, 0); ctx.lineTo(22, 0); ctx.moveTo(16, 0); ctx.lineTo(16, 8); ctx.moveTo(10, 0); ctx.lineTo(10, 6); ctx.stroke(); lijn(2.5); },
+  kroon() { lijn(2.5); vorm('#ffd34d', () => { ctx.moveTo(-18, 10); ctx.lineTo(-18, -8); ctx.lineTo(-9, 0); ctx.lineTo(0, -14); ctx.lineTo(9, 0); ctx.lineTo(18, -8); ctx.lineTo(18, 10); ctx.closePath(); }); for (const [x, k] of [[-9, '#e8384f'], [0, '#3a8ae8'], [9, '#3fae5a']]) vorm(k, () => ctx.arc(x, 5, 2.8, 0, 7), false); },
+  ketting() { lijn(1.5); for (let k = 0; k < 13; k++) { const a = 0.3 + k * 0.21; vorm('#fff8f0', () => ctx.arc(Math.cos(a) * 18, -6 + Math.sin(a) * 18, 3.6, 0, 7)); } vorm('#e8384f', () => ctx.arc(0, 13, 5, 0, 7)); lijn(2.5); },
+  edelsteen() { lijn(2.5); vorm('#4ad0e8', () => { ctx.moveTo(-16, -6); ctx.lineTo(-8, -14); ctx.lineTo(8, -14); ctx.lineTo(16, -6); ctx.lineTo(0, 16); ctx.closePath(); }); ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(-16, -6); ctx.lineTo(16, -6); ctx.moveTo(-8, -14); ctx.lineTo(-4, -6); ctx.lineTo(0, 16); ctx.lineTo(4, -6); ctx.lineTo(8, -14); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(-10, -11, 5, 3); lijn(2.5); },
+  zeemeermin() { lijn(2.5); vorm('#3fbfa8', () => { ctx.moveTo(-6, 0); ctx.quadraticCurveTo(-10, 16, 2, 22); ctx.lineTo(12, 18); ctx.lineTo(16, 26); ctx.lineTo(18, 14); ctx.lineTo(6, 16); ctx.quadraticCurveTo(4, 8, 6, 0); ctx.closePath(); }); vorm('#e8b088', () => ctx.rect(-6, -10, 12, 11)); vorm('#ff9ac0', () => { ctx.arc(-3, -6, 3, 0, 7); ctx.arc(3, -6, 3, 0, 7); }); vorm('#e8b088', () => ctx.arc(0, -16, 7, 0, 7)); vorm('#e8384f', () => { ctx.arc(0, -18, 7.5, Math.PI, 0); ctx.rect(-8, -18, 4, 16); ctx.rect(4, -18, 4, 12); }); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(-2.5, -16, 1.2, 0, 7); ctx.arc(2.5, -16, 1.2, 0, 7); ctx.fill(); },
+  rat() { lijn(2.5); ctx.beginPath(); ctx.moveTo(-14, 6); ctx.quadraticCurveTo(-28, 10, -26, -4); ctx.stroke(); vorm('#8a8a98', () => ctx.ellipse(0, 4, 15, 9, 0, 0, 7)); vorm('#8a8a98', () => { ctx.moveTo(12, -2); ctx.lineTo(26, 6); ctx.lineTo(12, 10); ctx.closePath(); }); vorm('#ff9ac0', () => ctx.arc(10, -5, 5, 0, 7)); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(18, 2, 1.5, 0, 7); ctx.arc(26, 6, 1.8, 0, 7); ctx.fill(); },
+  zwabber() { lijn(2.5); ctx.beginPath(); ctx.moveTo(14, -26); ctx.lineTo(-2, 8); ctx.stroke(); vorm('#e8e0b0', () => { ctx.moveTo(-10, 6); ctx.lineTo(6, 10); ctx.lineTo(4, 24); ctx.lineTo(-16, 20); ctx.closePath(); }); ctx.strokeStyle = '#b8a870'; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(-8 + k * 4, 10); ctx.lineTo(-12 + k * 4, 22); ctx.stroke(); } lijn(2.5); },
+  zakhorloge() { lijn(2.5); ctx.beginPath(); ctx.moveTo(0, -16); ctx.quadraticCurveTo(14, -30, 24, -18); ctx.stroke(); vorm('#ffd34d', () => ctx.arc(0, 0, 14, 0, 7)); vorm('#fff8e8', () => ctx.arc(0, 0, 10, 0, 7)); vorm('#ffd34d', () => ctx.rect(-3, -18, 6, 4)); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -7); ctx.moveTo(0, 0); ctx.lineTo(5, 2); ctx.stroke(); },
+  kaas() { lijn(2.5); vorm('#ffd34d', () => { ctx.moveTo(-20, 10); ctx.lineTo(20, 10); ctx.lineTo(20, -2); ctx.lineTo(-20, -10); ctx.closePath(); }); vorm('#f0c030', () => { ctx.moveTo(-20, -10); ctx.lineTo(20, -2); ctx.lineTo(20, 10); ctx.lineTo(-20, 10); ctx.closePath(); }); ctx.fillStyle = '#e0a820'; for (const [x, y, r] of [[-8, 2, 3], [6, 4, 2.4], [12, 0, 1.8], [-14, -2, 1.6]]) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); } },
   oldtimer() { lijn(2.5); // zilveren oldtimer (eigen ontwerp, zonder merk)
     vorm('#2a2a3a', () => { ctx.arc(-16, 12, 8, 0, 7); }); vorm('#2a2a3a', () => ctx.arc(18, 12, 8, 0, 7));
     vorm('#c8ccd8', () => { ctx.moveTo(-30, 10); ctx.lineTo(-30, 0); ctx.quadraticCurveTo(-28, -6, -18, -6); ctx.lineTo(-12, -6); ctx.quadraticCurveTo(-8, -18, 6, -18); ctx.quadraticCurveTo(16, -18, 18, -6); ctx.lineTo(28, -4); ctx.quadraticCurveTo(34, -2, 32, 10); ctx.closePath(); });
@@ -382,6 +405,7 @@ function muzikant(x, y, s, o) {
   vorm(o.broek || '#1a1a22', () => { ctx.rect(-10, -2, 8, been); ctx.rect(2, -2, 8, been); }); // benen
   vorm('#111', () => { ctx.ellipse(-6, been - 1, 6, 3, 0, 0, 7); ctx.ellipse(6, been - 1, 6, 3, 0, 0, 7); });
   vorm(pak, () => rr(-14, -34, 28, 36, 9));
+  if (o.streep) { ctx.fillStyle = o.streep; for (let k = 0; k < 3; k++) ctx.fillRect(-13, -28 + k * 10, 26, 4); ctx.beginPath(); rr(-14, -34, 28, 36, 9); ctx.stroke(); }
   if (!o.jurk && !o.pak) vorm('#fff', () => { ctx.moveTo(-5, -34); ctx.lineTo(0, -22); ctx.lineTo(5, -34); }, false); else if (o.ketting) { ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, -36, 6, 0.4, Math.PI - 0.4); ctx.stroke(); lijn(2); }
   if (o.kapsel == 'lang' || o.kapsel == 'staart') vorm(o.haar, () => rr(-12, -52, 24, 22, 8));
   vorm(o.huid, () => ctx.arc(0, -45, 10, 0, 7));
@@ -438,6 +462,7 @@ const GAG = {
   brief() { arm(-11, -30, -16, -8); arm(11, -30, 8, -26); vorm('#fff', () => ctx.rect(4, -34, 18, 12)); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(4, -34); ctx.lineTo(13, -27); ctx.lineTo(22, -34); ctx.stroke(); lijn(2); },
   postpet() { vorm('#2a4a8a', () => { ctx.arc(0, -50, 11, Math.PI, Math.PI * 2); ctx.rect(-12, -52, 26, 4); }); vorm('#ffd34d', () => ctx.arc(0, -56, 2.5, 0, 7), false); },
   tong() { vorm('#ff6a8a', () => ctx.ellipse(0, -36, 3, 6, 0, 0, 7)); arm(11, -30, 6, -34); vorm('#4ab8e8', () => ctx.rect(1, -40, 8, 9)); },
+  bandana() { vorm(armKleur == '#e8384f' ? '#3a8ae8' : '#e8384f', () => { ctx.arc(0, -48, 11, Math.PI, Math.PI * 2); ctx.moveTo(10, -50); ctx.lineTo(18, -44); ctx.lineTo(16, -52); ctx.closePath(); }); ctx.fillStyle = '#fff'; for (const x of [-6, 0, 6]) { ctx.beginPath(); ctx.arc(x, -53, 1.3, 0, 7); ctx.fill(); } },
   breien() { arm(-11, -30, -2, -18); arm(11, -30, 4, -18); vorm('#e84a8a', () => ctx.arc(14, 4, 6, 0, 7)); ctx.beginPath(); ctx.moveTo(-6, -24); ctx.lineTo(8, -12); ctx.moveTo(6, -24); ctx.lineTo(-6, -12); ctx.stroke(); },
 };
 function lessenaarK(x, y, s = 1) { ctx.save(); ctx.translate(x, y); ctx.scale(s, s); lijn(2); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -34); ctx.moveTo(-8, 0); ctx.lineTo(0, -6); ctx.lineTo(8, 0); ctx.stroke();
@@ -798,6 +823,123 @@ const STRAND = [ // op het plaatje van 2000 x 1300; alleen dingen die je op het 
   ['Strandbal', 'strandbal', 160, 1250, 0.9, 0.3, 1], ['Koptelefoon', 'koptelefoon', 1288, 768, 0.6, 0.2, 1], ['Visnetje', 'visnetje', 662, 1236, 0.7, 0.3, 1],
 ];
 
+// ---------- level 5: het piratenschip, een druk stripplaatje (2000 x 1300) ----------
+const ZW = 2000, ZH = 1300;
+function piraat(x, y, s, r, extra = {}) { // een piraat (staand); nooit met een haak, houten poot, hoed, papegaai of zwaard: dat zijn voorwerpen
+  const pak = ['#e8384f', '#fff', '#3a5a8a', '#2a2a2a', '#8a5a30', '#5a7a4a'][Math.floor(r() * 6)];
+  muzikant(x, y, s, Object.assign({ staat: 1, pak, streep: pak == '#fff' ? '#e8384f' : r() < 0.4 ? '#fff' : undefined, broek: ['#2a3a5a', '#3a3a3a', '#5a4a3a', '#8a7a5a'][Math.floor(r() * 4)], arm: undefined,
+    huid: HUID[Math.floor(r() * HUID.length)], haar: HAAR[Math.floor(r() * HAAR.length)], kapsel: ['kort', 'lang', 'kaal', 'krul', 'staart'][Math.floor(r() * 5)], baard: r() < 0.55, instr: '',
+    gag: r() < 0.6 ? 'bandana' : r() < 0.3 ? 'ooglap' : undefined }, extra));
+}
+function ton(x, y, s = 1) { ctx.save(); ctx.translate(x, y); ctx.scale(s, s); lijn(2.5); vorm('#a8743a', () => { ctx.moveTo(-18, -26); ctx.quadraticCurveTo(-24, 0, -18, 26); ctx.lineTo(18, 26); ctx.quadraticCurveTo(24, 0, 18, -26); ctx.closePath(); }); vorm('#5a6470', () => { ctx.rect(-20, -16, 40, 4); ctx.rect(-20, 12, 40, 4); }, false); ctx.restore(); }
+function krat(x, y, w, h) { lijn(2.5); vorm('#c8a060', () => ctx.rect(x, y, w, h)); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y + h); ctx.moveTo(x + w, y); ctx.lineTo(x, y + h); ctx.stroke(); }
+function kanon(x, y, kant, s = 1) { ctx.save(); ctx.translate(x, y); ctx.scale(kant * s, s); lijn(2.5); vorm('#3a3a44', () => { ctx.moveTo(-30, -14); ctx.lineTo(34, -9); ctx.lineTo(34, 9); ctx.lineTo(-30, 14); ctx.closePath(); }); vorm('#3a3a44', () => ctx.arc(-32, 0, 9, 0, 7)); vorm('#8a5a30', () => ctx.rect(-28, 8, 44, 12)); vorm('#5a3a1a', () => { ctx.arc(-18, 22, 7, 0, 7); ctx.arc(8, 22, 7, 0, 7); }); ctx.restore(); }
+function zeil(x, y, w, h, k = '#f4ecd8') { lijn(2.5); vorm(k, () => { ctx.moveTo(x - w / 2, y); ctx.quadraticCurveTo(x, y + 20, x + w / 2, y); ctx.quadraticCurveTo(x + w / 2 + 18, y + h / 2, x + w / 2, y + h); ctx.quadraticCurveTo(x, y + h + 18, x - w / 2, y + h); ctx.quadraticCurveTo(x - w / 2 + 18, y + h / 2, x - w / 2, y); }); vorm('#e8dcc0', () => ctx.rect(x + w / 6, y + h / 3, 30, 26)); ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.strokeRect(x + w / 6 + 3, y + h / 3 + 3, 24, 20); ctx.setLineDash([]); lijn(2.5); }
+const ROMP = () => { ctx.moveTo(180, 500); ctx.lineTo(440, 500); ctx.lineTo(440, 560); ctx.lineTo(1500, 560); ctx.lineTo(1500, 470); ctx.lineTo(1840, 470); ctx.quadraticCurveTo(1830, 800, 1700, 1010); ctx.quadraticCurveTo(1000, 1080, 380, 1030); ctx.quadraticCurveTo(200, 800, 120, 560); ctx.closePath(); };
+function schipAchter() {
+  const r = rng(31); lijn(3);
+  const lucht = ctx.createLinearGradient(0, 0, 0, 840); lucht.addColorStop(0, '#5ab0e8'); lucht.addColorStop(1, '#ffd8a8'); ctx.fillStyle = lucht; ctx.fillRect(0, 0, ZW, 860);
+  ctx.fillStyle = '#fff'; for (const [x, y, s] of [[150, 90, 1.1], [1650, 70, 1.2], [1180, 200, 0.8], [300, 300, 0.7]]) { ctx.beginPath(); ctx.arc(x, y, 30 * s, 0, 7); ctx.arc(x + 34 * s, y - 12 * s, 36 * s, 0, 7); ctx.arc(x + 70 * s, y, 28 * s, 0, 7); ctx.fill(); }
+  ctx.lineWidth = 3; for (let k = 0; k < 7; k++) { const x = 100 + r() * 1800, y = 40 + r() * 300; ctx.beginPath(); ctx.arc(x - 8, y, 8, Math.PI * 1.1, Math.PI * 1.9); ctx.arc(x + 8, y, 8, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); } lijn(3);
+  // eilandje met palmboom in de verte
+  vorm('#f2d8a0', () => ctx.ellipse(1930, 850, 130, 40, 0, Math.PI, 0)); lijn(4); ctx.beginPath(); ctx.moveTo(1930, 830); ctx.quadraticCurveTo(1940, 760, 1915, 700); ctx.stroke(); lijn(3);
+  for (let k = 0; k < 6; k++) vorm('#3fae5a', () => { ctx.save(); ctx.translate(1915, 700); ctx.rotate(k * 1.05); ctx.ellipse(28, 0, 30, 8, 0.3, 0, 7); ctx.restore(); });
+  // zee
+  const zee = ctx.createLinearGradient(0, 840, 0, ZH); zee.addColorStop(0, '#2a8ad0'); zee.addColorStop(1, '#14507a'); ctx.fillStyle = zee; ctx.fillRect(0, 840, ZW, ZH - 840);
+  // zeebodem met zand, wier en een rots met de zeemeermin
+  vorm('#d8c088', () => { ctx.moveTo(0, 1300); ctx.lineTo(0, 1230); ctx.quadraticCurveTo(500, 1190, 1000, 1240); ctx.quadraticCurveTo(1500, 1280, 2000, 1210); ctx.lineTo(2000, 1300); ctx.closePath(); });
+  for (let k = 0; k < 14; k++) { const x = 40 + r() * 1920; ctx.strokeStyle = '#2a8a4a'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x, 1290); ctx.quadraticCurveTo(x + 20, 1240, x - 6, 1200 - r() * 40); ctx.stroke(); } lijn(3);
+  vorm('#6a6a7a', () => { ctx.moveTo(1780, 1300); ctx.quadraticCurveTo(1800, 1150, 1900, 1140); ctx.quadraticCurveTo(1990, 1150, 2000, 1300); ctx.closePath(); });
+  // vissen, een octopus en een haai
+  for (let k = 0; k < 9; k++) { const x = 60 + r() * 1880, y = 1090 + r() * 120, kk = ['#ffd34d', '#ff7a1a', '#e84ad8', '#4ad0e8'][k % 4], z = k % 2 ? 1 : -1; vorm(kk, () => { ctx.ellipse(x, y, 16, 9, 0, 0, 7); ctx.moveTo(x - 14 * z, y); ctx.lineTo(x - 26 * z, y - 8); ctx.lineTo(x - 26 * z, y + 8); ctx.closePath(); }); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(x + 8 * z, y - 2, 2, 0, 7); ctx.fill(); }
+  vorm('#9a4fd6', () => ctx.ellipse(140, 1180, 44, 34, 0, 0, 7)); for (let k = 0; k < 5; k++) { ctx.strokeStyle = '#9a4fd6'; ctx.lineWidth = 12; ctx.beginPath(); ctx.moveTo(110 + k * 15, 1200); ctx.quadraticCurveTo(90 + k * 25, 1260, 120 + k * 22, 1280); ctx.stroke(); } lijn(3); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(126, 1172, 7, 0, 7); ctx.arc(154, 1172, 7, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(127, 1174, 3, 0, 7); ctx.arc(155, 1174, 3, 0, 7); ctx.fill();
+  vorm('#7a8a9a', () => { ctx.moveTo(400, 1150); ctx.quadraticCurveTo(480, 1120, 560, 1150); ctx.quadraticCurveTo(480, 1175, 400, 1150); ctx.moveTo(470, 1130); ctx.lineTo(490, 1100); ctx.lineTo(505, 1135); ctx.moveTo(400, 1150); ctx.lineTo(380, 1130); ctx.lineTo(385, 1170); }); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(530, 1152); for (let k = 0; k < 4; k++) { ctx.lineTo(520 - k * 7, 1158); ctx.lineTo(516 - k * 7, 1152); } ctx.fill();
+  // roeibootje met twee piraten
+  vorm('#8a5a30', () => { ctx.moveTo(1880, 880); ctx.lineTo(2000, 880); ctx.lineTo(2000, 910); ctx.lineTo(1900, 910); ctx.closePath(); });
+  // het schip: masten en zeilen achter de romp
+  lijn(10, '#6a4220'); for (const [x, t] of [[580, 70], [980, 30], [1380, 90]]) { ctx.beginPath(); ctx.moveTo(x, 560); ctx.lineTo(x, t); ctx.stroke(); } lijn(3);
+  ctx.beginPath(); ctx.moveTo(200, 500); ctx.lineTo(10, 390); ctx.stroke(); lijn(2); for (const [a, b] of [[10, 390], [580, 80], [980, 40], [1380, 100], [1840, 470], [180, 500]]) { } ctx.beginPath(); ctx.moveTo(10, 390); ctx.lineTo(580, 80); ctx.moveTo(580, 80); ctx.lineTo(980, 40); ctx.moveTo(980, 40); ctx.lineTo(1380, 100); ctx.moveTo(1380, 100); ctx.lineTo(1840, 470); ctx.stroke(); lijn(3);
+  vorm('#f4ecd8', () => { ctx.moveTo(30, 400); ctx.lineTo(560, 110); ctx.lineTo(450, 480); ctx.closePath(); }); // fok
+  lijn(7, '#6a4220'); for (const [x, ys] of [[580, [130, 300]], [980, [90, 270]], [1380, [150, 320]]]) for (const y of ys) { ctx.beginPath(); ctx.moveTo(x - 140, y); ctx.lineTo(x + 140, y); ctx.stroke(); } lijn(3);
+  zeil(580, 130, 260, 150); zeil(580, 300, 280, 170); zeil(980, 90, 260, 160); zeil(980, 270, 290, 200); zeil(1380, 150, 250, 150); zeil(1380, 320, 270, 150);
+  vorm('#e8384f', () => { ctx.moveTo(980, 30); ctx.lineTo(1060, 40); ctx.lineTo(980, 52); ctx.closePath(); }); // wimpel (geen doodskop: die vlag hangt aan de waslijn)
+  vorm('#8a5a30', () => { ctx.moveTo(930, 150); ctx.lineTo(1030, 150); ctx.lineTo(1020, 190); ctx.lineTo(940, 190); ctx.closePath(); }); // kraaiennest
+  // touwladders
+  lijn(1.5); for (const x of [580, 980, 1380]) { ctx.beginPath(); ctx.moveTo(x - 110, 555); ctx.lineTo(x - 6, 200); ctx.moveTo(x + 110, 555); ctx.lineTo(x + 6, 200); for (let k = 0; k < 10; k++) { const t = k / 10; ctx.moveTo(x - 110 + t * 104, 555 - t * 355); ctx.lineTo(x + 110 - t * 104, 555 - t * 355); } ctx.stroke(); } lijn(3);
+  // waslijn met onderbroeken (en straks de piratenvlag)
+  lijn(1.5); ctx.beginPath(); ctx.moveTo(1380, 430); ctx.quadraticCurveTo(1580, 470, 1790, 340); ctx.stroke(); lijn(2.5);
+  for (const [x, y, k, t] of [[1440, 446, '#ff9ac0', 0], [1500, 456, '#fff', 1], [1610, 452, '#3a8ae8', 0], [1690, 420, '#ffd34d', 1]]) { if (t) vorm(k, () => { ctx.moveTo(x - 16, y); ctx.lineTo(x + 16, y); ctx.lineTo(x + 18, y + 30); ctx.lineTo(x + 2, y + 34); ctx.lineTo(x, y + 20); ctx.lineTo(x - 2, y + 34); ctx.lineTo(x - 18, y + 30); ctx.closePath(); }); else vorm(k, () => { ctx.moveTo(x - 14, y); ctx.lineTo(x + 14, y); ctx.lineTo(x + 14, y + 12); ctx.quadraticCurveTo(x, y + 26, x - 14, y + 12); ctx.closePath(); }); }
+  vorm('#ff9ac0', () => { ctx.arc(1460, 460, 4, 0, 7); ctx.arc(1470, 464, 4, 0, 7); }, false); // hartjes op de onderbroek
+  // de romp, opengewerkt
+  lijn(4); vorm('#6a3a1a', ROMP);
+  ctx.save(); ctx.beginPath(); ROMP(); ctx.clip();
+  vorm('#c8925a', () => { ctx.rect(160, 580, 1660, 190); }, false); vorm('#b07a4a', () => { ctx.rect(160, 790, 1660, 260); }, false);
+  ctx.strokeStyle = 'rgba(90,50,20,.35)'; ctx.lineWidth = 2; for (let y = 600; y < 1050; y += 24) { ctx.beginPath(); ctx.moveTo(150, y); ctx.lineTo(1850, y); ctx.stroke(); }
+  vorm('#6a3a1a', () => { ctx.rect(150, 560, 1700, 22); ctx.rect(150, 770, 1700, 22); }, false);
+  for (const x of [600, 1000, 1400]) vorm('#6a3a1a', () => ctx.rect(x - 8, 580, 16, 470), false); // masten lopen door
+  ctx.restore(); lijn(4); ctx.beginPath(); ROMP(); ctx.stroke(); lijn(3);
+  vorm('#ffd34d', () => ctx.rect(180, 498, 260, 6)); vorm('#ffd34d', () => ctx.rect(1500, 466, 340, 6)); vorm('#ffd34d', () => ctx.rect(440, 556, 1060, 6)); // relingen
+  ctx.fillStyle = '#ffd34d'; ctx.font = 'bold 34px Georgia'; ctx.textAlign = 'center'; ctx.fillText('DE ZOEKENDE ZEEKOE', 1000, 1035);
+  // boegbeeld: een leeuwenkop
+  vorm('#d8a830', () => ctx.arc(130, 590, 26, 0, 7)); vorm('#ffd34d', () => ctx.arc(130, 594, 15, 0, 7)); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(124, 590, 2.5, 0, 7); ctx.arc(136, 590, 2.5, 0, 7); ctx.fill();
+  // stuurwiel op het achterdek en het lantaarnloze hekwerk
+  lijn(4, '#6a3a1a'); ctx.beginPath(); ctx.arc(1600, 420, 36, 0, 7); for (let k = 0; k < 8; k++) { const a = k * 0.785; ctx.moveTo(1600 + Math.cos(a) * 12, 420 + Math.sin(a) * 12); ctx.lineTo(1600 + Math.cos(a) * 48, 420 + Math.sin(a) * 48); } ctx.stroke(); lijn(3); vorm('#6a3a1a', () => ctx.rect(1594, 420, 12, 50));
+  // ---- binnen: kanonnendek ----
+  for (const [x, k] of [[260, -1], [700, 1], [1180, -1], [1700, 1]]) { kanon(x, 735, k); for (let j = 0; j < 3; j++) vorm('#2a2a2a', () => ctx.arc(x + k * 70 + j * 14 - 14, 758 - (j == 1 ? 12 : 0), 8, 0, 7)); }
+  // hangmatten met slapers
+  for (const [x1, x2, y] of [[480, 620, 620], [1250, 1390, 620]]) { lijn(2); ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke(); vorm('#e8dcc0', () => { ctx.moveTo(x1, y); ctx.quadraticCurveTo((x1 + x2) / 2, y + 60, x2, y); ctx.closePath(); }); }
+  ctx.save(); ctx.translate(550, 645); ctx.rotate(1.5); muzikant(0, 0, 1.0, { staat: 1, pak: '#e8384f', streep: '#fff', broek: '#2a3a5a', huid: HUID[1], haar: HAAR[0], kapsel: 'krul', baard: 1, slaapt: 1, instr: '', gag: 'zzz' }); ctx.restore();
+  ctx.save(); ctx.translate(1320, 645); ctx.rotate(-1.5); muzikant(0, 0, 1.0, { staat: 1, pak: '#3a5a8a', broek: '#3a3a3a', huid: HUID[3], haar: HAAR[6], kapsel: 'kaal', slaapt: 1, instr: '', gag: 'zzz' }); ctx.restore();
+  // kok met een grote pan soep, en piraten die dobbelen aan een ton
+  vorm('#3a3a44', () => rr(870, 690, 90, 60, 6)); vorm('#ff7a1a', () => { ctx.moveTo(880, 690); ctx.lineTo(950, 690); ctx.lineTo(930, 670); ctx.lineTo(900, 670); ctx.closePath(); }); vorm('#5a6470', () => rr(880, 640, 70, 34, 6)); vorm('#c8a060', () => ctx.ellipse(915, 642, 33, 7, 0, 0, 7));
+  muzikant(830, 690, 1.25, { staat: 1, pak: '#fff', broek: '#3a3a3a', huid: HUID[0], haar: HAAR[2], kapsel: 'kort', baard: 1, instr: '', mond: 'o' }); vorm('#fff', () => { ctx.arc(830, 632, 14, Math.PI, 0); ctx.rect(816, 628, 28, 8); });
+  ton(1530, 730, 1.1); piraat(1470, 690, 1.2, r); piraat(1590, 690, 1.2, r); piraat(1100, 690, 1.2, r);
+  piraat(380, 690, 1.2, r); piraat(780, 690, 1.15, r, { gag: 'zzz', slaapt: 1 });
+  // ---- binnen: het ruim ----
+  for (const [x, y] of [[300, 960], [345, 960], [322, 912], [1640, 960], [1685, 960], [1300, 960]]) ton(x, y);
+  krat(460, 900, 90, 90); krat(560, 930, 60, 60); krat(1450, 920, 80, 70); krat(1530, 900, 70, 90);
+  for (let k = 0; k < 8; k++) vorm('#e8dcc0', () => ctx.ellipse(700 + k * 40, 985, 22, 26, 0, 0, 7)); // zakken scheepsbeschuit
+  // gevangene in een cel en een piraat verstopt in een ton
+  lijn(4, '#5a6470'); for (let k = 0; k < 6; k++) { ctx.beginPath(); ctx.moveTo(1080 + k * 22, 820); ctx.lineTo(1080 + k * 22, 1000); ctx.stroke(); } lijn(3);
+  muzikant(1135, 930, 1.3, { staat: 1, pak: '#e8e0c8', streep: '#2a2a2a', broek: '#3a3a3a', huid: HUID[4], haar: HAAR[3], kapsel: 'kaal', baard: 1, instr: '', mond: 'o' }); lijn(4, '#5a6470'); for (let k = 0; k < 6; k++) { ctx.beginPath(); ctx.moveTo(1080 + k * 22, 820); ctx.lineTo(1080 + k * 22, 1000); ctx.stroke(); } lijn(3);
+  ton(1000, 960, 1.1); vorm(HUID[2], () => ctx.arc(1000, 920, 12, 0, 7)); vorm('#e8384f', () => ctx.arc(1000, 916, 12.5, Math.PI, 0)); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(996, 920, 2, 0, 7); ctx.arc(1004, 920, 2, 0, 7); ctx.fill(); ton(1000, 960, 1.1);
+  // ---- op het dek ----
+  piraat(250, 445, 1.4, r, { mond: 'o' }); piraat(350, 445, 1.4, r); // op het voordek
+  piraat(480, 505, 1.45, r); piraat(690, 505, 1.45, r, { mond: 'o' }); piraat(780, 505, 1.45, r); piraat(880, 505, 1.45, r); piraat(1080, 505, 1.45, r); piraat(1180, 505, 1.45, r, { mond: 'o' }); piraat(1280, 505, 1.45, r);
+  muzikant(1640, 415, 1.5, { staat: 1, pak: '#8a1a2a', broek: '#2a2a2a', huid: HUID[1], haar: HAAR[6], kapsel: 'lang', baard: 1, instr: '', mond: 'o' }); // de kapitein (zonder hoed: die moet je zoeken)
+  piraat(1760, 415, 1.4, r);
+  piraat(980, 132, 0.9, r); // uitkijk in het kraaiennest
+  piraat(520, 340, 1.1, r); piraat(1430, 380, 1.1, r); // in de touwen
+  // meer drukte: tonnen en touw op het dek, een aapje in de touwen, nog meer piraten
+  for (const x of [620, 1340]) ton(x, 530, 0.9); for (const x of [470, 1450]) { ctx.strokeStyle = '#c8a060'; ctx.lineWidth = 5; for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.ellipse(x, 548 - k * 5, 24 - k * 4, 7, 0, 0, 7); ctx.stroke(); } } lijn(3);
+  vorm('#8a5a30', () => ctx.ellipse(1060, 260, 14, 18, 0, 0, 7)); vorm('#8a5a30', () => ctx.arc(1060, 236, 11, 0, 7)); vorm('#e8c090', () => ctx.ellipse(1060, 239, 7, 6, 0, 0, 7)); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(1057, 235, 1.6, 0, 7); ctx.arc(1063, 235, 1.6, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(1072, 270); ctx.quadraticCurveTo(1095, 280, 1088, 300); ctx.stroke(); // aapje
+  for (const x of [530, 740, 940, 1130, 1230, 1420]) piraat(x + (r() - 0.5) * 20, 530, 1.55, r, { mond: r() < 0.3 ? 'o' : undefined });
+  for (const x of [470, 640, 990, 1290, 1650]) piraat(x, 700, 1.2, r);
+  // in het ruim: piraten die goudstukken tellen
+  for (let k = 0; k < 18; k++) vorm('#ffd34d', () => ctx.ellipse(1340 + (k % 6) * 12 - 30, 1000 - Math.floor(k / 6) * 7 - (k % 2) * 2, 8, 3, 0, 0, 7));
+  piraat(1260, 940, 1.2, r, { mond: 'o' }); piraat(1400, 940, 1.2, r); piraat(420, 940, 1.2, r); piraat(640, 940, 1.15, r, { gag: 'zzz', slaapt: 1 });
+  // twee piraten in het roeibootje
+  piraat(1930, 850, 0.9, r); piraat(1975, 850, 0.9, r);
+}
+function schipVoor() {
+  lijn(3); const r = rng(8); // het water over het onderste deel van de romp
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 860, ZW, ZH - 860); ctx.clip(); ctx.fillStyle = 'rgba(30,110,180,.38)'; ctx.beginPath(); ctx.rect(0, 860, ZW, ZH - 860); ROMP(); ctx.fill('evenodd'); ctx.restore(); // water buiten de romp
+  ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, 860); for (let x = 0; x <= ZW; x += 40) ctx.quadraticCurveTo(x + 20, 848, x + 40, 860); ctx.stroke();
+  ctx.lineWidth = 2; for (let k = 0; k < 30; k++) { const x = r() * ZW, y = 880 + r() * 380; ctx.beginPath(); ctx.arc(x, y, 3 + r() * 4, 0, 7); ctx.stroke(); } lijn(3);
+}
+const SCHIP = [ // op het plaatje van 2000 x 1300; alleen piratenspullen, en geen piraat die er zelf een draagt
+  ['Haak', 'haak', 300, 622, 0.8, 0.2, 1], ['Piratenvlag', 'vlag', 1562, 470, 0.85, 0.1, 1], ['Piratenhoed', 'piratenhoed', 620, 492, 0.8, 0.1, 1],
+  ['Sabel', 'sabel', 562, 950, 0.85, 0.3, 1], ['Houten poot', 'houtenpoot', 560, 738, 0.75, 1.3, 1], ['Papegaai', 'papegaai', 700, 104, 0.75, 0, 1],
+  ['Schatkist', 'schatkist', 1490, 892, 0.8, 0, 1], ['Schatkaart', 'schatkaart', 1200, 615, 0.8, 0.1, 1], ['Verrekijker', 'verrekijker', 1042, 150, 0.7, 0.2, 1],
+  ['Kompas', 'kompas', 1700, 452, 0.7, 0, 1], ['Anker', 'anker', 700, 1236, 0.9, 0.3, 1], ['Rumfles', 'rumfles', 1530, 682, 0.75, 0, 1],
+  ['Lantaarn', 'lantaarn', 800, 612, 0.8, 0, 1], ['Flessenpost', 'flessenpost', 1750, 884, 0.8, 0, 1], ['Dobbelsteen', 'dobbelsteen', 1565, 760, 0.65, 0.3, 1],
+  ['Grote sleutel', 'sleutel', 1058, 850, 1.0, 1.2, 1], ['Kroon', 'kroon', 1340, 968, 0.75, 0.1, 1], ['Parelketting', 'ketting', 590, 922, 0.7, 0, 1],
+  ['Edelsteen', 'edelsteen', 1150, 1250, 0.75, 0.2, 1], ['Zeemeermin', 'zeemeermin', 1885, 1135, 1.1, 0, 1], ['Zeester', 'zeester', 300, 1270, 0.8, 0.3, 1],
+  ['Krab', 'krab', 1500, 1262, 0.8, 0, 1], ['Rat', 'rat', 860, 952, 0.75, 0, 1], ['Banaan', 'banaan', 920, 142, 0.7, 0.2, 1],
+  ['Kokosnoot', 'kokosnoot', 1862, 828, 0.7, 0, 1], ['Zwabber', 'zwabber', 1462, 520, 0.8, 0, 1], ['Zakhorloge', 'zakhorloge', 1800, 452, 0.7, 0, 1],
+  ['Kaars', 'kaars', 380, 902, 0.7, 0, 1], ['Kaas', 'kaas', 990, 752, 0.75, 0, 1],
+];
+
 // ---------- spelstatus ----------
 let autoGevonden = false, autoMelding = 0, gekozen = -1, melding = null; // gekozen: welk vakje bovenin je hebt aangetikt
 let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, totaal = 25, start = 0, hints = 0, hintKlaar = 0, hintPuls = null, effecten = [];
@@ -807,6 +949,7 @@ const LEVELS = [
   { id: 'post', naam: 'Het postkantoor', uitleg: 'Druk, druk, druk bij de loketten', achter: () => postAchter(), voor: () => postVoor(), items: POST, w: PW, h: PH, auto: [120, 138, 0.5, 0] },
   { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
   { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', achter: () => strandAchter(), voor: () => strandVoor(), items: STRAND, w: SW, h: SH, auto: [560, 548, 0.5, 0.1] },
+  { id: 'schip', naam: 'Het piratenschip', uitleg: 'Ahoy! Wat hebben die piraten allemaal verstopt?', achter: () => schipAchter(), voor: () => schipVoor(), items: SCHIP, w: ZW, h: ZH, auto: [1000, 1250, 0.5, 0] },
 ];
 // voortgang per level-id: zoek_tijd_<id> (snelste tijd in seconden, een hint telt als 20 s) en zoek_auto_<id> (oldtimer gevonden)
 for (const [n, id] of [[1, 'kamer'], [3, 'orkest']]) for (const k of ['zoek_tijd', 'zoek_auto']) { const v = opslag.get(k + n); if (v && !opslag.get(k + '_' + id)) opslag.set(k + '_' + id, v); } // oude sleutels met levelnummers
