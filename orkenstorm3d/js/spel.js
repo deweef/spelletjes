@@ -550,10 +550,10 @@ export function train(b, k) {
 export function startPlace(k, touch) {
   const c = BLD[k].cost;
   if (!canAfford(c)) { say('Niet genoeg goud of hout voor een ' + BLD[k].n.toLowerCase() + '.'); sNee(); return; }
-  G.place = { k, x: -1, y: -1 };
+  G.place = { k, x: -1, y: -1 }; G.vorigeMuur = null;
   const w = G.sel.find((u) => u.k == 'werker');
   if (touch && w) { G.place.x = Math.floor(w.x / T) + 1; G.place.y = Math.floor(w.y / T) - 1; }
-  say(touch ? 'Tik op de kaart om de schaduw te verplaatsen, tik nog een keer op de schaduw om te bouwen.' : 'Beweeg de muis naar de plek en klik om te bouwen. Rechts klikken of Escape = stoppen.', 400);
+  say(touch ? 'Sleep de schaduw naar de goede plek en tik op ✔ Bouw hier (of op de schaduw).' : 'Beweeg de muis naar de plek en klik om te bouwen. Rechts klikken of Escape = stoppen.', 400);
 }
 
 export function canPlace(k, x, y) {
@@ -582,6 +582,12 @@ export function klaarVoorFilmpje() {
   for (const r of G.explored) r.fill(true); // de mist trekt op
 }
 
+// de knop ✔ Bouw hier (aanraakscherm): bouwen waar de schaduw nu staat
+export function bouwHier() {
+  if (!G.place || G.place.x < 0) return;
+  const d = BLD[G.place.k];
+  klik({ gx: G.place.x + Math.floor((d.w - 1) / 2), gy: G.place.y + Math.floor((d.h - 1) / 2), touch: true });
+}
 export function stopKeuze() { G.place = null; G.sel = []; G.selB = null; G.multi = false; }
 
 // knoppen "Alle werkers" en "Alle soldaten"
@@ -627,10 +633,10 @@ export function klik(p) {
     const d = BLD[G.place.k];
     let bx = gx - Math.floor((d.w - 1) / 2), by = gy - Math.floor((d.h - 1) / 2);
     const onGhost = G.place.x >= 0 && gx >= G.place.x && gx < G.place.x + d.w && gy >= G.place.y && gy < G.place.y + d.h;
-    const los = G.place.k == 'muur'; // muurstukken zet je met één tik neer, zonder schaduw te verschuiven
+    const los = G.place.k == 'muur' && !p.touch; // met de muis zet je muurstukken met één klik neer; op een aanraakscherm ook met schaduw
     if (p.touch && !onGhost && !los) {
       G.place.x = bx; G.place.y = by;
-      say(canPlace(G.place.k, bx, by) ? 'Tik nog een keer op de schaduw om te bouwen.' : 'Daar kan het niet: kies een vrije plek die je al ontdekt hebt.', 240);
+      say(canPlace(G.place.k, bx, by) ? 'Tik op ✔ Bouw hier of nog een keer op de schaduw om te bouwen.' : 'Daar kan het niet: kies een vrije plek die je al ontdekt hebt.', 240);
       sClick(); return;
     }
     if (!los && (onGhost || (!p.touch && G.place.x >= 0))) { bx = G.place.x; by = G.place.y; } // met de muis: precies waar de schaduw staat
@@ -641,8 +647,11 @@ export function klik(p) {
     for (const w of ws) assignBuild(w, b);
     const queued = ws.some((w) => w.bq && w.bq.includes(b));
     if (G.place.k == 'muur' && canAfford(d.cost)) { // muur: meteen door met het volgende stuk
-      G.place = { k: 'muur', x: -1, y: -1 }; sBuild();
-      say(p.touch ? 'Tik op meer plekken voor muurstukken. Escape of rechts klikken = klaar.' : 'Klik op meer plekken voor muurstukken. Escape of rechts klikken = klaar.', 200);
+      // op een aanraakscherm schuift de schaduw een vakje verder, in dezelfde richting als het vorige stuk
+      const v = G.vorigeMuur, nx = v && Math.abs(bx - v.x) + Math.abs(by - v.y) == 1 ? [bx - v.x, by - v.y] : (G.muurRichting || [1, 0]);
+      G.muurRichting = nx; G.vorigeMuur = { x: bx, y: by };
+      G.place = p.touch ? { k: 'muur', x: bx + nx[0], y: by + nx[1] } : { k: 'muur', x: -1, y: -1 }; sBuild();
+      say(p.touch ? 'Het volgende stuk staat klaar: sleep het en tik op ✔. Klaar? Tik op ✕.' : 'Klik op meer plekken voor muurstukken. Escape of rechts klikken = klaar.', 200);
       return;
     }
     G.place = null;

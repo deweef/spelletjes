@@ -222,6 +222,14 @@ Besturing:
 - Het laden van de Kenney-modellen gaat in groepjes van 6 met tot 3 pogingen per bestand (`laad` in kenney.js).
 - Toetsen: P = pauze, Escape = selectie loslaten. Rechts klikken tijdens bouwen = stoppen met bouwen.
 - Bouwen met de muis gebeurt precies waar de schaduw staat (ook als de camera nog naschuift).
+- Aanraakscherm tijdens het bouwen: vinger op de schaduw = schaduw verslepen (`neer.sleep`, de camera staat dan stil),
+  loslaten bouwt nog niet; bouwen met ✔ Bouw hier (`#bouwbalk`, `bouwHier` in spel.js, grijs als het daar niet kan) of een
+  tik op de schaduw; ✕ = stoppen. Muurstukken op een aanraakscherm ook met schaduw; daarna schuift de schaduw een vakje
+  verder in dezelfde richting (`G.vorigeMuur`, `G.muurRichting`). Met de muis blijft het één klik per muurstuk.
+- Gebouwen waar vanaf de camera een mannetje achter staat, worden half doorzichtig (`doorzichtig` in main.js, eigen kopie
+  van de materialen per gebouw); keuzeringen hebben `depthTest: false` en zijn dus altijd zichtbaar.
+- De muur is smal: castle `wall-narrow-corner` als paal in het midden met een half `wall-narrow` naar elke buurmuur
+  (`muurVorm` in modellen.js, opnieuw opgebouwd als de buren veranderen; het blijft wel een heel vakje dat je blokkeert).
 
 ### Kenney-modellen
 De Kenney-pakketten (CC0) staan als zip in de centrale map `bronnen/` (zie `bronnen/LEESMIJ.md` voor welk

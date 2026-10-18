@@ -122,15 +122,16 @@ export function maakMannetje(k, side, land, rolstoel) {
   }
   // keuzering onder de voeten
   p.ring = new THREE.Mesh(geo('ring', () => new THREE.RingGeometry(0.24, 0.3, 24).rotateX(-Math.PI / 2)),
-    new THREE.MeshBasicMaterial({ color: side == 'o' ? 0xe0574c : 0x7dff7a, transparent: true, opacity: 0.9 }));
+    new THREE.MeshBasicMaterial({ color: side == 'o' ? 0xe0574c : 0x7dff7a, transparent: true, opacity: 0.9, depthTest: false }));
+  p.ring.renderOrder = 5; // altijd zichtbaar, ook achter een gebouw
   p.ring.position.y = 0.02; p.ring.visible = false; g.add(p.ring);
   return { g, lijf, p };
 }
 
 function keuzering(side) {
   const r = new THREE.Mesh(geo('ring', () => new THREE.RingGeometry(0.24, 0.3, 24).rotateX(-Math.PI / 2)),
-    new THREE.MeshBasicMaterial({ color: side == 'o' ? 0xe0574c : 0x7dff7a, transparent: true, opacity: 0.9 }));
-  r.position.y = 0.02; r.visible = false; return r;
+    new THREE.MeshBasicMaterial({ color: side == 'o' ? 0xe0574c : 0x7dff7a, transparent: true, opacity: 0.9, depthTest: false }));
+  r.renderOrder = 5; r.position.y = 0.02; r.visible = false; return r;
 }
 
 // Kenney-mannetje: echte animaties, spullen vast aan de botten (arm-left, arm-right, head, torso).
@@ -476,6 +477,22 @@ function kenneyKooi() {
 
 // Muur (1x1): een stuk kasteelmuur
 function kenneyMuur() { const g = new THREE.Group(); const m = zetIn(g, 'castle/wall', 0, 0, 0); m.scale.set(1.02, 0.85, 1.02); return g; }
+
+// Muur met buren: een smalle paal in het midden en een smal muurstuk naar elke buurmuur (zie syncGebouwen in main.js).
+// b = { l, r, o, n }: buurmuur links (x-1), rechts (x+1), achter (y-1) en voor (y+1). Zonder buren: een smal stuk in de lengte.
+export function muurVorm(model, b) {
+  if (!K.klaar) return;
+  while (model.children.length) model.remove(model.children[0]);
+  const stuk = (langsX, kant, half) => { // wall-narrow loopt langs z en ligt op x -0.5..0; eerst centreren, dan draaien en halveren
+    const m = K.stuk('castle/wall-narrow'); m.scale.set(1, 0.85, half ? 0.5 : 1);
+    if (langsX) { m.rotation.y = Math.PI / 2; m.position.set(kant * 0.25, 0, -0.25); } else m.position.set(0.25, 0, kant * 0.25);
+    model.add(m);
+  };
+  if (!b.l && !b.r && !b.o && !b.n) { stuk(b.langsZ ? false : true, 0, false); return; }
+  const paal = K.stuk('castle/wall-narrow-corner'); paal.scale.set(1.05, 0.88, 1.05); model.add(paal);
+  if (b.l) stuk(true, -1, true); if (b.r) stuk(true, 1, true);
+  if (b.o) stuk(false, -1, true); if (b.n) stuk(false, 1, true);
+}
 
 // Smederij (2x2): schuurtje met aambeeld, kolenvuur en tonnen
 function kenneySmederij() {

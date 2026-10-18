@@ -111,6 +111,10 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
 .groep span{color:#ff9a8a;margin-left:3px}
 .land{font-size:12.5px;color:#d9c49a;margin:-2px 0 4px;line-height:1.4}
 .land b{color:var(--perkament)}
+#bouwbalk{position:fixed;z-index:22;right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px}
+@media (max-width:700px){#bouwbalk{right:auto;left:50%;transform:translateX(-50%);bottom:auto;top:calc(150px + env(safe-area-inset-top))}}
+#bouwbalk button{font:700 17px system-ui,sans-serif;padding:12px 18px;border-radius:12px;border:2px solid #fff3;color:#fff;background:#3fae5a;box-shadow:0 3px 10px #0006}
+#bouwbalk #bouwnee{background:#a8382f}#bouwbalk #bouwja.nee{background:#6a6a6a}
 #kader{position:fixed;z-index:25;border:1.5px solid #7dff7a;background:rgba(125,255,122,.12);pointer-events:none}
 #brieflanden{font-size:13.5px;color:#d9c49a;margin:8px 0 0;line-height:1.4}
 </style>
@@ -133,6 +137,7 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
   <div id="melding"></div>
   <div id="paneel"></div>
   <div id="kader" hidden></div>
+  <div id="bouwbalk" hidden><button id="bouwja">✔ Bouw hier</button><button id="bouwnee">✕</button></div>
   <div id="hulp">
     <b>Links klikken</b>: kiezen en opdrachten geven<br>
     <b>Ctrl/Shift-klik</b>: meer kiezen · <b>Shift+slepen</b>: rechthoek<br>

@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from '../lib/OrbitControls.js';
 import { UNIT, BLD, DIFF, LEVELS, BINNENKORT, LAND } from './data.js';
-import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler, introGezien, zetIntroGezien } from './spel.js';
+import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, bouwHier, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler, introGezien, zetIntroGezien } from './spel.js';
 import * as M from './modellen.js';
 import { unlock, primeVoice, stemAan, zetStem, sClick, loadVoices, VOX } from './geluid.js';
 import * as Tussen from './tussen.js';
@@ -380,8 +380,17 @@ function poppetje(m, u, beweegt) {
 }
 const stervend = [];
 
+// gebouwen waar vanaf de camera gezien een mannetje achter staat, worden half doorzichtig
+const doosB = new THREE.Box3(), straal = new THREE.Ray(), raak = new THREE.Vector3(), naarU = new THREE.Vector3();
+function doorzichtig(m, aan) {
+  const doel = aan ? 0.32 : 1;
+  if (!m.eigenMat) { if (!aan) return; m.eigenMat = []; m.model.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.transparent = true; m.eigenMat.push(o.material); } }); }
+  m.door = (m.door ?? 1) + (doel - (m.door ?? 1)) * 0.2;
+  for (const mat of m.eigenMat) { mat.opacity = m.door; mat.depthWrite = m.door > 0.95; }
+}
 function syncGebouwen(nu) {
   const gezien = new Set();
+  const muren = new Set(G.blds.filter((b) => b.k == 'muur').map((b) => b.x + ',' + b.y));
   for (const b of G.blds) {
     gezien.add(b.id);
     let m = bMesh.get(b.id);
@@ -399,6 +408,23 @@ function syncGebouwen(nu) {
     m.balk.visible = !G.tussen && (G.selB == b || b.hp < b.max);
     if (m.balk.visible) zetBalk(m.balk, b.hp / b.max, b.side);
     m.model.traverse((o) => { if (o.userData.vlag) o.rotation.y = Math.sin(nu / 300 + b.id) * 0.3; });
+    if (b.k == 'muur') { // smalle muur die aansluit op de buurmuren
+      const bu = { l: muren.has((b.x - 1) + ',' + b.y), r: muren.has((b.x + 1) + ',' + b.y), o: muren.has(b.x + ',' + (b.y - 1)), n: muren.has(b.x + ',' + (b.y + 1)) };
+      const sl = JSON.stringify(bu); if (m.muurSl != sl) { m.muurSl = sl; M.muurVorm(m.model, bu); m.eigenMat = null; m.door = 1; }
+    }
+    // staat er een mannetje achter dit gebouw (gezien vanaf de camera)? dan doorzichtig
+    let achter = false;
+    if (m.g.visible && b.k != 'muur' && !G.tussen) {
+      doosB.min.set(b.x + 0.1, 0, b.y + 0.1); doosB.max.set(b.x + b.w - 0.1, m.balk.position.y - 0.3, b.y + b.h - 0.1);
+      for (const u of G.units) {
+        const um = uMesh.get(u.id); if (!um || !um.g.visible) continue;
+        const ux = wx(u.x), uz = wz(u.y);
+        naarU.set(ux, 0.45, uz).sub(camera.position); const afst = naarU.length();
+        straal.set(camera.position, naarU.normalize());
+        if (straal.intersectBox(doosB, raak) && raak.distanceTo(camera.position) < afst - 0.35) { achter = true; break; }
+      }
+    }
+    doorzichtig(m, achter);
   }
   for (const [id, m] of bMesh) if (!gezien.has(id)) {
     scene.remove(m.g); bMesh.delete(id);
@@ -575,6 +601,9 @@ function kies(cx, cy) {
 }
 
 let neer = null;
+const bouwbalk = $('bouwbalk');
+$('bouwja').onclick = () => { unlock(); bouwHier(); tekenPaneel(true); };
+$('bouwnee').onclick = () => { G.place = null; G.msgT = 0; sClick(); tekenPaneel(true); };
 const kader = $('kader');
 // Shift (of Ctrl) + slepen met links: rechthoek om mannetjes trekken in plaats van de camera draaien
 renderer.domElement.addEventListener('pointerdown', (e) => {
@@ -582,8 +611,14 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   const mod = e.ctrlKey || e.metaKey || e.shiftKey;
   neer = { x: e.clientX, y: e.clientY, mod, type: e.pointerType, knop: e.button, kader: mod && e.button == 0 && e.pointerType == 'mouse' && G.state == 'spel' && !G.place };
   if (neer.kader) controls.enabled = false;
+  // aanraakscherm tijdens het bouwen: vinger op de schaduw = schaduw verslepen (de camera blijft dan stil)
+  if (G.place && G.place.x >= 0 && e.pointerType != 'mouse' && G.state == 'spel') {
+    zetRay(e.clientX, e.clientY); const g = grondTegel(), d = BLD[G.place.k];
+    if (g && g.x >= G.place.x - 1 && g.x < G.place.x + d.w + 1 && g.y >= G.place.y - 1 && g.y < G.place.y + d.h + 1) { neer.sleep = { dx: g.x - G.place.x, dy: g.y - G.place.y }; controls.enabled = false; }
+  }
 }, true);
 renderer.domElement.addEventListener('pointermove', (e) => {
+  if (neer && neer.sleep && G.place) { zetRay(e.clientX, e.clientY); const g = grondTegel(); if (g) { G.place.x = Math.max(0, g.x - neer.sleep.dx); G.place.y = Math.max(0, g.y - neer.sleep.dy); } }
   if (G.place && e.pointerType == 'mouse' && G.state == 'spel') { zetRay(e.clientX, e.clientY); const g = grondTegel(); if (g) muisBouw(g.x, g.y); }
   if (neer && neer.kader && Math.hypot(e.clientX - neer.x, e.clientY - neer.y) > 6) {
     Object.assign(kader.style, { left: Math.min(e.clientX, neer.x) + 'px', top: Math.min(e.clientY, neer.y) + 'px', width: Math.abs(e.clientX - neer.x) + 'px', height: Math.abs(e.clientY - neer.y) + 'px' });
@@ -605,10 +640,11 @@ function eindKader(e, d) { // geeft true als er een rechthoek getrokken is
   kiesGroep(binnen, false); tekenPaneel(true);
   return true;
 }
-addEventListener('pointerup', (e) => { if (neer && neer.kader) { eindKader(e, neer); neer = null; } }); // losgelaten buiten het spelveld
+addEventListener('pointerup', (e) => { if (neer && neer.kader) { eindKader(e, neer); neer = null; } if (neer && neer.sleep && e.target != renderer.domElement) { controls.enabled = true; neer = null; } }); // losgelaten buiten het spelveld
 renderer.domElement.addEventListener('pointerup', (e) => {
   if (!neer) return;
   const d = neer; neer = null;
+  if (d.sleep) { controls.enabled = true; if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) return; } // schaduw versleept: nog niet bouwen
   if (d.kader && eindKader(e, d)) return;
   if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6) return; // dat was slepen
   if (d.knop == 2) { if (G.place) { G.place = null; G.msgT = 0; } return; }
@@ -865,6 +901,9 @@ function frame(nu) {
   controls.autoRotate = G.state == 'titel';
   camSchuif(); controls.update(); camBinnenKaart();
   syncWereld(nu); syncGebouwen(nu); syncMannetjes(nu); syncEffecten();
+  const balkAan = !!(isTouch && G.place && G.place.x >= 0 && G.state == 'spel'); // knoppen ✔/✕ tijdens het bouwen op een aanraakscherm
+  if (bouwbalk.hidden == balkAan) bouwbalk.hidden = !balkAan;
+  if (balkAan) $('bouwja').classList.toggle('nee', !canPlace(G.place.k, G.place.x, G.place.y));
   if (!G.paused) {
     const ds = dt / 1000;
     for (const [, m] of uMesh) if (m.mixer) m.mixer.update(ds);

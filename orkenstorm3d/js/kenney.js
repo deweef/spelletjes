@@ -15,7 +15,7 @@ const LIJST = [
   'characters/wheelchair',
   // boerderij, kazerne, mijn, steigers en pijlen
   'forest/building-roof', 'forest/patch-dirt', 'forest/plant', 'forest/fence', 'forest/tent', 'forest/target', 'forest/weapon-arrow',
-  'castle/tower-slant-roof', 'castle/wall-narrow-wood', 'castle/siege-ballista', 'castle/flag-banner-long',
+  'castle/tower-slant-roof', 'castle/wall-narrow-wood', 'castle/wall-narrow', 'castle/wall-narrow-corner', 'castle/siege-ballista', 'castle/flag-banner-long',
   'dungeon/wood-support', 'dungeon/rocks', 'dungeon/chest', 'dungeon/coin',
   'survival/rock-a', 'survival/rock-b', 'survival/rock-c',
   // level 2: wachttoren, orkenhut, bruggen
