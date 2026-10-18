@@ -91,6 +91,11 @@ bedenk dat de site openbaar is.
   staat nergens in de code: wie het goede intypt kan het bestand ontsleutelen (onthouden in `zoek_ww`). De originele foto nooit
   los in de repo zetten. Voortgang per speler: `zoek_lvl:<naam>` (hoogste open level) en `zoek_tijd<n>:<naam>` (snelste tijd).
   Een level pas open als het vorige klaar is. `#tegel` tekent de stripkamer voor de startpagina.
+  Levels in `LEVELS` (getekend: `achter`/`voor`/`items`; foto: uit kamer.bin): 1 De rommelkamer, 2 Bij ons thuis (foto),
+  3 Het orkest (`orkestAchter`/`orkestVoor`, `ORKEST`: dirigent met een wortel, kat in de tuba, slapende paukenist).
+  In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
+  `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!",
+  bewaard in `zoek_auto<n>:<naam>` en een 🚗 bij het level in de levelkeuze.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een
