@@ -114,7 +114,8 @@ function tekenWie(){const w=document.getElementById('wie');
   if(huidig==n){huidig='';opslag.zet('speler',null)}tekenWie()});
  document.getElementById('nieuw').onsubmit=e=>{e.preventDefault();const n=document.getElementById('naamveld').value.trim().replace(/\s+/g,' ');if(n)kies(n)};
  const t=document.getElementById('terug');if(t)t.onclick=()=>{kiezen=false;tekenWie()}}
-function kies(n){if(!spelers.includes(n)){spelers.push(n);bewaarSpelers()}huidig=n;opslag.zet('speler',n);kiezen=false;tekenWie()}
+function kies(n){const al=spelers.find(x=>x.toLowerCase()==n.toLowerCase());if(al)n=al; /* zelfde naam met andere hoofdletters = dezelfde speler */
+ if(!spelers.includes(n)){spelers.push(n);bewaarSpelers()}huidig=n;opslag.zet('speler',n);kiezen=false;tekenWie()}
 tekenWie();
 async function offlineCheck(lijst){const st=document.getElementById('status');
  if(!('serviceWorker' in navigator)||location.protocol=='file:'){st.textContent='';return}

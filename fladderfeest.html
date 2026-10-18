@@ -2672,9 +2672,20 @@ document.querySelector('.terug').addEventListener('click', (e) => {
   if (staat == 'klaar' || staat == 'spel' || staat == 'finish') stopMuziek(false);
   staat = 'menu'; tocht = null; tekstje = ''; zorgMuziek();
 });
+// Herstel: records die (met deze naam) op het online scorebord staan, maar hier niet meer, komen terug
+// (bijv. na een nieuwe telefoon, opgeschoonde browser of een andere schrijfwijze van de naam). Alleen verhogen, nooit verlagen.
+function herstelVanBord() {
+  if (!speler || !bord) return 0; const n = speler.trim().toLowerCase(); let k = 0;
+  for (const id of [...FIGUREN.map((f) => f.id), 'tocht']) for (const m of [true, false]) {
+    const r = (bord[id + '_' + (m ? 'streken' : 'gewoon')] || []).find((x) => String(x.naam).trim().toLowerCase() == n);
+    if (r && +r.score > record(id, m)) { try { localStorage.setItem(sleutel(id, m), +r.score); k++; } catch (e) {} }
+  }
+  return k;
+}
 if (TEGEL) { document.querySelector('.terug').hidden = true; tegelPlaatje(); }
 else { nieuwSpel(); staat = 'menu'; requestAnimationFrame(lus); }
-window.__test = { get roepBel() { return roepBel; }, get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, get kast() { return kast; }, kies: (id) => { fig = FIGUREN.find((f) => f.id == id); }, get vuurballen() { return vuurballen; }, get flits() { return flits; }, get hik() { return hik; }, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
+if (!TEGEL) { herstelVanBord(); if (speler) bordHalen().then((ok) => { if (ok) herstelVanBord(); }); }
+window.__test = { herstelVanBord, get roepBel() { return roepBel; }, get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, get kast() { return kast; }, kies: (id) => { fig = FIGUREN.find((f) => f.id == id); }, get vuurballen() { return vuurballen; }, get flits() { return flits; }, get hik() { return hik; }, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
 </script>
 </body>
 </html>

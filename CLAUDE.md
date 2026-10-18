@@ -63,7 +63,9 @@ bedenk dat de site openbaar is.
   Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
   `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
   = insturen. Knop 🏆 Scorebord bovenaan het beginscherm (`scorebordScherm`), insturen gaat automatisch op het eindscherm (`autoInsturen`: alleen met een gekozen naam en alleen een persoonlijk record dat beter is dan wat al ingestuurd is, bijgehouden in `fladderfeest_ingestuurd:<naam>`); laatste lijst
-  in `fladderfeest_bord` voor offline. Hetzelfde script heeft ook `doPost` met `actie=leer`: het geheime leerlogboek van de
+  in `fladderfeest_bord` voor offline. Bij het openen zet `herstelVanBord` records terug die met deze naam (hoofdletters maken niet uit) op het
+  scorebord staan maar lokaal ontbreken of lager zijn (nieuwe telefoon, gewiste browser); alleen verhogen. De startpagina maakt van een naam met andere
+  hoofdletters dezelfde speler (`kies`). Hetzelfde script heeft ook `doPost` met `actie=leer`: het geheime leerlogboek van de
   Leerhoek (deweef/leren, `leerlog.js`), tabbladen 'Leerhoek' en 'Leerhoek overzicht'; wordt nooit via GET teruggegeven, behalve
   aan de Scores-app (`scores/`, eigen manifest en icoon, niet gelinkt vanaf de startpagina): `?actie=ouder&sleutel=..` geeft
   alle scores (met rijnummer) en het leerlogboek, `?actie=wis&sleutel=..&rij&naam&score` wist één score. De eerste sleutel
