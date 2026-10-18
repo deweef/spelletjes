@@ -82,7 +82,7 @@ bedenk dat de site openbaar is.
   (groepen) en op het bord vast (`vastklikken`). Hulpjes: Voorbeeld (klein rechtsboven `#mini`, tik = groot met zoomen/schuiven/dubbeltik `#groot`), Randjes, Sorteren op kleur, alles in beeld.
   Zoomen met twee vingers of muiswiel, schuiven door op een lege plek te slepen. Voortgang in `fotopuzzel:<naam>`
   (zaadje voor de vormen + posities), record per foto/aantal in `fotopuzzel_<foto>_<n>[d]:<naam>`.
-- Zoekplaatje (`zoekplaatje.html`, concept, met wachtwoord): zoek 25 voorwerpen in een plaatje; bovenin staan er steeds 10
+- Zoekplaatje (`zoekplaatje.html`, concept, met wachtwoord): zoek alle voorwerpen van een level (25 of meer; het orkest heeft er 35, teller "🔍 nog N" via `totaal`/`zetTeller`) in een plaatje; bovenin staan er steeds 10
   (`actief`); eerst bovenin een vakje kiezen (`kiesVak`, `gekozen`, geel), dan het voorwerp aantikken; zonder keuze of bij een
   ander voorwerp een melding (`meld`). Een gevonden voorwerp wordt vervangen door het volgende uit `rij`. Zoomen met twee vingers/muiswiel, slepen =
   schuiven, tik = zoeken (marge 14 schermpixels), 💡 Hint (15 s wachten). Level 1 "De rommelkamer" is getekend in de code
@@ -93,7 +93,10 @@ bedenk dat de site openbaar is.
   los in de repo zetten. Voortgang per speler: `zoek_lvl:<naam>` (hoogste open level) en `zoek_tijd<n>:<naam>` (snelste tijd).
   Een level pas open als het vorige klaar is. `#tegel` tekent de stripkamer voor de startpagina.
   Levels in `LEVELS` (getekend: `achter`/`voor`/`items`; foto: uit kamer.bin): 1 De rommelkamer, 2 Bij ons thuis (foto; in de levelkeuze heet hij "De verrassingskamer", `menu`),
-  3 Het orkest (`orkestAchter`/`orkestVoor`, `ORKEST`: dirigent met een wortel, kat in de tuba, slapende paukenist).
+  3 Het orkest (2000x1300, `OW`/`OH`; stijl van een Van Haasteren-puzzel: ruim 100 muzikanten dicht op elkaar in 5 halve
+  cirkels via `muzikant(x, y, s, o)` met `INSTR` en grapjes `GAG`, orgel, scherm met programma en LIVE-beeld, harp met hond, pizzabezorger,
+  schoonmaakster; vaste willekeur via `rng(zaad)`; `ORKEST` = 35 voorwerpen). Level 1 is rommelig gemaakt met `kamerRommel`/`kruimel`.
+  Getekende levels hebben `w`/`h` en worden één keer vooraf op een eigen doek getekend (`vooraf(L, laag)`), dus zware tekeningen kunnen.
   In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
   `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!",
   bewaard in `zoek_auto<n>:<naam>` en een 🚗 bij het level in de levelkeuze.

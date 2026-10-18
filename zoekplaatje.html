@@ -128,15 +128,15 @@ const TEKEN = {
 };
 // naam, tekening, plek in de kamer, schaal, draaiing; voor = boven de voorgrond getekend (anders er half achter)
 const STRIP = [
-  ['Sleutelbos', 'sleutels', 330, 618, 0.6, 0.3], ['Bril', 'bril', 1012, 262, 0.55, 0, 1], ['Banaan', 'banaan', 628, 588, 0.6, -0.3],
-  ['Badeendje', 'eendje', 112, 348, 0.65, 0, 1], ['Mobieltje', 'telefoon', 452, 468, 0.55, 1.2, 1], ['Sok', 'sok', 838, 200, 0.55, 0.4, 1],
-  ['Mok', 'mok', 772, 590, 0.6, 0, 1], ['Potlood', 'potlood', 508, 728, 0.6, 0.9, 1], ['Schaar', 'schaar', 1106, 158, 0.5, 0.2, 1],
-  ['Horloge', 'horloge', 978, 706, 0.5, 1.3, 1], ['Appel', 'appel', 938, 350, 0.5, 0, 1], ['Kaars', 'kaars', 548, 590, 0.6, 0, 1],
-  ['Ballon', 'ballon', 610, 50, 0.7, 0.2, 1], ['Vergrootglas', 'vergrootglas', 196, 462, 0.6, -0.4], ['Muntje', 'munt', 868, 762, 0.45, 0, 1],
-  ['Paraplu', 'paraplu', 300, 410, 0.75, -0.25], ['Muisje', 'muis', 760, 548, 0.5, 0, 1], ['Dobbelsteen', 'dobbelsteen', 1128, 432, 0.45, 0.3, 1],
-  ['Schelp', 'schelp', 236, 350, 0.5, 0.2, 1], ['Tandenborstel', 'tandenborstel', 640, 418, 0.55, -0.4, 1], ['Pizzapunt', 'pizza', 706, 688, 0.6, 0.5],
-  ['Vlinder', 'vlinder', 46, 210, 0.5, 0.3, 1], ['Hamer', 'hamer', 86, 712, 0.6, 1.2, 1], ['Voetbal', 'voetbal', 478, 608, 0.6, 0],
-  ['Cadeautje', 'cadeau', 1006, 102, 0.6, 0, 1],
+  ['Sleutelbos', 'sleutels', 330, 618, 0.51, 0.3], ['Bril', 'bril', 1012, 262, 0.47, 0, 1], ['Banaan', 'banaan', 628, 588, 0.51, -0.3],
+  ['Badeendje', 'eendje', 112, 348, 0.55, 0, 1], ['Mobieltje', 'telefoon', 452, 468, 0.47, 1.2, 1], ['Sok', 'sok', 838, 200, 0.47, 0.4, 1],
+  ['Mok', 'mok', 772, 590, 0.51, 0, 1], ['Potlood', 'potlood', 508, 728, 0.51, 0.9, 1], ['Schaar', 'schaar', 1106, 158, 0.42, 0.2, 1],
+  ['Horloge', 'horloge', 978, 706, 0.42, 1.3, 1], ['Appel', 'appel', 938, 350, 0.42, 0, 1], ['Kaars', 'kaars', 548, 590, 0.51, 0, 1],
+  ['Ballon', 'ballon', 610, 50, 0.59, 0.2, 1], ['Vergrootglas', 'vergrootglas', 196, 462, 0.51, -0.4], ['Muntje', 'munt', 868, 762, 0.38, 0, 1],
+  ['Paraplu', 'paraplu', 300, 410, 0.64, -0.25], ['Muisje', 'muis', 760, 548, 0.42, 0, 1], ['Dobbelsteen', 'dobbelsteen', 1128, 432, 0.38, 0.3, 1],
+  ['Schelp', 'schelp', 236, 350, 0.42, 0.2, 1], ['Tandenborstel', 'tandenborstel', 640, 418, 0.47, -0.4, 1], ['Pizzapunt', 'pizza', 706, 688, 0.51, 0.5],
+  ['Vlinder', 'vlinder', 46, 210, 0.42, 0.3, 1], ['Hamer', 'hamer', 86, 712, 0.51, 1.2, 1], ['Voetbal', 'voetbal', 478, 608, 0.51, 0],
+  ['Cadeautje', 'cadeau', 1006, 102, 0.51, 0, 1],
 ];
 function vooraf(L, laag) { // tekent een laag één keer op een eigen doek (scherp genoeg om in te zoomen)
   const k = '_' + laag; if (L[k]) return L[k];
@@ -146,6 +146,76 @@ function vooraf(L, laag) { // tekent een laag één keer op een eigen doek (sche
 function tekenAuto() { const a = level.auto; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(a[0], a[1] + 18 * a[2], 32 * a[2], 6 * a[2], 0, 0, 7); ctx.fill(); ctx.restore(); tekenVoorwerp(['', 'oldtimer', a[0], a[1], a[2], a[3]]); }
 function tekenVoorwerp(st, g = ctx) { ctx.save(); ctx.translate(st[2], st[3]); ctx.rotate(st[5]); ctx.scale(st[4], st[4]); TEKEN[st[1]](); ctx.restore(); }
 function boek(x, y, w, h, k) { ctx.fillStyle = k; ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(x + 2, y + 6, w - 4, 3); }
+function kruimel(x, y, s, soort, a, k) { // klein spul om de kamer rommelig te maken
+  ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s); lijn(2);
+  if (soort == 0) { vorm(k, () => rr(-10, -6, 20, 12, 2)); vorm(k, () => { ctx.arc(-5, -7, 3, 0, 7); ctx.arc(5, -7, 3, 0, 7); }); } // legosteentje
+  else if (soort == 1) { vorm(k, () => rr(-14, -8, 28, 10, 4)); vorm('#2a1f2a', () => { ctx.arc(-8, 3, 4, 0, 7); ctx.arc(8, 3, 4, 0, 7); }); vorm('#bfe4f4', () => ctx.rect(-6, -13, 10, 6)); } // speelgoedautootje
+  else if (soort == 2) { vorm('#fff8e8', () => { for (let i = 0; i < 7; i++) { const r = 8 + (i % 2) * 3; ctx.lineTo(Math.cos(i * 0.9) * r, Math.sin(i * 0.9) * r); } ctx.closePath(); }); } // prop papier
+  else if (soort == 3) { vorm(k, () => { ctx.rect(-8, -8, 16, 16); }); vorm(k, () => { ctx.arc(0, -9, 4, 0, 7); ctx.arc(9, 0, 4, 0, 7); }); } // puzzelstukje
+  else if (soort == 4) { vorm('#fff', () => rr(-9, -12, 18, 24, 2)); ctx.fillStyle = '#e8384f'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('♥', 0, 4); } // speelkaart
+  else if (soort == 5) { vorm(k, () => ctx.arc(0, 0, 5, 0, 7)); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(-1.5, -1.5, 1.6, 0, 7); ctx.fill(); } // knikker
+  else if (soort == 6) { vorm(k, () => { ctx.moveTo(-10, -5); ctx.lineTo(10, -5); ctx.lineTo(13, 0); ctx.lineTo(10, 5); ctx.lineTo(-10, 5); ctx.lineTo(-13, 0); ctx.closePath(); }); } // snoeppapiertje
+  else if (soort == 7) { vorm(k, () => { for (let i = 0; i < 10; i++) { const r = i % 2 ? 4 : 10; ctx.lineTo(Math.cos(i * 0.628 - 1.57) * r, Math.sin(i * 0.628 - 1.57) * r); } ctx.closePath(); }); } // sterretje
+  else if (soort == 8) { vorm(k, () => rr(-12, -7, 24, 14, 6)); vorm('#2a1f2a', () => { ctx.arc(-6, 0, 2.5, 0, 7); ctx.arc(6, -2, 2, 0, 7); ctx.arc(8, 2, 2, 0, 7); }); } // spelcomputerknopje
+  else { vorm(k, () => { ctx.ellipse(0, 0, 9, 5, 0, 0, 7); }); ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(9, 0); ctx.stroke(); } // gummetje
+  ctx.restore();
+}
+function shirt(x, y, s, a, k) { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s); lijn(2.5);
+  vorm(k, () => { ctx.moveTo(-14, -20); ctx.lineTo(-30, -10); ctx.lineTo(-22, 2); ctx.lineTo(-16, -2); ctx.lineTo(-16, 22); ctx.lineTo(16, 22); ctx.lineTo(16, -2); ctx.lineTo(22, 2); ctx.lineTo(30, -10); ctx.lineTo(14, -20); ctx.quadraticCurveTo(0, -12, -14, -20); }); ctx.restore(); }
+function broek(x, y, s, a, k) { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.scale(s, s); lijn(2.5);
+  vorm(k, () => { ctx.moveTo(-14, -22); ctx.lineTo(14, -22); ctx.lineTo(16, 24); ctx.lineTo(3, 24); ctx.lineTo(0, -4); ctx.lineTo(-3, 24); ctx.lineTo(-16, 24); ctx.closePath(); }); ctx.restore(); }
+function kamerRommel() {
+  const r = rng(42), kl = ['#e8384f', '#3a8ae8', '#3fae5a', '#ffd34d', '#9a4fd6', '#ff7a1a', '#4ab8e8', '#ff9ac0'], k = () => kl[Math.floor(r() * kl.length)];
+  lijn(3);
+  // slinger met vlaggetjes en lichtjes langs het plafond
+  ctx.beginPath(); ctx.moveTo(360, 20); ctx.quadraticCurveTo(620, 70, 890, 20); ctx.stroke();
+  for (let i = 0; i < 14; i++) { const t = (i + 0.5) / 14, x = 360 + 530 * t, y = 20 + 100 * t * (1 - t); vorm(kl[i % kl.length], () => { ctx.moveTo(x - 10, y); ctx.lineTo(x + 10, y); ctx.lineTo(x, y + 22); ctx.closePath(); }); }
+  // tekeningen en foto's boven de bank
+  for (const [x, y, w, h, a, kk] of [[262, 250, 60, 46, -0.08, '#fff'], [336, 236, 46, 58, 0.06, '#ffe8f0'], [600, 228, 54, 42, 0.1, '#e8f4ff'], [470, 300, 110, 30, 0, '#fff8d0']]) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a); vorm(kk, () => ctx.rect(-w / 2, -h / 2, w, h)); ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(-8, -h / 2 - 5, 16, 8);
+    ctx.lineWidth = 2; ctx.strokeStyle = kl[(x + y) % 8]; ctx.beginPath(); if (w < 100) ctx.arc(-w / 6, 0, h / 5, 0, 7); ctx.moveTo(0, h / 3); ctx.lineTo(w / 3, -h / 4); ctx.lineTo(w / 3, h / 3); ctx.stroke(); lijn(3); ctx.restore(); }
+  ctx.fillStyle = '#2a1f2a'; ctx.font = 'bold 14px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center'; ctx.fillText('OPRUIMEN!', 470, 305);
+  // darts en wandplankje
+  vorm('#2a1f2a', () => ctx.arc(780, 300, 30, 0, 7)); vorm('#e8384f', () => ctx.arc(780, 300, 22, 0, 7)); vorm('#fff8e8', () => ctx.arc(780, 300, 14, 0, 7)); vorm('#3fae5a', () => ctx.arc(780, 300, 5, 0, 7));
+  for (const [x, y] of [[770, 290], [795, 312]]) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 12, y - 10); ctx.stroke(); }
+  vorm('#8a5a30', () => ctx.rect(560, 150, 110, 10)); vorm('#3fae5a', () => { ctx.rect(574, 124, 14, 26); }); vorm('#c8603a', () => ctx.rect(570, 140, 22, 12));
+  vorm('#ffd34d', () => { ctx.moveTo(620, 150); ctx.lineTo(640, 150); ctx.lineTo(636, 140); ctx.lineTo(642, 120); ctx.lineTo(618, 120); ctx.lineTo(624, 140); ctx.closePath(); }); // bekertje
+  vorm('#9a4fd6', () => rr(648, 128, 14, 22, 4)); vorm('#f2c8a0', () => ctx.arc(655, 122, 7, 0, 7)); // poppetje
+  // kapstok met jas, tas en sjaal naast het raam
+  vorm('#7a4a24', () => ctx.rect(352, 74, 46, 8)); for (const x of [360, 390]) { ctx.beginPath(); ctx.moveTo(x, 82); ctx.lineTo(x, 92); ctx.stroke(); }
+  vorm('#3a5a8a', () => { ctx.moveTo(352, 92); ctx.lineTo(372, 92); ctx.lineTo(380, 200); ctx.lineTo(346, 200); ctx.closePath(); });
+  ctx.beginPath(); ctx.moveTo(390, 92); ctx.lineTo(384, 130); ctx.moveTo(390, 92); ctx.lineTo(398, 130); ctx.stroke(); vorm('#ff7a1a', () => rr(378, 126, 26, 30, 6));
+  // bovenop de kast: dozen en een wereldbol
+  vorm('#d8b880', () => ctx.rect(920, 64, 70, 56)); vorm('#c8a060', () => ctx.rect(940, 84, 30, 10), false); vorm('#d8b880', () => ctx.rect(1060, 84, 60, 36));
+  vorm('#4ab8e8', () => ctx.arc(1146, 92, 20, 0, 7)); vorm('#3fae5a', () => { ctx.ellipse(1140, 86, 8, 6, 0.4, 0, 7); ctx.ellipse(1154, 100, 6, 5, 0, 0, 7); }); ctx.beginPath(); ctx.moveTo(1146, 112); ctx.lineTo(1146, 120); ctx.stroke();
+  // spullen tussen de boeken
+  vorm('#ffd34d', () => { ctx.moveTo(990, 300); ctx.lineTo(1010, 300); ctx.lineTo(1006, 288); ctx.lineTo(1014, 272); ctx.lineTo(986, 272); ctx.lineTo(994, 288); ctx.closePath(); }); // beker
+  kruimel(944, 476, 1, 1, 0, '#e8384f'); kruimel(1080, 380, 1.1, 5, 0, '#3fae5a'); kruimel(1100, 470, 1, 0, 0, '#3a8ae8');
+  vorm('#c8c8d0', () => rr(1040, 186, 22, 24, 4)); vorm('#e8384f', () => ctx.rect(1040, 186, 22, 6)); // potje
+  // vensterbank: cactusjes
+  for (const [x, kk] of [[150, '#3fae5a'], [196, '#5ac86a'], [276, '#3fae5a']]) { vorm('#c8603a', () => ctx.rect(x - 9, 322, 18, 16)); vorm(kk, () => rr(x - 6, 298, 12, 26, 6)); }
+  // bank: kat, deken, kleren, knuffel
+  vorm('#9ad0e8', () => { ctx.moveTo(400, 470); ctx.quadraticCurveTo(450, 440, 520, 470); ctx.lineTo(530, 540); ctx.quadraticCurveTo(470, 520, 410, 545); ctx.closePath(); }); // deken
+  ctx.strokeStyle = '#6ab0d0'; ctx.lineWidth = 2; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(410 + i * 30, 470); ctx.lineTo(418 + i * 28, 540); ctx.stroke(); } lijn(3);
+  vorm('#7a7a8a', () => ctx.ellipse(590, 488, 36, 18, 0, 0, 7)); vorm('#7a7a8a', () => ctx.arc(560, 478, 14, 0, 7)); vorm('#7a7a8a', () => { ctx.moveTo(550, 468); ctx.lineTo(552, 456); ctx.lineTo(560, 466); ctx.moveTo(564, 466); ctx.lineTo(570, 456); ctx.lineTo(572, 468); });
+  ctx.beginPath(); ctx.arc(555, 480, 3, 0.2, 2.9); ctx.arc(566, 480, 3, 0.2, 2.9); ctx.moveTo(626, 490); ctx.quadraticCurveTo(650, 470, 640, 450); ctx.stroke(); // slapende grijze kat
+  shirt(250, 520, 1, 0.5, '#ffd34d'); broek(660, 470, 0.9, -0.3, '#3a5a8a');
+  vorm('#b07a4a', () => { ctx.arc(330, 470, 18, 0, 7); }); vorm('#b07a4a', () => { ctx.arc(330, 440, 13, 0, 7); ctx.moveTo(320, 430); ctx.arc(320, 428, 5, 0, 7); ctx.moveTo(345, 428); ctx.arc(340, 428, 5, 0, 7); }); ctx.fillStyle = '#2a1f2a'; ctx.beginPath(); ctx.arc(326, 440, 2, 0, 7); ctx.arc(334, 440, 2, 0, 7); ctx.fill(); // beer
+  // salontafel: afstandsbediening, chips, glas, tijdschriften
+  vorm('#2a2a3a', () => rr(560, 602, 34, 9, 3)); vorm('#ffd34d', () => { ctx.moveTo(720, 606); ctx.lineTo(752, 606); ctx.lineTo(748, 580); ctx.lineTo(724, 580); ctx.closePath(); }); ctx.fillStyle = '#e8384f'; ctx.fillRect(726, 588, 20, 6);
+  vorm('rgba(200,230,255,.8)', () => ctx.rect(800, 588, 12, 20));
+  // vloer: doos met speelgoed, rugzak, skateboard, kleren, schoenen
+  vorm('#d8b880', () => { ctx.moveTo(20, 600); ctx.lineTo(130, 600); ctx.lineTo(126, 690); ctx.lineTo(24, 690); ctx.closePath(); }); vorm('#c8a060', () => { ctx.moveTo(20, 600); ctx.lineTo(0, 580); ctx.lineTo(40, 576); ctx.lineTo(54, 600); ctx.closePath(); });
+  vorm('#e8384f', () => ctx.arc(60, 596, 16, Math.PI, 0)); vorm('#4ab8e8', () => rr(84, 570, 14, 30, 4)); vorm('#ffd34d', () => { ctx.moveTo(100, 600); ctx.lineTo(124, 560); ctx.lineTo(118, 600); });
+  vorm('#3a8ae8', () => rr(390, 610, 54, 66, 16)); vorm('#2e6ac8', () => rr(398, 640, 38, 26, 8)); ctx.beginPath(); ctx.arc(417, 612, 12, Math.PI, 0); ctx.stroke(); // rugzak
+  vorm('#e8384f', () => rr(250, 640, 110, 16, 8)); vorm('#2a1f2a', () => { ctx.arc(268, 662, 6, 0, 7); ctx.arc(342, 662, 6, 0, 7); }); // skateboard
+  broek(900, 740, 1, 1.2, '#5a7a4a'); shirt(960, 770, 0.9, -0.4, '#e8384f'); shirt(1150, 690, 0.8, 0.3, '#9a4fd6'); broek(1110, 696, 0.7, -0.6, '#3a8ae8'); // was uit de mand
+  for (const [x, y, a] of [[40, 740, 0.3], [70, 760, -0.2]]) { ctx.save(); ctx.translate(x, y); ctx.rotate(a); vorm('#fff', () => { ctx.moveTo(-18, 6); ctx.lineTo(18, 6); ctx.lineTo(18, -2); ctx.lineTo(4, -4); ctx.lineTo(-4, -12); ctx.lineTo(-18, -10); ctx.closePath(); }); vorm('#3a8ae8', () => ctx.rect(-18, 2, 36, 4), false); ctx.restore(); } // sneakers
+  vorm('#3fae5a', () => rr(330, 770, 70, 26, 4)); ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif'; ctx.fillText('SPEL', 365, 788); // spellendoos
+  // kleine rommel overal op de vloer en het kleed
+  for (let i = 0; i < 70; i++) { const x = 20 + r() * 1160, y = 600 + r() * 190; if (x > 1070 && y < 700) continue; kruimel(x, y, 0.7 + r() * 0.4, Math.floor(r() * 10), r() * 6, k()); }
+  for (let i = 0; i < 10; i++) kruimel(260 + r() * 400, 470 + r() * 80, 0.7, [0, 2, 4, 6, 7][Math.floor(r() * 5)], r() * 6, k()); // op de bank
+}
 // de kamer zelf: eerst alles wat achter de voorwerpen zit
 function kamerAchter() {
   lijn(3);
@@ -199,6 +269,7 @@ function kamerAchter() {
   vorm('#c8603a', () => { ctx.moveTo(150, 540); ctx.lineTo(240, 540); ctx.lineTo(228, 620); ctx.lineTo(162, 620); ctx.closePath(); });
   // gitaar tegen de kast
   vorm('#c8803a', () => { ctx.ellipse(880, 520, 26, 30, 0, 0, 7); ctx.ellipse(880, 476, 20, 22, 0, 0, 7); }); vorm('#3a2410', () => ctx.arc(880, 500, 8, 0, 7)); vorm('#6a3a14', () => ctx.rect(875, 380, 10, 90));
+  kamerRommel();
 }
 // wat ervoor staat: bladeren van de plant, de lampenkap
 function kamerVoor() {
