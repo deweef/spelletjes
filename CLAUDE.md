@@ -25,7 +25,9 @@ bedenk dat de site openbaar is.
   Jetpackpinguïn (Zuidpool met zuiderlicht, ijsbergen, visjes, synthmuziek; een tik geeft een korte raketduw via
   `stuw`/`stuwKracht`) en Vuurdraak (drakenburcht bij nacht met vulkaan, kasteeltorens, edelstenen, doedelzakmuziek met bromtoon;
   elke edelsteen = een vuurbal (`spuw`, `vuurballen`) die de volgende toren wegbrandt: het gat wordt 60 groter, `p.brand`) en Koekoek
-  (Zwarte Woud met bergen en dennen, koekoeksklokken op dennenstammen onder en klokgewichten boven, taartpuntjes, polka) zijn klaar.
+  (Zwarte Woud met bergen en dennen, koekoeksklokken op dennenstammen onder en klokgewichten boven, taartpuntjes, polka) en Spookuil
+  (spookbos bij volle maan, grafstenen onder en kale takken met spinnenweb boven, snoepjes, orgel in mineur `stijl: 'orgel'`) en
+  Discoflamingo (disco met spotlights en discobal, lichtgevende discozuilen, muzieknootjes, disco `stijl: 'disco'`) zijn klaar.
   Menu: bovenaan 🛍️ Winkel en 🏆 Scorebord, dan de Grote tocht en Met streken/Gewoon, daaronder de dieren in 3 kolommen
   (past tot 15 dieren; een halve laatste rij staat in het midden).
   Geheim dier Gouden Arend (`geheim: true`, laatste in `FIGUREN`): in het menu een kaartje met "?" tot je met alle andere
@@ -38,7 +40,7 @@ bedenk dat de site openbaar is.
   ({ munten, gekocht, aan: { dier: { hoed, bril, lijf } } }). Getekend via `metKleren`/`aankleden` aan het eind van elke
   dier-tekening, op de plekken uit `ANKER`; ingebouwde hoedjes en brillen (kraai, papegaai, pinguïn, koekoek) verdwijnen als
   je zelf iets op die plek draagt (`draagt`). Een nieuw dier = ook een regel in `ANKER` en 4 regels in `KLEDING`. Volgorde in `FIGUREN` = van makkelijk naar
-  moeilijk (roodborstje, meeuw, hommel, kip, kraai, papegaai, pinguïn, draak, koekoek); elk dier speel je vrij met 20, 25, ... 45
+  moeilijk (roodborstje, meeuw, hommel, kip, kraai, papegaai, pinguïn, draak, koekoek, uil, flamingo; de geheime arend als laatste); elk dier speel je vrij met 20, 25, ... 45
   punten met het dier ervoor, nieuwere dieren (vanaf de draak) steeds met 30 (`nodig`/`open`; wie al een record heeft met een dier houdt het open).
   Grote tocht (knop bovenaan, `tocht`): alle dieren achter elkaar vanaf het Roodborstje; finishvlag bij 20, 25, 30, ...
   punten (`doelTocht`, pinguïn heeft geen finish), punten tellen op (`totaal`), elke 25 punten een extra vogeltje
@@ -49,7 +51,9 @@ bedenk dat de site openbaar is.
   `tekenStreken`): roodborst sneeuwbui (`bui`), meeuw patatdieven en papegaai kanonskogels (`gevaren`, zonder waarschuwing; het kanon knalt
   hoorbaar), papegaai ook een magneetpiraat op de tonnen die het goudstuk wegtrekt (`p.piraat`, `magneet`, `piraat`; duikt
   in de ton als je over hem heen vliegt), hommel windvlagen (alleen met streken), kip schuivende hooibalen en kraai dansende versterkers (`p.amp`),
-  pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links), draak katapultstenen die in een boog omhoog komen (`steen`, `zw`), koekoek: bij de helft van de klokken springt een koekoekje omhoog het gat in (`p.klok`, eerst gaat het deurtje op een kier). Moeilijkheid: gat en snelheid tot ~40 punten (`gat`,
+  pinguïn brandstof (`brandstof`, flap kost 7, visjes +40, meter links), draak katapultstenen die in een boog omhoog komen (`steen`, `zw`), koekoek: bij de helft van de klokken springt een koekoekje omhoog het gat in (`p.klok`, eerst gaat het deurtje op een kier),
+  uil: spookjes die tussen twee palen op en neer zweven (`spook`, `amp`), flamingo: discoballen die aan een ketting onder de bovenste
+  zuil door het gat slingeren (`p.bal`, `discobalAanKetting`). Moeilijkheid: gat en snelheid tot ~40 punten (`gat`,
   `tempo`), na 50 punten nog heel langzaam wat krapper en sneller. Elk dier roept tijdens het spelen om de 8-16 seconden
   iets met een geluidje en een tekstwolkje (`ROEP`, `roepT`, `roepBel`).
   Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
