@@ -104,6 +104,10 @@ bedenk dat de site openbaar is.
   levelnummers worden bij het laden omgezet). Online scorebord (zelfde Apps Script, geen aanpassing nodig): onderdeel `zoek_tijd_<id>`, modus `gewoon`,
   automatisch ingestuurd op het eindscherm (`insturen`, alleen met naam en alleen verbeteringen, `zoek_ingestuurd:<naam>`), 🏆 Scorebord in de
   levelkeuze (`toonBord`, tabjes per level, laatste lijst in `zoek_bord`). `#tegel` tekent de rommelkamer voor de startpagina.
+  Een level kan ook een plaatje zijn (bijv. gemaakt met Gemini): `beeld: 'zoek/<naam>.jpg'` in plaats van achter/voor, voorwerpen als
+  [naam, x1, y1, x2, y2, (meer vakjes)] in pixels van het plaatje, `auto` = vakje [x1, y1, x2, y2] van de oldtimer in het plaatje; het plaatje wordt
+  geladen bij het starten (`L.img`), de vakjes bovenin tonen een uitsnede uit het plaatje en gevonden voorwerpen krijgen een groen rondje.
+  Gemini-plaatjes staan in `zoek/` (het eerste orkest: `orkest-gemini.jpg`, 1264x848, nog niet gebruikt).
   In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
   `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!" en een 🚗 bij het level.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,

@@ -977,6 +977,12 @@ addEventListener('resize', () => { maat(); });
 
 function schud(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function voorwerpen() { // per level: lijst met { naam, raak(x, y, marge), midden: [x, y], icoon(canvas) }
+  if (level.beeld) return level.items.map(([naam, ...vakken]) => { // plaatje: per voorwerp een of meer vakjes [x1, y1, x2, y2] in pixels
+    const b = []; for (let i = 0; i < vakken.length; i += 4) b.push(vakken.slice(i, i + 4)); const [a, c, d, e] = b[0];
+    return { naam, b, midden: [(a + d) / 2, (c + e) / 2], r: Math.max(d - a, e - c) / 2,
+      raak(x, y, m) { return this.b.some(([a, c, d, e]) => x > a - m && x < d + m && y > c - m && y < e + m); },
+      icoon(k) { const g = k.getContext('2d'), w = d - a, h = e - c, s = Math.min(k.width / w, k.height / h); g.clearRect(0, 0, k.width, k.height); g.drawImage(level.img, a, c, w, h, (k.width - w * s) / 2, (k.height - h * s) / 2, w * s, h * s); } };
+  });
   return level.items.map((st) => ({ naam: st[0], st, midden: [st[2], st[3]], r: 30 * st[4] + 8,
     raak(x, y, m) { return Math.hypot(x - st[2], y - st[3]) < this.r + m; },
     icoon(c) { const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); const o = ctx; ctxWissel(g); g.save(); g.translate(c.width / 2, c.height / 2); g.scale(c.height / 56, c.height / 56); TEKEN[st[1]](); g.restore(); ctxWissel(o); } }));
@@ -984,7 +990,13 @@ function voorwerpen() { // per level: lijst met { naam, raak(x, y, marge), midde
 const ctxEcht = ctx; function ctxWissel(g) { ctx = g; } // tekenfuncties gebruiken ctx; voor de icoontjes even een ander doek
 
 function startLevel(n) {
-  level = LEVELS[n - 1]; level.nr = n;
+  const L = LEVELS[n - 1];
+  if (L.beeld && !(L.img && L.img.complete && L.img.naturalWidth)) { // plaatje eerst laden
+    $('levels').insertAdjacentHTML('beforeend', '<p class="zacht" id="laden">Plaatje laden…</p>');
+    L.img = new Image(); L.img.onload = () => { const l = $('laden'); if (l) l.remove(); startLevel(n); }; L.img.onerror = () => { const l = $('laden'); if (l) l.textContent = 'Plaatje laden lukt niet (internet?).'; }; L.img.src = L.beeld; return;
+  }
+  level = L; level.nr = n;
+  if (L.beeld) { L.w = L.img.naturalWidth; L.h = L.img.naturalHeight; }
   BW = level.w; BH = level.h;
   rij = schud(voorwerpen()); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
@@ -1012,9 +1024,9 @@ function tik(sx, sy) {
   if (!level || !$('klaar').hidden) return;
   const x = (sx - ox) / zoom, y = (sy - oy) / zoom, m = 14 / zoom;
   const au = level.auto;
-  if (!autoGevonden && Math.hypot(x - au[0], y - au[1]) < 34 * au[2] + m) { // de zilveren oldtimer: geen voorwerp van het lijstje, wel een verrassing
-    autoGevonden = true; autoMelding = performance.now(); opslag.set('zoek_auto_' + level.id, '1'); sToet();
-    effecten.push({ soort: 'goed', x: au[0], y: au[1], t: 0 }); return;
+  if (!autoGevonden && (level.beeld ? x > au[0] - m && x < au[2] + m && y > au[1] - m && y < au[3] + m : Math.hypot(x - au[0], y - au[1]) < 34 * au[2] + m)) { // de zilveren oldtimer: geen voorwerp van het lijstje, wel een verrassing
+    autoGevonden = true; autoMelding = performance.now(); if (level.beeld) gevondenLijst.push({ midden: [(au[0] + au[2]) / 2, (au[1] + au[3]) / 2], r: Math.max(au[2] - au[0], au[3] - au[1]) / 2 }); opslag.set('zoek_auto_' + level.id, '1'); sToet();
+    effecten.push(level.beeld ? { soort: 'goed', x: (au[0] + au[2]) / 2, y: (au[1] + au[3]) / 2, t: 0 } : { soort: 'goed', x: au[0], y: au[1], t: 0 }); return;
   }
   const raak = actief.findIndex((v) => v && v.raak(x, y, m));
   if (raak >= 0) { vind(raak); return; }
@@ -1066,7 +1078,10 @@ function teken() {
   ctx = ctxEcht; ctx.save(); ctx.fillStyle = '#2a1f3a'; ctx.fillRect(0, 0, innerWidth, innerHeight);
   if (level || TEGEL) {
     ctx.translate(ox, oy); ctx.scale(zoom, zoom);
-    {
+    if (level && level.beeld) { // plaatje: gevonden voorwerpen krijgen een groen rondje
+      ctx.drawImage(level.img, 0, 0, BW, BH);
+      for (const v of gevondenLijst) { ctx.strokeStyle = '#3fae5a'; ctx.lineWidth = 4 / zoom; ctx.fillStyle = 'rgba(63,174,90,.22)'; ctx.beginPath(); ctx.arc(v.midden[0], v.midden[1], v.r + 6 / zoom, 0, 7); ctx.fill(); ctx.stroke(); }
+    } else {
       const L = level || LEVELS[0]; ctx.drawImage(vooraf(L, 'achter'), 0, 0, L.w, L.h);
       if (level && !autoGevonden) tekenAuto();
       const lijst = level ? [...actief, ...rij].filter(Boolean) : null;
