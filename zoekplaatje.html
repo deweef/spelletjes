@@ -317,6 +317,19 @@ Object.assign(TEKEN, {
   slipper() { lijn(2.5); vorm('#3fae5a', () => { ctx.ellipse(0, 0, 10, 22, 0.2, 0, 7); }); ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.moveTo(-8, -4); ctx.lineTo(0, -12); ctx.lineTo(9, -2); ctx.stroke(); },
   krab() { lijn(2.5); for (const z of [-1, 1]) { ctx.beginPath(); for (let k = 0; k < 3; k++) { ctx.moveTo(z * 10, 2 + k * 4); ctx.lineTo(z * 20, 6 + k * 5); } ctx.stroke(); vorm('#e8384f', () => { ctx.arc(z * 18, -10, 6, 0, 7); }); } vorm('#e8384f', () => ctx.ellipse(0, 4, 14, 9, 0, 0, 7)); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-4, -4, 3, 0, 7); ctx.arc(4, -4, 3, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(-4, -4, 1.4, 0, 7); ctx.arc(4, -4, 1.4, 0, 7); ctx.fill(); },
   emmertje() { lijn(2.5); vorm('#ffd34d', () => { ctx.moveTo(-14, -10); ctx.lineTo(14, -10); ctx.lineTo(10, 16); ctx.lineTo(-10, 16); ctx.closePath(); }); ctx.beginPath(); ctx.arc(0, -10, 14, Math.PI, 0); ctx.stroke(); vorm('#e8384f', () => ctx.rect(-12, 0, 24, 4), false); },
+  blauweviool() { lijn(2.5); ctx.save(); ctx.rotate(-0.5); vorm('#3a8ae8', () => { ctx.ellipse(0, 8, 11, 10, 0, 0, 7); ctx.ellipse(0, -8, 9, 8, 0, 0, 7); }); vorm('#1a1a2a', () => ctx.rect(-2.5, -30, 5, 26)); vorm('#1a1a2a', () => ctx.arc(0, -32, 4, 0, 7)); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-5, 0); ctx.quadraticCurveTo(-7, 4, -5, 8); ctx.moveTo(5, 0); ctx.quadraticCurveTo(7, 4, 5, 8); ctx.stroke(); vorm('#1a1a2a', () => ctx.rect(-4, 12, 8, 3), false); ctx.restore(); },
+  banjo() { lijn(2.5); ctx.save(); ctx.rotate(0.5); vorm('#8a5a30', () => ctx.rect(-3, -34, 6, 26)); vorm('#c0c0c8', () => ctx.arc(0, 6, 15, 0, 7)); vorm('#fff8e8', () => ctx.arc(0, 6, 11, 0, 7)); ctx.lineWidth = 1; ctx.beginPath(); for (let k = -1; k <= 1; k++) { ctx.moveTo(k * 2, -32); ctx.lineTo(k * 2, 14); } ctx.stroke(); ctx.restore(); },
+  ukelele() { lijn(2.5); ctx.save(); ctx.rotate(-0.4); vorm('#ff9ac0', () => { ctx.ellipse(0, 9, 10, 9, 0, 0, 7); ctx.ellipse(0, -4, 8, 7, 0, 0, 7); }); vorm('#7a4a24', () => ctx.rect(-2.5, -26, 5, 18)); vorm('#2a1f2a', () => ctx.arc(0, 2, 3.5, 0, 7)); ctx.restore(); },
+  accordeon() { lijn(2.5); vorm('#e8384f', () => ctx.rect(-24, -14, 12, 28)); vorm('#e8384f', () => ctx.rect(12, -14, 12, 28)); vorm('#fff', () => { ctx.moveTo(-12, -12); for (let k = 0; k < 6; k++) { ctx.lineTo(-12 + k * 4 + 2, k % 2 ? -12 : -16); } ctx.lineTo(12, -12); ctx.lineTo(12, 12); for (let k = 5; k >= 0; k--) ctx.lineTo(-12 + k * 4 + 2, k % 2 ? 12 : 16); ctx.lineTo(-12, 12); ctx.closePath(); }); ctx.fillStyle = '#fff'; for (let k = 0; k < 4; k++) { ctx.fillRect(-21, -10 + k * 6, 6, 3); ctx.fillRect(15, -10 + k * 6, 6, 3); } },
+  doedelzak() { lijn(2.5); for (const [x, h] of [[-8, 30], [0, 36], [8, 26]]) vorm('#2a1f2a', () => ctx.rect(x - 2, -h, 4, h)); vorm('#c8202a', () => ctx.ellipse(0, 6, 18, 13, 0, 0, 7)); ctx.strokeStyle = '#2a7a3a'; ctx.lineWidth = 2; for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(-16, 6 + k * 4); ctx.lineTo(16, 6 + k * 4); ctx.moveTo(k * 6, -6); ctx.lineTo(k * 6, 18); ctx.stroke(); } lijn(2.5); ctx.beginPath(); ctx.ellipse(0, 6, 18, 13, 0, 0, 7); ctx.stroke(); vorm('#2a1f2a', () => ctx.rect(14, 10, 4, 18)); },
+  tamboerijn() { lijn(2.5); vorm('#c8925a', () => ctx.arc(0, 0, 18, 0, 7)); vorm('#fff8e8', () => ctx.arc(0, 0, 13, 0, 7)); for (let k = 0; k < 6; k++) { const a = k * 1.047; vorm('#ffd34d', () => ctx.ellipse(Math.cos(a) * 16, Math.sin(a) * 16, 4, 2.5, a, 0, 7)); } },
+  castagnetten() { lijn(2.5); for (const [x, a] of [[-8, -0.3], [8, 0.3]]) { ctx.save(); ctx.translate(x, 0); ctx.rotate(a); vorm('#8a2a1a', () => ctx.ellipse(0, 4, 10, 13, 0, 0, 7)); ctx.beginPath(); ctx.arc(0, -10, 3, 0, 7); ctx.stroke(); ctx.restore(); } ctx.strokeStyle = '#e8384f'; ctx.beginPath(); ctx.moveTo(-8, -12); ctx.quadraticCurveTo(0, -20, 8, -12); ctx.stroke(); },
+  panfluit() { lijn(2); for (let k = 0; k < 7; k++) vorm('#d8b060', () => ctx.rect(-21 + k * 6, -16, 6, 34 - k * 4)); vorm('#8a5a30', () => ctx.rect(-22, -6, 44, 5)); },
+  gitaar() { lijn(2.5); ctx.save(); ctx.rotate(0.6); vorm('#e8384f', () => { ctx.moveTo(-12, 0); ctx.quadraticCurveTo(-16, 16, -6, 20); ctx.lineTo(10, 18); ctx.quadraticCurveTo(16, 10, 8, 2); ctx.lineTo(14, -6); ctx.lineTo(6, -6); ctx.quadraticCurveTo(-2, -4, -12, 0); ctx.closePath(); }); vorm('#2a1f2a', () => ctx.rect(-2, -34, 5, 30)); vorm('#2a1f2a', () => ctx.rect(-4, -40, 9, 7)); vorm('#fff', () => ctx.rect(-6, 6, 10, 4)); ctx.restore(); },
+  kaartje() { lijn(2.5); vorm('#ffd34d', () => { ctx.moveTo(-22, -12); ctx.lineTo(22, -12); ctx.lineTo(22, -4); ctx.arc(22, 0, 4, -1.57, 1.57, true); ctx.lineTo(22, 12); ctx.lineTo(-22, 12); ctx.lineTo(-22, 4); ctx.arc(-22, 0, 4, 1.57, -1.57, true); ctx.closePath(); }); ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(10, -12); ctx.lineTo(10, 12); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle = '#2a1f2a'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('RIJ 3', -6, 3); },
+  operaglas() { lijn(2.5); for (const x of [-9, 9]) { vorm('#d8a830', () => ctx.rect(x - 7, -10, 14, 18)); vorm('#1a1a2a', () => ctx.ellipse(x, 10, 7, 3, 0, 0, 7)); } vorm('#d8a830', () => ctx.rect(-3, -6, 6, 8)); ctx.beginPath(); ctx.moveTo(9, -10); ctx.lineTo(16, -24); ctx.stroke(); },
+  popcorn() { lijn(2.5); vorm('#fff', () => { ctx.moveTo(-14, -6); ctx.lineTo(14, -6); ctx.lineTo(10, 20); ctx.lineTo(-10, 20); ctx.closePath(); }); ctx.fillStyle = '#e8384f'; for (const x of [-8, 2]) { ctx.beginPath(); ctx.moveTo(x - 2, -6); ctx.lineTo(x + 3, -6); ctx.lineTo(x + 2, 20); ctx.lineTo(x - 2, 20); ctx.fill(); } lijn(2.5); ctx.beginPath(); ctx.moveTo(-14, -6); ctx.lineTo(14, -6); ctx.lineTo(10, 20); ctx.lineTo(-10, 20); ctx.closePath(); ctx.stroke(); for (const [x, y] of [[-10, -8], [-3, -11], [4, -9], [10, -7], [0, -15], [-6, -15], [7, -14]]) vorm('#fff4c0', () => ctx.arc(x, y, 4.5, 0, 7)); },
+  kazoo() { lijn(2.5); vorm('#ffd34d', () => { ctx.moveTo(-20, -4); ctx.lineTo(14, -6); ctx.quadraticCurveTo(22, 0, 14, 6); ctx.lineTo(-20, 4); ctx.closePath(); }); vorm('#ffd34d', () => ctx.rect(-2, -12, 8, 6)); vorm('#2a1f2a', () => ctx.ellipse(-20, 0, 2, 4, 0, 0, 7), false); },
   oldtimer() { lijn(2.5); // zilveren oldtimer (eigen ontwerp, zonder merk)
     vorm('#2a2a3a', () => { ctx.arc(-16, 12, 8, 0, 7); }); vorm('#2a2a3a', () => ctx.arc(18, 12, 8, 0, 7));
     vorm('#c8ccd8', () => { ctx.moveTo(-30, 10); ctx.lineTo(-30, 0); ctx.quadraticCurveTo(-28, -6, -18, -6); ctx.lineTo(-12, -6); ctx.quadraticCurveTo(-8, -18, 6, -18); ctx.quadraticCurveTo(16, -18, 18, -6); ctx.lineTo(28, -4); ctx.quadraticCurveTo(34, -2, 32, 10); ctx.closePath(); });
@@ -325,19 +338,19 @@ Object.assign(TEKEN, {
     ctx.fillStyle = '#e8e8f0'; for (const x of [-16, 18]) { ctx.beginPath(); ctx.arc(x, 12, 3, 0, 7); ctx.fill(); } ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(-24, -2, 14, 2); },
 });
 // level 3: het orkest
-const ORKEST = [ // op het plaatje van 2000 x 1300
-  ['Muzieknootje', 'noot', 960, 300, 0.57, 0.2, 1], ['Triangel', 'triangel', 1662, 462, 0.48, 0, 1], ['Trommelstokken', 'stokken', 1270, 505, 0.52, 1.0, 1],
-  ['Blokfluit', 'blokfluit', 190, 950, 0.52, 0.9, 1], ['Maracas', 'maracas', 420, 1150, 0.52, 0.4, 1], ['Metronoom', 'metronoom', 1240, 425, 0.44, 0, 1],
-  ['Stemvork', 'stemvork', 548, 1026, 0.44, 0.4, 1], ['Mondharmonica', 'mondharmonica', 1250, 1165, 0.52, -0.2, 1], ['Microfoon', 'microfoon', 338, 520, 0.48, 0.3, 1],
-  ['Koptelefoon', 'koptelefoon', 336, 1104, 0.44, 0, 1], ['Roos', 'roos', 1040, 1140, 0.52, 1.2, 1], ['Boterham', 'boterham', 1430, 1155, 0.46, 0.2, 1],
-  ['Wekker', 'wekker', 300, 366, 0.48, 0.2, 1], ['Hoge hoed', 'hogehoed', 115, 80, 0.52, 0.15, 1], ['Kat', 'kat', 1872, 750, 0.52, 0, 1],
-  ['Fietsbel', 'fietsbel', 110, 600, 0.44, 0.3, 1], ['Bril', 'bril', 640, 1170, 0.46, 0.2, 1], ['Badeendje', 'eendje', 1828, 1130, 0.48, 0, 1],
-  ['Sok', 'sok', 1700, 200, 0.48, 0.3, 1], ['Koffiemok', 'mok', 1750, 366, 0.48, 0, 1], ['Mobieltje', 'telefoon', 1910, 968, 0.4, 1.4, 1],
-  ['Banaan', 'banaan', 1300, 42, 0.48, 0.2, 1], ['Ballon', 'ballon', 1470, 140, 0.57, -0.2, 1], ['Strikje', 'strikje', 1600, 440, 0.48, 0.2, 1],
-  ['Dirigeerstokje', 'dirigeerstokje', 1120, 1160, 0.57, 0.3, 1], ['Horloge', 'horloge', 1500, 1165, 0.44, 0.5, 1], ['Sleutelbos', 'sleutels', 1670, 1000, 0.44, 0.3, 1],
-  ['Paraplu', 'paraplu', 1960, 560, 0.63, -0.3, 1], ['Appel', 'appel', 720, 440, 0.44, 0, 1], ['Kaars', 'kaars', 200, 362, 0.48, 0, 1],
-  ['Vergrootglas', 'vergrootglas', 1350, 1195, 0.48, 0.4, 1], ['Muisje', 'muis', 790, 1168, 0.48, 0, 1], ['Cadeautje', 'cadeau', 880, 1150, 0.48, 0.1, 1],
-  ['Vlinder', 'vlinder', 1290, 170, 0.52, 0.3, 1], ['Tandenborstel', 'tandenborstel', 285, 640, 0.48, 0.2, 1],
+const ORKEST = [ // op het plaatje van 2000 x 1300; alleen dingen die bij een concert horen, en geen instrument dat een muzikant ook bespeelt
+  ['Muzieknootje', 'noot', 960, 300, 0.85, 0.2, 1], ['Triangel', 'triangel', 1662, 462, 0.75, 0, 1], ['Trommelstokken', 'stokken', 1270, 505, 0.78, 1.0, 1],
+  ['Blokfluit', 'blokfluit', 190, 950, 0.78, 0.9, 1], ['Maracas', 'maracas', 420, 1150, 0.78, 0.4, 1], ['Metronoom', 'metronoom', 1240, 425, 0.69, 0, 1],
+  ['Stemvork', 'stemvork', 548, 1026, 0.69, 0.4, 1], ['Mondharmonica', 'mondharmonica', 1250, 1165, 0.78, -0.2, 1], ['Microfoon', 'microfoon', 338, 520, 0.75, 0.3, 1],
+  ['Koptelefoon', 'koptelefoon', 336, 1104, 0.66, 0, 1], ['Roos', 'roos', 1040, 1140, 0.78, 1.2, 1], ['Boterham', 'boterham', 1430, 1155, 0.69, 0.2, 1],
+  ['Wekker', 'wekker', 300, 366, 0.72, 0.2, 1], ['Hoge hoed', 'hogehoed', 1180, 1222, 0.9, 0.1, 1], ['Kazoo', 'kazoo', 1872, 752, 0.75, -0.4, 1],
+  ['Toegangskaartje', 'kaartje', 880, 1152, 0.75, 0.2, 1], ['Castagnetten', 'castagnetten', 720, 440, 0.68, 0, 1], ['Tamboerijn', 'tamboerijn', 1828, 1132, 0.72, 0, 1],
+  ['Panfluit', 'panfluit', 1700, 200, 0.75, 0.2, 1], ['Koffiemok', 'mok', 1750, 366, 0.72, 0, 1], ['Mobieltje', 'telefoon', 1910, 968, 0.6, 1.4, 1],
+  ['Ukelele', 'ukelele', 1300, 40, 0.83, 1.2, 1], ['Elektrische gitaar', 'gitaar', 1470, 175, 0.9, 0, 1], ['Strikje', 'strikje', 1600, 440, 0.72, 0.2, 1],
+  ['Dirigeerstokje', 'dirigeerstokje', 1120, 1160, 0.87, 0.3, 1], ['Horloge', 'horloge', 1500, 1165, 0.66, 0.5, 1], ['Accordeon', 'accordeon', 1670, 1012, 0.75, 0.1, 1],
+  ['Doedelzak', 'doedelzak', 1960, 600, 0.9, 0.1, 1], ['Banjo', 'banjo', 200, 360, 0.83, 0, 1], ['Vergrootglas', 'vergrootglas', 1350, 1195, 0.72, 0.4, 1],
+  ['Muisje', 'muis', 790, 1168, 0.72, 0, 1], ['Popcorn', 'popcorn', 580, 1226, 0.83, 0, 1], ['Operaglas', 'operaglas', 820, 1240, 0.83, 0.2, 1],
+  ['Blauwe viool', 'blauweviool', 1966, 1118, 0.9, 0, 1],
 ];
 // ---------- level 3: het orkest, een druk stripplaatje (2000 x 1300) ----------
 const OW = 2000, OH = 1300;
@@ -474,7 +487,7 @@ function orkestAchter() {
     { r: 390, n: 18, s: 2.05, instr: 'viool viool viool viool viool viool viool viool cello viool viool viool viool cello cello cello cello cello' },
     { r: 290, n: 13, s: 2.2, instr: 'viool viool viool viool viool viool viool cello cello cello cello cello cello' },
   ];
-  const gagLijst = ['zzz', 'selfie', 'vis', 'bel', 'zonnebril', 'zzz', 'breien', 'pet', 'koffie', 'krant', 'ijsje', 'nest', 'ooglap', 'kroon', 'bloem', 'knuffel'];
+  const gagLijst = ['zzz', 'kroon', 'vis', 'bel', 'zonnebril', 'zzz', 'breien', 'pet', 'nest', 'krant', 'ijsje', 'nest', 'ooglap', 'kroon', 'bloem', 'knuffel']; // geen telefoon, koffie of brood: dat zijn voorwerpen om te zoeken
   let gi = 0; const gagVan = {};
   [[0, 2], [0, 9], [0, 16], [0, 22], [1, 3], [1, 8], [1, 13], [1, 19], [1, 23], [2, 1], [2, 6], [2, 11], [2, 15], [2, 19], [3, 2], [3, 7], [3, 11], [3, 15], [4, 3], [4, 6], [4, 10], [0, 12]].forEach(([a, b]) => gagVan[a + '-' + b] = gagLijst[gi++ % gagLijst.length]);
   // achterste verhogingen
@@ -487,7 +500,7 @@ function orkestAchter() {
   muzikant(1350, 456, 1.1, { huid: HUID[3], haar: HAAR[1], kapsel: 'krul', instr: '', mond: 'o' });
   vorm('#8a5a30', () => ctx.rect(1100, 440, 140, 18)); for (let k = 0; k < 12; k++) vorm(k % 2 ? '#d8a860' : '#c89040', () => ctx.rect(1104 + k * 11.3, 436, 9, 14), false); // xylofoon
   muzikant(1170, 436, 1.1, { huid: HUID[4], haar: HAAR[2], kapsel: 'staart', jurk: 1, instr: '' });
-  muzikant(900, 440, 1.1, { huid: HUID[2], haar: HAAR[6], kapsel: 'knot', jurk: 1, instr: '', gag: 'koffie' }); vorm('#c0c0c8', () => { ctx.moveTo(860, 470); ctx.lineTo(940, 470); ctx.lineTo(930, 450); ctx.lineTo(870, 450); ctx.closePath(); }); // triangelspeler met pauzekoffie
+  muzikant(900, 440, 1.1, { huid: HUID[2], haar: HAAR[6], kapsel: 'knot', jurk: 1, instr: '' }); vorm('#c0c0c8', () => { ctx.moveTo(860, 470); ctx.lineTo(940, 470); ctx.lineTo(930, 450); ctx.lineTo(870, 450); ctx.closePath(); }); // triangelspeler met pauzekoffie
   rijen.forEach((rij, ri) => {
     const instr = rij.instr.split(' '), lessen = [], rommels = [];
     for (let i = 0; i < rij.n; i++) {
@@ -533,8 +546,6 @@ function orkestVoor() {
     const o = { trui: ['#3a5a8a', '#8a3a3a', '#2a2a3a', '#5a7a4a', '#7a5a8a', '#c8a060'][Math.floor(r() * 6)], huid: HUID[Math.floor(r() * HUID.length)], haar: HAAR[Math.floor(r() * HAAR.length)], kapsel: ['kort', 'lang', 'kaal', 'knot', 'kort'][Math.floor(r() * 5)] };
     persoonAchter(x + (r() - 0.5) * 20, 1250 + rij * 50, 1.1 + rij * 0.15, o);
   }
-  vorm('#e8384f', () => { ctx.moveTo(560, 1214); ctx.lineTo(600, 1214); ctx.lineTo(594, 1250); ctx.lineTo(566, 1250); ctx.closePath(); }); for (let k = 0; k < 6; k++) vorm('#fff8d0', () => ctx.arc(566 + k * 6, 1210 - (k % 2) * 4, 5, 0, 7)); // popcorn
-  vorm('#2a2a3a', () => rr(1390, 1170, 28, 40, 4)); vorm('#7ad0f0', () => ctx.rect(1394, 1175, 20, 30), false); // iemand filmt
 }
 
 // ---------- level 2: het postkantoor, een druk stripplaatje (2000 x 1300) ----------
