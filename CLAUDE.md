@@ -95,7 +95,7 @@ De pc-versie van koekjesschuiver.html met echte 3D-natuurkunde, zodat koekjes op
 koekjes dan in 2D (rustiger). Alles in `js/spel.js`; `lib/` heeft three.js r160 en cannon-es 0.20 (MIT, npm
 `cannon-es`). Zelfde spelregels en codes als 2D (0-3 koekjes, 10+k traktaties, 20+k koekjesfiguren, krachten,
 badges); de schuif is een kinematisch blok onder een vaste achterwand, koekjes die over de voorrand vallen zijn
-gewonnen, over de zijkant (na `ZIJ_EIND`) weg. Koekjes op hun kant krijgen een zetje (`omvalT`). Gewonnen figuren
+gewonnen, over de zijkant (na `ZIJ_EIND`) weg. Koekjes op hun kant (ook bovenop andere of op de schuif) krijgen na 0,5 s een gericht zetje dat ze plat kantelt, steeds harder als ze blijven staan (`omvalT`, `kantT`, `kantN`). Gewonnen figuren
 springen omhoog (`springers`), het likkoekje extra groot met "Likkie-likkie!" hardop. Opslag in `koekjesschuiver3d`.
 `#tegel` verbergt de knoppen voor het plaatje. Tafel smal en lang (`HB`, `VOOR`); de camera zoekt bij elk schermformaat
 de dichtstbijzijnde stand waarbij de tafel tussen bovenbalk en krachtknoppen past (`pasAan`). Gewone koekjes en figuren

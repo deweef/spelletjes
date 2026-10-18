@@ -1462,13 +1462,20 @@ function stap(dt) {
     if (p.y < -4 || (k.geteld && t - k.geteld > 2.5)) weg(k); // na een tijdje uit de bak gehaald
   }
   // koekjes die stil op hun kant staan, krijgen een zetje zodat ze weer plat vallen
-  if ((omvalT += dt) > 0.4) {
+  // (gericht: draaien om de as die de bovenkant van het koekje naar boven of beneden kantelt, plus een hupje zodat de
+  // wrijving het niet tegenhoudt; vormkoekjes hebben een platte rand en hebben dat echt nodig)
+  if ((omvalT += dt) > 0.25) {
     omvalT = 0;
     for (const k of koekjes) {
       const q = k.body.quaternion, boven = 1 - 2 * (q.x * q.x + q.z * q.z);
-      if (Math.abs(boven) < 0.55 && k.body.velocity.length() < 0.4 && k.body.position.y > -0.2) {
-        k.body.wakeUp(); k.body.angularVelocity.x += (Math.random() - 0.5) * 6; k.body.angularVelocity.z += (Math.random() - 0.5) * 6;
-      }
+      if (Math.abs(boven) < 0.6 && k.body.angularVelocity.length() < 1.5 && k.body.position.y > -0.2 && !k.geteld) {
+        if ((k.kantT = (k.kantT || 0) + 0.25) < 0.5) continue; // eerst even kijken of hij vanzelf valt
+        k.kantT = 0; k.kantN = (k.kantN || 0) + 1; // blijft hij staan, dan steeds harder
+        const u = new CANNON.Vec3(2 * (q.x * q.y - q.w * q.z), boven, 2 * (q.y * q.z + q.w * q.x)); // lokale y-as in de wereld
+        const doel = boven >= 0 ? 1 : -1, as = new CANNON.Vec3(-u.z * doel, 0, u.x * doel); // u x (0, doel, 0)
+        const l = as.length() || 1, kracht = (VORMEN[k.code] ? 9 : 7) * Math.min(2, 1 + 0.25 * (k.kantN - 1));
+        k.body.wakeUp(); k.body.angularVelocity.set(as.x / l * kracht, 0, as.z / l * kracht); k.body.velocity.y += 1.6 + 0.4 * Math.min(4, k.kantN - 1);
+      } else { k.kantT = 0; if (Math.abs(boven) > 0.9) k.kantN = 0; }
     }
   }
   if (wallT > 0 && (wallT -= dt) <= 0) zetMuurtjes(false);
@@ -1503,4 +1510,4 @@ function lus(nu) {
   renderer.render(scene, camera);
 }
 requestAnimationFrame(lus);
-window.__test = { ITEMS, laatVallenVast: (x, c) => laatVallen(x, true, c), get itemsGewonnen() { return itemsGewonnen; }, zetThemaId: (id) => { themaId = id; zetThema(id); }, likkie, world, get koekjes() { return koekjes; }, laatVallen, gebruikKracht, stap, autoInsturen, naarMenu, startWedstrijd, eindeWedstrijd, speel, get modus() { return modus; }, get toestand() { return { wedBest, muntenTotaal, ingestuurd, best, weggevallen, supply, score, coll, found, badges, wonTotal, munten, gekocht, themaId }; }, zetMunten: (n) => { munten = n; tekenHud(); }, zetFound: (f) => { found = f; }, zetColl: (c) => { coll = c; tekenHud(true); } };
+window.__test = { ITEMS, nieuwKoekje, laatVallenVast: (x, c) => laatVallen(x, true, c), get itemsGewonnen() { return itemsGewonnen; }, zetThemaId: (id) => { themaId = id; zetThema(id); }, likkie, world, get koekjes() { return koekjes; }, laatVallen, gebruikKracht, stap, autoInsturen, naarMenu, startWedstrijd, eindeWedstrijd, speel, get modus() { return modus; }, get toestand() { return { wedBest, muntenTotaal, ingestuurd, best, weggevallen, supply, score, coll, found, badges, wonTotal, munten, gekocht, themaId }; }, zetMunten: (n) => { munten = n; tekenHud(); }, zetFound: (f) => { found = f; }, zetColl: (c) => { coll = c; tekenHud(true); } };
