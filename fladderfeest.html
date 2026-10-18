@@ -95,6 +95,7 @@ function scorebordScherm() {
 
 // de winkel: dier kiezen (alleen vrijgespeelde), groot bekijken, spulletjes passen, kopen en aan- of uittrekken
 let winkelDier = null;
+function dierAlleen(id, x, y, fl, s) { metKleren(id, () => WERELDEN[id].held(x, y, -0.05, fl, s, false)); } // zonder bonus erbij
 function winkelScherm() {
   ctx.fillStyle = 'rgba(15,30,55,.85)'; ctx.fillRect(0, 0, W, H);
   tekst('🛍️ Winkel', W / 2, 40, 28, '#ffe14d', 'center', '#1d3b57');
@@ -102,25 +103,25 @@ function winkelScherm() {
   const dieren = FIGUREN.filter((f, i) => f.klaar && open(i));
   if (!dieren.some((f) => f.id == winkelDier)) winkelDier = dieren[0].id;
   dieren.forEach((f, i) => { // dierenkeuze: twee rijen van vijf
-    const bw = (W - 28) / 5, bx = 14 + (i % 5) * bw, by = 88 + Math.floor(i / 5) * 50;
-    ctx.fillStyle = f.id == winkelDier ? '#ffb43a' : 'rgba(255,255,255,.16)'; rrect(bx + 2, by, bw - 4, 46, 10); ctx.fill();
-    ctx.save(); ctx.beginPath(); ctx.rect(bx + 2, by, bw - 4, 46); ctx.clip(); tekenDier(f.id, bx + bw / 2 - 6, by + 24, 0, 0.62); ctx.restore();
-    knoppen.push({ x: bx, y: by, w: bw, h: 46, doe: () => { winkelDier = f.id; pasKleding = null; sClick(); } });
+    const bw = (W - 28) / 6, bx = 14 + (i % 6) * bw, by = 88 + Math.floor(i / 6) * 48;
+    ctx.fillStyle = f.id == winkelDier ? '#ffb43a' : 'rgba(255,255,255,.16)'; rrect(bx + 2, by, bw - 4, 44, 10); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.rect(bx + 2, by, bw - 4, 44); ctx.clip(); dierAlleen(f.id, bx + bw / 2 + 2, by + 25, 0, 0.6); ctx.restore();
+    knoppen.push({ x: bx, y: by, w: bw, h: 44, doe: () => { winkelDier = f.id; pasKleding = null; sClick(); } });
   });
-  const y0 = 88 + Math.ceil(dieren.length / 5) * 50 + 6, f = FIGUREN.find((q) => q.id == winkelDier);
+  const y0 = 88 + Math.ceil(dieren.length / 6) * 48 + 6, f = FIGUREN.find((q) => q.id == winkelDier);
   ctx.fillStyle = 'rgba(255,248,230,.95)'; rrect(20, y0, W - 40, 112, 16); ctx.fill(); // groot voorbeeld
   const bob = Math.sin(beeld * 0.08) * 3, fl = beeld % 40 < 12 ? 12 - beeld % 40 : 0;
-  ctx.save(); ctx.beginPath(); ctx.rect(20, y0, W - 40, 112); ctx.clip(); tekenDier(f.id, W / 2 - 22, y0 + 56 + bob, fl, 2.1); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(20, y0, W - 40, 112); ctx.clip(); dierAlleen(f.id, W / 2 + 10, y0 + 64 + bob, fl, 2.1); ctx.restore();
   tekst(f.naam + (pasKleding ? ' (even passen)' : ''), W / 2, y0 + 102, 12, '#4d6478', 'center', null);
   const lijst = KLEDING.filter((k) => k.dier == winkelDier), aan = aanVan(winkelDier);
   lijst.forEach((k, i) => {
-    const y = y0 + 122 + i * 50, heb = kast.gekocht.includes(k.id), draag = aan[k.plek] == k.id, pas = pasKleding == k;
-    ctx.fillStyle = pas ? '#fff1b8' : 'rgba(255,255,255,.93)'; rrect(20, y, W - 40, 44, 12); ctx.fill();
-    tekst(k.naam, 34, y + 15, 15, '#1d3b57', 'left', null);
-    tekst({ hoed: 'op je kop', bril: 'voor je ogen', lijf: 'om je lijf' }[k.plek] + (heb ? '' : ' · tik om te passen'), 34, y + 32, 11, '#6a7a8a', 'left', null);
+    const y = y0 + 120 + i * 48, heb = kast.gekocht.includes(k.id), draag = aan[k.plek] == k.id, pas = pasKleding == k;
+    ctx.fillStyle = pas ? '#fff1b8' : 'rgba(255,255,255,.93)'; rrect(20, y, W - 40, 42, 12); ctx.fill();
+    tekst(k.naam, 34, y + 14, 15, '#1d3b57', 'left', null);
+    tekst({ hoed: 'op je kop', bril: 'voor je ogen', lijf: 'om je lijf' }[k.plek] + (heb ? '' : ' · tik om te passen'), 34, y + 30, 11, '#6a7a8a', 'left', null);
     knoppen.push({ x: 20, y, w: W - 150, h: 44, doe: () => { pasKleding = pas ? null : k; sClick(); } });
     const kn = heb ? (draag ? ['Uittrekken', '#c0792a'] : ['Aantrekken', '#3fae5a']) : ['Koop ' + k.prijs + ' 🪙', kast.munten >= k.prijs ? '#3f8fd8' : '#9aa3ad'];
-    ctx.fillStyle = kn[1]; rrect(W - 132, y + 7, 104, 30, 10); ctx.fill(); tekst(kn[0], W - 80, y + 22, 13, '#fff', 'center', null);
+    ctx.fillStyle = kn[1]; rrect(W - 132, y + 6, 104, 30, 10); ctx.fill(); tekst(kn[0], W - 80, y + 21, 13, '#fff', 'center', null);
     knoppen.push({ x: W - 136, y, w: 116, h: 44, doe: () => {
       const a = kast.aan[winkelDier] = kast.aan[winkelDier] || {};
       if (!heb) {
@@ -1728,7 +1729,7 @@ const KLEDING = [ // id, dier, plek (hoed/bril/lijf), naam, prijs, tekening
   ['ki_pet', 'kip', 'hoed', 'Boerenpet', 25, () => pet('#3a5a8a', '#2a4a7a')], ['ki_oma', 'kip', 'bril', 'Omabrilletje', 20, () => omabril('#c0392b')],
   ['ki_zak', 'kip', 'lijf', 'Zakdoek', 30, () => bandana('#d8302a')], ['ki_strik', 'kip', 'lijf', 'Roze strik', 40, () => strik('#e84a8a')],
   ['kr_cow', 'kraai', 'hoed', 'Cowboyhoed', 30, () => cowboyhoed('#7a4a24')], ['kr_koptel', 'kraai', 'hoed', 'Koptelefoon', 35, () => koptelefoon('#e8384f')],
-  ['kr_ster', 'kraai', 'bril', 'Sterrenbril', 25, () => sterbril('#ffd34d')], ['kr_ket', 'kraai', 'lijf', 'Gouden ketting', 45, () => ketting()],
+  ['kr_ster', 'kraai', 'bril', 'Sterrenbril', 25, () => sterbril('#ffd34d')], ['kr_ket', 'kraai', 'lijf', 'Gouden ketting', 45, () => ketting()], ['kr_gitaar', 'kraai', 'lijf', 'Elektrische gitaar', 60, () => gitaar2('#e8384f')],
   ['pa_steek', 'papegaai', 'hoed', 'Kapiteinssteek', 35, () => steek('#1d2a6a')], ['pa_mono', 'papegaai', 'bril', 'Monocle', 25, () => monocle()],
   ['pa_band', 'papegaai', 'lijf', 'Matrozensjaal', 30, () => bandana('#2f6fd8')], ['pa_feest', 'papegaai', 'hoed', 'Feestmuts', 40, () => feestmuts('#ffd34d', '#d83a2a')],
   ['pi_hoge', 'pinguin', 'hoed', 'Hoge hoed', 35, () => hogeHoed('#111', '#d8302a')], ['pi_pil', 'pinguin', 'bril', 'Pilotenbril', 25, () => pilotenbril()],
@@ -1781,6 +1782,15 @@ function pilotenbril() { ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 1.6; ctx.b
 function ruimtehelm() { ctx.fillStyle = 'rgba(180,230,255,.35)'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(1, 9, 12, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(-4, 3, 2, 4, 0.5, 0, 7); ctx.fill(); ctx.fillStyle = '#d8302a'; ctx.beginPath(); ctx.arc(1, -3, 1.5, 0, 7); ctx.fill(); }
 function cape(k) { ctx.fillStyle = k; ctx.beginPath(); ctx.moveTo(-2, -2); ctx.quadraticCurveTo(-14, 2 + Math.sin(beeld * 0.2) * 2, -24, 10 + Math.sin(beeld * 0.25) * 3); ctx.lineTo(-8, 12); ctx.quadraticCurveTo(-4, 6, 2, 1); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, 7); ctx.fill(); }
 function helm(k) { ctx.fillStyle = k; ctx.beginPath(); ctx.arc(0, 4, 9, Math.PI, 0); ctx.fill(); ctx.fillRect(-9, 2, 18, 4); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(-1, -5, 2, 11); ctx.fillStyle = '#e8384f'; ctx.beginPath(); ctx.ellipse(-2, -6, 5, 2.4, -0.3, 0, 7); ctx.fill(); }
+function gitaar2(k) { // elektrische gitaar schuin voor het lijf, met een band over de schouder
+  ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(-6, -3); ctx.quadraticCurveTo(-2, 8, 3, 9); ctx.stroke();
+  ctx.save(); ctx.translate(2, 8); ctx.rotate(-0.5);
+  ctx.fillStyle = '#6a3a14'; ctx.fillRect(4, -1.2, 16, 2.4); ctx.fillStyle = '#222'; rrect(19, -2.2, 5, 4.4, 1); ctx.fill(); // hals en kop
+  ctx.fillStyle = k; ctx.beginPath(); ctx.ellipse(-1, 0, 6.5, 5, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.ellipse(3, -2.5, 3, 2.4, 0.4, 0, 7); ctx.ellipse(3, 2.5, 3, 2.4, -0.4, 0, 7); ctx.fill(); // lijf met twee hoorntjes
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(-1, 1, 3, 2, 0.3, 0, 7); ctx.fill(); ctx.fillStyle = '#ccc'; ctx.fillRect(-3, -0.8, 1.2, 1.6); ctx.fillRect(0, -0.8, 1.2, 1.6);
+  ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 0.4; for (const dy of [-0.6, 0, 0.6]) { ctx.beginPath(); ctx.moveTo(-3, dy); ctx.lineTo(21, dy); ctx.stroke(); }
+  ctx.restore();
+}
 function bretels(k) { ctx.strokeStyle = k; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-6, -2); ctx.lineTo(-4, 10); ctx.moveTo(3, -2); ctx.lineTo(4, 10); ctx.moveTo(-5, 4); ctx.lineTo(4, 4); ctx.stroke(); ctx.fillStyle = '#3a8a3a'; ctx.beginPath(); ctx.arc(-0.5, 4, 1.5, 0, 7); ctx.fill(); }
 
 const WERELDEN = {
@@ -1921,74 +1931,74 @@ function knop(x, y, w, h, t, kleur, doe) {
 
 function menu() {
   ctx.fillStyle = 'rgba(15,40,70,.28)'; ctx.fillRect(0, 0, W, H);
-  const golf = Math.sin(beeld * 0.05) * 3;
-  tekst('Fladderfeest', W / 2, 52 + golf, 38, '#ffe14d', 'center', '#1d3b57');
+  const golf = Math.sin(beeld * 0.05) * 2;
+  tekst('Fladderfeest', W / 2, 38 + golf, 34, '#ffe14d', 'center', '#1d3b57');
+  // bovenaan: winkel en scorebord
+  for (const [k, lbl, kl, doe] of [[0, '🛍️ Winkel', '#3fae5a', () => { staat = 'winkel'; winkelDier = winkelDier || FIGUREN[0].id; pasKleding = null; tekstje = ''; sClick(); }],
+    [1, '🏆 Scorebord', '#ffb43a', () => { staat = 'bord'; bordTab = 'tocht'; sClick(); bordHalen(); }]]) {
+    const bx = 24 + k * ((W - 48) / 2 + 4), bw = (W - 48) / 2 - 4;
+    ctx.fillStyle = 'rgba(0,0,0,.25)'; rrect(bx, 70, bw, 30, 12); ctx.fill();
+    ctx.fillStyle = kl; rrect(bx, 68, bw, 30, 12); ctx.fill();
+    tekst(lbl, bx + bw / 2, 83, 14, '#fff', 'center', 'rgba(0,0,0,.25)');
+    knoppen.push({ x: bx, y: 64, w: bw, h: 38, doe });
+  }
   // de Grote tocht
   const bt = record('tocht');
-  ctx.fillStyle = 'rgba(0,0,0,.2)'; rrect(24, 86, W - 48, 46, 14); ctx.fill();
-  const tg = ctx.createLinearGradient(0, 82, 0, 124); tg.addColorStop(0, '#ffb43a'); tg.addColorStop(1, '#e8762a');
-  ctx.fillStyle = tg; rrect(24, 82, W - 48, 46, 14); ctx.fill(); ctx.strokeStyle = '#fff3c8'; ctx.lineWidth = 2; ctx.stroke();
-  for (let k = 0; k < 4; k++) for (let j = 0; j < 2; j++) { ctx.fillStyle = (k + j) % 2 ? '#fff' : '#222'; ctx.fillRect(36 + k * 6, 93 + j * 6, 6, 6); ctx.fillRect(W - 60 + k * 6, 93 + j * 6, 6, 6); } // finishvlaggetjes
-  tekst('Grote tocht', W / 2, 98, 20, '#fff', 'center', 'rgba(0,0,0,.3)');
-  tekst(bt ? 'Beste tocht: ' + bt + ' punten' : 'Alle dieren achter elkaar', W / 2, 117, 12, '#fff8e0', 'center', null);
-  knoppen.push({ x: 24, y: 82, w: W - 48, h: 46, doe: startTocht });
+  ctx.fillStyle = 'rgba(0,0,0,.2)'; rrect(24, 110, W - 48, 40, 14); ctx.fill();
+  const tg = ctx.createLinearGradient(0, 106, 0, 146); tg.addColorStop(0, '#ffb43a'); tg.addColorStop(1, '#e8762a');
+  ctx.fillStyle = tg; rrect(24, 106, W - 48, 40, 14); ctx.fill(); ctx.strokeStyle = '#fff3c8'; ctx.lineWidth = 2; ctx.stroke();
+  for (let k = 0; k < 4; k++) for (let j = 0; j < 2; j++) { ctx.fillStyle = (k + j) % 2 ? '#fff' : '#222'; ctx.fillRect(36 + k * 6, 114 + j * 6, 6, 6); ctx.fillRect(W - 60 + k * 6, 114 + j * 6, 6, 6); } // finishvlaggetjes
+  tekst('Grote tocht', W / 2, 120, 18, '#fff', 'center', 'rgba(0,0,0,.3)');
+  tekst(bt ? 'Beste tocht: ' + bt + ' punten' : 'Alle dieren achter elkaar', W / 2, 137, 11, '#fff8e0', 'center', null);
+  knoppen.push({ x: 24, y: 106, w: W - 48, h: 40, doe: startTocht });
   for (const [k, lbl, val] of [[0, 'Met streken', true], [1, 'Gewoon', false]]) { const aan = streken == val;
     const bx = 24 + k * ((W - 48) / 2), bw = (W - 48) / 2;
-    ctx.fillStyle = aan ? (val ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.35)'; rrect(bx + (k ? 3 : 0), 136, bw - 3, 28, 10); ctx.fill();
-    tekst(lbl, bx + bw / 2, 151, 14, '#fff', 'center', aan ? 'rgba(0,0,0,.25)' : null);
-    knoppen.push({ x: bx, y: 134, w: bw, h: 32, doe: () => {
+    ctx.fillStyle = aan ? (val ? '#c0392b' : '#3fae5a') : 'rgba(255,255,255,.35)'; rrect(bx + (k ? 3 : 0), 152, bw - 3, 26, 10); ctx.fill();
+    tekst(lbl, bx + bw / 2, 165, 13, '#fff', 'center', aan ? 'rgba(0,0,0,.25)' : null);
+    knoppen.push({ x: bx, y: 150, w: bw, h: 30, doe: () => {
       if (streken == val) return; streken = val; sClick();
       try { localStorage.setItem('fladderfeest_streken', streken ? '1' : '0'); } catch (e) {}
       tekstje = streken ? 'Met streken: elk dier heeft een eigen pesterij!' : 'Gewoon: zonder streken.'; doodT = beeld;
     } });
   }
-  const rijen = Math.ceil(FIGUREN.length / 2), klein = rijen > 4; // vanaf 5 rijen compactere kaartjes
-  const kw = (W - 58) / 2, kh = klein ? 78 : 100, tussen = klein ? 6 : 8;
+  // de dieren in drie kolommen (past tot 15 dieren); een halve laatste rij staat in het midden
+  const kol = 3, gap = 7, kw = (W - 48 - (kol - 1) * gap) / kol, kh = 82, n = FIGUREN.length;
   FIGUREN.forEach((f, i) => {
-    let x = 24 + (i % 2) * (kw + 10), y = 172 + Math.floor(i / 2) * (kh + tussen);
-    if (i == FIGUREN.length - 1 && i % 2 == 0) x = (W - kw) / 2; // laatste alleen in het midden
+    const rij = Math.floor(i / kol), inRij = Math.min(kol, n - rij * kol), links = (W - (inRij * kw + (inRij - 1) * gap)) / 2;
+    const x = links + (i % kol) * (kw + gap), y = 188 + rij * (kh + 6);
     if (f.geheim && !open(i)) { // geheim dier: alleen een vraagteken tot je overal goud hebt
       const gl = ctx.createLinearGradient(x, y, x, y + kh); gl.addColorStop(0, '#3a2a6a'); gl.addColorStop(1, '#1a1a3a');
-      ctx.fillStyle = gl; rrect(x, y, kw, kh, 16); ctx.fill(); ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 3; ctx.stroke();
-      tekst('?', x + kw / 2, y + kh * 0.36, 34, '#ffd34d', 'center', '#000');
-      tekst('Geheim dier', x + kw / 2, y + kh * 0.7, 13, '#fff', 'center', null);
-      tekst('Goud bij alle dieren', x + kw / 2, y + kh * 0.88, 10, '#ffd34d', 'center', null);
+      ctx.fillStyle = gl; rrect(x, y, kw, kh, 14); ctx.fill(); ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 3; ctx.stroke();
+      tekst('?', x + kw / 2, y + 30, 30, '#ffd34d', 'center', '#000');
+      tekst('Geheim dier', x + kw / 2, y + 58, 12, '#fff', 'center', null);
+      tekst('Goud bij alle dieren', x + kw / 2, y + 72, 9, '#ffd34d', 'center', null);
       knoppen.push({ x, y, w: kw, h: kh, doe: () => { tekstje = 'Haal goud (50 punten) met elk dier!'; doodT = beeld; sBots(); } });
       return;
     }
     const vrij = f.klaar && open(i);
-    ctx.fillStyle = vrij ? 'rgba(255,255,255,.93)' : 'rgba(255,255,255,.5)'; rrect(x, y, kw, kh, 16); ctx.fill();
+    ctx.fillStyle = vrij ? 'rgba(255,255,255,.93)' : 'rgba(255,255,255,.5)'; rrect(x, y, kw, kh, 14); ctx.fill();
     ctx.strokeStyle = vrij ? '#f2b81d' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
-    const bob = vrij ? Math.sin(beeld * 0.1 + i) * 3 : 0, fl = vrij && beeld % 40 < 12 ? 12 - beeld % 40 : 0;
-    const cx = x + kw / 2, cy = y + (klein ? 23 : 34) + bob;
+    const bob = vrij ? Math.sin(beeld * 0.1 + i) * 2.5 : 0, fl = vrij && beeld % 40 < 12 ? 12 - beeld % 40 : 0;
+    const cx = x + kw / 2, cy = y + 28 + bob;
     ctx.globalAlpha = vrij ? 1 : 0.45;
-    tekenDier(f.id, cx - 8, cy, fl, klein ? 0.85 : 1.15);
-    if (vrij && recordBeide(f.id) >= 100) kroon(x + 18, y + 16, klein ? 0.8 : 1); // kroontje voor 100 punten
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, kw, 48); ctx.clip(); tekenDier(f.id, cx - 10, cy, fl, 0.8); ctx.restore();
+    if (vrij && recordBeide(f.id) >= 100) kroon(x + 14, y + 13, 0.75); // kroontje voor 100 punten
     ctx.globalAlpha = 1;
-    tekst(f.naam, cx, y + (klein ? 57 : 70), f.naam.length > 13 ? 13 : 15, vrij ? '#1d3b57' : '#4d6478', 'center', null);
+    tekst(f.naam, cx, y + 59, f.naam.length > 11 ? 10.5 : 12.5, vrij ? '#1d3b57' : '#4d6478', 'center', null);
     if (vrij) {
       const r = record(f.id), m = medaille(r, f);
-      tekst('Record ' + r + (m ? ' · ' + m[1] : ''), cx, y + (klein ? 71 : 88), 11, '#c0792a', 'center', null);
+      tekst('Record ' + r + (m ? ' · ' + (m[0] == 100 ? 'Top!' : m[1]) : ''), cx, y + 73, 9.5, '#c0792a', 'center', null);
       knoppen.push({ x, y, w: kw, h: kh, doe: () => { if (fig != f) stopMuziek(false); tocht = null; fig = f; nieuwSpel(); } });
     } else {
-      const uitleg = !f.klaar ? 'Komt nog!' : '🔒 ' + nodig(i) + ' met ' + FIGUREN[i - 1].naam;
-      tekst(uitleg, cx, y + (klein ? 71 : 88), f.klaar ? 10 : 11, '#d6453b', 'center', null);
-      // slotje
-      if (f.klaar) { ctx.fillStyle = '#7a6a5a'; rrect(cx + 18, cy - 4, 18, 14, 3); ctx.fill(); ctx.strokeStyle = '#7a6a5a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx + 27, cy - 4, 6, Math.PI, 0); ctx.stroke(); }
+      const uitleg = !f.klaar ? 'Komt nog!' : '🔒 ' + nodig(i) + ' met de vorige';
+      tekst(uitleg, cx, y + 73, 9.5, '#d6453b', 'center', null);
+      if (f.klaar) { ctx.fillStyle = '#7a6a5a'; rrect(cx + 16, cy - 4, 16, 12, 3); ctx.fill(); ctx.strokeStyle = '#7a6a5a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(cx + 24, cy - 4, 5, Math.PI, 0); ctx.stroke(); } // slotje
       knoppen.push({ x, y, w: kw, h: kh, doe: () => {
         tekstje = !f.klaar ? f.naam + ' is nog in de maak.' : 'Haal ' + nodig(i) + ' punten met ' + FIGUREN[i - 1].naam + '!'; doodT = beeld; sBots();
       } });
     }
   });
-  if (tekstje && beeld - doodT < 150 && staat == 'menu') { ctx.fillStyle = 'rgba(15,40,70,.9)'; rrect(10, H - 38, W - 20, 32, 12); ctx.fill(); tekst(tekstje, W / 2, H - 22, 14, '#fff'); }
-  ctx.fillStyle = 'rgba(0,0,0,.25)'; rrect(18, H - 35, 128, 30, 12); ctx.fill();
-  ctx.fillStyle = '#3fae5a'; rrect(18, H - 37, 128, 30, 12); ctx.fill();
-  tekst('🛍️ Winkel', 82, H - 22, 14, '#fff', 'center', 'rgba(0,0,0,.25)');
-  knoppen.push({ x: 18, y: H - 40, w: 128, h: 38, doe: () => { staat = 'winkel'; winkelDier = winkelDier || FIGUREN[0].id; pasKleding = null; sClick(); } });
-  ctx.fillStyle = 'rgba(0,0,0,.25)'; rrect(W - 146, H - 35, 128, 30, 12); ctx.fill();
-  ctx.fillStyle = '#ffb43a'; rrect(W - 146, H - 37, 128, 30, 12); ctx.fill();
-  tekst('🏆 Scorebord', W - 82, H - 22, 14, '#fff', 'center', 'rgba(0,0,0,.25)');
-  knoppen.push({ x: W - 146, y: H - 40, w: 128, h: 38, doe: () => { staat = 'bord'; bordTab = 'tocht'; sClick(); bordHalen(); } });
+  if (tekstje && beeld - doodT < 150 && staat == 'menu') { ctx.fillStyle = 'rgba(15,40,70,.92)'; rrect(10, H - 40, W - 20, 32, 12); ctx.fill(); tekst(tekstje, W / 2, H - 24, 14, '#fff'); }
 }
 // een dier met zijn bonus erbij, voor het beginscherm
 function tekenDier(id, x, y, fl, s) { metKleren(id, () => tekenDierKaal(id, x, y, fl, s)); }

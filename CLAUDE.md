@@ -26,13 +26,14 @@ bedenk dat de site openbaar is.
   `stuw`/`stuwKracht`) en Vuurdraak (drakenburcht bij nacht met vulkaan, kasteeltorens, edelstenen, doedelzakmuziek met bromtoon;
   elke edelsteen = een vuurbal (`spuw`, `vuurballen`) die de volgende toren wegbrandt: het gat wordt 60 groter, `p.brand`) en Koekoek
   (Zwarte Woud met bergen en dennen, koekoeksklokken op dennenstammen onder en klokgewichten boven, taartpuntjes, polka) zijn klaar.
-  Vanaf 9 dieren worden de kaartjes in het menu compacter (`klein`).
+  Menu: bovenaan 🛍️ Winkel en 🏆 Scorebord, dan de Grote tocht en Met streken/Gewoon, daaronder de dieren in 3 kolommen
+  (past tot 15 dieren; een halve laatste rij staat in het midden).
   Geheim dier Gouden Arend (`geheim: true`, laatste in `FIGUREN`): in het menu een kaartje met "?" tot je met alle andere
   dieren goud (50) hebt; bergtoppen boven de wolken, onweerswolken boven, sterretjes, orkestmuziek (`stijl: 'orkest'`), sneller
   (`snel: 1.12`) en de krapste gaten; streek: bliksem (`flits`, 50 beelden waarschuwing met een stippellijn, dan inslag).
   De Grote tocht gaat langs `TOCHT` (alle dieren behalve het geheime). Kroontje (`kroon`) op een dier in het menu bij 100 punten.
-  Winkel (knop 🛍️ Winkel linksonder in het menu, `winkelScherm`): elke gepikte bonus = 1 muntje in de spaarpot (`spaar`, ook
-  in de tocht per etappe); 20 muntjes cadeau om te beginnen. Per dier 4 spulletjes in `KLEDING` (plek hoed/bril/lijf, prijs
+  Winkel (knop 🛍️ Winkel bovenaan in het menu, `winkelScherm`, dieren zonder bonus getekend via `dierAlleen`): elke gepikte bonus = 1 muntje in de spaarpot (`spaar`, ook
+  in de tocht per etappe); 20 muntjes cadeau om te beginnen. Per dier 4 spulletjes in `KLEDING` (de kraai 5, met een elektrische gitaar) (plek hoed/bril/lijf, prijs
   20-80), eerst passen (`pasKleding`), dan kopen en aan-/uittrekken. Opslag per speler in `fladderfeest_kast:<naam>`
   ({ munten, gekocht, aan: { dier: { hoed, bril, lijf } } }). Getekend via `metKleren`/`aankleden` aan het eind van elke
   dier-tekening, op de plekken uit `ANKER`; ingebouwde hoedjes en brillen (kraai, papegaai, pinguïn, koekoek) verdwijnen als
@@ -53,7 +54,7 @@ bedenk dat de site openbaar is.
   iets met een geluidje en een tekstwolkje (`ROEP`, `roepT`, `roepBel`).
   Online scorebord: Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
   `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
-  = insturen. Knop 🏆 Scorebord op het beginscherm (`scorebordScherm`), insturen gaat automatisch op het eindscherm (`autoInsturen`: alleen met een gekozen naam en alleen een persoonlijk record dat beter is dan wat al ingestuurd is, bijgehouden in `fladderfeest_ingestuurd:<naam>`); laatste lijst
+  = insturen. Knop 🏆 Scorebord bovenaan het beginscherm (`scorebordScherm`), insturen gaat automatisch op het eindscherm (`autoInsturen`: alleen met een gekozen naam en alleen een persoonlijk record dat beter is dan wat al ingestuurd is, bijgehouden in `fladderfeest_ingestuurd:<naam>`); laatste lijst
   in `fladderfeest_bord` voor offline. Hetzelfde script heeft ook `doPost` met `actie=leer`: het geheime leerlogboek van de
   Leerhoek (deweef/leren, `leerlog.js`), tabbladen 'Leerhoek' en 'Leerhoek overzicht'; wordt nooit via GET teruggegeven, behalve
   aan de Scores-app (`scores/`, eigen manifest en icoon, niet gelinkt vanaf de startpagina): `?actie=ouder&sleutel=..` geeft
