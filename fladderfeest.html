@@ -141,6 +141,7 @@ const sKraak = () => { ruis(0.5, 0.2, 'lowpass', 180); snd(950, 0.2, 'sawtooth',
 const sSputter = () => { for (let i = 0; i < 5; i++) ruis(0.08, 0.08, 'lowpass', 900 - i * 120, i * 0.14); snd(300, 0.8, 'sawtooth', 0.04, 60, 0.1); };
 const sClick = () => snd(660, 0.05, 'square', 0.03);
 const sRoar = () => { ruis(0.9, 0.16, 'lowpass', 500); snd(190, 0.8, 'sawtooth', 0.05, 70); snd(240, 0.6, 'square', 0.02, 90, 0.05); };
+const sKoekoek = (v = 0.05, d = 0) => { snd(784, 0.2, 'sine', v, 760, d); snd(659, 0.32, 'sine', v, 640, d + 0.24); };
 const sVuur = () => { ruis(0.6, 0.14, 'bandpass', 900); snd(300, 0.4, 'sawtooth', 0.03, 120); };
 // tijdens het spelen roept elk dier af en toe iets (vrolijk geluidje plus een tekstwolkje)
 const ROEP = {
@@ -151,6 +152,7 @@ const ROEP = {
   kraai: { s: () => { snd(720, 0.18, 'sawtooth', 0.035, 430); snd(680, 0.22, 'sawtooth', 0.035, 400, 0.22); }, t: ['Kraa!', 'Rock on!', 'Kraa kraa!', 'Harder!'] },
   papegaai: { s: () => { snd(1000, 0.18, 'sawtooth', 0.035, 620); snd(1100, 0.25, 'sawtooth', 0.03, 560, 0.2); }, t: ['Kraa!', 'Polly wil goud!', 'Arrr!', 'Kraa! Land in zicht!', 'Hoera, ik vlieg!'] },
   pinguin: { s: () => { snd(900, 0.12, 'square', 0.03, 1400); snd(1200, 0.2, 'square', 0.025, 1800, 0.13); }, t: ['Wiieee!', 'Raket aan!', 'Koud hè?', 'Visje?'] },
+  koekoek: { s: () => sKoekoek(0.04), t: ['Koekoek!', 'Koekoek! Hoe laat is het?', 'Tijd voor taart!', 'Tik tak!', 'Jodelahiti!'] },
   draak: { s: () => { sRoar(); vogel.adem = 40; }, t: ['Rrroaar!', 'Iemand een marshmallow?', 'Heet hè?', 'Mijn schat!', 'Brandje blussen? Nee hoor.'] },
 };
 const sMedaille = () => [660, 880, 1046, 1318].forEach((f, i) => snd(f, 0.2, 'triangle', 0.06, 0, i * 0.09));
@@ -225,6 +227,16 @@ const MUZIEK = {
     ],
     akkoorden: [[38, 45, 50], [38, 45, 50], [38, 45, 50], [36, 43, 48], [38, 45, 50], [36, 43, 48], [38, 45, 50], [38, 45, 50]],
   },
+  koekoek: { // vrolijke polka met klarinet, hoempa en een snaredrum
+    tempo: 152, stijl: 'polka',
+    melodie: [
+      72, -1, 69, -1, 65, -1, 69, 72,   74, -1, 72, -1, 70, -1, 69, -1,
+      67, -1, 70, -1, 74, -1, 72, 70,   69, -1, 72, -1, 65, -1, -1, 0,
+      72, -1, 69, -1, 65, -1, 69, 72,   77, -1, 76, -1, 74, -1, 72, -1,
+      70, -1, 74, -1, 67, -1, 70, 76,   77, -1, -1, -1, 65, -1, 0, 0,
+    ],
+    akkoorden: [[41, 45, 48], [36, 40, 46], [36, 40, 46], [41, 45, 48], [41, 45, 48], [34, 38, 41], [36, 40, 46], [41, 45, 48]],
+  },
   kip: { // boerendeuntje met banjo-getokkel
     tempo: 128, stijl: 'banjo',
     melodie: [
@@ -273,6 +285,7 @@ function speelStap(i, t) {
     else if (mz.stijl == 'synth') { noot(n, t, d * len * 0.9, 'square', 0.02); noot(n + 12.07, t, d * len * 0.6, 'sawtooth', 0.007); }
     else if (mz.stijl == 'speeldoos') { noot(n + 12, t, 0.7, 'sine', 0.06); noot(n + 24, t, 0.25, 'sine', 0.015); }
     else if (mz.stijl == 'wals') { noot(n, t, d * len * 0.9, 'square', 0.016); noot(n + 12, t, d * len * 0.85, 'sine', 0.03); noot(n + 19, t, d * len * 0.5, 'sine', 0.006); }
+    else if (mz.stijl == 'polka') { noot(n, t, d * len * 0.9, 'square', 0.012); noot(n, t, d * len * 0.9, 'triangle', 0.03); noot(n + 12, t, d * len * 0.5, 'sine', 0.008); }
     else if (mz.stijl == 'doedelzak') { noot(n + 5, t, 0.035, 'square', 0.008); noot(n, t + 0.03, d * len * 0.95, 'sawtooth', 0.014); noot(n + 12, t + 0.03, d * len * 0.9, 'square', 0.004); }
     else if (mz.stijl == 'rock') { noot(n, t, d * len * 0.95, 'sawtooth', 0.02, gitaar()); noot(n + 0.1, t, d * len * 0.95, 'square', 0.006); }
     else { noot(n, t, d * len * 0.95, 'square', 0.022); noot(n + 12, t, d * len * 0.6, 'triangle', 0.012); }
@@ -309,6 +322,12 @@ function speelStap(i, t) {
     if (tel == 0 || tel == 3 || tel == 4) drum('kick', t);
     if (tel == 2 || tel == 6) drum('snare', t);
     drum('hihat', t);
+    return;
+  }
+  if (mz.stijl == 'polka') { // hoem-pa op elke tel: tuba op 1 en 3, akkoordje ertussen, snaredrum op de pa
+    if (tel == 0 || tel == 4) noot((tel ? ak[2] : ak[0]) - 12, t, d * 1.2, 'triangle', 0.1);
+    if (tel == 2 || tel == 6) { for (const a of ak) noot(a + 12, t, d * 0.6, 'square', 0.007); drum('snare', t); }
+    if (tel % 2) drum('hihat', t);
     return;
   }
   if (mz.stijl == 'doedelzak') { // bromtoon de hele maat, trommel op 1 en 5, tamboerijn op 3 en 7
@@ -393,6 +412,10 @@ const FIGUREN = [
   { id: 'draak', naam: 'Vuurdraak', wereld: 'De drakenburcht', zwaarte: 0.41, flap: -6.9, max: 9.6, klaar: true, ruimer: -8,
     bonus: ['edelsteen', 'edelstenen'], top: 'Drakenkoning', palen: 'de kasteeltorens', pak: 'en pak edelstenen: dan spuw je vuur!',
     au: ['Rrroaar… au!', 'Mijn vleugel zit in de knoop.', 'Wie bouwt er nou zo’n hoge toren?', 'Even afkoelen in de gracht.', 'Au! Mijn staart staat in de fik.', 'Draken huilen niet. Echt niet.'] },
+  // de koekoek: snel, met een tiroler hoedje; met streken springt er soms een koekoekje uit de klok omhoog
+  { id: 'koekoek', naam: 'Koekoek', wereld: 'Het Zwarte Woud', zwaarte: 0.38, flap: -6.6, max: 9.4, klaar: true, ruimer: -10,
+    bonus: ['taartpuntje', 'taartpuntjes'], top: 'Klokkenkoning', palen: 'de koekoeksklokken',
+    au: ['Koekoek… au!', 'Ik ben helemaal van slag.', 'Wie heeft die klok opgewonden?', 'Mijn hoedje! Waar is mijn hoedje?', 'Tik tak… boem.', 'Ik ben niet koekoek, hoor. Nou ja, een beetje.'] },
 ];
 const nodig = (i) => (i >= 7 ? 30 : 15 + 5 * i); // punten met het vorige dier: 20, 25, ... 45; de nieuwere dieren steeds 30
 const open = (i) => i == 0 || recordBeide(FIGUREN[i].id) > 0 || recordBeide(FIGUREN[i - 1].id) >= nodig(i);
@@ -413,7 +436,7 @@ const knoppen = []; // klikbare vlakken in het huidige scherm
 let gevaren = [], bui = null, volgendeStreek = 0, brandstof = 100;
 const strekenAan = () => streken && score >= 3;
 const STREEK = { roodborst: 'Pas op: sneeuwbuien!', meeuw: 'Pas op: patatdieven!', hommel: 'Pas op: windvlagen!', kip: 'De boer schuift met de hooibalen!',
-  kraai: 'De versterkers dansen op de maat!', papegaai: 'Pas op: kanonskogels!', pinguin: 'Let op je brandstof: visjes vullen bij!', draak: 'Pas op: katapultstenen!' };
+  kraai: 'De versterkers dansen op de maat!', papegaai: 'Pas op: kanonskogels!', pinguin: 'Let op je brandstof: visjes vullen bij!', draak: 'Pas op: katapultstenen!', koekoek: 'Pas op: koekoekjes uit de klok!' };
 let tocht = null, finish = null, onkw = 0, melding = null, vuurwerk = [];
 const doelTocht = () => (tocht && tocht.i < FIGUREN.length - 1 ? nodig(tocht.i + 1) : 0);
 const totaal = () => (tocht ? tocht.totaal + score : score);
@@ -442,6 +465,7 @@ function nieuwePaal(x) {
   // af en toe een bonus in het gat (de pinguïn met streken heeft vaker een visje nodig)
   const kans = streken && fig.id == 'pinguin' ? 0.6 : 0.35;
   if (palen.length && Math.random() < kans) { const dy = (Math.random() - 0.5) * (g * 0.4); p.friet = { y: midden + dy, dy, weg: false }; }
+  if (fig.id == 'koekoek' && strekenAan() && Math.random() < 0.5) p.klok = { t: 0, uit: 0 };
   // streek van de papegaai: een piraat op de tonnen trekt het goudstuk met een magneet weg vlak voordat je erbij bent
   if (p.friet && fig.id == 'papegaai' && strekenAan() && Math.random() < 0.45) p.piraat = { van: 85 + Math.random() * 55, trek: 0, lach: 0 };
   palen.push(p);
@@ -534,10 +558,14 @@ function stap() {
       if (p.amp) { p.midden = p.basis + Math.sin(fig.id == 'kraai' ? beeld * 0.105 : beeld * 0.03 + p.fase) * p.amp; if (p.friet) p.friet.y = p.midden + p.friet.dy; }
       if (!p.voorbij && p.x + PAAL < vogel.x) { p.voorbij = true; score++; sPunt(); juich = 24; extraLeven(); snelheid = tempo(); }
       if (p.piraat) magneet(p);
+      if (p.klok) { const k = p.klok; // deurtje gaat open, dan springt het koekoekje omhoog het gat in en weer terug
+        if (k.t || p.x - vogel.x < 190) k.t++;
+        if (k.t == 30) sKoekoek(0.05);
+        k.uit = k.t < 30 ? 0 : k.t < 38 ? (k.t - 30) / 8 : k.t < 100 ? 1 : Math.max(0, 1 - (k.t - 100) / 10); }
       if (p.friet && !p.friet.weg && Math.hypot(p.x + PAAL / 2 - vogel.x, bonusY(p) - vogel.y) < 22) { p.friet.weg = true; frietjes++; score++; sHap(); extraLeven(); if (fig.id == 'pinguin') brandstof = Math.min(100, brandstof + 40); if (fig.id == 'draak') spuw(); }
       const boven = p.midden - p.gat / 2, onder = p.midden + p.gat / 2;
       const ins = wereld().smal || 0; // smallere steel onder de bloem (tulp)
-      if (onkw <= 0 && (botst(vogel.x, vogel.y, STRAAL, p.x, -50, PAAL, boven + 50) || botst(vogel.x, vogel.y, STRAAL, p.x, onder, PAAL, 34) || botst(vogel.x, vogel.y, STRAAL, p.x + ins, onder + 34, PAAL - 2 * ins, GROND - onder))) return geraakt();
+      if (onkw <= 0 && (botst(vogel.x, vogel.y, STRAAL, p.x, -50, PAAL, boven + 50) || botst(vogel.x, vogel.y, STRAAL, p.x, onder, PAAL, 34) || botst(vogel.x, vogel.y, STRAAL, p.x + ins, onder + 34, PAAL - 2 * ins, GROND - onder) || (p.klok && p.klok.uit > 0.3 && botst(vogel.x, vogel.y, STRAAL, p.x + PAAL / 2 - 9, onder - 30 * p.klok.uit, 18, 30 * p.klok.uit)))) return geraakt();
     }
     palen = palen.filter((p) => p.x > -PAAL - 10);
     const laatste = palen[palen.length - 1];
@@ -655,10 +683,10 @@ function volgendeEtappe() {
 }
 
 function dood() {
-  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa, hommel: sBrom, roodborst: sPiep, papegaai: sKraak, pinguin: sSputter, draak: sRoar }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
+  staat = 'dood'; doodT = 0; sBots(); setTimeout({ kip: sKakel, kraai: sKraa, hommel: sBrom, roodborst: sPiep, papegaai: sKraak, pinguin: sSputter, draak: sRoar, koekoek: () => { sKoekoek(0.05); snd(500, 0.5, 'sine', 0.04, 200, 0.6); } }[fig.id] || sKrijs, 150); stopMuziek(fig.id != 'kraai');
   vogel.vy = -5;
   vallend = fig.id == 'kip' ? { x: vogel.x - 6, y: vogel.y + 8, vy: 0, r: 0 } // van schrik een ei
-    : fig.id == 'papegaai' || fig.id == 'pinguin' || fig.id == 'draak' ? { x: vogel.x + 10, y: vogel.y, vy: -3, r: 0 } // goudstuk of visje vliegt weg
+    : fig.id == 'papegaai' || fig.id == 'pinguin' || fig.id == 'draak' || fig.id == 'koekoek' ? { x: vogel.x + 10, y: vogel.y, vy: -3, r: 0 } // goudstuk of visje vliegt weg
     : fig.id == 'roodborst' ? { x: vogel.x + 10, y: vogel.y + 4, vy: -2, r: 0 } // een besje rolt weg
     : fig.id == 'hommel' ? { x: vogel.x + 4, y: vogel.y + 6, vy: 0, r: 0 } // zijn nectar druppelt eruit
     : fig.id == 'kraai' ? { x: vogel.x + 12, y: vogel.y - 8, vy: -4, r: 0 } // zijn zonnebril vliegt eraf
@@ -1415,6 +1443,109 @@ function grondDraak() { // kinderkopjes met gloeiende lavaspleten
   for (let i = -1; i < W / 120 + 1; i++) { const x = i * 120 - (schuif % 120); ctx.beginPath(); ctx.moveTo(x + 20, GROND + 6); ctx.lineTo(x + 30, GROND + 26); ctx.lineTo(x + 24, GROND + 40); ctx.lineTo(x + 36, GROND + 62); ctx.stroke(); }
 }
 
+// ---------- het Zwarte Woud (Koekoek) ----------
+function koekoek(x, y, hoek, flapT, s = 1, dood = false) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(hoek); ctx.scale(s, s);
+  ctx.fillStyle = '#4e5a68'; ctx.beginPath(); ctx.moveTo(-12, -2); ctx.lineTo(-31, -1); ctx.lineTo(-29, 5); ctx.lineTo(-12, 4); ctx.fill(); // lange staart
+  ctx.fillStyle = '#fff'; for (const tx of [-27, -21]) { ctx.beginPath(); ctx.arc(tx, 2, 1.3, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#6a7a8a'; ctx.beginPath(); ctx.ellipse(0, 0, 15, 10, 0, 0, 7); ctx.fill(); // grijsblauw lijf
+  ctx.save(); ctx.beginPath(); ctx.ellipse(2, 4, 11, 5.5, 0, 0, 7); ctx.clip(); ctx.fillStyle = '#f4f0e6'; ctx.fillRect(-10, -2, 24, 12); // gestreepte buik
+  ctx.strokeStyle = '#4e5a68'; ctx.lineWidth = 1; for (let k = -8; k < 14; k += 3) { ctx.beginPath(); ctx.moveTo(k, 0); ctx.lineTo(k + 1, 10); ctx.stroke(); } ctx.restore();
+  ctx.fillStyle = '#6a7a8a'; ctx.beginPath(); ctx.arc(12, -7, 8, 0, 7); ctx.fill(); // kop
+  ctx.fillStyle = '#e8b830'; ctx.beginPath(); ctx.moveTo(19, -8); ctx.lineTo(26, -6); ctx.lineTo(19, -4); ctx.fill(); // snavel
+  if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(12, -10); ctx.lineTo(16, -6); ctx.moveTo(16, -10); ctx.lineTo(12, -6); ctx.stroke(); }
+  else { ctx.fillStyle = '#f2c230'; ctx.beginPath(); ctx.arc(14, -8, 3, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(14.6, -8, 1.5, 0, 7); ctx.fill(); }
+  // tiroler hoedje met een veer
+  ctx.fillStyle = '#2e6a3a'; ctx.beginPath(); ctx.ellipse(11, -14, 10, 2.6, -0.1, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(5, -14); ctx.quadraticCurveTo(7, -23, 11, -22); ctx.quadraticCurveTo(16, -23, 17, -14); ctx.fill();
+  ctx.fillStyle = '#c0392b'; ctx.fillRect(5.5, -16.5, 11, 2);
+  ctx.strokeStyle = '#e8d8a0'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(15, -16); ctx.quadraticCurveTo(22, -24, 19, -29); ctx.stroke();
+  const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
+  ctx.save(); ctx.translate(-2, -2); ctx.rotate(v); ctx.fillStyle = '#56636f'; ctx.beginPath(); ctx.ellipse(-5, 0, 13, 6, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#3e4854'; ctx.lineWidth = 1; for (const wx of [-12, -7, -2]) { ctx.beginPath(); ctx.moveTo(wx, -3); ctx.lineTo(wx - 2, 4); ctx.stroke(); } ctx.restore();
+  ctx.restore();
+}
+function taartje(x, y) { // puntje Schwarzwälder kirsch
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = '#4a2a1a'; ctx.beginPath(); ctx.moveTo(-10, 7); ctx.lineTo(10, 7); ctx.lineTo(4, -5); ctx.lineTo(-10, -5); ctx.fill();
+  ctx.fillStyle = '#fff4e8'; ctx.fillRect(-10, -1, 17, 2.5); ctx.fillRect(-10, -7, 15, 3);
+  ctx.beginPath(); ctx.arc(-6, -7, 2.5, 0, 7); ctx.arc(-1, -7, 2.5, 0, 7); ctx.fill();
+  ctx.fillStyle = '#c8102e'; ctx.beginPath(); ctx.arc(-3.5, -10, 2.8, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#3a6a1a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-3.5, -12); ctx.lineTo(-1, -16); ctx.stroke();
+  ctx.fillStyle = '#7a4a2a'; for (const sx of [-7, -2, 2]) ctx.fillRect(sx, 3, 1.5, 1.5); // chocoladeschaafsel
+  ctx.restore();
+}
+// onder: een koekoeksklok (dakje met deurtje, wijzerplaat, slinger) op een stapel dennenstammen
+function klokToren(x, y, h) {
+  const cx = x + PAAL / 2;
+  ctx.save(); ctx.beginPath(); ctx.rect(x - 8, y - 2, PAAL + 16, h + 4); ctx.clip();
+  ctx.fillStyle = '#8a5a30'; ctx.fillRect(x + 8, y + 60, PAAL - 16, h); // stammen
+  ctx.strokeStyle = '#6a4220'; ctx.lineWidth = 2; for (let j = y + 76; j < y + h; j += 18) { ctx.beginPath(); ctx.moveTo(x + 8, j); ctx.lineTo(x + PAAL - 8, j); ctx.stroke(); }
+  ctx.fillStyle = '#c89a60'; for (let j = y + 67; j < y + h; j += 18) { ctx.beginPath(); ctx.ellipse(x + 8, j, 3, 8, 0, 0, 7); ctx.fill(); } // jaarringen aan de kant
+  ctx.fillStyle = '#7a4a24'; ctx.fillRect(x + 2, y + 14, PAAL - 4, 48); // kastje
+  ctx.fillStyle = '#5a3418'; ctx.beginPath(); ctx.moveTo(x - 7, y + 20); ctx.lineTo(cx, y); ctx.lineTo(x + PAAL + 7, y + 20); ctx.lineTo(x + PAAL + 2, y + 22); ctx.lineTo(cx, y + 5); ctx.lineTo(x - 2, y + 22); ctx.fill(); // dakje
+  ctx.fillStyle = '#3a6a2a'; for (const lx of [x + 4, x + PAAL - 4]) { ctx.beginPath(); ctx.ellipse(lx, y + 24, 5, 3, lx < cx ? 0.5 : -0.5, 0, 7); ctx.fill(); } // houtsnijwerk: blaadjes
+  ctx.fillStyle = '#2a1a0a'; ctx.fillRect(cx - 5, y + 9, 10, 9); // deurtje
+  ctx.fillStyle = '#f4ead0'; ctx.beginPath(); ctx.arc(cx, y + 38, 13, 0, 7); ctx.fill(); // wijzerplaat
+  ctx.strokeStyle = '#2a1a0a'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(cx, y + 38, 13, 0, 7); ctx.stroke();
+  for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; ctx.fillStyle = '#2a1a0a'; ctx.fillRect(cx + Math.cos(a) * 10 - 0.8, y + 38 + Math.sin(a) * 10 - 0.8, 1.6, 1.6); }
+  const t = beeld * 0.01 + x * 0.01; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, y + 38); ctx.lineTo(cx + Math.cos(t) * 8, y + 38 + Math.sin(t) * 8); ctx.moveTo(cx, y + 38); ctx.lineTo(cx + Math.cos(t * 12) * 5, y + 38 + Math.sin(t * 12) * 5); ctx.stroke();
+  const zw = Math.sin(beeld * 0.09 + x * 0.05) * 0.35; // slinger
+  ctx.save(); ctx.translate(cx, y + 62); ctx.rotate(zw); ctx.fillStyle = '#d8a830'; ctx.fillRect(-1, 0, 2, 26); ctx.beginPath(); ctx.arc(0, 28, 5, 0, 7); ctx.fill(); ctx.restore();
+  ctx.restore();
+}
+// boven: een houten balk met kettingen en twee dennenappelgewichten
+function gewichten(x, y, h) {
+  const balk = h - 36;
+  ctx.fillStyle = '#5a3418'; ctx.fillRect(x + 4, y, PAAL - 8, balk);
+  ctx.strokeStyle = '#3e2410'; ctx.lineWidth = 1.5; for (let j = y + balk - 14; j > y; j -= 28) { ctx.beginPath(); ctx.moveTo(x + 4, j); ctx.lineTo(x + PAAL - 4, j); ctx.stroke(); }
+  ctx.fillStyle = '#3a6a2a'; for (let j = y + balk - 28; j > y; j -= 56) { ctx.beginPath(); ctx.ellipse(x + PAAL / 2, j, 9, 4, 0, 0, 7); ctx.fill(); }
+  ctx.fillStyle = '#7a4a24'; ctx.fillRect(x, y + balk - 6, PAAL, 6);
+  for (const [gx, lang] of [[x + 14, 0], [x + PAAL - 14, 8]]) {
+    ctx.strokeStyle = '#c8a040'; ctx.lineWidth = 1.5; for (let j = y + balk; j < y + balk + 6 + lang; j += 4) { ctx.beginPath(); ctx.ellipse(gx, j + 2, 1.5, 2.2, 0, 0, 7); ctx.stroke(); }
+    const gy = y + balk + 8 + lang; ctx.fillStyle = '#6a3e1a'; ctx.beginPath(); ctx.ellipse(gx, gy + 11, 9, 13 - lang / 2, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#4a2a10'; ctx.lineWidth = 1; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.arc(gx, gy + 2 + k * 5, 7 - Math.abs(k - 1.5), 0.3, Math.PI - 0.3); ctx.stroke(); }
+  }
+}
+function koekoekUit(cx, onder, k) {
+  if (k.t > 0 && k.t < 30) { ctx.fillStyle = '#ffd860'; ctx.fillRect(cx - 4, onder + 10, 3, 7); } // deurtje op een kier
+  if (k.uit <= 0) return;
+  const y = onder + 10 - 30 * k.uit;
+  ctx.strokeStyle = '#999'; ctx.lineWidth = 1.5; ctx.beginPath(); for (let j = 0; j < 5; j++) { ctx.lineTo(cx + (j % 2 ? 3 : -3), onder + 12 - j * (onder + 12 - y - 6) / 4); } ctx.stroke(); // veertje
+  ctx.save(); ctx.translate(cx, y); ctx.fillStyle = '#6a7a8a'; ctx.beginPath(); ctx.ellipse(0, 0, 8, 6, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#e8b830'; ctx.beginPath(); ctx.moveTo(-6, -1); ctx.lineTo(-12, 1 + (k.t % 16 < 8 ? 2 : 0)); ctx.lineTo(-6, 2); ctx.fill(); // snavel open-dicht
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(-3, -2, 1.3, 0, 7); ctx.fill(); ctx.restore();
+  if (k.uit >= 1 && k.t < 80) tekst('Koekoek!', cx, y - 16, 12, '#fff', 'center', '#1d3b57');
+}
+function den(x, y, h, kl) { ctx.fillStyle = kl; for (let k = 0; k < 3; k++) { const yy = y - h * (0.35 + k * 0.25), b = h * (0.32 - k * 0.07); ctx.beginPath(); ctx.moveTo(x - b, yy + h * 0.3); ctx.lineTo(x, yy - h * 0.18); ctx.lineTo(x + b, yy + h * 0.3); ctx.fill(); } ctx.fillRect(x - 2, y - h * 0.12, 4, h * 0.12); }
+function vakwerkhuis(x, y) {
+  ctx.fillStyle = '#f4ead8'; ctx.fillRect(x - 26, y - 34, 52, 34);
+  ctx.strokeStyle = '#5a3418'; ctx.lineWidth = 3; ctx.strokeRect(x - 26, y - 34, 52, 34); ctx.beginPath(); ctx.moveTo(x - 26, y - 17); ctx.lineTo(x + 26, y - 17); ctx.moveTo(x, y - 34); ctx.lineTo(x, y); ctx.moveTo(x - 26, y - 34); ctx.lineTo(x - 13, y - 17); ctx.moveTo(x + 26, y - 34); ctx.lineTo(x + 13, y - 17); ctx.stroke();
+  ctx.fillStyle = '#8a3a2a'; ctx.beginPath(); ctx.moveTo(x - 34, y - 32); ctx.lineTo(x, y - 60); ctx.lineTo(x + 34, y - 32); ctx.fill();
+  ctx.fillStyle = '#e84a6a'; ctx.fillRect(x - 20, y - 10, 10, 4); ctx.fillRect(x + 10, y - 10, 10, 4); // bloembakken
+}
+function achtergrondWoud() {
+  const lucht = ctx.createLinearGradient(0, 0, 0, GROND);
+  lucht.addColorStop(0, '#7ec0ea'); lucht.addColorStop(1, '#eaf6ee');
+  ctx.fillStyle = lucht; ctx.fillRect(0, 0, W, GROND);
+  for (let i = 0; i < 3; i++) { const x = ((i * 190 - schuif * 0.1) % (W + 200) + W + 200) % (W + 200) - 100; wolk(x, 70 + i * 36, 0.8); }
+  for (let i = 0; i < 4; i++) { const mx = ((i * 170 - schuif * 0.08) % (W + 340) + W + 340) % (W + 340) - 170, top = GROND - 250 + (i % 2) * 40; // bergen met sneeuw
+    ctx.fillStyle = '#8aa0b8'; ctx.beginPath(); ctx.moveTo(mx - 130, GROND - 60); ctx.lineTo(mx, top); ctx.lineTo(mx + 130, GROND - 60); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(mx - 30, top + 34); ctx.lineTo(mx, top); ctx.lineTo(mx + 30, top + 34); ctx.lineTo(mx + 12, top + 26); ctx.lineTo(mx, top + 38); ctx.lineTo(mx - 12, top + 26); ctx.fill(); }
+  for (let i = -1; i < W / 26 + 2; i++) { const x = i * 26 - ((schuif * 0.25) % 26); den(x, GROND - 40, 70 + ((i * 37 + 1000) % 5) * 6, '#3a6a5a'); }
+  const hx = W + 80 - ((schuif * 0.35) % (W + 220)); vakwerkhuis(hx, GROND - 30);
+  for (let i = -1; i < W / 40 + 2; i++) { const x = i * 40 - ((schuif * 0.5) % 40); den(x, GROND + 2, 60 + ((i * 53 + 1000) % 4) * 10, '#1e4a2e'); }
+}
+function grondWoud() { // bospad met gras en paddenstoelen
+  ctx.fillStyle = '#6a4a2a'; ctx.fillRect(0, GROND, W, H - GROND);
+  ctx.fillStyle = '#4a8a3a'; ctx.fillRect(0, GROND, W, 10);
+  ctx.fillStyle = '#5aa04a'; for (let i = -1; i < W / 12 + 2; i++) { const x = i * 12 - (schuif % 12); ctx.beginPath(); ctx.moveTo(x, GROND + 10); ctx.lineTo(x + 4, GROND - 4); ctx.lineTo(x + 8, GROND + 10); ctx.fill(); }
+  ctx.fillStyle = '#7a5a3a'; for (let i = -1; i < W / 50 + 2; i++) { const x = i * 50 - (schuif % 50); rrect(x + 10, GROND + 30 + (i % 2) * 18, 18, 7, 3); ctx.fill(); }
+  for (let i = -1; i < W / 150 + 2; i++) { const x = i * 150 - (schuif % 150) + 40;
+    ctx.fillStyle = '#f4ead8'; ctx.fillRect(x - 2, GROND + 2, 4, 8); ctx.fillStyle = '#d8302a'; ctx.beginPath(); ctx.arc(x, GROND + 3, 7, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x - 3, GROND, 1.3, 0, 7); ctx.arc(x + 3, GROND - 1, 1.3, 0, 7); ctx.fill(); }
+}
+
 const WERELDEN = {
   meeuw: { achter: () => achtergrond(), grond: () => grond(), paal: (x, y, h, b, nr) => paal(x, y, h, b, nr), bonus: (x, y, r) => frietje(x, y, r),
     valt: (x, y, r) => frietje(x, y, r), held: (x, y, h, f, s, d) => meeuw(x, y, h, f, s, d) },
@@ -1429,6 +1560,8 @@ const WERELDEN = {
     body: 'linear-gradient(#7f9fd0 50%,#ffffff 50%)' },
   hommel: { achter: achtergrondBollen, grond: grondBollen, paal: (x, y, h, b, nr) => (b ? molenwiek(x, y, h) : reuzentulp(x, y, h, TULPKLEUR[nr % 5])),
     smal: 12, bonus: (x, y) => nectar(x, y - 4), valt: (x, y) => nectar(x, y), held: (x, y, h, f, s, d) => hommel(x, y, s, h, d) },
+  koekoek: { achter: achtergrondWoud, grond: grondWoud, paal: (x, y, h, b) => (b ? gewichten(x, y, h) : klokToren(x, y, h)), smal: 8, bonus: (x, y) => taartje(x, y - 4),
+    valt: (x, y) => taartje(x, y), held: (x, y, h, f, s, d) => koekoek(x, y, h, f, s, d), body: 'linear-gradient(#9fd0e8 50%,#5a3a20 50%)' },
   draak: { achter: achtergrondDraak, grond: grondDraak, paal: (x, y, h, b) => toren(x, y, h, b), bonus: (x, y) => edelsteen(x, y - 4),
     valt: (x, y) => edelsteen(x, y), held: (x, y, h, f, s, d) => draak(x, y, h, f, s, d), body: 'linear-gradient(#2a0f2e 50%,#3a3038 50%)' },
   kip: { achter: achtergrondBoerderij, grond: grondBoerderij, paal: (x, y, h, b) => hooibalen(x, y, h, b), bonus: (x, y, r) => mais(x, y - 6, r),
@@ -1569,26 +1702,27 @@ function menu() {
       tekstje = streken ? 'Met streken: elk dier heeft een eigen pesterij!' : 'Gewoon: zonder streken.'; doodT = beeld;
     } });
   }
-  const kw = (W - 58) / 2, kh = 100;
+  const rijen = Math.ceil(FIGUREN.length / 2), klein = rijen > 4; // vanaf 5 rijen compactere kaartjes
+  const kw = (W - 58) / 2, kh = klein ? 78 : 100, tussen = klein ? 6 : 8;
   FIGUREN.forEach((f, i) => {
-    let x = 24 + (i % 2) * (kw + 10), y = 172 + Math.floor(i / 2) * (kh + 8);
+    let x = 24 + (i % 2) * (kw + 10), y = 172 + Math.floor(i / 2) * (kh + tussen);
     if (i == FIGUREN.length - 1 && i % 2 == 0) x = (W - kw) / 2; // laatste alleen in het midden
     const vrij = f.klaar && open(i);
     ctx.fillStyle = vrij ? 'rgba(255,255,255,.93)' : 'rgba(255,255,255,.5)'; rrect(x, y, kw, kh, 16); ctx.fill();
     ctx.strokeStyle = vrij ? '#f2b81d' : 'rgba(255,255,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
     const bob = vrij ? Math.sin(beeld * 0.1 + i) * 3 : 0, fl = vrij && beeld % 40 < 12 ? 12 - beeld % 40 : 0;
-    const cx = x + kw / 2, cy = y + 34 + bob;
+    const cx = x + kw / 2, cy = y + (klein ? 23 : 34) + bob;
     ctx.globalAlpha = vrij ? 1 : 0.45;
-    tekenDier(f.id, cx - 8, cy, fl, 1.15);
+    tekenDier(f.id, cx - 8, cy, fl, klein ? 0.85 : 1.15);
     ctx.globalAlpha = 1;
-    tekst(f.naam, cx, y + 70, f.naam.length > 13 ? 13 : 15, vrij ? '#1d3b57' : '#4d6478', 'center', null);
+    tekst(f.naam, cx, y + (klein ? 57 : 70), f.naam.length > 13 ? 13 : 15, vrij ? '#1d3b57' : '#4d6478', 'center', null);
     if (vrij) {
       const r = record(f.id), m = medaille(r, f);
-      tekst('Record ' + r + (m ? ' · ' + m[1] : ''), cx, y + 88, 11, '#c0792a', 'center', null);
+      tekst('Record ' + r + (m ? ' · ' + m[1] : ''), cx, y + (klein ? 71 : 88), 11, '#c0792a', 'center', null);
       knoppen.push({ x, y, w: kw, h: kh, doe: () => { if (fig != f) stopMuziek(false); tocht = null; fig = f; nieuwSpel(); } });
     } else {
       const uitleg = !f.klaar ? 'Komt nog!' : '🔒 ' + nodig(i) + ' met ' + FIGUREN[i - 1].naam;
-      tekst(uitleg, cx, y + 88, f.klaar ? 10 : 11, '#d6453b', 'center', null);
+      tekst(uitleg, cx, y + (klein ? 71 : 88), f.klaar ? 10 : 11, '#d6453b', 'center', null);
       // slotje
       if (f.klaar) { ctx.fillStyle = '#7a6a5a'; rrect(cx + 18, cy - 4, 18, 14, 3); ctx.fill(); ctx.strokeStyle = '#7a6a5a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx + 27, cy - 4, 6, Math.PI, 0); ctx.stroke(); }
       knoppen.push({ x, y, w: kw, h: kh, doe: () => {
@@ -1612,6 +1746,7 @@ function tekenDier(id, x, y, fl, s) {
   if (id == 'roodborst') { roodborstje(x, y + 4, 0, fl, s * 1.1); besjes(x + 30, y + 18); }
   if (id == 'papegaai') { papegaai(x, y + 6, -0.1, fl, s); goudstuk(x + 32, y + 18); }
   if (id == 'pinguin') { pinguin(x, y + 6, -0.1, fl, s); visje(x + 32, y + 20); }
+  if (id == 'koekoek') { koekoek(x, y + 6, -0.1, fl, s); taartje(x + 32, y + 20); }
   if (id == 'draak') { draak(x - 2, y + 8, -0.1, fl, s * 0.95); edelsteen(x + 32, y + 20); }
 }
 
@@ -1750,6 +1885,7 @@ function teken() {
       wd.paal(p.x, -20, boven + 20, true, p.nr);
       wd.paal(p.x, onder, GROND - onder, false, p.nr);
       if (p.brand) brandendeToren(p, boven, onder);
+      if (p.klok) koekoekUit(p.x + PAAL / 2, onder, p.klok);
       if (p.piraat) piraat(p.x + PAAL / 2, onder, p);
       if (p.friet && !p.friet.weg) wd.bonus(p.x + PAAL / 2, bonusY(p) + (p.piraat && p.piraat.trek ? 0 : Math.sin(beeld * 0.1 + p.nr) * 3) + 8);
     }
