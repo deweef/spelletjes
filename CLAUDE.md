@@ -30,7 +30,13 @@ bedenk dat de site openbaar is.
   Geheim dier Gouden Arend (`geheim: true`, laatste in `FIGUREN`): in het menu een kaartje met "?" tot je met alle andere
   dieren goud (50) hebt; bergtoppen boven de wolken, onweerswolken boven, sterretjes, orkestmuziek (`stijl: 'orkest'`), sneller
   (`snel: 1.12`) en de krapste gaten; streek: bliksem (`flits`, 50 beelden waarschuwing met een stippellijn, dan inslag).
-  De Grote tocht gaat langs `TOCHT` (alle dieren behalve het geheime). Kroontje (`kroon`) op een dier in het menu bij 100 punten. Volgorde in `FIGUREN` = van makkelijk naar
+  De Grote tocht gaat langs `TOCHT` (alle dieren behalve het geheime). Kroontje (`kroon`) op een dier in het menu bij 100 punten.
+  Winkel (knop 🛍️ Winkel linksonder in het menu, `winkelScherm`): elke gepikte bonus = 1 muntje in de spaarpot (`spaar`, ook
+  in de tocht per etappe); 20 muntjes cadeau om te beginnen. Per dier 4 spulletjes in `KLEDING` (plek hoed/bril/lijf, prijs
+  20-80), eerst passen (`pasKleding`), dan kopen en aan-/uittrekken. Opslag per speler in `fladderfeest_kast:<naam>`
+  ({ munten, gekocht, aan: { dier: { hoed, bril, lijf } } }). Getekend via `metKleren`/`aankleden` aan het eind van elke
+  dier-tekening, op de plekken uit `ANKER`; ingebouwde hoedjes en brillen (kraai, papegaai, pinguïn, koekoek) verdwijnen als
+  je zelf iets op die plek draagt (`draagt`). Een nieuw dier = ook een regel in `ANKER` en 4 regels in `KLEDING`. Volgorde in `FIGUREN` = van makkelijk naar
   moeilijk (roodborstje, meeuw, hommel, kip, kraai, papegaai, pinguïn, draak, koekoek); elk dier speel je vrij met 20, 25, ... 45
   punten met het dier ervoor, nieuwere dieren (vanaf de draak) steeds met 30 (`nodig`/`open`; wie al een record heeft met een dier houdt het open).
   Grote tocht (knop bovenaan, `tocht`): alle dieren achter elkaar vanaf het Roodborstje; finishvlag bij 20, 25, 30, ...

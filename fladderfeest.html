@@ -93,6 +93,48 @@ function scorebordScherm() {
   knop(W / 2 - 80, 550, 160, 44, 'Terug', '#3f8fd8', () => { staat = 'menu'; zorgMuziek(); });
 }
 
+// de winkel: dier kiezen (alleen vrijgespeelde), groot bekijken, spulletjes passen, kopen en aan- of uittrekken
+let winkelDier = null;
+function winkelScherm() {
+  ctx.fillStyle = 'rgba(15,30,55,.85)'; ctx.fillRect(0, 0, W, H);
+  tekst('🛍️ Winkel', W / 2, 40, 28, '#ffe14d', 'center', '#1d3b57');
+  tekst('🪙 ' + kast.munten + (speler ? '  ·  ' + speler : ''), W / 2, 72, 16, '#fff', 'center', null);
+  const dieren = FIGUREN.filter((f, i) => f.klaar && open(i));
+  if (!dieren.some((f) => f.id == winkelDier)) winkelDier = dieren[0].id;
+  dieren.forEach((f, i) => { // dierenkeuze: twee rijen van vijf
+    const bw = (W - 28) / 5, bx = 14 + (i % 5) * bw, by = 88 + Math.floor(i / 5) * 50;
+    ctx.fillStyle = f.id == winkelDier ? '#ffb43a' : 'rgba(255,255,255,.16)'; rrect(bx + 2, by, bw - 4, 46, 10); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.rect(bx + 2, by, bw - 4, 46); ctx.clip(); tekenDier(f.id, bx + bw / 2 - 6, by + 24, 0, 0.62); ctx.restore();
+    knoppen.push({ x: bx, y: by, w: bw, h: 46, doe: () => { winkelDier = f.id; pasKleding = null; sClick(); } });
+  });
+  const y0 = 88 + Math.ceil(dieren.length / 5) * 50 + 6, f = FIGUREN.find((q) => q.id == winkelDier);
+  ctx.fillStyle = 'rgba(255,248,230,.95)'; rrect(20, y0, W - 40, 112, 16); ctx.fill(); // groot voorbeeld
+  const bob = Math.sin(beeld * 0.08) * 3, fl = beeld % 40 < 12 ? 12 - beeld % 40 : 0;
+  ctx.save(); ctx.beginPath(); ctx.rect(20, y0, W - 40, 112); ctx.clip(); tekenDier(f.id, W / 2 - 22, y0 + 56 + bob, fl, 2.1); ctx.restore();
+  tekst(f.naam + (pasKleding ? ' (even passen)' : ''), W / 2, y0 + 102, 12, '#4d6478', 'center', null);
+  const lijst = KLEDING.filter((k) => k.dier == winkelDier), aan = aanVan(winkelDier);
+  lijst.forEach((k, i) => {
+    const y = y0 + 122 + i * 50, heb = kast.gekocht.includes(k.id), draag = aan[k.plek] == k.id, pas = pasKleding == k;
+    ctx.fillStyle = pas ? '#fff1b8' : 'rgba(255,255,255,.93)'; rrect(20, y, W - 40, 44, 12); ctx.fill();
+    tekst(k.naam, 34, y + 15, 15, '#1d3b57', 'left', null);
+    tekst({ hoed: 'op je kop', bril: 'voor je ogen', lijf: 'om je lijf' }[k.plek] + (heb ? '' : ' · tik om te passen'), 34, y + 32, 11, '#6a7a8a', 'left', null);
+    knoppen.push({ x: 20, y, w: W - 150, h: 44, doe: () => { pasKleding = pas ? null : k; sClick(); } });
+    const kn = heb ? (draag ? ['Uittrekken', '#c0792a'] : ['Aantrekken', '#3fae5a']) : ['Koop ' + k.prijs + ' 🪙', kast.munten >= k.prijs ? '#3f8fd8' : '#9aa3ad'];
+    ctx.fillStyle = kn[1]; rrect(W - 132, y + 7, 104, 30, 10); ctx.fill(); tekst(kn[0], W - 80, y + 22, 13, '#fff', 'center', null);
+    knoppen.push({ x: W - 136, y, w: 116, h: 44, doe: () => {
+      const a = kast.aan[winkelDier] = kast.aan[winkelDier] || {};
+      if (!heb) {
+        if (kast.munten < k.prijs) { tekstje = 'Nog ' + (k.prijs - kast.munten) + ' muntjes sparen!'; doodT = beeld; sBots(); return; }
+        kast.munten -= k.prijs; kast.gekocht.push(k.id); a[k.plek] = k.id; sMedaille();
+      } else { if (draag) delete a[k.plek]; else a[k.plek] = k.id; sClick(); }
+      pasKleding = null; kastBewaar();
+    } });
+  });
+  if (tekstje && beeld - doodT < 120) tekst(tekstje, W / 2, H - 70, 14, '#ffb4a8', 'center', '#1d3b57');
+  else tekst('Elke bonus die je pikt = 1 muntje', W / 2, H - 70, 12, '#c8d4e8', 'center', null);
+  knop(W / 2 - 80, H - 54, 160, 42, 'Terug', '#3f8fd8', () => { staat = 'menu'; pasKleding = null; tekstje = ''; zorgMuziek(); });
+}
+
 // Gewoon of Met streken (elk dier een eigen pesterij); records apart per modus
 let streken = true; try { streken = localStorage.getItem('fladderfeest_streken') != '0'; } catch (e) {} // standaard met streken
 const sleutel = (f, m = streken) => 'fladderfeest_' + f + (m ? '_streken' : '') + (speler ? ':' + speler : '');
@@ -522,7 +564,7 @@ addEventListener('keydown', (e) => {
     else if (staat == 'over' && doodT > 40) { if (tocht) startTocht(); else nieuwSpel(); }
     else if (staat == 'menu') { tocht = null; fig = FIGUREN[0]; nieuwSpel(); }
   }
-  if (e.code == 'Escape' && staat == 'bord') { staat = 'menu'; return; }
+  if (e.code == 'Escape' && (staat == 'bord' || staat == 'winkel')) { staat = 'menu'; pasKleding = null; tekstje = ''; return; }
   if (e.code == 'Escape' && staat != 'menu') { staat = 'menu'; zorgMuziek(); }
   if (e.code == 'KeyM') wisselMuziek();
 });
@@ -541,7 +583,7 @@ function stap() {
   if (melding && --melding.t <= 0) melding = null;
   for (const v of vuurwerk) { v.x += v.vx; v.y += v.vy; v.vy += 0.04; v.vx *= 0.98; v.l--; }
   vuurwerk = vuurwerk.filter((v) => v.l > 0);
-  if (staat == 'menu' || staat == 'klaar' || staat == 'bord') { schuif += 1.2; return; }
+  if (staat == 'menu' || staat == 'klaar' || staat == 'bord' || staat == 'winkel') { schuif += 1.2; return; }
   if (staat == 'finish') { // vrij vliegen door de finish, met vuurwerk; daarna het volgende dier
     schuif += snelheid; doodT++;
     for (const p of palen) p.x -= snelheid;
@@ -610,6 +652,7 @@ function stap() {
     if (staat == 'dood' && doodT > 45) {
       staat = 'over'; doodT = 0;
       if (tocht) { // einde van de tocht: beste tocht bewaren
+        spaar(frietjes);
         const t = totaal(); tocht.nieuw = t > record('tocht'); if (tocht.nieuw) zetRecord('tocht', t);
         if (score > record(fig.id)) zetRecord(fig.id, score);
         if (t >= 25) sMedaille();
@@ -618,6 +661,7 @@ function stap() {
       }
       const i = FIGUREN.indexOf(fig), volgende = FIGUREN[i + 1] && !FIGUREN[i + 1].geheim ? FIGUREN[i + 1] : null, wasDicht = volgende && !open(i + 1);
       const ai = FIGUREN.findIndex((f) => f.geheim), arendDicht = ai >= 0 && !open(ai);
+      spaar(frietjes); // elke gepikte bonus = een muntje in de spaarpot
       if (score > record(fig.id)) { nieuwRecord = record(fig.id) > 0 || score > 0; zetRecord(fig.id, score); }
       autoInsturen(fig.id, score);
       vrijgespeeld = wasDicht && open(i + 1) ? volgende : arendDicht && open(ai) ? FIGUREN[ai] : null;
@@ -710,7 +754,7 @@ function knal(x, y) {
   snd(200 + Math.random() * 200, 0.3, 'sawtooth', 0.03, 60); ruis(0.4, 0.06, 'highpass', 3000);
 }
 function volgendeEtappe() {
-  tocht.totaal += score; tocht.i++;
+  spaar(frietjes); tocht.totaal += score; tocht.i++;
   stopMuziek(false); fig = TOCHT[tocht.i]; nieuwSpel();
 }
 
@@ -839,6 +883,7 @@ function meeuw(x, y, hoek, flapT, s = 1, dood = false) {
   ctx.fillStyle = '#9aa3ad'; ctx.beginPath(); ctx.ellipse(-4, 0, 13, 6, 0, 0, 7); ctx.fill();
   ctx.fillStyle = '#2b2b2b'; ctx.beginPath(); ctx.ellipse(-14, 0, 4, 3.5, 0, 0, 7); ctx.fill();
   ctx.restore();
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 
@@ -862,6 +907,7 @@ function kip(x, y, s, hoek = 0, flapT = -1, dood = false) {
   ctx.fillStyle = '#c96a2c'; ctx.beginPath(); ctx.ellipse(-5, 2, 10, 6.5, -0.3, 0, 7); ctx.fill();
   ctx.fillStyle = '#a8551f'; ctx.beginPath(); ctx.ellipse(-11, 4, 4, 3, -0.3, 0, 7); ctx.fill();
   ctx.restore();
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function veer(x, y, r) {
@@ -969,12 +1015,13 @@ function kraai(x, y, hoek, flapT, s = 1, dood = false) {
   ctx.beginPath(); ctx.moveTo(6, -14); ctx.lineTo(4, -25); ctx.lineTo(10, -16); ctx.lineTo(11, -28); ctx.lineTo(14, -16); ctx.lineTo(18, -24); ctx.lineTo(17, -13); ctx.fill();
   ctx.fillStyle = '#3a3a44'; ctx.beginPath(); ctx.moveTo(19, -9); ctx.lineTo(32, -5); ctx.lineTo(19, -1); ctx.fill(); // snavel
   if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(12, -11); ctx.lineTo(17, -6); ctx.moveTo(17, -11); ctx.lineTo(12, -6); ctx.stroke(); }
-  else { ctx.fillStyle = '#000'; rrect(8, -12, 13, 6, 2); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(10, -11, 3, 2); } // zonnebril
+  else if (!draagt('bril')) { ctx.fillStyle = '#000'; rrect(8, -12, 13, 6, 2); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(10, -11, 3, 2); } // zonnebril
   const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
   ctx.save(); ctx.translate(-2, -3); ctx.rotate(v);
   ctx.fillStyle = '#26262e'; ctx.beginPath(); ctx.ellipse(-4, 0, 13, 6, 0, 0, 7); ctx.fill();
   ctx.fillStyle = '#121216'; for (const dx of [-15, -11, -7]) { ctx.beginPath(); ctx.ellipse(dx, 3, 3, 2, 0.4, 0, 7); ctx.fill(); }
   ctx.restore();
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function zonnebril(x, y, r) {
@@ -1085,6 +1132,7 @@ function roodborstje(x, y, hoek, flapT, s = 1, dood = false) {
   ctx.save(); ctx.translate(-3, -1); ctx.rotate(v);
   ctx.fillStyle = '#6a4a2c'; ctx.beginPath(); ctx.ellipse(-4, 0, 9, 5, 0, 0, 7); ctx.fill();
   ctx.restore();
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function besjes(x, y) {
@@ -1171,14 +1219,16 @@ function papegaai(x, y, hoek, flapT, s = 1, dood = false) {
   ctx.fillStyle = '#111'; ctx.beginPath(); ctx.ellipse(14, -9, 3.5, 3, 0.4, 0, 7); ctx.fill(); // ooglapje
   if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(6, -11); ctx.lineTo(10, -7); ctx.moveTo(10, -11); ctx.lineTo(6, -7); ctx.stroke(); }
   else { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(8, -9, 2.6, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(8.6, -9, 1.3, 0, 7); ctx.fill(); }
+  if (!draagt('hoed')) {
   ctx.fillStyle = '#1b1b22'; ctx.beginPath(); ctx.moveTo(1, -15); ctx.quadraticCurveTo(11, -24, 21, -15); ctx.quadraticCurveTo(11, -18, 1, -15); ctx.fill(); // piratenhoedje
   ctx.beginPath(); ctx.ellipse(11, -17, 6, 4, 0, Math.PI, 0); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(11, -19, 1.6, 0, 7); ctx.fill(); // doodshoofdje
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(11, -19, 1.6, 0, 7); ctx.fill(); } // doodshoofdje
   const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
   ctx.save(); ctx.translate(-2, -2); ctx.rotate(v);
   ctx.fillStyle = '#2f6fd8'; ctx.beginPath(); ctx.ellipse(-5, 0, 13, 6, 0, 0, 7); ctx.fill();
   ctx.fillStyle = '#e8b82a'; ctx.beginPath(); ctx.ellipse(-2, -1, 7, 3.5, 0, 0, 7); ctx.fill();
   ctx.restore();
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function goudstuk(x, y, r = 0) {
@@ -1278,11 +1328,13 @@ function pinguin(x, y, hoek, flapT, s = 1, dood = false) {
   ctx.fillStyle = '#f29a2a'; ctx.fillRect(-2, 12, 6, 3); ctx.fillRect(5, 12, 6, 3); // voetjes
   if (dood) { ctx.strokeStyle = '#222'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(9, -12); ctx.lineTo(13, -8); ctx.moveTo(13, -12); ctx.lineTo(9, -8); ctx.stroke(); }
   else { ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(12, -10, 1.8, 0, 7); ctx.fill(); }
+  if (!draagt('hoed') && !draagt('bril')) {
   ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(1, -14); ctx.lineTo(15, -15); ctx.stroke(); // vliegbril
   ctx.fillStyle = 'rgba(140,220,255,.85)'; ctx.strokeStyle = '#c9a23a'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.arc(6, -15, 3.2, 0, 7); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.arc(12, -15.5, 3.2, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(6, -15, 3.2, 0, 7); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.arc(12, -15.5, 3.2, 0, 7); ctx.fill(); ctx.stroke(); }
   const v = flapT > 0 ? -0.5 + (12 - flapT) * 0.08 : Math.sin(beeld * 0.2) * 0.1 + 0.4; // vleugeltje
   ctx.save(); ctx.translate(-2, -1); ctx.rotate(v); ctx.fillStyle = '#1e2430'; ctx.beginPath(); ctx.ellipse(-2, 4, 4, 9, 0.3, 0, 7); ctx.fill(); ctx.restore();
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function visje(x, y, r = 0) {
@@ -1384,6 +1436,7 @@ function draak(x, y, hoek, flapT, s = 1, dood = false) {
   if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(13, -11); ctx.lineTo(17, -7); ctx.moveTo(17, -11); ctx.lineTo(13, -7); ctx.stroke(); }
   else { ctx.fillStyle = '#fff6c0'; ctx.beginPath(); ctx.arc(15, -9, 2.8, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.fillRect(15.2, -11, 1.4, 4); }
   vleugel('#b8301c', 0);
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function edelsteen(x, y) {
@@ -1488,13 +1541,15 @@ function koekoek(x, y, hoek, flapT, s = 1, dood = false) {
   if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(12, -10); ctx.lineTo(16, -6); ctx.moveTo(16, -10); ctx.lineTo(12, -6); ctx.stroke(); }
   else { ctx.fillStyle = '#f2c230'; ctx.beginPath(); ctx.arc(14, -8, 3, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(14.6, -8, 1.5, 0, 7); ctx.fill(); }
   // tiroler hoedje met een veer
+  if (!draagt('hoed')) {
   ctx.fillStyle = '#2e6a3a'; ctx.beginPath(); ctx.ellipse(11, -14, 10, 2.6, -0.1, 0, 7); ctx.fill();
   ctx.beginPath(); ctx.moveTo(5, -14); ctx.quadraticCurveTo(7, -23, 11, -22); ctx.quadraticCurveTo(16, -23, 17, -14); ctx.fill();
   ctx.fillStyle = '#c0392b'; ctx.fillRect(5.5, -16.5, 11, 2);
-  ctx.strokeStyle = '#e8d8a0'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(15, -16); ctx.quadraticCurveTo(22, -24, 19, -29); ctx.stroke();
+  ctx.strokeStyle = '#e8d8a0'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(15, -16); ctx.quadraticCurveTo(22, -24, 19, -29); ctx.stroke(); }
   const v = flapT > 0 ? -0.9 + (12 - flapT) * 0.15 : Math.sin(beeld * 0.25) * 0.15 + 0.3;
   ctx.save(); ctx.translate(-2, -2); ctx.rotate(v); ctx.fillStyle = '#56636f'; ctx.beginPath(); ctx.ellipse(-5, 0, 13, 6, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = '#3e4854'; ctx.lineWidth = 1; for (const wx of [-12, -7, -2]) { ctx.beginPath(); ctx.moveTo(wx, -3); ctx.lineTo(wx - 2, 4); ctx.stroke(); } ctx.restore();
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function taartje(x, y) { // puntje Schwarzwälder kirsch
@@ -1605,6 +1660,7 @@ function arend(x, y, hoek, flapT, s = 1, dood = false) {
   else { ctx.fillStyle = '#fff6c0'; ctx.beginPath(); ctx.arc(14.5, -10, 2.6, 0, 7); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(15.2, -10, 1.4, 0, 7); ctx.fill();
     ctx.strokeStyle = '#7a4a10'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(11, -14); ctx.lineTo(18, -12.5); ctx.stroke(); } // stoere wenkbrauw
   vleugel('#7a4e1e', 0);
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function sterretje(x, y) {
@@ -1647,6 +1703,86 @@ function grondWolken() { // een zee van wolken
     ctx.fillStyle = ['#ffffff', '#ece6fa', '#e0d8f4'][r]; ctx.beginPath(); ctx.arc(x, GROND + 4 + r * 22, 22, 0, 7); ctx.fill(); }
 }
 
+// ---------- winkel: petjes, brillen en pakjes per dier, te koop met de muntjes uit je spaarpot ----------
+// Elke gepikte bonus (frietje, besje, edelsteen, ...) = 1 muntje. Opslag per speler in fladderfeest_kast:<naam>.
+const KAST_SLEUTEL = 'fladderfeest_kast' + (speler ? ':' + speler : '');
+let kast = { munten: 20, gekocht: [], aan: {} }; // 20 muntjes cadeau om mee te beginnen
+try { const k = JSON.parse(localStorage.getItem(KAST_SLEUTEL) || 'null'); if (k) kast = Object.assign(kast, k); } catch (e) {}
+function kastBewaar() { try { localStorage.setItem(KAST_SLEUTEL, JSON.stringify(kast)); } catch (e) {} }
+function spaar(n) { if (n > 0) { kast.munten += n; kastBewaar(); } }
+// waar de kop, het oog en de nek van elk dier zitten (in de tekening van het dier zelf, vóór schalen)
+const ANKER = {
+  roodborst: { kop: [5, -6, 9], oog: [8, -8], nek: [5, -1] }, meeuw: { kop: [12, -7, 9], oog: [15, -9], nek: [6, -1] },
+  hommel: { kop: [14, -1, 7.5], oog: [17, -3], nek: [8, 0] }, kip: { kop: [10, -12, 8], oog: [12, -10], nek: [6, -2] },
+  kraai: { kop: [12, -7, 9], oog: [15, -9], nek: [6, -1] }, papegaai: { kop: [11, -8, 9], oog: [11, -9], nek: [5, -1] },
+  pinguin: { kop: [8, -10, 8], oog: [11, -10], nek: [7, -2] }, draak: { kop: [13, -7, 8], oog: [15, -9], nek: [7, -3] },
+  koekoek: { kop: [12, -7, 8], oog: [14, -8], nek: [6, -2] }, arend: { kop: [12, -8, 8.5], oog: [14.5, -10], nek: [6, -3] },
+};
+const KLEDING = [ // id, dier, plek (hoed/bril/lijf), naam, prijs, tekening
+  ['rb_muts', 'roodborst', 'hoed', 'Gebreide muts', 25, () => muts('#d8302a', '#fff')], ['rb_hart', 'roodborst', 'bril', 'Hartjesbril', 20, () => hartjesbril('#ff4f8a')],
+  ['rb_sjaal', 'roodborst', 'lijf', 'Kerstsjaal', 30, () => sjaal('#2e8a3a', '#fff')], ['rb_oor', 'roodborst', 'hoed', 'Oorwarmers', 40, () => oorwarmers('#ff9ac0')],
+  ['me_stro', 'meeuw', 'hoed', 'Strohoed', 25, () => strohoed('#e84a4a')], ['me_zon', 'meeuw', 'bril', 'Zonnebril', 20, () => zonnebril2('#111')],
+  ['me_band', 'meeuw', 'lijf', 'Zwemband', 30, () => zwemband('#ff4f4f', '#fff')], ['me_pet', 'meeuw', 'hoed', 'Kapiteinspet', 45, () => pet('#fff', '#1d3b57')],
+  ['ho_bloem', 'hommel', 'hoed', 'Bloemenkrans', 25, () => bloemenkrans()], ['ho_bril', 'hommel', 'bril', 'Ronde bril', 20, () => omabril('#7a4a24')],
+  ['ho_tutu', 'hommel', 'lijf', 'Tutu', 35, () => tutu('#ff9ac0')], ['ho_feest', 'hommel', 'hoed', 'Feestmuts', 40, () => feestmuts('#9a4fd6', '#ffd34d')],
+  ['ki_pet', 'kip', 'hoed', 'Boerenpet', 25, () => pet('#3a5a8a', '#2a4a7a')], ['ki_oma', 'kip', 'bril', 'Omabrilletje', 20, () => omabril('#c0392b')],
+  ['ki_zak', 'kip', 'lijf', 'Zakdoek', 30, () => bandana('#d8302a')], ['ki_strik', 'kip', 'lijf', 'Roze strik', 40, () => strik('#e84a8a')],
+  ['kr_cow', 'kraai', 'hoed', 'Cowboyhoed', 30, () => cowboyhoed('#7a4a24')], ['kr_koptel', 'kraai', 'hoed', 'Koptelefoon', 35, () => koptelefoon('#e8384f')],
+  ['kr_ster', 'kraai', 'bril', 'Sterrenbril', 25, () => sterbril('#ffd34d')], ['kr_ket', 'kraai', 'lijf', 'Gouden ketting', 45, () => ketting()],
+  ['pa_steek', 'papegaai', 'hoed', 'Kapiteinssteek', 35, () => steek('#1d2a6a')], ['pa_mono', 'papegaai', 'bril', 'Monocle', 25, () => monocle()],
+  ['pa_band', 'papegaai', 'lijf', 'Matrozensjaal', 30, () => bandana('#2f6fd8')], ['pa_feest', 'papegaai', 'hoed', 'Feestmuts', 40, () => feestmuts('#ffd34d', '#d83a2a')],
+  ['pi_hoge', 'pinguin', 'hoed', 'Hoge hoed', 35, () => hogeHoed('#111', '#d8302a')], ['pi_pil', 'pinguin', 'bril', 'Pilotenbril', 25, () => pilotenbril()],
+  ['pi_strik', 'pinguin', 'lijf', 'Vlinderdas', 30, () => strik('#d8302a')], ['pi_ruimte', 'pinguin', 'hoed', 'Ruimtehelm', 60, () => ruimtehelm()],
+  ['dr_feest', 'draak', 'hoed', 'Feestmuts', 30, () => feestmuts('#3fae5a', '#fff')], ['dr_zon', 'draak', 'bril', 'Zonnebril', 25, () => zonnebril2('#222')],
+  ['dr_cape', 'draak', 'lijf', 'Paarse cape', 40, () => cape('#6a2ad8')], ['dr_helm', 'draak', 'hoed', 'Ridderhelm', 60, () => helm('#b8bcc8')],
+  ['ko_pet', 'koekoek', 'hoed', 'Petje', 30, () => pet('#e8384f', '#b8202a')], ['ko_oma', 'koekoek', 'bril', 'Omabrilletje', 25, () => omabril('#2a1a0a')],
+  ['ko_bret', 'koekoek', 'lijf', 'Bretels', 35, () => bretels('#5a3a1a')], ['ko_hart', 'koekoek', 'bril', 'Hartjesbril', 40, () => hartjesbril('#e84a6a')],
+  ['ar_helm', 'arend', 'hoed', 'Gouden helm', 60, () => helm('#ffd34d')], ['ar_pil', 'arend', 'bril', 'Pilotenbril', 40, () => pilotenbril()],
+  ['ar_cape', 'arend', 'lijf', 'Rode cape', 60, () => cape('#c0392b')], ['ar_hoge', 'arend', 'hoed', 'Hoge hoed', 80, () => hogeHoed('#1a1a3a', '#ffd34d')],
+].map(([id, dier, plek, naam, prijs, teken]) => ({ id, dier, plek, naam, prijs, teken }));
+let kleren = null, pasKleding = null; // kleren: welk dier nu aangekleed getekend wordt; pasKleding: even passen in de winkel
+const aanVan = (dier) => kast.aan[dier] || {};
+const draagt = (plek) => kleren && (pasKleding && pasKleding.dier == kleren && pasKleding.plek == plek ? pasKleding : aanVan(kleren)[plek]);
+function metKleren(id, f) { kleren = id; try { f(); } finally { kleren = null; } }
+// wordt aan het eind van elke dier-tekening aangeroepen (nog in het gedraaide en geschaalde vlak van het dier)
+function aankleden(dood) {
+  const a = ANKER[kleren]; if (!a) return;
+  for (const plek of ['lijf', 'bril', 'hoed']) {
+    let it = draagt(plek); if (typeof it == 'string') it = KLEDING.find((k) => k.id == it); if (!it || !it.teken) continue;
+    if (plek == 'bril' && dood) continue;
+    const [x, y] = plek == 'hoed' ? [a.kop[0], a.kop[1] - a.kop[2]] : plek == 'bril' ? a.oog : a.nek, sc = plek == 'hoed' ? a.kop[2] / 9 : 1;
+    ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc); it.teken(); ctx.restore();
+  }
+}
+// --- de spulletjes zelf (getekend rond (0,0): hoed = bovenop de kop, bril = bij het oog, lijf = bij de nek) ---
+function muts(k1, k2) { ctx.fillStyle = k1; ctx.beginPath(); ctx.ellipse(0, 1, 9, 7, 0, Math.PI, 0); ctx.fill(); ctx.fillStyle = k2; rrect(-9.5, 0, 19, 4, 2); ctx.fill(); ctx.beginPath(); ctx.arc(0, -7, 3.2, 0, 7); ctx.fill(); }
+function hartjesbril(k) { ctx.fillStyle = k; for (const dx of [-4, 4]) { ctx.beginPath(); ctx.moveTo(dx, 3.5); ctx.bezierCurveTo(dx - 6, -1, dx - 3, -5, dx, -2); ctx.bezierCurveTo(dx + 3, -5, dx + 6, -1, dx, 3.5); ctx.fill(); } ctx.fillRect(-1, -1.5, 2, 1.2); }
+function sjaal(k1, k2) { ctx.fillStyle = k1; rrect(-8, -2.5, 16, 5, 2.5); ctx.fill(); ctx.fillRect(-7, 0, 4, 9); ctx.fillStyle = k2; for (const dx of [-5, 1, 5]) ctx.fillRect(dx, -2.5, 1.6, 5); ctx.fillRect(-7, 4, 4, 1.5); }
+function oorwarmers(k) { ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, 6, 8, Math.PI, 0); ctx.stroke(); ctx.fillStyle = k; for (const dx of [-8, 8]) { ctx.beginPath(); ctx.arc(dx, 7, 3.6, 0, 7); ctx.fill(); } }
+function strohoed(band) { ctx.fillStyle = '#e8c86a'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 3.2, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.ellipse(0, -2, 7, 6, 0, Math.PI, 0); ctx.fill(); ctx.fillStyle = band; ctx.fillRect(-7, -3, 14, 2.4); }
+function zonnebril2(k) { ctx.fillStyle = k; rrect(-7, -2.5, 6.5, 5, 2); ctx.fill(); rrect(0.5, -2.5, 6.5, 5, 2); ctx.fill(); ctx.fillRect(-1, -1.5, 2, 1); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(-5.5, -1.5, 2, 1.4); ctx.fillRect(2, -1.5, 2, 1.4); }
+function zwemband(k1, k2) { ctx.lineWidth = 5; for (let i = 0; i < 8; i++) { ctx.strokeStyle = i % 2 ? k2 : k1; ctx.beginPath(); ctx.ellipse(-4, 7, 15, 6, 0, i * Math.PI / 4, (i + 1) * Math.PI / 4); ctx.stroke(); } }
+function pet(k, klep) { ctx.fillStyle = k; ctx.beginPath(); ctx.ellipse(0, 1, 8.5, 6.5, 0, Math.PI, 0); ctx.fill(); ctx.fillStyle = klep; ctx.beginPath(); ctx.ellipse(8, 1, 7, 2, 0.1, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.beginPath(); ctx.arc(0, -5, 1.5, 0, 7); ctx.fill(); }
+function bloemenkrans() { const kl = ['#e8384f', '#ffd34d', '#ff9ac0', '#9a4fd6', '#fff']; for (let i = 0; i < 5; i++) { const x = -8 + i * 4, y = 1 - Math.sin(i / 4 * Math.PI) * 3; ctx.fillStyle = kl[i]; ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 7); ctx.fill(); ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.arc(x, y, 0.9, 0, 7); ctx.fill(); } }
+function omabril(k) { ctx.strokeStyle = k; ctx.lineWidth = 1.2; ctx.fillStyle = 'rgba(200,230,255,.35)'; for (const dx of [-3.5, 3.5]) { ctx.beginPath(); ctx.arc(dx, 0, 3, 0, 7); ctx.fill(); ctx.stroke(); } ctx.beginPath(); ctx.moveTo(-0.5, 0); ctx.lineTo(0.5, 0); ctx.stroke(); }
+function tutu(k) { ctx.fillStyle = k; ctx.globalAlpha = 0.85; for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.ellipse(-14 + i * 4, 10, 4, 5, (i - 3) * 0.2, 0, 7); ctx.fill(); } ctx.globalAlpha = 1; }
+function feestmuts(k1, k2) { ctx.fillStyle = k1; ctx.beginPath(); ctx.moveTo(-6, 1); ctx.lineTo(1, -16); ctx.lineTo(7, 1); ctx.fill(); ctx.strokeStyle = k2; ctx.lineWidth = 2; for (const y of [-3, -8]) { ctx.beginPath(); ctx.moveTo(-4 + (y + 3) * -0.2, y); ctx.lineTo(5 + (y + 3) * 0.25, y); ctx.stroke(); } ctx.fillStyle = k2; ctx.beginPath(); ctx.arc(1, -16, 2.6, 0, 7); ctx.fill(); }
+function bandana(k) { ctx.fillStyle = k; ctx.beginPath(); ctx.moveTo(-8, -2); ctx.lineTo(8, -2); ctx.lineTo(1, 8); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff'; for (const [x, y] of [[-3, 0], [3, 0], [0, 4]]) { ctx.beginPath(); ctx.arc(x, y, 0.9, 0, 7); ctx.fill(); } }
+function strik(k) { ctx.fillStyle = k; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-6, -4); ctx.lineTo(-6, 4); ctx.closePath(); ctx.moveTo(0, 0); ctx.lineTo(6, -4); ctx.lineTo(6, 4); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, 7); ctx.fill(); }
+function cowboyhoed(k) { ctx.fillStyle = k; ctx.beginPath(); ctx.moveTo(-15, -1); ctx.quadraticCurveTo(0, 5, 15, -1); ctx.quadraticCurveTo(0, 2, -15, -1); ctx.fill(); ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(-6, -9); ctx.quadraticCurveTo(0, -6, 6, -9); ctx.lineTo(7, 0); ctx.fill(); ctx.fillStyle = '#3a2410'; ctx.fillRect(-7, -2.5, 14, 2); }
+function koptelefoon(k) { ctx.strokeStyle = '#333'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.arc(0, 8, 9, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke(); ctx.fillStyle = k; for (const dx of [-8.5, 8.5]) { rrect(dx - 2.5, 4, 5, 8, 2); ctx.fill(); } }
+function sterbril(k) { ctx.fillStyle = k; for (const dx of [-4, 4]) { ctx.beginPath(); for (let i = 0; i < 10; i++) { const r = i % 2 ? 1.8 : 4.4, a = -Math.PI / 2 + i * Math.PI / 5; ctx.lineTo(dx + Math.cos(a) * r, Math.sin(a) * r); } ctx.fill(); } ctx.fillRect(-1, -0.6, 2, 1.2); }
+function ketting() { ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, -2, 7, 0.3, Math.PI - 0.3); ctx.stroke(); ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.arc(0, 5.5, 2.4, 0, 7); ctx.fill(); ctx.fillStyle = '#b8860b'; ctx.font = 'bold 3px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('$', 0, 6.6); }
+function steek(k) { ctx.fillStyle = k; ctx.beginPath(); ctx.moveTo(-14, 1); ctx.quadraticCurveTo(0, -16, 14, 1); ctx.quadraticCurveTo(0, -4, -14, 1); ctx.fill(); ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(-13, 0); ctx.quadraticCurveTo(0, -5, 13, 0); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(-4, -9, 2.5, 7, -0.9, 0, 7); ctx.fill(); }
+function monocle() { ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 1.2; ctx.fillStyle = 'rgba(200,230,255,.35)'; ctx.beginPath(); ctx.arc(-3, 0, 3.4, 0, 7); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-3, 3.4); ctx.quadraticCurveTo(-5, 8, -2, 12); ctx.stroke(); }
+function hogeHoed(k, band) { ctx.fillStyle = k; ctx.beginPath(); ctx.ellipse(0, 0, 11, 2.5, 0, 0, 7); ctx.fill(); ctx.fillRect(-6.5, -14, 13, 14); ctx.fillStyle = band; ctx.fillRect(-6.5, -4, 13, 2.5); }
+function pilotenbril() { ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(-10, -1); ctx.lineTo(8, -1); ctx.stroke(); ctx.fillStyle = 'rgba(255,190,80,.85)'; ctx.strokeStyle = '#c9a23a'; ctx.lineWidth = 1.2; for (const dx of [-3.5, 3.5]) { ctx.beginPath(); ctx.arc(dx, -1, 3.2, 0, 7); ctx.fill(); ctx.stroke(); } }
+function ruimtehelm() { ctx.fillStyle = 'rgba(180,230,255,.35)'; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(1, 9, 12, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(-4, 3, 2, 4, 0.5, 0, 7); ctx.fill(); ctx.fillStyle = '#d8302a'; ctx.beginPath(); ctx.arc(1, -3, 1.5, 0, 7); ctx.fill(); }
+function cape(k) { ctx.fillStyle = k; ctx.beginPath(); ctx.moveTo(-2, -2); ctx.quadraticCurveTo(-14, 2 + Math.sin(beeld * 0.2) * 2, -24, 10 + Math.sin(beeld * 0.25) * 3); ctx.lineTo(-8, 12); ctx.quadraticCurveTo(-4, 6, 2, 1); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, 7); ctx.fill(); }
+function helm(k) { ctx.fillStyle = k; ctx.beginPath(); ctx.arc(0, 4, 9, Math.PI, 0); ctx.fill(); ctx.fillRect(-9, 2, 18, 4); ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(-1, -5, 2, 11); ctx.fillStyle = '#e8384f'; ctx.beginPath(); ctx.ellipse(-2, -6, 5, 2.4, -0.3, 0, 7); ctx.fill(); }
+function bretels(k) { ctx.strokeStyle = k; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-6, -2); ctx.lineTo(-4, 10); ctx.moveTo(3, -2); ctx.lineTo(4, 10); ctx.moveTo(-5, 4); ctx.lineTo(4, 4); ctx.stroke(); ctx.fillStyle = '#3a8a3a'; ctx.beginPath(); ctx.arc(-0.5, 4, 1.5, 0, 7); ctx.fill(); }
+
 const WERELDEN = {
   meeuw: { achter: () => achtergrond(), grond: () => grond(), paal: (x, y, h, b, nr) => paal(x, y, h, b, nr), bonus: (x, y, r) => frietje(x, y, r),
     valt: (x, y, r) => frietje(x, y, r), held: (x, y, h, f, s, d) => meeuw(x, y, h, f, s, d) },
@@ -1688,6 +1824,7 @@ function hommel(x, y, s, hoek = 0, dood = false) {
   if (dood) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(14, -4); ctx.lineTo(18, 0); ctx.moveTo(18, -4); ctx.lineTo(14, 0); ctx.stroke(); }
   else { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(17, -3, 2.4, 0, 7); ctx.fill(); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(17.6, -3, 1.2, 0, 7); ctx.fill(); }
   ctx.fillStyle = '#ff9aa8'; ctx.beginPath(); ctx.arc(15, 2.5, 1.8, 0, 7); ctx.fill(); // blosje
+  if (kleren) aankleden(dood);
   ctx.restore();
 }
 function nectar(x, y) {
@@ -1843,15 +1980,19 @@ function menu() {
       } });
     }
   });
-  if (tekstje && beeld - doodT < 150 && staat == 'menu') tekst(tekstje, W / 2, H - 22, 15, '#fff');
-  else tekst(speler ? 'Speler: ' + speler : 'Geen naam gekozen', 24, H - 22, 14, '#fff', 'left');
+  if (tekstje && beeld - doodT < 150 && staat == 'menu') { ctx.fillStyle = 'rgba(15,40,70,.9)'; rrect(10, H - 38, W - 20, 32, 12); ctx.fill(); tekst(tekstje, W / 2, H - 22, 14, '#fff'); }
+  ctx.fillStyle = 'rgba(0,0,0,.25)'; rrect(18, H - 35, 128, 30, 12); ctx.fill();
+  ctx.fillStyle = '#3fae5a'; rrect(18, H - 37, 128, 30, 12); ctx.fill();
+  tekst('🛍️ Winkel', 82, H - 22, 14, '#fff', 'center', 'rgba(0,0,0,.25)');
+  knoppen.push({ x: 18, y: H - 40, w: 128, h: 38, doe: () => { staat = 'winkel'; winkelDier = winkelDier || FIGUREN[0].id; pasKleding = null; sClick(); } });
   ctx.fillStyle = 'rgba(0,0,0,.25)'; rrect(W - 146, H - 35, 128, 30, 12); ctx.fill();
   ctx.fillStyle = '#ffb43a'; rrect(W - 146, H - 37, 128, 30, 12); ctx.fill();
   tekst('🏆 Scorebord', W - 82, H - 22, 14, '#fff', 'center', 'rgba(0,0,0,.25)');
   knoppen.push({ x: W - 146, y: H - 40, w: 128, h: 38, doe: () => { staat = 'bord'; bordTab = 'tocht'; sClick(); bordHalen(); } });
 }
 // een dier met zijn bonus erbij, voor het beginscherm
-function tekenDier(id, x, y, fl, s) {
+function tekenDier(id, x, y, fl, s) { metKleren(id, () => tekenDierKaal(id, x, y, fl, s)); }
+function tekenDierKaal(id, x, y, fl, s) {
   if (id == 'meeuw') { meeuw(x, y, -0.1, fl, s); frietje(x + 30, y + 18, 0.3); }
   if (id == 'kip') { kip(x, y + 2, s, 0, fl); mais(x + 30, y + 20, 0.5); }
   if (id == 'kraai') { kraai(x, y + 4, -0.1, fl, s * 0.95); plectrum(x + 32, y + 18, 0.3); }
@@ -1928,7 +2069,7 @@ function eindscherm() {
   if (vrijgespeeld) {
     ctx.fillStyle = '#fff1b8'; rrect(x + 14, y + 204, w - 28, 30, 10); ctx.fill();
     tekst('Vrijgespeeld: ' + vrijgespeeld.naam + '!', W / 2, y + 220, 15, '#3fae5a', 'center', null);
-  } else if (frietjes) tekst(frietjes + ' ' + fig.bonus[frietjes == 1 ? 0 : 1] + ' gepikt', W / 2, y + 220, 14, '#c0792a', 'center', null);
+  } else if (frietjes) tekst(frietjes + ' ' + fig.bonus[frietjes == 1 ? 0 : 1] + ' gepikt · +' + frietjes + ' 🪙', W / 2, y + 220, 14, '#c0792a', 'center', null);
   ctx.globalAlpha = 1;
   if (doodT > 25) {
     insturenStatus(y + h - 90);
@@ -2017,6 +2158,7 @@ function teken() {
   wd.grond();
   if (staat == 'menu') { menu(); muziekKnop(); return; }
   if (staat == 'bord') { scorebordScherm(); return; }
+  if (staat == 'winkel') { winkelScherm(); return; }
   if (vallend) wd.valt(vallend.x, vallend.y, vallend.r);
   for (const v of veren) veer(v.x, v.y, v.r);
   const zweef = staat == 'klaar' ? Math.sin(beeld * 0.08) * 8 : 0;
@@ -2027,7 +2169,7 @@ function teken() {
     ctx.fillStyle = '#fff'; rrect(bx, by, bw, 24, 10); ctx.fill(); ctx.beginPath(); ctx.moveTo(vogel.x, by + 22); ctx.lineTo(vogel.x + 4, by + 31); ctx.lineTo(vogel.x + 11, by + 22); ctx.fill();
     tekst(roepBel.tekst, bx + bw / 2, by + 13, 13, '#1d3b57', 'center', null); ctx.globalAlpha = 1;
   }
-  if (!(onkw > 0 && beeld % 8 < 4)) wd.held(vogel.x, vogel.y + zweef, hoek, staat == 'klaar' ? (beeld % 30 < 12 ? 12 - beeld % 30 : 0) : vogel.flapT, 1, staat == 'dood' || staat == 'over');
+  if (!(onkw > 0 && beeld % 8 < 4)) metKleren(fig.id, () => wd.held(vogel.x, vogel.y + zweef, hoek, staat == 'klaar' ? (beeld % 30 < 12 ? 12 - beeld % 30 : 0) : vogel.flapT, 1, staat == 'dood' || staat == 'over'));
   if (staat == 'klaar' && tocht) {
     tekst('Grote tocht · dier ' + (tocht.i + 1) + ' van ' + TOCHT.length, W / 2, 104, 16, '#fff');
     if (tocht.totaal) tekst('Totaal tot nu toe: ' + tocht.totaal, W / 2, 168, 15, '#fff');
@@ -2087,7 +2229,7 @@ document.querySelector('.terug').addEventListener('click', (e) => {
 });
 if (TEGEL) { document.querySelector('.terug').hidden = true; tegelPlaatje(); }
 else { nieuwSpel(); staat = 'menu'; requestAnimationFrame(lus); }
-window.__test = { get roepBel() { return roepBel; }, get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, kies: (id) => { fig = FIGUREN.find((f) => f.id == id); }, get vuurballen() { return vuurballen; }, get flits() { return flits; }, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
+window.__test = { get roepBel() { return roepBel; }, get gevaren() { return gevaren; }, get bui() { return bui; }, get brandstof() { return brandstof; }, get tocht() { return tocht; }, get finish() { return finish; }, startTocht, get kast() { return kast; }, kies: (id) => { fig = FIGUREN.find((f) => f.id == id); }, get vuurballen() { return vuurballen; }, get flits() { return flits; }, get wind() { return wind; }, get muziek() { return { aan: muziekAan, speelt: mSpeelt, stap: mStap }; }, get staat() { return staat; }, get score() { return score; }, get vogel() { return vogel; }, get palen() { return palen; }, flap, stap, nieuwSpel };
 </script>
 </body>
 </html>
