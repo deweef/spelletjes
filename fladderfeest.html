@@ -63,7 +63,7 @@ function insturenStatus(y) {
 let bordTab = 'tocht';
 function scorebordScherm() {
   ctx.fillStyle = 'rgba(15,30,55,.82)'; ctx.fillRect(0, 0, W, H);
-  tekst('🏆 Scorebord', W / 2, 46, 30, '#ffe14d', 'center', '#1d3b57');
+  icoonTekst('🏆', 'Scorebord', W / 2, 46, 30, '#ffe14d', '#1d3b57');
   const tabs = [['tocht', 'Tocht'], ...FIGUREN.map((f) => [f.id, f.naam.replace('Jetpack', '').replace('Piraten', '')])];
   const dy = Math.max(0, Math.ceil(tabs.length / 4) - 2) * 30; // meer dieren: een extra rij tabbladen, de rest schuift omlaag
   tabs.forEach(([id, lbl], i) => {
@@ -98,7 +98,7 @@ let winkelDier = null;
 function dierAlleen(id, x, y, fl, s) { metKleren(id, () => WERELDEN[id].held(x, y, -0.05, fl, s, false)); } // zonder bonus erbij
 function winkelScherm() {
   ctx.fillStyle = 'rgba(15,30,55,.85)'; ctx.fillRect(0, 0, W, H);
-  tekst('🛍️ Winkel', W / 2, 40, 28, '#ffe14d', 'center', '#1d3b57');
+  icoonTekst('🛍️', 'Winkel', W / 2, 40, 28, '#ffe14d', '#1d3b57');
   tekst('🪙 ' + kast.munten + (speler ? '  ·  ' + speler : ''), W / 2, 72, 16, '#fff', 'center', null);
   const dieren = FIGUREN.filter((f, i) => f.klaar && open(i));
   if (!dieren.some((f) => f.id == winkelDier)) winkelDier = dieren[0].id;
@@ -873,6 +873,13 @@ function dood() {
 
 // ---------- tekenen ----------
 function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+// icoontje (emoji) + woord netjes gecentreerd: een iPhone meet emoji anders dan hij ze tekent, dus het icoontje krijgt een vaste breedte
+function icoonTekst(icoon, t, x, y, grootte, kleur = '#fff', rand = '#1d3b57') {
+  ctx.font = `bold ${grootte}px "Trebuchet MS", Verdana, sans-serif`;
+  const iw = grootte * 1.2, w = ctx.measureText(t).width, links = x - (iw + 5 + w) / 2;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.fillText(icoon, links, y);
+  tekst(t, links + iw + 5, y, grootte, kleur, 'left', rand);
+}
 function tekst(t, x, y, grootte, kleur = '#fff', uitlijn = 'center', rand = '#1d3b57') {
   ctx.font = `bold ${grootte}px "Trebuchet MS", Verdana, sans-serif`; ctx.textAlign = uitlijn; ctx.textBaseline = 'middle';
   if (rand) { ctx.lineWidth = Math.max(3, grootte / 6); ctx.strokeStyle = rand; ctx.lineJoin = 'round'; ctx.strokeText(t, x, y); }
@@ -2351,12 +2358,12 @@ function menu() {
   const golf = Math.sin(beeld * 0.05) * 2;
   tekst('Fladderfeest', W / 2, 38 + golf, 34, '#ffe14d', 'center', '#1d3b57');
   // bovenaan: winkel en scorebord
-  for (const [k, lbl, kl, doe] of [[0, '🛍️ Winkel', '#3fae5a', () => { staat = 'winkel'; winkelDier = winkelDier || FIGUREN[0].id; pasKleding = null; tekstje = ''; sClick(); }],
-    [1, '🏆 Scorebord', '#ffb43a', () => { staat = 'bord'; bordTab = 'tocht'; sClick(); bordHalen(); }]]) {
+  for (const [k, ico, lbl, kl, doe] of [[0, '🛍️', 'Winkel', '#3fae5a', () => { staat = 'winkel'; winkelDier = winkelDier || FIGUREN[0].id; pasKleding = null; tekstje = ''; sClick(); }],
+    [1, '🏆', 'Scorebord', '#ffb43a', () => { staat = 'bord'; bordTab = 'tocht'; sClick(); bordHalen(); }]]) {
     const bx = 24 + k * ((W - 48) / 2 + 4), bw = (W - 48) / 2 - 4;
     ctx.fillStyle = 'rgba(0,0,0,.25)'; rrect(bx, 70, bw, 30, 12); ctx.fill();
     ctx.fillStyle = kl; rrect(bx, 68, bw, 30, 12); ctx.fill();
-    tekst(lbl, bx + bw / 2, 83, 14, '#fff', 'center', 'rgba(0,0,0,.25)');
+    icoonTekst(ico, lbl, bx + bw / 2, 83, 14, '#fff', 'rgba(0,0,0,.25)');
     knoppen.push({ x: bx, y: 64, w: bw, h: 38, doe });
   }
   // de Grote tocht
