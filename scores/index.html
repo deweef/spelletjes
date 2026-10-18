@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <title>Scores</title>
 <style>
-:root{--bg:#0d1230;--kaart:#18204a;--lijn:#2a3570;--tekst:#eef0ff;--zacht:#a3abd6;--goud:#ffd34d;--groen:#4cd68a;--rood:#ff6b6b;--ben:#5aa9ff;--dana:#ff7fbf;--ouder:#b9a6ff}
+:root{--bg:#0d1230;--kaart:#18204a;--lijn:#2a3570;--tekst:#eef0ff;--zacht:#a3abd6;--goud:#ffd34d;--groen:#4cd68a;--rood:#ff6b6b;--ben:#5aa9ff;--dana:#ff7fbf;--ouder:#b9a6ff;--anja:#4cd6c1}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tekst);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 .wrap{max-width:720px;margin:0 auto;padding:16px 16px 40px}
@@ -62,12 +62,12 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
 const VAK={engels:'Engels',wiskunde:'Wiskunde',biologie:'Biologie','scheikunde-h1':'Scheikunde H1',scheikunde:'Scheikunde H2',frans:'Frans','frans-copilot':'Frans v2','frans-combi':'Frans combi','frans-spel':'Frans spel','frans-5':'Frans v5'};
-const KLEUR={Ben:'var(--ben)',Dana:'var(--dana)',Ouder:'var(--ouder)'};
+const KLEUR={Ben:'var(--ben)',Dana:'var(--dana)',Marcel:'var(--ouder)',Anja:'var(--anja)'};
 const dag=d=>new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
 const tijd=d=>new Date(d).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
 const geleden=d=>{const m=(Date.now()-new Date(d))/60000;return m<60?Math.round(m)+' min geleden':m<1440?Math.round(m/60)+' uur geleden':Math.round(m/1440)+' dagen geleden'};
 const nf=n=>String(Math.round(n*10)/10).replace('.',',');
-let D=null,wie=ls.get('scores-wie')||'Ben',tab='spel';
+let D=null,wie=ls.get('scores-wie')||'Ben',tab='spel';if(wie==='Ouder')wie='Marcel';
 try{D=JSON.parse(ls.get('scores-data')||'null')}catch(e){}
 
 // vraag = 'actie=ouder' (alles ophalen) of 'actie=wis&rij=..&naam=..&score=..'; het antwoord is altijd de nieuwe stand
@@ -91,8 +91,8 @@ function teken(){if(!D)return;$('#app').hidden=false;$('#login').hidden=true;
  ({leren:tekenLeren,spel:tekenSpel,beheer:tekenBeheer})[tab]()}
 
 /* ---------- Leren ---------- */
-function tekenLeren(){const L=(D.leer||[]).map(([d,n,v,m,w,s])=>({d,n,v,m:Number(m)||0,w,s}));
- const namen=['Ben','Dana','Ouder'];
+function tekenLeren(){const L=(D.leer||[]).map(([d,n,v,m,w,s])=>({d,n:n==='Ouder'?'Marcel':n,v,m:Number(m)||0,w,s})); // 'Ouder' = oude regels van Marcel
+ const namen=['Ben','Dana','Marcel','Anja'];
  const rijen=L.filter(r=>r.n===wie).sort((a,b)=>new Date(b.d)-new Date(a.d));
  const week=rijen.filter(r=>Date.now()-new Date(r.d)<7*864e5);
  const perVak={};for(const r of rijen){const p=perVak[r.v]||(perVak[r.v]={week:0,keer:0,laatst:r.d,stand:r.s});if(Date.now()-new Date(r.d)<7*864e5){p.week+=r.m;p.keer++}}

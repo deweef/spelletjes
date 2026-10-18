@@ -3,7 +3,7 @@
 // Insturen: ?actie=opslaan&naam=..&onderdeel=..&modus=..&score=..
 // Opvragen: zonder actie; met ?spel=ork3d alleen de lijsten van Orkenstorm 3D, anders die van Fladderfeest.
 // Onderdelen met "tijd" in de naam zijn snelste tijden (laag is beter), de rest is hoog is beter.
-// Leerhoek (deweef/leren, leerlog.js): POST ?actie=leer&naam=ben|dana&vak=..&min=..&wat=..&stand=.. schrijft een regel
+// Leerhoek (deweef/leren, leerlog.js): POST ?actie=leer&naam=ben|dana|marcel|anja&vak=..&min=..&wat=..&stand=.. schrijft een regel
 // in tabblad 'Leerhoek'. Dat tabblad wordt nooit teruggegeven: alleen te zien door de spreadsheet zelf te openen.
 // Scores-app (spelletjes/scores/): ?actie=ouder&sleutel=.. geeft alle scores en het leerlogboek, ?actie=wis&sleutel=..&rij=..
 // &naam=..&score=.. wist een score. De eerste sleutel die ooit gebruikt wordt, wordt de vaste sleutel (Script-eigenschap
@@ -66,10 +66,10 @@ function doPost(e) {
 
 function leerRegel(p) {
   const naam = String(p.naam || ''), vak = String(p.vak || ''), min = Math.round(Number(p.min) * 10) / 10;
-  if (!/^(ben|dana|ouder)$/.test(naam) || !/^[a-z0-9-]{1,30}$/.test(vak) || !(min >= 0 && min <= 300)) return;
+  if (!/^(ben|dana|marcel|anja|ouder)$/.test(naam) || !/^[a-z0-9-]{1,30}$/.test(vak) || !(min >= 0 && min <= 300)) return;
   const tekst = (v) => String(v || '').replace(/[<>=]/g, '').slice(0, 200).replace(/^([+\-@])/, "'$1"); // nooit als formule lezen
   const lock = LockService.getScriptLock(); lock.waitLock(5000);
-  try { leerBlad().appendRow([new Date(), { ben: 'Ben', dana: 'Dana', ouder: 'Ouder' }[naam], vak, min, tekst(p.wat), tekst(p.stand)]); }
+  try { leerBlad().appendRow([new Date(), { ben: 'Ben', dana: 'Dana', marcel: 'Marcel', anja: 'Anja', ouder: 'Ouder' }[naam], vak, min, tekst(p.wat), tekst(p.stand)]); }
   finally { lock.releaseLock(); }
 }
 
@@ -124,7 +124,7 @@ function opslagBlad() {
 
 function bewaar(p) {
   const naam = String(p.naam || ''), sleutel = String(p.sleutel || ''), tijd = Math.floor(Number(p.tijd)), data = String(p.data || '');
-  if (!/^(ben|dana|ouder)$/.test(naam) || !/^[A-Za-z0-9_-]{1,40}$/.test(sleutel) || !(tijd > 0) || !data || data.length > 400000) return;
+  if (!/^(ben|dana|marcel|anja)$/.test(naam) || !/^[A-Za-z0-9_-]{1,40}$/.test(sleutel) || !(tijd > 0) || !data || data.length > 400000) return;
   try { JSON.parse(data); } catch (e) { return; }
   const stukken = data.match(/[\s\S]{1,40000}/g).map((x) => "'" + x); // ' = altijd als tekst, nooit als formule of getal
   const lock = LockService.getScriptLock(); lock.waitLock(10000);
@@ -140,7 +140,7 @@ function bewaar(p) {
 
 function stand(p) {
   const naam = String(p.naam || '');
-  if (!/^(ben|dana|ouder)$/.test(naam)) return json({ fout: 'naam' });
+  if (!/^(ben|dana|marcel|anja)$/.test(naam)) return json({ fout: 'naam' });
   const uit = {};
   for (const r of opslagBlad().getDataRange().getValues().slice(1)) {
     if (r[0] !== naam) continue;

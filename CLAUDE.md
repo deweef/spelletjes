@@ -316,7 +316,7 @@ Het scorebord-script (`extra/scorebord.gs`) en de Scores-app (`scores/`) worden 
 de oefensite van Ben en Dana (https://deweef.github.io/leren/, eigen `CLAUDE.md` in die repo). Daar stuurt
 `leerlog.js` per bezoek een regel naar `doPost` (`actie=leer`, tabblad 'Leerhoek'); dat logboek is geheim voor de
 kinderen en alleen te zien in de spreadsheet en de Scores-app (tab Leren). Pas bij een wijziging aan het script of
-de app dus op dat de Leerhoek blijft werken (namen ben/dana/ouder, velden vak/min/wat/stand, `VAK` voor de
+de app dus op dat de Leerhoek blijft werken (namen ben/dana/marcel/anja; oude regels heten 'Ouder' en tellen in de app als Marcel; velden vak/min/wat/stand, `VAK` voor de
 vaknamen in `scores/index.html`). Het script bewaart ook de voortgang van de Leerhoek per persoon, zodat die op elk apparaat gelijk is
 (`actie=bewaar` via POST, `?actie=stand&naam=..` via GET, tabblad 'Leerhoek opslag', JSON in stukken van 40.000 tekens). Na een wijziging aan het script plakt Marcel de code zelf in Apps Script en kiest
 Implementaties beheren → potlood → Nieuwe versie (dan blijft de URL gelijk); zet de volledige code in de chat.
