@@ -107,7 +107,7 @@ bedenk dat de site openbaar is.
   Een level kan ook een plaatje zijn (bijv. gemaakt met Gemini): `beeld: 'zoek/<naam>.jpg'` in plaats van achter/voor, voorwerpen als
   [naam, x1, y1, x2, y2, (meer vakjes)] in pixels van het plaatje, `auto` = vakje [x1, y1, x2, y2] van de oldtimer in het plaatje; het plaatje wordt
   geladen bij het starten (`L.img`), de vakjes bovenin tonen een uitsnede uit het plaatje en gevonden voorwerpen krijgen een groen rondje.
-  Gemini-plaatjes staan in `zoek/`. Level 3 Het orkest gebruikt nu `zoek/orkest.jpg` (Gemini, 1376x768) met `ORKEST_BEELD` (31 voorwerpen); de
+  Gemini-plaatjes staan in `zoek/`. Level 3 Het orkest gebruikt nu `zoek/orkest.jpg` (Gemini, 1376x768) met `ORKEST_BEELD` (33 voorwerpen); de
   getekende versie (`orkestAchter`, `ORKEST`) staat als reserve in een commentaarregel in `LEVELS`. `orkest-gemini.jpg` is een eerdere versie.
   Vakjes nalopen: geen twee voorwerpen mogen elkaars midden raken, en voorwerpen die vaker voorkomen (koffiemok, tamboerijn, pizza) krijgen meer vakjes.
   In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
