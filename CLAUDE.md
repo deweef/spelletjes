@@ -68,8 +68,8 @@ bedenk dat de site openbaar is.
   speler in `speler`. Spellen bewaren voortgang per naam als `<sleutel>:<naam>` (Orkenstorm 3D:
   `orkenstorm3d_lvl:Sanne`), met de oude sleutel zonder naam als beginwaarde. Verwijder je een speler, dan
   verdwijnen alle sleutels die op `:<naam>` eindigen.
-- De spellen staan in twee blokken: 2D (telefoon en tablet) en 3D (pc, `"soort": "3d"` in spellen.json).
-  Op een aanraakscherm of smal scherm staat 2D bovenaan, anders 3D.
+- De spellen staan in twee blokken: 3D (`"soort": "3d"` in spellen.json; mooist op de pc, maar werkt ook op een
+  telefoon) en 2D. 3D staat altijd bovenaan, ook in het overzicht.
   Bovenaan staat een overzicht (`#overzicht`) met per blok de spellen als knopjes; een tik scrollt naar dat spel
   (anker `spel-<bestandsnaam>`, de tegel licht even op), en elk blok heeft een link "↑ overzicht".
 - Elk spel heeft linksboven een terugknop `<a class="terug" href="./">‹</a>` (in een submap: `href="../"`).

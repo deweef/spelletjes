@@ -57,7 +57,7 @@
   },
   {
     "naam": "Orkenstorm 3D",
-    "omschrijving": "Orkenstorm in 3D, voor op de pc. Bouw je dorp met boerderijen en een kazerne, draai en zoom de camera rond je kasteel.",
+    "omschrijving": "Orkenstorm in 3D. Bouw je dorp met boerderijen en een kazerne, draai en zoom de camera rond je kasteel.",
     "bestand": "orkenstorm3d/index.html",
     "plaatje": "orkenstorm3d.jpg",
     "stand": "liggend",
@@ -66,7 +66,7 @@
   },
   {
     "naam": "Koekjesschuiver 3D",
-    "omschrijving": "Koekjesschuiver in 3D, voor op de pc. Grote koekjes die echt op elkaar stapelen, met de schuif, traktaties, koekjesfiguren en badges.",
+    "omschrijving": "Koekjesschuiver in 3D. Grote koekjes die echt op elkaar stapelen, met de schuif, traktaties, koekjesfiguren en badges.",
     "bestand": "koekjesschuiver3d/index.html",
     "plaatje": "koekjesschuiver3d.jpg",
     "stand": "liggend",
