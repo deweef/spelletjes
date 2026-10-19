@@ -12,6 +12,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Restaurantkeuken (nieuw level): https://share.gemini.google/OxaiRzd5Q6rc
 - Kermis (nieuw level): https://share.gemini.google/KjMga9z82IgN
 - Serverruimte (nieuw level): https://share.gemini.google/HeXb6XxiPegF
+- Camping (level 9, nog inbouwen): https://share.gemini.google/M7etYNmPCWEu
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
