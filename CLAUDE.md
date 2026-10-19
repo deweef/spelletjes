@@ -108,7 +108,8 @@ bedenk dat de site openbaar is.
   levelkeuze (`toonBord`, tabjes per level, laatste lijst in `zoek_bord`). `#tegel` tekent de rommelkamer voor de startpagina.
   Een level kan ook een plaatje zijn (bijv. gemaakt met Gemini): `beeld: 'zoek/<naam>.jpg'` in plaats van achter/voor, voorwerpen als
   [naam, x1, y1, x2, y2, (meer vakjes)] in pixels van het plaatje, `auto` = vakje [x1, y1, x2, y2] van de oldtimer in het plaatje; het plaatje wordt
-  geladen bij het starten (`L.img`), de vakjes bovenin tonen een uitsnede uit het plaatje en gevonden voorwerpen krijgen een groen rondje.
+  geladen bij het starten (`L.img`), de vakjes bovenin tonen een uitsnede uit het plaatje (achtergrond weggeknipt met `uitknippen`: overstromen vanaf de rand met de
+  mediaan-randkleur; is het resultaat te rafelig of blijft er te weinig over, dan de gewone uitsnede) en gevonden voorwerpen krijgen een groen rondje.
   Gemini-plaatjes staan in `zoek/`. Level 3 Het orkest gebruikt nu `zoek/orkest.jpg` (Gemini, 1376x768) met `ORKEST_BEELD` (33 voorwerpen); de
   getekende versie (`orkestAchter`, `ORKEST`) staat als reserve in een commentaarregel in `LEVELS`. `orkest-gemini.jpg` is een eerdere versie.
   Level 4 Het strand gebruikt `zoek/strand.jpg` (Gemini, 1376x768) met `STRAND_BEELD` (36 voorwerpen); daar zat geen oldtimer in, dus
