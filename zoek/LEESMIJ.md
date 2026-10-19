@@ -11,6 +11,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Postkantoor: https://share.gemini.google/nQWCjrGF3Qwz
 - Restaurantkeuken (nieuw level): https://share.gemini.google/OxaiRzd5Q6rc
 - Kermis (nieuw level): https://share.gemini.google/KjMga9z82IgN
+- Serverruimte (nieuw level): https://share.gemini.google/HeXb6XxiPegF
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
