@@ -984,6 +984,7 @@ for (const [n, id] of [[1, 'kamer'], [3, 'orkest']]) for (const k of ['zoek_tijd
 const klaarMet = (i) => !!opslag.get('zoek_tijd_' + LEVELS[i].id);
 const isOpen = (i) => i == 0 || klaarMet(i) || klaarMet(i - 1); // een level gaat open als het vorige klaar is
 const HINT_STRAF = 20;
+const PER_POTJE = 25; // zoveel voorwerpen per potje, willekeurig gekozen uit alles wat in het plaatje staat
 // camera: wereld -> scherm
 let zoom = 1, ox = 0, oy = 0, minZoom = 1, maxZoom = 4, BW = KW, BH = KH;
 function maat() {
@@ -1055,7 +1056,7 @@ function startLevel(n) {
   if (L.autoBeeld && !L.autoImg) { L.autoImg = new Image(); L.autoImg.src = L.autoBeeld; }
   if (L.beeld) { L.w = L.img.naturalWidth; L.h = L.img.naturalHeight; }
   BW = level.w; BH = level.h;
-  rij = schud(voorwerpen()); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
+  rij = schud(voorwerpen()).slice(0, PER_POTJE); actief = rij.splice(0, 10); // heeft een plaatje meer voorwerpen, dan is elk potje anders gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
   autoGevonden = false; autoMelding = 0; gekozen = -1; melding = null;
   $('titel').textContent = 'Level ' + n + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
@@ -1109,7 +1110,7 @@ function vind(i) {
   ], { duration: 900, easing: 'ease-in-out', fill: 'forwards' });
   setTimeout(() => d.classList.add('weg'), 700);
   vlucht.onfinish = () => { c.remove(); actief[i] = rij.shift() || null; zetVak(i); };
-  if (gevonden >= totaal) setTimeout(klaar, 1100);
+  if (gevonden >= totaal) { const L = level; setTimeout(() => { if (level === L && gevonden >= totaal) klaar(); }, 1100); } // niet als je intussen een ander level bent begonnen
 }
 function klaar() {
   const s = Math.round((performance.now() - start) / 1000), n = level.nr, stand = s + hints * HINT_STRAF;

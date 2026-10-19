@@ -84,7 +84,7 @@ bedenk dat de site openbaar is.
   (groepen) en op het bord vast (`vastklikken`). Hulpjes: Voorbeeld (klein rechtsboven `#mini`, tik = groot met zoomen/schuiven/dubbeltik `#groot`), Randjes, Sorteren op kleur, alles in beeld.
   Zoomen met twee vingers of muiswiel, schuiven door op een lege plek te slepen. Voortgang in `fotopuzzel:<naam>`
   (zaadje voor de vormen + posities), record per foto/aantal in `fotopuzzel_<foto>_<n>[d]:<naam>`.
-- Zoekplaatje (`zoekplaatje.html`, concept): zoek alle voorwerpen van een level (25 of meer; teller "🔍 nog N" via `totaal`/`zetTeller`) in een druk
+- Zoekplaatje (`zoekplaatje.html`, concept): zoek de voorwerpen van een level (per potje willekeurig `PER_POTJE` = 25 uit alles wat in het plaatje staat, dus meer voorwerpen = meer afwisseling; teller "🔍 nog N" via `totaal`/`zetTeller`) in een druk
   stripplaatje in de stijl van een Van Haasteren-puzzel; bovenin staan er steeds 10 (`actief`). Tik op een voorwerp in het plaatje: staat het bovenin,
   dan zweeft het naar zijn vakje en verdwijnt (`vind`, `.vlieg`), daarna schuift het volgende uit `rij` in. Een voorwerp dat pas later komt geeft
   een melding (`meld`); `kiesVak` licht alleen een vakje op bij een hint. Zoomen met twee vingers/muiswiel, slepen = schuiven, tik = zoeken
@@ -100,7 +100,7 @@ bedenk dat de site openbaar is.
   niemand bespeelt, popcorn, operaglas; postkantoor: postzegel, ansichtkaart, plakband, nummertje; strand: schepje, snorkel, zwemband) en een
   voorwerp wordt nooit ook als afleider getekend (geen muzikant met hetzelfde instrument, geen tweede ijsje, telefoon of zonnebril bij de mensen:
   daarom laten de grapjeslijsten selfie/koffie/boterham weg), anders tikt iemand op de verkeerde. De rommelkamer mag allerlei spul hebben.
-  Ideeën voor nieuwe levels (Marcel en Anja): supermarkt, kermis, spookkasteel, camping, Orkenstorm-dorp (rolstoel, helm, kaas, pizza, stokbrood, bier, ork), restaurantkeuken, plaats delict (iemand onder een laken met een been eruit). Plus: per level een "stoute figuur" om te vinden
+  Ideeën voor nieuwe levels (Marcel en Anja): supermarkt, kermis, spookkasteel, camping, Orkenstorm-dorp (rolstoel, helm, kaas, pizza, stokbrood, bier, ork), restaurantkeuken, serverruimte, plaats delict (iemand onder een laken met een been eruit). Plus: per level een "stoute figuur" om te vinden
   (zoals de oldtimer) en een nachtlevel waarin je alleen ziet wat in de lichtbundel van je zaklamp valt. Voortgang per speler en per level-id: `zoek_tijd_<id>:<naam>` (snelste tijd incl. hintstraf; een level is
   open als het vorige een tijd heeft, `isOpen`) en `zoek_auto_<id>:<naam>`. De vroegere fotolevel met wachtwoord is weg (oude sleutels met
   levelnummers worden bij het laden omgezet). Online scorebord (zelfde Apps Script, geen aanpassing nodig): onderdeel `zoek_tijd_<id>`, modus `gewoon`,
