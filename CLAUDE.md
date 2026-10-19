@@ -116,7 +116,7 @@ bedenk dat de site openbaar is.
   commentaarregels in `LEVELS` (de tekenfuncties zijn er nog; `#tegel` gebruikt nog de getekende rommelkamer). `orkest-gemini.jpg` is een eerdere versie.
   `auto` en `sjaak` mogen meer vakjes hebben (postkantoor: twee oldtimers), zie `inVak`. Een nieuw level = regel in `LEVELS` en naam in `ZOEK` in `scores/index.html`.
   Sluipende Sjaak (inbreker met streepjestrui, oogmasker, platte pet en geldzak met $; staat in de Gemini-prompt): `sjaak: [x1, y1, x2, y2]`, niet op het
-  lijstje; gevonden = sluipdeuntje (`sSjaak`) + "Hé! Daar sluipt Sjaak weer rond!" en een 🦹 bij het level. Orkest en strand hebben (nog) geen Sjaak.
+  lijstje; gevonden = politiefluitje (`sSjaak`, `fluit`) + "Hé! Daar sluipt Sjaak weer rond!" en een 🦹 bij het level. Orkest en strand hebben (nog) geen Sjaak.
   Levelmenu en eindscherm scrollen (`.scherm` heeft `overflow-y:auto`, `.kaart` `margin:auto`).
   Level 4 Het strand gebruikt `zoek/strand.jpg` (Gemini, 1376x768) met `STRAND_BEELD` (36 voorwerpen); daar zat geen oldtimer in, dus
   `autoBeeld: 'zoek/oldtimer.png'` (uitgeknipt uit `orkest-gemini.jpg`, doorzichtige achtergrond) zet de Gemini-oldtimer in het vakje `auto` op het plaatje.

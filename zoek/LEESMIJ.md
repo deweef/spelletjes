@@ -15,8 +15,15 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
-Vast blokje onderaan elke Gemini-opdracht:
-1. Verstop ergens een klein zilveren oldtimertje (open sportwagen uit de jaren 50, zonder merk of logo), net zichtbaar.
-2. Verstop ergens Sluipende Sjaak, een kleine boef: mager mannetje met een zwart-wit gestreepte trui, zwart oogmaskertje,
-   platte zwarte pet en een grote zak met een dollarteken over zijn schouder, op zijn tenen sluipend; precies één keer,
-   klein en een beetje verstopt, en hij doet iets stouts dat bij de plek past.
+Vast blokje onderaan elke Gemini-opdracht (versie 2):
+1. Zet er minstens 40 losse voorwerpen in die passen bij de plek, elk duidelijk herkenbaar en goed los van elkaar
+   (niet half achter iets anders), en elk voorwerp maar één keer. Liever veel kleine dingetjes verspreid over het
+   hele plaatje dan grote stapels.
+2. Verstop ergens een klein zilveren oldtimertje (open sportwagen uit de jaren 50, zonder merk of logo), net zichtbaar.
+3. Verstop ergens Sluipende Sjaak, een kleine boef: mager mannetje met een zwart-wit gestreepte trui, zwart oogmaskertje,
+   platte zwarte pet en een grote zak met een dollarteken over zijn schouder. Precies één keer, klein, en half verstopt:
+   hij gluurt achter iets vandaan of sluipt half achter een ding langs, zodat je hem goed moet zoeken. Zijn pet,
+   maskertje en geldzak blijven wel zichtbaar. Hij doet iets stouts dat bij de plek past.
+4. Geen echte merken, logo's of bekende stripfiguren. Teksten op bordjes in het Nederlands.
+
+Versie 1 (gebruikt voor rommelkamer t/m serverruimte): alleen de oldtimer en Sjaak "klein en een beetje verstopt".
