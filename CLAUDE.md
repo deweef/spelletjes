@@ -100,9 +100,9 @@ bedenk dat de site openbaar is.
   niemand bespeelt, popcorn, operaglas; postkantoor: postzegel, ansichtkaart, plakband, nummertje; strand: schepje, snorkel, zwemband) en een
   voorwerp wordt nooit ook als afleider getekend (geen muzikant met hetzelfde instrument, geen tweede ijsje, telefoon of zonnebril bij de mensen:
   daarom laten de grapjeslijsten selfie/koffie/boterham weg), anders tikt iemand op de verkeerde. De rommelkamer mag allerlei spul hebben.
-  Ideeën voor nieuwe levels (Marcel en Anja): supermarkt, kermis, spookkasteel, camping, Orkenstorm-dorp (rolstoel, helm, kaas, pizza, stokbrood, bier, ork), restaurantkeuken, serverruimte, plaats delict (iemand onder een laken met een been eruit). Plus: per level een "stoute figuur" om te vinden
+  Ideeën voor nieuwe levels (Marcel en Anja): supermarkt, spookkasteel, camping, Orkenstorm-dorp (rolstoel, helm, kaas, pizza, stokbrood, bier, ork), plaats delict (iemand onder een laken met een been eruit). Plus: per level een "stoute figuur" om te vinden
   (zoals de oldtimer) en een nachtlevel waarin je alleen ziet wat in de lichtbundel van je zaklamp valt. Voortgang per speler en per level-id: `zoek_tijd_<id>:<naam>` (snelste tijd incl. hintstraf; een level is
-  open als het vorige een tijd heeft, `isOpen`) en `zoek_auto_<id>:<naam>`. De vroegere fotolevel met wachtwoord is weg (oude sleutels met
+  open als het vorige een tijd heeft, `isOpen`), `zoek_auto_<id>:<naam>` en `zoek_sjaak_<id>:<naam>`. De vroegere fotolevel met wachtwoord is weg (oude sleutels met
   levelnummers worden bij het laden omgezet). Online scorebord (zelfde Apps Script, geen aanpassing nodig): onderdeel `zoek_tijd_<id>`, modus `gewoon`,
   automatisch ingestuurd op het eindscherm (`insturen`, alleen met naam en alleen verbeteringen, `zoek_ingestuurd:<naam>`), 🏆 Scorebord in de
   levelkeuze (`toonBord`, tabjes per level, laatste lijst in `zoek_bord`). `#tegel` tekent de rommelkamer voor de startpagina.
@@ -110,8 +110,14 @@ bedenk dat de site openbaar is.
   [naam, x1, y1, x2, y2, (meer vakjes)] in pixels van het plaatje, `auto` = vakje [x1, y1, x2, y2] van de oldtimer in het plaatje; het plaatje wordt
   geladen bij het starten (`L.img`), de vakjes bovenin tonen een uitsnede uit het plaatje (achtergrond weggeknipt met `uitknippen`: overstromen vanaf de rand met de
   mediaan-randkleur; is het resultaat te rafelig of blijft er te weinig over, dan de gewone uitsnede) en gevonden voorwerpen krijgen een groen rondje.
-  Gemini-plaatjes staan in `zoek/`. Level 3 Het orkest gebruikt nu `zoek/orkest.jpg` (Gemini, 1376x768) met `ORKEST_BEELD` (33 voorwerpen); de
-  getekende versie (`orkestAchter`, `ORKEST`) staat als reserve in een commentaarregel in `LEVELS`. `orkest-gemini.jpg` is een eerdere versie.
+  Gemini-plaatjes staan in `zoek/` (allemaal 1376x768, links en vaste prompt in `zoek/LEESMIJ.md`). Alle levels zijn nu plaatjes: 1 rommelkamer
+  (`KAMER_BEELD`), 2 postkantoor (`POST_BEELD`), 3 orkest (`ORKEST_BEELD`), 4 strand (`STRAND_BEELD`), 5 piratenschip (`SCHIP_BEELD`), 6 restaurantkeuken
+  (`keuken.jpg`, `KEUKEN_BEELD`), 7 kermis (`KERMIS_BEELD`), 8 serverruimte (id `server`, `SERVER_BEELD`). De getekende versies van 1-5 staan als reserve in
+  commentaarregels in `LEVELS` (de tekenfuncties zijn er nog; `#tegel` gebruikt nog de getekende rommelkamer). `orkest-gemini.jpg` is een eerdere versie.
+  `auto` en `sjaak` mogen meer vakjes hebben (postkantoor: twee oldtimers), zie `inVak`. Een nieuw level = regel in `LEVELS` en naam in `ZOEK` in `scores/index.html`.
+  Sluipende Sjaak (inbreker met streepjestrui, oogmasker, platte pet en geldzak met $; staat in de Gemini-prompt): `sjaak: [x1, y1, x2, y2]`, niet op het
+  lijstje; gevonden = sluipdeuntje (`sSjaak`) + "Hé! Daar sluipt Sjaak weer rond!" en een 🦹 bij het level. Orkest en strand hebben (nog) geen Sjaak.
+  Levelmenu en eindscherm scrollen (`.scherm` heeft `overflow-y:auto`, `.kaart` `margin:auto`).
   Level 4 Het strand gebruikt `zoek/strand.jpg` (Gemini, 1376x768) met `STRAND_BEELD` (36 voorwerpen); daar zat geen oldtimer in, dus
   `autoBeeld: 'zoek/oldtimer.png'` (uitgeknipt uit `orkest-gemini.jpg`, doorzichtige achtergrond) zet de Gemini-oldtimer in het vakje `auto` op het plaatje.
   Vakjes nalopen: geen twee voorwerpen mogen elkaars midden raken, en voorwerpen die vaker voorkomen (koffiemok, tamboerijn, pizza) krijgen meer vakjes.
