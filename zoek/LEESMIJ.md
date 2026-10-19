@@ -8,6 +8,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Piratenschip zonder voorbeeldplaatje (de mooiste): https://share.gemini.google/x01zFF59mfmk
 - Piratenschip, nieuwe versie met oldtimer en Sluipende Sjaak: https://share.gemini.google/8uCmAFJgMcnQ
 - Rommelkamer: https://share.gemini.google/cq2P3lXSvCuQ
+- Postkantoor: https://share.gemini.google/nQWCjrGF3Qwz
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
