@@ -1056,7 +1056,8 @@ function startLevel(n) {
   if (L.autoBeeld && !L.autoImg) { L.autoImg = new Image(); L.autoImg.src = L.autoBeeld; }
   if (L.beeld) { L.w = L.img.naturalWidth; L.h = L.img.naturalHeight; }
   BW = level.w; BH = level.h;
-  rij = schud(voorwerpen()).slice(0, PER_POTJE); actief = rij.splice(0, 10); // heeft een plaatje meer voorwerpen, dan is elk potje anders gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
+  // heeft een plaatje meer voorwerpen dan PER_POTJE, dan is elk potje anders
+  rij = schud(voorwerpen()).slice(0, PER_POTJE); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
   autoGevonden = false; autoMelding = 0; gekozen = -1; melding = null;
   $('titel').textContent = 'Level ' + n + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
