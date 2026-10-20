@@ -209,7 +209,7 @@ Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee
 startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
 
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
-werkers), 4 (De Donkere Mijnen) en 5 (Het Woud van Wilgendaal) zijn speelbaar; level 6 uit `orkenstorm.html` moet nog
+werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal) en 6 (De belegerde abdij) zijn speelbaar; level 7 uit `orkenstorm.html` moet nog
 (naam in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
@@ -235,7 +235,7 @@ Opbouw:
   elke grap hooguit één keer en er komt altijd minstens één aan. Tekstwolkjes in de eigen taal, verteller
   in het Nederlands, knop Overslaan, daarna een tekstkaart en de uitleg van het volgende level. Mannetjes
   krijgen daarvoor `u.pose` (animatie), `u.tempo` (snelheid), `u.zigzag` (dronken) en `u.hidden` (weg).
-  Extra velden: `spreker` (een werker vertelt eerst iets), `grappen` (deze grappen eerst), `duur` (seconden).
+  Extra velden: `spreker` (een werker vertelt eerst iets), `grappen` (deze grappen eerst), `duur` (seconden), `voorop` (deze soort gaat zeker mee, bv. de ridders in 5 → 6).
   `soort: 'overval'` (2 → 3) is anders: feest bij het kasteel, nacht (`api.nacht(f)`), orks komen (via
   `plaats` in spel.js) en sleuren de werkers mee. Tijdens een filmpje (`G.tussen`) vallen orks niet aan.
   Beginfilmpje: `intro: { van, naar, begin, orks, bouw, eind }` bij een level (nu level 1: aankomst, kasteel
@@ -328,7 +328,14 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
 - Tussenstukje 4 → 5: Sir Lodewijk bedankt de groep (`held: 1`), grappen `schat` (schatkist) en `krukken`
   (genezer raakt achter), `vertrek` = pas later weglopen omdat de trap vlakbij is, `zonder` = geen plassen
   of eekhoorn onder de grond.
-- Nog te doen (voor latere levels): rovers, roverkamp en de abdij.
+- De belegerde abdij (level 6, kaart 32x36, rivier van noord naar zuid met bruggen die van west naar oost lopen: `dwars` in main.js):
+  `siege: 1`, `keep: 'abdij'` (valt de abdij, dan verloren), `camAt` (camera begint bij de ridders). Rovers met `'raid'` in `o` belegeren
+  de abdij (`u.siege`); zijn ze weg, dan `G.saved` (400 goud en 100 hout, golven beginnen) en traint de abdij soldaten en genezers. Daarvoor
+  knippert er "Help ons!" boven de abdij (`m.help`). Winnen: alle drie roverkampen (`camps`, BLD `roverkamp`) en alle rovers weg.
+  Golven komen ook uit roverkampen (`waves.units`). Abdij = graveyard crypt-large met dak en kruis, castle-toren met puntdak, grafkruisjes,
+  bankje en een zwaaiende monnik (`monnik`, bruine kap). Rover = mens met donkerrode kap, zwart maskertje, mes en buitzak; roverschutter =
+  boogschutter met kap en maskertje. Roverkamp = forest tentjes, kampvuur, gestolen kisten en een zwarte vlag. Tussenstukje 5 → 6: een bode.
+- Nog te doen (voor latere levels): magiërstoren en tovenaar, De toren van Morvan (level 7).
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.

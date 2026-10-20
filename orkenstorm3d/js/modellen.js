@@ -46,6 +46,9 @@ const KLEDING = {
   speerork: { romp: '#7a5530', broek: '#3e2d1c', huid: '#6aab45' },
   orkbaas: { romp: '#3e2d1c', broek: '#2a1e14', huid: '#4f8a30' },
   ridder: { romp: '#c9ced4', broek: '#3b3b48' },
+  rover: { romp: '#5a1e1e', broek: '#2a2a2a' },
+  roverboog: { romp: '#6b2a2a', broek: '#2a2a2a' },
+  monnik: { romp: '#7a5232', broek: '#7a5232' },
 };
 
 export function maakMannetje(k, side, land, rolstoel) {
@@ -173,6 +176,14 @@ function kenneyMannetje(k, side, land, rolstoel) {
     for (const [arm, links] of [[armR, false], [armL, true]]) { const kr = K.stuk('characters/aid-crutch'); kr.scale.setScalar(1.6); const h = new THREE.Group(); h.position.set(links ? 0.22 : -0.22, -0.02, 0.02); kr.rotation.x = Math.PI; kr.position.y = 0.05; h.add(kr); arm.add(h); }
     hoofd.add(kegel(0.24, 0.3, '#f4f1e6', 0, 0.45, -0.01, 10));
     romp.add(doos(0.1, 0.1, 0.02, '#3cb371', 0, 0.18, 0.12)); // groen kruisje
+  } else if (k == 'monnik') { // monnik van de abdij: bruine kap en een touw om zijn middel
+    hoofd.add(kegel(0.25, 0.32, '#7a5232', 0, 0.44, -0.02, 10));
+    romp.add(cil(0.27, 0.27, 0.04, '#e0c890', 0, 0.02, 0, 10));
+  } else if (k == 'rover' || k == 'roverboog') { // rover: zwart maskertje, donkerrode kap en een zak met buit op zijn rug
+    hoofd.add(kegel(0.25, 0.3, '#5a1e1e', 0, 0.44, -0.03, 10));
+    hoofd.add(doos(0.34, 0.07, 0.04, '#151515', 0, 0.27, 0.17));
+    if (k == 'rover') { const mes = K.stuk('dungeon/weapon-sword'); mes.scale.setScalar(0.75); inHand(armR, mes); romp.add(bol(0.13, '#c8a870', 0, 0.2, -0.19)); }
+    else { const boog = K.stuk('forest/weapon-bow'); const h = new THREE.Group(); h.position.set(0.23, 0, 0.02); boog.rotation.x = -0.2; h.add(boog); armL.add(h); }
   } else if (k == 'skelet') {
     inHand(armR, K.stuk('dungeon/weapon-sword'));
   } else if (k == 'boog') {
@@ -549,7 +560,39 @@ function kenneyOrktoren() {
   return g;
 }
 
-const BOUW = { stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
+// Abdij (3x3): kerkje met een klokkentoren en een kruis, een kloostertuintje met grafkruisen en een monnik
+function kenneyAbdij() {
+  const g = new THREE.Group();
+  zetIn(g, 'graveyard/crypt-large', -0.35, 0, -0.3, Math.PI / 2, 1);
+  zetIn(g, 'graveyard/crypt-large-roof', -0.35, 1, -0.3, Math.PI / 2, 1);
+  zetIn(g, 'graveyard/cross', -0.35, 1.7, -0.3, 0, 0.55);
+  zetIn(g, 'castle/tower-square-base', 1.0, 0, -0.95, 0, 0.9); zetIn(g, 'castle/tower-square-mid-door', 1.0, 0.9, -0.95, 0, 0.9);
+  zetIn(g, 'castle/tower-square-top-roof-high', 1.0, 1.8, -0.95, 0, 0.9);
+  zetIn(g, 'graveyard/cross', 1.0, 3.0, -0.95, 0, 0.45);
+  zetIn(g, 'graveyard/gravestone-cross', 0.85, 0, 0.45, 0.2, 0.6); zetIn(g, 'graveyard/gravestone-cross', 1.25, 0, 0.8, -0.2, 0.6);
+  zetIn(g, 'graveyard/bench', -1.0, 0, 1.15, 0, 0.8);
+  zetIn(g, 'castle/flag-wide', 1.3, 0, 0.0, 0, 0.9);
+  g.userData.mixers = [];
+  const monnik = kenneyMannetje('monnik', 'h', null, false); // een monnik zwaait naar je: help!
+  monnik.g.position.set(0.2, 0, 1.05); monnik.g.scale.setScalar(1.15); monnik.p.ring.visible = false;
+  monnik.acties['emote-yes'].play(); g.add(monnik.g); g.userData.mixers.push(monnik.mixer); g.userData.monnik = monnik;
+  return g;
+}
+
+// Roverkamp (2x2): tentjes, een kampvuur, gestolen kisten en een zwarte vlag
+function kenneyRoverkamp() {
+  const g = new THREE.Group();
+  zetIn(g, 'forest/tent', -0.4, 0, -0.35, 0.4, 0.95); zetIn(g, 'forest/tent', 0.5, 0, -0.45, -0.3, 0.8);
+  zetIn(g, 'survival/campfire-pit', 0.1, 0, 0.35, 0, 2.2); zetIn(g, 'survival/campfire-stand', 0.1, 0, 0.35, 0, 1.6);
+  zetIn(g, 'survival/chest', -0.6, 0, 0.55, 0.5, 1.8); zetIn(g, 'survival/box-large', 0.7, 0, 0.45, 0.2, 1.4); zetIn(g, 'survival/box-large', 0.7, 0.35, 0.45, 0.6, 1.2);
+  zetIn(g, 'survival/bedroll', -0.1, 0.05, -0.75, Math.PI / 2, 1.4);
+  for (const [x, z, r] of [[-0.95, -0.5, Math.PI / 2], [-0.95, 0.5, Math.PI / 2], [0.95, -0.5, Math.PI / 2]]) zetIn(g, 'survival/fence-fortified', x, 0, z, r, 2);
+  zetIn(g, 'survival/signpost', -0.75, 0, 0.95, 0.4, 1.6);
+  g.add(vlag('#1e1e1e', 0.75, 0, -0.85));
+  return g;
+}
+
+const BOUW = { abdij: kenneyAbdij, roverkamp: kenneyRoverkamp, stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
   muur: kenneyMuur, smederij: kenneySmederij, houtzagerij: kenneyHoutzagerij };
 
 // Katapult: een voertuig, geen mannetje. Bij een schot zwiept hij even naar achteren.

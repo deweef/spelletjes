@@ -3,16 +3,18 @@
 
 export const UNIT = {
   werker: { n: 'Werker', hp: 30, dmg: 3, rng: 22, cd: 60, spd: 1.1, sight: 4, side: 'h', cost: [50, 0], time: 300, from: ['kasteel'] },
-  soldaat: { n: 'Soldaat', hp: 60, dmg: 8, rng: 22, cd: 50, spd: 1, sight: 4, side: 'h', cost: [60, 10], time: 420, from: ['kazerne'] },
+  soldaat: { n: 'Soldaat', hp: 60, dmg: 8, rng: 22, cd: 50, spd: 1, sight: 4, side: 'h', cost: [60, 10], time: 420, from: ['kazerne', 'abdij'] },
   boog: { n: 'Boogschutter', hp: 40, dmg: 6, rng: 130, cd: 70, spd: 1, sight: 5, side: 'h', cost: [50, 25], time: 420, from: ['kazerne'] },
   ork: { n: 'Ork', hp: 55, dmg: 8, rng: 22, cd: 55, spd: 0.9, sight: 4, side: 'o' },
-  genezer: { n: 'Genezer', hp: 30, dmg: 2, rng: 22, cd: 60, spd: 1, sight: 4, side: 'h' },
+  genezer: { n: 'Genezer', hp: 30, dmg: 2, rng: 22, cd: 60, spd: 1, sight: 4, side: 'h', cost: [60, 0], time: 400, from: ['abdij'] },
   held: { n: 'Sir Lodewijk', hp: 140, dmg: 12, rng: 22, cd: 45, spd: 1.05, sight: 5, side: 'h' },
   skelet: { n: 'Skelet', hp: 45, dmg: 7, rng: 22, cd: 55, spd: 0.85, sight: 4, side: 'o' },
   ridder: { n: 'Ridder', hp: 100, dmg: 11, rng: 22, cd: 48, spd: 1.6, sight: 5, side: 'h', cost: [140, 40], time: 600, from: ['stal'] },
   orkbaas: { n: 'Orkenbaas', hp: 170, dmg: 15, rng: 24, cd: 60, spd: 0.8, sight: 5, side: 'o' },
   katapult: { n: 'Katapult', hp: 90, dmg: 40, rng: 210, cd: 160, spd: 0.55, sight: 6, side: 'h', cost: [250, 120], time: 900, from: ['kazerne'], needs: ['smederij', 'houtzagerij'], splash: 1, bld: 1.8 },
   speerork: { n: 'Speerwerper', hp: 35, dmg: 6, rng: 110, cd: 75, spd: 0.9, sight: 5, side: 'o' },
+  rover: { n: 'Rover', hp: 50, dmg: 7, rng: 22, cd: 55, spd: 1, sight: 4, side: 'o' },
+  roverboog: { n: 'Roverschutter', hp: 35, dmg: 6, rng: 110, cd: 75, spd: 1, sight: 5, side: 'o' },
 };
 
 export const BLD = {
@@ -27,6 +29,8 @@ export const BLD = {
   orktoren: { n: 'Orkentoren', w: 2, h: 2, hp: 300, side: 'o', dmg: 8, rng: 150, cd: 60 },
   orkhut: { n: 'Orkenhut', w: 2, h: 2, hp: 250, side: 'o' },
   kooi: { n: 'Gevangenis', w: 2, h: 2, hp: 200, side: 'o' },
+  abdij: { n: 'Abdij', w: 3, h: 3, hp: 1500, food: 16, side: 'h' },
+  roverkamp: { n: 'Roverkamp', w: 2, h: 2, hp: 350, side: 'o' },
 };
 
 export const DIFF = [
@@ -369,6 +373,79 @@ export const LEVELS = [
     win: (s) => s.huts() == 0 && s.orcs() == 0,
     procent: (s) => (1 - s.huts() / Math.max(1, s.start().huts)) * 80 + (s.huts() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 20 : 0),
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b>` + (s.huts() == 0 ? ` · orks nog <b>${s.orcs()}</b>` : ''),
+    tussen: { // het filmpje naar level 6: een bode komt melden dat de abdij belegerd wordt
+      uitgang: [33, 22], duur: 24, voorop: 'ridder',
+      spreker: 'Een bode van de abdij! De monniken worden belegerd door rovers. Alleen ridders zijn snel genoeg!',
+      grappen: ['enkel', 'plassen'],
+      begin: 'Het woud is bevrijd! Maar dan komt er een bode aangerend…',
+      eind: 'De ridders galoppeerden weg. De rest liep er puffend achteraan.',
+      kaart: [
+        'De abdij van Wilgendaal wordt belegerd door een bende rovers.',
+        'Ze zijn opgestookt door de orks, die de koning het leven zuur willen maken.',
+        'Je ridders rijden voorop, een paar soldaten en een boogschutter volgen.',
+        'Red de abdij voordat de rovers hem kapotslaan!',
+      ],
+    },
+  },
+  {
+    naam: 'De belegerde abdij', siege: 1, keep: 'abdij', camAt: [5, 8],
+    brief: [
+      'De monniken van de abdij worden belegerd door een bende rovers,',
+      'opgestookt door de orks om tegen de koning te vechten. De abdij staat al onder vuur!',
+      'Rijd met je ridders zo snel mogelijk naar de abdij (linksonder) en verjaag de rovers.',
+      'Daarna geven de monniken je goud en kun je in de abdij soldaten en genezers trainen.',
+      'Steek dan de rivier over en vernietig de drie roverkampen.',
+      'Pas op: valt de abdij, dan heb je verloren.',
+    ],
+    doel: 'Red de abdij en vernietig de roverkampen',
+    goud: 0, hout: 0, bouw: [],
+    map: [
+      'TTTTTTTTTTTTTTTTTWWTTTTTTTTTTTTT',
+      'TT.....TTTT......WW............T',
+      'T.......TTTT.....WW............T',
+      'T.......TTTT.....WW...........TT',
+      'T........TTT.....WW...........TT',
+      'T................WW...........TT',
+      'T................WW............T',
+      'T................WW............T',
+      'T.........T......==............T',
+      'T................==............T',
+      'TT.............TTWW............T',
+      'TT............TTTWW............T',
+      'TTT..........TTTTWW............T',
+      'TTT...........TTTWW............T',
+      'TT.............TTWW..T.........T',
+      'TT...............WW.TT.........T',
+      'T................WWTT..........T',
+      'T................WWT...........T',
+      'T................WW............T',
+      'T......TT........WW.....T......T',
+      'T................WW....TT......T',
+      'T................WW...TTT......T',
+      'T................WW...T........T',
+      'T................WW.......TT.T.T',
+      'T................WW.......TT...T',
+      'T................WW........T.T.T',
+      'T.TT.............==.........TT.T',
+      'T.T..............==............T',
+      'T.TT...........TTWW............T',
+      'T.............TTTWW............T',
+      'T............TT.TWW............T',
+      'T.......T.T.T...TWW............T',
+      'T........T.......WW............T',
+      'T.......TTT......WWTTT.........T',
+      'T................WW.TTT........T',
+      'TTTTTTTTTTTTTTTTTWWTTTTTTTTTTTTT',
+    ],
+    b: [['abdij', 8, 23]],
+    u: [['ridder', 3, 3], ['ridder', 4, 3], ['ridder', 3, 4], ['ridder', 4, 4], ['soldaat', 2, 5], ['soldaat', 3, 6], ['boog', 5, 6], ['genezer', 9, 27], ['genezer', 11, 26]],
+    o: [['rover', 7, 21, 'raid'], ['rover', 11, 22, 'raid'], ['rover', 12, 24, 'raid'], ['roverboog', 13, 22, 'raid'], ['rover', 6, 27, 'raid'], ['rover', 10, 28, 'raid'], ['roverboog', 13, 27, 'raid'],
+      ['rover', 24, 8], ['rover', 27, 7], ['roverboog', 25, 11], ['rover', 29, 12], ['roverboog', 22, 14], ['rover', 25, 16], ['rover', 20, 9]],
+    huts: [], camps: [[24, 5], [27, 9], [23, 13]],
+    waves: { first: 5400, every: 4500, units: ['rover', 'rover', 'roverboog'] },
+    win: (s) => s.gered() && s.camps() == 0 && s.orcs() == 0,
+    procent: (s) => (s.gered() ? 30 : (1 - s.belegeraars() / Math.max(1, s.start().belegeraars)) * 25) + (1 - s.camps() / Math.max(1, s.start().camps)) * 60 + (s.camps() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 10 : 0),
+    voortgang: (s) => (s.gered() ? 'abdij <b>gered ✓</b> · roverkampen nog <b>' + s.camps() + '</b>' + (s.camps() == 0 ? ` · rovers nog <b>${s.orcs()}</b>` : '') : `verjaag de rovers bij de abdij: nog <b>${s.belegeraars()}</b>`),
   },
 ];
 
@@ -382,4 +459,4 @@ export const LAND = {
 };
 
 // Levels uit de 2D-versie die nog naar 3D moeten
-export const BINNENKORT = ['De belegerde abdij'];
+export const BINNENKORT = ['De toren van Morvan'];

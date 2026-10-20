@@ -11,7 +11,7 @@ export const G = {
   state: 'titel', lvl: 0, L: null, map: null, MW: 0, MH: 0, trees: {}, mineG: {}, units: [], blds: [], explored: null,
   res: { goud: 0, hout: 0 }, sel: [], selB: null, place: null, msg: '', msgT: 0, t: 0, fx: [], nextWave: 0, waveN: 0,
   lastAlert: -999, poke: { id: -1, n: 0, t: 0 }, multi: false, unlocked: 1, paused: false, diff: 1, lostMsg: '', uid: 1,
-  levelVersie: 0, mapVersie: 0, freed: true,
+  levelVersie: 0, mapVersie: 0, freed: true, saved: true,
 };
 // Voortgang per speler (de naam kies je op de startpagina). Zonder eigen voortgang begin je met wat er al
 // op dit toestel stond, zodat er niets verloren gaat.
@@ -37,6 +37,9 @@ export const S = {
   towers: () => G.blds.filter((b) => b.k == 'orktoren').length,
   orcs: () => G.units.filter((u) => u.side == 'o').length,
   vrij: () => G.freed,
+  camps: () => G.blds.filter((b) => b.k == 'roverkamp').length,
+  gered: () => G.saved, // level 6: de rovers bij de abdij zijn verjaagd
+  belegeraars: () => G.units.filter((u) => u.siege).length,
   start: () => G.start || {},
   // voor de voortgang in procenten (level 4): hoe dicht je bij Sir Lodewijk bent, en hij bij de trap
   naarHeld: () => {
@@ -80,10 +83,12 @@ export function loadLevel(i) {
   for (const [x, y] of L.otowers || []) addBld('orktoren', x, y, 1);
   G.freed = !L.kooi;
   for (const [x, y] of L.kooi || []) addBld('kooi', x, y, 1);
+  G.saved = !L.siege;
+  for (const [x, y] of L.camps || []) addBld('roverkamp', x, y, 1);
   for (const [k, x, y] of L.u) addUnit(k, x, y);
-  for (const [k, x, y] of L.o) { const u = addUnit(k, x, y); u.home = { x: u.x, y: u.y }; }
+  for (const [k, x, y, f] of L.o) { const u = addUnit(k, x, y); u.home = { x: u.x, y: u.y }; if (f == 'raid') { u.raid = 1; u.st = 'raid'; u.siege = 1; } } // siege: belegert de abdij
   if (L.held) { const h = addUnit('held', L.held[0], L.held[1]); h.side = 'n'; h.hp = 35; h.captive = 1; h.rolstoel = false; h.voice = { lang: 'nl', pitch: 0.6 }; }
-  G.start = { huts: L.huts.length, orcs: L.o.length }; G.beste = 0; // voor het scorebord: hoe ver je komt
+  G.start = { huts: L.huts.length, orcs: L.o.length, camps: (L.camps || []).length, belegeraars: L.o.filter((o) => o[3] == 'raid').length }; G.beste = 0; // voor het scorebord: hoe ver je komt
   G.lostMsg = ''; reveal(); G.state = 'brief'; G.msg = ''; G.msgT = 0;
   G.levelVersie++; G.mapVersie++;
 }
@@ -200,7 +205,7 @@ function damage(tg, n, by) {
   tg.hp -= n;
   if (tg.side == 'o' && by && G.units.includes(by)) { for (const o of G.units) if (o.side == 'o' && o.st != 'attack' && dist(o, tg) < 4 * T) cmdAttack(o, by); }
   if (tg.side == 'h' && by && G.units.includes(by)) { const c = tg.w ? center(tg) : tg; for (const u of G.units) if (u.side == 'h' && u.k != 'werker' && u.st == 'idle' && dist(u, c) < 10 * T) cmdAttack(u, by); }
-  if (tg.side == 'h' && G.t - G.lastAlert > 600) { G.lastAlert = G.t; sHorn(); say(G.L.dungeon ? 'Je groep wordt aangevallen!' : 'Je dorp wordt aangevallen!', 150); }
+  if (tg.side == 'h' && G.t - G.lastAlert > 600) { G.lastAlert = G.t; sHorn(); say(G.L.dungeon ? 'Je groep wordt aangevallen!' : G.L.keep ? 'De abdij wordt aangevallen!' : 'Je dorp wordt aangevallen!', 150); }
   if (tg.w) {
     if (tg.hp <= 0) {
       G.blds.splice(G.blds.indexOf(tg), 1);
@@ -299,7 +304,7 @@ function genezen(u) {
   snd(1200, 0.12, 'sine', 0.03, 1600);
 }
 
-function hall() { return G.blds.find((b) => b.k == 'kasteel' && b.done); }
+function hall() { return G.blds.find((b) => (b.k == 'kasteel' || b.k == 'abdij') && b.done); }
 
 // Elke werker heeft door zijn land iets extra's (zie LAND in data.js)
 export const land = (u) => u.voice && u.voice.lang;
@@ -395,17 +400,22 @@ export function update() {
   uitElkaar();
   if (G.tussen) { for (const f of G.fx) { f.l--; if (f.vx !== undefined) { f.x += f.vx; f.h -= f.vy; f.vy += 0.05; } } G.fx = G.fx.filter((f) => f.l > 0); return; } // tijdens een tussenstukje: alleen lopen
   // golven (vanaf level 2)
-  if (L.waves && S.huts() > 0 && G.t >= G.nextWave) {
+  if (L.siege && !G.saved && !G.units.some((u) => u.siege)) { // alle belegeraars zijn verjaagd
+    G.saved = true; G.res.goud += 400; G.res.hout += 100; G.nextWave = Math.max(G.nextWave, G.t + 1800); sDone();
+    say('De abdij is gered! De monniken geven je 400 goud en 100 hout. Train er soldaten en genezers.', 400);
+    speak(pick(['Gered! Dank u wel!', 'Saved! Thank you!', 'Gerettet! Danke!', 'Salvi! Grazie!', 'Sauvés! Merci!']), 0.8, 'nl');
+  }
+  if (L.waves && S.huts() + S.camps() > 0 && G.saved && G.t >= G.nextWave) {
     G.nextWave = G.t + Math.round(L.waves.every * DIFF[G.diff].wave); G.waveN++;
-    const huts = G.blds.filter((b) => b.k == 'orkhut');
+    const huts = G.blds.filter((b) => b.k == 'orkhut' || b.k == 'roverkamp'), soort = L.waves.units;
     const n = Math.max(1, Math.min(1 + G.waveN, 4) + DIFF[G.diff].extra);
     for (let i = 0; i < n; i++) {
       const h = huts[i % huts.length], ring = [...ringAround(h.x, h.y, h.w, h.h)];
       if (!ring.length) continue;
       const [x, y] = ring[i % ring.length].split(',').map(Number);
-      const o = addUnit(i % 3 == 2 ? 'speerork' : 'ork', x, y); o.raid = 1; o.st = 'raid';
+      const o = addUnit(soort ? soort[i % soort.length] : i % 3 == 2 ? 'speerork' : 'ork', x, y); o.raid = 1; o.st = 'raid';
     }
-    sHorn(); say('De orks vallen aan! (golf ' + G.waveN + ')', 180);
+    sHorn(); say((soort ? 'De rovers vallen aan!' : 'De orks vallen aan!') + ' (golf ' + G.waveN + ')', 180);
   }
   for (const f of G.fx) { f.l--; if (f.vx !== undefined) { f.x += f.vx; f.h -= f.vy; f.vy += 0.05; } }
   G.fx = G.fx.filter((f) => f.l > 0);
@@ -415,7 +425,8 @@ export function update() {
     const h = G.units.find((u) => u.k == 'held');
     if (!h) { G.lostMsg = 'Sir Lodewijk is gesneuveld...'; G.state = 'verloren'; sHorn(); return; }
     if (!G.units.some((u) => u.side == 'h' && u.k != 'held') && h.side == 'n') { G.lostMsg = 'Je hele groep is verslagen...'; G.state = 'verloren'; sHorn(); return; }
-  } else if (!G.blds.some((b) => b.k == 'kasteel')) { G.lostMsg = 'Het kasteel is gevallen...'; G.state = 'verloren'; sHorn(); return; }
+  } else if (L.keep) { if (!G.blds.some((b) => b.k == L.keep)) { G.lostMsg = 'De abdij is verwoest...'; G.state = 'verloren'; sHorn(); return; } }
+  else if (!G.blds.some((b) => b.k == 'kasteel')) { G.lostMsg = 'Het kasteel is gevallen...'; G.state = 'verloren'; sHorn(); return; }
   if (!G.freed && !G.units.some((u) => u.side == 'h')) { G.lostMsg = 'Je hele leger is verslagen...'; G.state = 'verloren'; sHorn(); return; }
   if (L.win(S)) {
     G.state = 'gewonnen'; G.unlocked = Math.max(G.unlocked, G.lvl + 2);
@@ -538,6 +549,7 @@ function pay(c) { G.res.goud -= c[0]; G.res.hout -= c[1]; }
 export function train(b, k) {
   const c = UNIT[k].cost;
   if (UNIT[k].needs && !UNIT[k].needs.every((n) => S.count(n))) { say('Bouw eerst een smederij en een houtzagerij.'); sNee(); return; }
+  if (b.k == 'abdij' && !G.saved) { say('De abdij wordt belegerd: verjaag eerst de rovers!'); sNee(); return; }
   if (k == 'werker' && !G.freed) { say('Er zijn geen werkers meer in het dorp: bevrijd eerst de gevangenen!'); sNee(); return; }
   if (b.q.length >= 5) { say('De wachtrij is vol (5).'); return; }
   if (!canAfford(c)) { say('Niet genoeg goud of hout.'); sNee(); return; }
@@ -667,7 +679,7 @@ export function klik(p) {
       for (const u of G.sel) cmdAttack(u, enemy);
       sClick(); unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerAanval' : 'aanval');
       G.fx.push({ x: enemy.w ? center(enemy).x : enemy.x, y: enemy.w ? center(enemy).y : enemy.y, l: 20, ring: '#e0574c' });
-    } else { G.selB = null; G.sel = []; say(enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
+    } else { G.selB = null; G.sel = []; say(enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
     return;
   }
   if (hitU && hitU.side == 'n') { say('Sir Lodewijk! Stuur iemand naar hem toe om hem te bevrijden.', 150); return; }

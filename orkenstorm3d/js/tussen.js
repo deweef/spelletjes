@@ -128,7 +128,7 @@ export function start(api, info, klaar) {
 // Een groepje trekt verder; onderweg krijgen een paar van hen een grap
 function tocht(a, f, eigen) {
   const { info } = a;
-  const soldaten = eigen.filter((u) => u.k != 'werker'), werkers = eigen.filter((u) => u.k == 'werker');
+  const soldaten = eigen.filter((u) => u.k != 'werker').sort((p, q) => (q.k == info.voorop) - (p.k == info.voorop)), werkers = eigen.filter((u) => u.k == 'werker'); // voorop: deze soort gaat zeker mee
   const groep = a.groep = [...soldaten.slice(0, info.held ? 7 : 3), ...werkers.slice(0, Math.max(2, werkers.length - 1))].slice(0, 7);
   const held = info.held && G.units.find((u) => u.k == 'held' && u.side == 'h');
   let start = 0;

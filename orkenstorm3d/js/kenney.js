@@ -28,6 +28,10 @@ const LIJST = [
   'survival/workbench-anvil', 'survival/workbench-grind', 'survival/workbench', 'survival/resource-planks', 'survival/tree-log', 'survival/barrel', 'castle/siege-catapult',
   // level 5: stal en orkentoren
   'forest/building-structure', 'forest/building-platform', 'forest/ladder', 'graveyard/hay-bale', 'graveyard/hay-bale-bundled', 'survival/bucket',
+  // level 6: abdij en roverkamp
+  'graveyard/crypt-large', 'graveyard/crypt-large-roof', 'graveyard/cross', 'graveyard/gravestone-cross', 'graveyard/stone-wall', 'graveyard/bench',
+  'graveyard/iron-fence', 'graveyard/candle-multiple', 'graveyard/pine', 'castle/tower-square-mid-door', 'castle/flag-wide', 'castle/flag-pennant',
+  'survival/tent', 'survival/chest', 'survival/box-large', 'survival/bedroll', 'survival/campfire-stand', 'survival/signpost',
   'graveyard/character-skeleton', 'graveyard/lantern-candle', 'dungeon/wall', 'dungeon/stairs', 'dungeon/barrel', 'dungeon/banner', 'characters/aid-crutch',
 ];
 
@@ -69,7 +73,7 @@ export function delen(n) {
 
 // een mannetje met botten en animaties (lopen, aanvallen, omvallen, rolstoel, ...)
 const FIGUUR = { werker: 'dungeon/character-human', soldaat: 'dungeon/character-human', genezer: 'dungeon/character-human', held: 'dungeon/character-human',
-  boog: 'forest/character-archer', ork: 'dungeon/character-orc', speerork: 'dungeon/character-orc', orkbaas: 'dungeon/character-orc', ridder: 'dungeon/character-human', skelet: 'graveyard/character-skeleton' };
+  boog: 'forest/character-archer', ork: 'dungeon/character-orc', speerork: 'dungeon/character-orc', orkbaas: 'dungeon/character-orc', ridder: 'dungeon/character-human', rover: 'dungeon/character-human', monnik: 'dungeon/character-human', roverboog: 'forest/character-archer', skelet: 'graveyard/character-skeleton' };
 export function figuur(k) {
   const bron = glb[FIGUUR[k] || FIGUUR.werker];
   const model = SkeletonUtils.clone(bron.scene);
