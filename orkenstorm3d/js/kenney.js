@@ -29,9 +29,9 @@ const LIJST = [
   // level 5: stal en orkentoren
   'forest/building-structure', 'forest/building-platform', 'forest/ladder', 'graveyard/hay-bale', 'graveyard/hay-bale-bundled', 'survival/bucket',
   // level 6: abdij en roverkamp
-  'graveyard/crypt-large', 'graveyard/crypt-large-roof', 'graveyard/cross', 'graveyard/gravestone-cross', 'graveyard/stone-wall', 'graveyard/bench',
-  'graveyard/iron-fence', 'graveyard/candle-multiple', 'graveyard/pine', 'castle/tower-square-mid-door', 'castle/flag-wide', 'castle/flag-pennant',
-  'survival/tent', 'survival/chest', 'survival/box-large', 'survival/bedroll', 'survival/campfire-stand', 'survival/signpost',
+  'graveyard/crypt-large', 'graveyard/crypt-large-roof', 'graveyard/cross', 'graveyard/gravestone-cross', 'graveyard/bench',
+  'castle/tower-square-mid-door', 'castle/flag-wide',
+  'survival/chest', 'survival/box-large', 'survival/bedroll', 'survival/campfire-stand', 'survival/signpost',
   'graveyard/character-skeleton', 'graveyard/lantern-candle', 'dungeon/wall', 'dungeon/stairs', 'dungeon/barrel', 'dungeon/banner', 'characters/aid-crutch',
 ];
 
