@@ -49,6 +49,11 @@ const KLEDING = {
   rover: { romp: '#5a1e1e', broek: '#2a2a2a' },
   roverboog: { romp: '#6b2a2a', broek: '#2a2a2a' },
   monnik: { romp: '#7a5232', broek: '#7a5232' },
+  magier: { romp: '#2f4f9a', broek: '#2f4f9a' },
+  morvan: { romp: '#3a1a5a', broek: '#2a1040' },
+  demoon: { romp: '#a8281f', broek: '#5a1020', huid: '#d04a3a' },
+  water: { romp: '#3a7bd0', broek: '#3a7bd0', huid: '#6aa8e8' },
+  watergeest: { romp: '#9fe0ff', broek: '#9fe0ff', huid: '#cdf0ff' },
 };
 
 export function maakMannetje(k, side, land, rolstoel) {
@@ -137,6 +142,15 @@ function keuzering(side) {
   r.renderOrder = 5; r.position.y = 0.02; r.visible = false; return r;
 }
 
+// een Kenney-figuur een andere kleur geven (eigen kopie van de materialen), eventueel doorzichtig
+function tint(model, kleur, doorzicht) {
+  model.traverse((o) => {
+    if (!o.isMesh) return;
+    o.material = o.material.clone(); o.material.color.set(kleur);
+    if (doorzicht) { o.material.transparent = true; o.material.opacity = doorzicht; o.material.depthWrite = false; }
+  });
+}
+
 // Kenney-mannetje: echte animaties, spullen vast aan de botten (arm-left, arm-right, head, torso).
 // Het model is 0.76 hoog; de armen staan in de rustpose opzij (rechterarm naar -x).
 function kenneyMannetje(k, side, land, rolstoel) {
@@ -144,7 +158,7 @@ function kenneyMannetje(k, side, land, rolstoel) {
   const g = new THREE.Group(), lijf = new THREE.Group();
   g.add(lijf); lijf.add(f.model);
   const ork = side == 'o';
-  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : k == 'orkbaas' ? 1.6 : ork ? 1.2 : 1.1);
+  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : k == 'orkbaas' ? 1.6 : k == 'morvan' ? 1.7 : k == 'water' || k == 'watergeest' ? 1.35 : ork ? 1.2 : 1.1);
   const armR = f.bot('arm-right'), armL = f.bot('arm-left'), hoofd = f.bot('head'), romp = f.bot('torso');
   const p = { ring: keuzering(side) };
   const inHand = (arm, ding, links) => { // ding staat rechtop (+y); in de hand wijst het naar voren
@@ -184,6 +198,28 @@ function kenneyMannetje(k, side, land, rolstoel) {
     hoofd.add(doos(0.34, 0.07, 0.04, '#151515', 0, 0.27, 0.17));
     if (k == 'rover') { const mes = K.stuk('dungeon/weapon-sword'); mes.scale.setScalar(0.75); inHand(armR, mes); romp.add(bol(0.13, '#c8a870', 0, 0.2, -0.19)); }
     else { const boog = K.stuk('forest/weapon-bow'); const h = new THREE.Group(); h.position.set(0.23, 0, 0.02); boog.rotation.x = -0.2; h.add(boog); armL.add(h); }
+  } else if (k == 'magier' || k == 'morvan') { // tovenaar: punthoed met een sterretje en een staf met een bol
+    const paars = k == 'morvan';
+    if (paars) tint(f.model, '#c8b0e0'); // Morvan: bleek en een beetje paars (eerst, dan krijgen hoed en staf hun eigen kleur)
+    const hoed = new THREE.Group();
+    hoed.add(cil(0.3, 0.3, 0.03, paars ? '#3a1a5a' : '#2f4f9a', 0, 0.38, 0, 12));
+    const punt = kegel(0.21, paars ? 0.55 : 0.45, paars ? '#5a2a8a' : '#2f5fa8', 0, paars ? 0.66 : 0.6, -0.02, 10); punt.rotation.x = -0.15; hoed.add(punt);
+    hoed.add(bol(0.035, '#ffd23f', 0.1, 0.55, 0.13));
+    hoofd.add(hoed);
+    const staf = new THREE.Group();
+    staf.add(cil(0.025, 0.025, 0.7, '#6b4a2b', 0, 0.1, 0, 6));
+    const bolStaf = new THREE.Mesh(geo('stafbol', () => new THREE.IcosahedronGeometry(0.07, 1)), new THREE.MeshBasicMaterial({ color: paars ? 0xc86bff : 0x8fd0ff }));
+    bolStaf.position.y = 0.48; staf.add(bolStaf); inHand(armR, staf);
+  } else if (k == 'demoon') { // demon: rode ork met hoorntjes en vleermuisvleugels
+    tint(f.model, '#ff5a4a');
+    for (const x of [-1, 1]) { const h = kegel(0.05, 0.2, '#2a1414', x * 0.16, 0.42, 0.02, 6); h.rotation.z = -x * 0.4; hoofd.add(h); }
+    for (const x of [-1, 1]) {
+      const v = new THREE.Mesh(geo('vleugel', () => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0.45, 0.25, 0, 0.4, -0.15, 0, 0, 0, 0, 0.4, -0.15, 0, 0.2, -0.2, 0], 3)); g.computeVertexNormals(); return g; }),
+        new THREE.MeshLambertMaterial({ color: '#5a1020', side: THREE.DoubleSide }));
+      v.scale.x = x; v.position.set(x * 0.08, 0.22, -0.14); v.rotation.y = x * 0.5; v.userData.vleugel = x; romp.add(v); (p.vleugels = p.vleugels || []).push(v);
+    }
+  } else if (k == 'water' || k == 'watergeest') { // waterwezen: doorzichtig blauw spookje
+    tint(f.model, k == 'water' ? '#3a7bd0' : '#9fe0ff', 0.75);
   } else if (k == 'skelet') {
     inHand(armR, K.stuk('dungeon/weapon-sword'));
   } else if (k == 'boog') {

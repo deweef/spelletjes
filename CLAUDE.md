@@ -209,7 +209,7 @@ Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee
 startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
 
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
-werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal) en 6 (De belegerde abdij) zijn speelbaar; level 7 uit `orkenstorm.html` moet nog
+werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij) en 7 (De toren van Morvan) zijn speelbaar; level 8 uit `orkenstorm.html` moet nog
 (naam in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
@@ -335,7 +335,17 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   Golven komen ook uit roverkampen (`waves.units`). Abdij = graveyard crypt-large met dak en kruis, castle-toren met puntdak, grafkruisjes,
   bankje en een zwaaiende monnik (`monnik`, bruine kap). Rover = mens met donkerrode kap, zwart maskertje, mes en buitzak; roverschutter =
   boogschutter met kap en maskertje. Roverkamp = forest tentjes, kampvuur, gestolen kisten en een zwarte vlag. Tussenstukje 5 → 6: een bode.
-- Nog te doen (voor latere levels): magiërstoren en tovenaar, De toren van Morvan (level 7).
+- De toren van Morvan (level 7, `dungeon: 1`, `tower: 1`, kaart 30x34): drie verdiepingen onder elkaar op één kaart (`floors` = bovenste
+  rij van verdieping 1, 2, 3; `verdieping(o)` in spel.js). Mannetjes zien en vechten alleen op hun eigen verdieping (`zelfde`). Op een trap
+  omhoog (`U`, `stairs: [{ from, to, naar }]`) sta je meteen op de volgende verdieping (`trap(u)`), de camera gaat mee (`G.trapSprong`);
+  boven elke trap een geel ↑-pijltje (`trapPijlen`, pas te zien als ontdekt). Paarse sfeer (`toren` in main.js), hooguit 8 fakkellampen.
+  Tovenaar (`magier`): mens met blauwe punthoed en staf, vuurballen (`fire`, fx `vuur`), toverkracht `u.mana` (0-100, +1 per 20 beelden);
+  paneelknoppen 🔥 Vuurregen (80, daarna een plek kiezen, `G.cast`, `G.regens`, fx `meteoor`, max 9 vakjes ver) en 💧 Waterwezen (60,
+  `watergeest` vecht 45 s mee, `u.ttl`). Vijanden: demon (`demoon`, rode ork met hoorntjes en fladderende vleugels), waterwezen (`water`,
+  graveyard ghost, doorzichtig blauw, zweeft), Morvan (graveyard vampire, groot, paarse punthoed en staf; roept elke 15 s 2 demonen op
+  als je dichtbij bent). Winnen: Morvan verslagen; verliezen: je hele groep weg. Kleur van een Kenney-figuur: `tint(model, kleur, doorzicht)`.
+  Tussenstukje 6 → 7: een soldaat vertelt wat de monniken weten.
+- Nog te doen (voor latere levels): weg en moeras (level 8, Het Zwarte Moeras), magiërstoren om tovenaars te trainen.
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.

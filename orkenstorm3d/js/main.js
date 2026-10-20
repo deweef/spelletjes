@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from '../lib/OrbitControls.js';
 import { UNIT, BLD, DIFF, LEVELS, BINNENKORT, LAND } from './data.js';
-import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, bouwHier, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler, introGezien, zetIntroGezien } from './spel.js';
+import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, bouwHier, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler, introGezien, zetIntroGezien, tovenaar, vuurregen, roepWater } from './spel.js';
 import * as M from './modellen.js';
 import { unlock, primeVoice, stemAan, zetStem, sClick, loadVoices, VOX } from './geluid.js';
 import * as Tussen from './tussen.js';
@@ -80,7 +80,8 @@ function tekenGrond() {
   for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) {
     const t = G.map[y][x], v = r();
     let kleur;
-    if (G.L.dungeon) kleur = t == '#' || t == 't' ? '#2d2520' : t == 'E' ? '#c9b27a' : v < 0.33 ? '#7a6a58' : v < 0.66 ? '#74644f' : '#806f5c';
+    if (G.L.tower) kleur = t == '#' || t == 't' ? '#28222e' : t == 'U' ? '#c9b27a' : (x + y) % 2 ? (v < 0.5 ? '#6e6878' : '#6a6474') : (v < 0.5 ? '#7a7484' : '#77717f'); // stenen tegelvloer
+    else if (G.L.dungeon) kleur = t == '#' || t == 't' ? '#2d2520' : t == 'E' || t == 'U' ? '#c9b27a' : v < 0.33 ? '#7a6a58' : v < 0.66 ? '#74644f' : '#806f5c';
     else if (t == 'W' || t == '=') kleur = '#3a7bbf';
     else if (t == 'M') kleur = '#8d8170';
     else if (t == 'T') kleur = v < 0.5 ? '#4d7a33' : '#517f36';
@@ -105,6 +106,7 @@ function tekenGrond() {
 }
 
 // Muren, fakkels, de trap naar buiten en wat tonnen en banieren in de Donkere Mijnen
+const trapPijlen = []; // pijltjes boven de trappen omhoog: pas te zien als je die plek ontdekt hebt
 function bouwKerker(groep) {
   const { MW, MH } = G, r = rnd(31);
   const muren = [], fakkels = [], trap = [], vloer = [];
@@ -112,7 +114,7 @@ function bouwKerker(groep) {
     const t = G.map[y][x];
     if (t == '#' || t == 't') muren.push([x, y]); else vloer.push([x, y]);
     if (t == 't') fakkels.push([x, y]);
-    if (t == 'E') trap.push([x, y]);
+    if (t == 'E' || t == 'U') trap.push([x, y]);
   }
   const m4 = new THREE.Matrix4();
   for (const d of M.kerkerMuur()) {
@@ -120,11 +122,22 @@ function bouwKerker(groep) {
     muren.forEach(([x, y], i) => im.setMatrixAt(i, m4.makeTranslation(x + 0.5, 0, y + 0.5)));
     im.castShadow = true; im.receiveShadow = true; groep.add(im);
   }
-  for (const [x, y] of fakkels) {
+  fakkels.forEach(([x, y], i) => {
     const f = M.maakFakkel(); f.position.set(x + 0.5, 1.1, y + 0.5); groep.add(f);
+    if (fakkels.length > 8 && i % 2) return; // niet te veel lampen: dat maakt het traag
     const licht = new THREE.PointLight('#ffb35a', 6, 6, 1.4); licht.position.set(x + 0.5, 1.7, y + 0.5); groep.add(licht);
+  });
+  for (const [x, y] of trap) {
+    const s = M.maakTrap(); s.position.set(x + 0.5, 0, y + 0.5); groep.add(s);
+    if (G.map[y][x] == 'U') { // trap omhoog in de toren: een geel pijltje erboven
+      const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+      g.fillStyle = 'rgba(20,12,4,.75)'; g.beginPath(); g.arc(32, 32, 28, 0, 7); g.fill();
+      g.fillStyle = '#ffe07a'; g.font = 'bold 44px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('↑', 32, 34);
+      const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+      const p = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false })); p.renderOrder = 12;
+      p.scale.set(0.7, 0.7, 1); p.position.set(x + 0.5, 1.6, y + 0.5); p.userData = { eigenMat: 1, tegel: [x, y] }; groep.add(p); trapPijlen.push(p);
+    }
   }
-  for (const [x, y] of trap) { const s = M.maakTrap(); s.position.set(x + 0.5, 0, y + 0.5); groep.add(s); }
   // een paar tonnen en banieren tegen de muren (alleen versiering)
   const tegenMuur = vloer.filter(([x, y]) => G.map[y][x] == '.' && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => G.map[y + dy] && G.map[y + dy][x + dx] == '#'));
   for (let i = 0; i < 10 && tegenMuur.length; i++) {
@@ -155,9 +168,10 @@ function bouwWereld() {
   tekenGrond(); kaartVersie = G.mapVersie;
   // licht en lucht: buiten zonnig, in de mijnen warm en schemerig (maar niet eng)
   const kerker = !!G.L.dungeon;
-  scene.background.set(kerker ? '#1d1712' : '#9fd3f0'); scene.fog.color.set(kerker ? '#1d1712' : '#9fd3f0');
+  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : '#9fd3f0'; // de toren van Morvan: paars en geheimzinnig
+  scene.background.set(lucht); scene.fog.color.set(lucht);
   scene.fog.near = kerker ? 22 : 28; scene.fog.far = kerker ? 48 : 60;
-  hemel.color.set(kerker ? '#ffe2b8' : '#dff1ff'); hemel.groundColor.set(kerker ? '#4a3626' : '#56703a'); hemel.intensity = kerker ? 1.25 : 1.6;
+  hemel.color.set(toren ? '#ead8ff' : kerker ? '#ffe2b8' : '#dff1ff'); hemel.groundColor.set(toren ? '#3a2a4a' : kerker ? '#4a3626' : '#56703a'); hemel.intensity = kerker ? 1.25 : 1.6;
   zon.intensity = kerker ? 1.1 : 2.4;
   const rand = new THREE.Mesh(new THREE.PlaneGeometry(220, 220).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: kerker ? '#241d18' : '#4b7a32' }));
   rand.position.set(MW / 2, -0.02, MH / 2); rand.receiveShadow = true; rand.userData = { eigenGeo: 1, eigenMat: 1 };
@@ -229,7 +243,7 @@ function bouwWereld() {
     mijnen.push({ key, goud: m.goud, bord, waarde: null });
   }
 
-  if (kerker) bouwKerker(wereld);
+  trapPijlen.length = 0; if (kerker) bouwKerker(wereld);
 
   // wolken boven onontdekt gebied (in de mijnen: donkere rook)
   const wpos = [];
@@ -237,7 +251,7 @@ function bouwWereld() {
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) wpos.push({ x, y, ox: (r2() - 0.5) * 0.4, oz: (r2() - 0.5) * 0.4, s: 1 + r2() * 0.5, h: 1.7 + r2() * 0.6, f: r2() * 6.28 });
   const wm = new THREE.InstancedMesh(M.wolk(), new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }), wpos.length);
   const kl = new THREE.Color();
-  wpos.forEach((w, i) => { kl.setHSL(kerker ? 0.07 : 0.6, kerker ? 0.12 : 0.15, kerker ? 0.16 + r2() * 0.05 : 0.9 + r2() * 0.1); wm.setColorAt(i, kl); });
+  wpos.forEach((w, i) => { kl.setHSL(kerker ? (G.L.tower ? 0.75 : 0.07) : 0.6, kerker ? 0.12 : 0.15, kerker ? 0.16 + r2() * 0.05 : 0.9 + r2() * 0.1); wm.setColorAt(i, kl); });
   wm.userData = { eigenGeo: 1, eigenMat: 1 };
   wereld.add(wm);
   const schaal = new Float32Array(wpos.length);
@@ -293,7 +307,7 @@ function syncMannetjes(nu) {
     if (!m) {
       m = M.maakMannetje(u.k, u.side, u.voice && u.voice.lang, u.rolstoel);
       m.g.scale.multiplyScalar(1.3);
-      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : u.k == 'orkbaas' ? 1.4 : 1.05; m.g.add(m.balk);
+      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : u.k == 'orkbaas' ? 1.4 : u.k == 'morvan' ? 2.0 : u.k == 'water' || u.k == 'watergeest' ? 1.3 : 1.05; m.g.add(m.balk);
       m.px = u.x; m.py = u.y; m.rot = u.side == 'o' ? 0 : Math.PI; m.loop = 0;
       m.g.rotation.y = m.rot;
       scene.add(m.g); uMesh.set(u.id, m);
@@ -324,6 +338,8 @@ function syncMannetjes(nu) {
     if (m.voertuig) { if (u.swing > 0) m.lijf.rotation.x = -Math.sin((12 - u.swing) / 12 * Math.PI) * 0.25; else m.lijf.rotation.x = 0; m.lijf.position.y = beweegt ? Math.abs(Math.sin(nu / 90)) * 0.02 : 0; }
     else if (m.kenney) animeer(m, u, beweegt, gekozen);
     else poppetje(m, u, beweegt);
+    if (m.p.vleugels) for (const v of m.p.vleugels) v.rotation.y = v.userData.vleugel * (0.5 + Math.sin(nu / 90 + u.id) * 0.45); // demon fladdert
+    if (u.k == 'water' || u.k == 'watergeest') m.g.position.y = 0.08 + Math.sin(nu / 300 + u.id) * 0.06; // waterwezens zweven
     if (m.p.hout) { m.p.hout.visible = u.carry == 'hout'; m.p.goud.visible = u.carry == 'goud'; }
     m.p.ring.visible = gekozen;
     m.gekozen = gekozen;
@@ -486,6 +502,7 @@ function zetBoom(i, m) {
 }
 
 function syncWereld(nu) {
+  for (const p of trapPijlen) p.visible = isExp(...p.userData.tegel) && G.state != 'tussen';
   // omgehakte bomen weghalen
   if (kaartVersie != G.mapVersie) {
     kaartVersie = G.mapVersie;
@@ -537,6 +554,7 @@ const ringGeo = new THREE.RingGeometry(0.2, 0.28, 24).rotateX(-Math.PI / 2);
 const deeltjeGeo = new THREE.BoxGeometry(0.08, 0.08, 0.08);
 const rookGeo = new THREE.IcosahedronGeometry(0.2, 1);
 const steenGeo = new THREE.DodecahedronGeometry(0.16, 0);
+const vuurGeo = new THREE.IcosahedronGeometry(0.13, 1), vuurMat = new THREE.MeshBasicMaterial({ color: 0xff8a2a });
 
 function syncEffecten() {
   const gezien = new Set();
@@ -549,6 +567,7 @@ function syncEffecten() {
       else if (f.rock) m = new THREE.Mesh(steenGeo, M.mat('#8d867b'));
       else if (f.rook) m = new THREE.Mesh(rookGeo, new THREE.MeshBasicMaterial({ color: 0x9be07a, transparent: true, opacity: 0.75, depthWrite: false }));
       else if (f.grave) m = M.kenneyKlaar() ? new THREE.Group() : M.maakGraf(f.grave); // Kenney-mannetjes vallen zelf om
+      else if (f.vuur || f.meteoor) m = new THREE.Mesh(vuurGeo, vuurMat);
       else m = new THREE.Mesh(deeltjeGeo, M.mat(f.c || '#7a6a5a'));
       fxMesh.set(f, m); scene.add(m);
     }
@@ -565,6 +584,12 @@ function syncEffecten() {
     } else if (f.rook) { // groen wolkje dat opstijgt en groter wordt
       const leeftijd = 1 - f.l / 70;
       m.position.set(wx(f.x) + leeftijd * 0.3, 0.9 + leeftijd * 1.4, wz(f.y)); m.scale.setScalar(0.8 + leeftijd * 2.6); m.material.opacity = 0.75 * (1 - leeftijd);
+    } else if (f.vuur) { // vuurbal van een tovenaar of van Morvan
+      const p = 1 - f.l / f.l0;
+      m.position.set(wx(f.x + (f.tx - f.x) * p), 0.7 + Math.sin(p * Math.PI) * 0.6, wz(f.y + (f.ty - f.y) * p)); m.scale.setScalar(0.9 + Math.sin(f.l * 1.3) * 0.25);
+    } else if (f.meteoor) { // vuurregen: valt schuin uit de lucht en spat uiteen
+      const p = 1 - f.l / f.l0;
+      m.position.set(wx(f.x) - (1 - p) * 1.5, Math.max(0.1, 5 * (1 - p)), wz(f.y)); m.scale.setScalar(p > 0.85 ? 2.4 : 1.3);
     } else if (f.grave) {
       m.position.set(wx(f.x), 0, wz(f.y)); m.visible = f.grave == 'h' || isExp(...tileOf(f));
       if (f.l < 20) m.scale.setScalar(f.l / 20);
@@ -714,12 +739,12 @@ let paneelSleutel = '';
 function tekenPaneel(forceer) {
   const sel = G.sel, b = G.selB, ws = sel.filter((u) => u.k == 'werker');
   const sleutel = JSON.stringify([G.multi, sel.map((u) => u.id), b && b.id, b && b.done, b && b.q, G.place && G.place.k, G.L && G.L.bouw.map((k) => canAfford(BLD[k].cost)),
-    ['werker', 'soldaat', 'boog', 'katapult', 'ridder', 'genezer'].map((k) => canAfford(UNIT[k].cost)), S.count('smederij'), S.count('houtzagerij'), G.saved]);
+    ['werker', 'soldaat', 'boog', 'katapult', 'ridder', 'genezer'].map((k) => canAfford(UNIT[k].cost)), S.count('smederij'), S.count('houtzagerij'), G.saved, tovenaar() && Math.floor(tovenaar().mana / 5), !!G.cast]);
   if (!forceer && sleutel == paneelSleutel) return vulPaneel();
   paneelSleutel = sleutel;
   const p = $('paneel');
   let h = '';
-  const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters', ridder: 'ridders', genezer: 'genezers' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
+  const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters', ridder: 'ridders', genezer: 'genezers', magier: 'tovenaars', watergeest: 'waterwezens' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
   h += `<div class="kiesbalk">${G.L && G.L.dungeon ? '<button data-alle="groep">Hele groep</button>' : '<button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button>'}<button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
   if (sel.length == 1) {
     const u = sel[0], l = LAND[u.voice && u.voice.lang];
@@ -728,6 +753,11 @@ function tekenPaneel(forceer) {
   } else if (sel.length > 1) {
     const tel = {}; for (const u of sel) tel[u.k] = (tel[u.k] || 0) + 1;
     h += `<div class="kop"><b>${sel.length} gekozen</b></div><div class="groep">${Object.entries(tel).map(([k, n]) => `<button data-weg="${k}" title="Haal ze uit de keuze">${esc(meervoud(k, n))} <span>✕</span></button>`).join('')}</div>`;
+  }
+  const tov = tovenaar();
+  if (tov) { // tovenaar gekozen: toverspreuken met toverkracht
+    h += `<div class="kop"><b>Toverkracht</b><span>${Math.floor(tov.mana)}/100</span></div><div class="hp"><div style="width:${tov.mana}%;background:#6ab0ff"></div></div>`;
+    h += `<div class="knoppen"><button data-tover="vuur" class="${tov.mana >= 80 ? '' : 'duur'} ${G.cast ? 'actief' : ''}">🔥 Vuurregen<span class="prijs">80 toverkracht</span></button><button data-tover="water" class="${tov.mana >= 60 ? '' : 'duur'}">💧 Waterwezen<span class="prijs">60 toverkracht</span></button></div>`;
   }
   if (ws.length && G.L) {
     h += '<div class="knoppen">' + G.L.bouw.map((k) => `<button data-bouw="${k}" class="${canAfford(BLD[k].cost) ? '' : 'duur'} ${G.place && G.place.k == k ? 'actief' : ''}">Bouw ${esc(BLD[k].n.toLowerCase())}${prijs(BLD[k].cost)}</button>`).join('') + '</div>';
@@ -747,6 +777,7 @@ function tekenPaneel(forceer) {
   p.querySelector('[data-meer]').onclick = () => { G.multi = !G.multi; sClick(); if (G.multi) { G.msg = isTouch ? 'Tik op meer mannetjes om ze toe te voegen of weg te halen.' : 'Klik op meer mannetjes om ze toe te voegen of weg te halen (of houd Ctrl ingedrukt).'; G.msgT = 200; } tekenPaneel(true); };
   const los = p.querySelector('[data-los]'); if (los) los.onclick = () => { stopKeuze(); sClick(); tekenPaneel(true); };
   p.querySelectorAll('[data-weg]').forEach((el) => el.onclick = () => { haalWeg(el.dataset.weg); tekenPaneel(true); });
+  p.querySelectorAll('[data-tover]').forEach((el) => el.onclick = () => { unlock(); if (el.dataset.tover == 'vuur') vuurregen(); else roepWater(); tekenPaneel(true); });
   p.querySelectorAll('[data-bouw]').forEach((el) => el.onclick = () => { unlock(); startPlace(el.dataset.bouw, isTouch); tekenPaneel(true); });
   p.querySelectorAll('[data-train]').forEach((el) => el.onclick = () => { unlock(); if (G.selB) train(G.selB, el.dataset.train); tekenPaneel(true); });
   vulPaneel();
@@ -905,7 +936,7 @@ document.querySelector('.terug').addEventListener('click', (e) => {
 });
 
 // ---------- de lus ----------
-let acc = 0, vorige = performance.now(), hudT = 0, eindGetoond = false;
+let acc = 0, vorige = performance.now(), hudT = 0, eindGetoond = false, laatsteSprong = null;
 function frame(nu) {
   requestAnimationFrame(frame);
   const echt = Math.min(250, nu - vorige), dt = Math.min(100, echt); vorige = nu;
@@ -919,6 +950,10 @@ function frame(nu) {
   if (G.state == 'spel') eindGetoond = false;
   if (G.state == 'tussen') Tussen.tik(echt / 1000);
   controls.autoRotate = G.state == 'titel';
+  if (G.trapSprong && G.trapSprong != laatsteSprong) { // de camera gaat mee de trap op
+    laatsteSprong = G.trapSprong; const d = camera.position.clone().sub(controls.target);
+    controls.target.set(G.trapSprong.x / T, 0, G.trapSprong.y / T); camera.position.copy(controls.target).add(d);
+  }
   camSchuif(); controls.update(); camBinnenKaart();
   syncWereld(nu); syncGebouwen(nu); syncMannetjes(nu); syncEffecten();
   const balkAan = !!(isTouch && G.place && G.place.x >= 0 && G.state == 'spel'); // knoppen ✔/✕ tijdens het bouwen op een aanraakscherm

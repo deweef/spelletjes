@@ -15,6 +15,11 @@ export const UNIT = {
   speerork: { n: 'Speerwerper', hp: 35, dmg: 6, rng: 110, cd: 75, spd: 0.9, sight: 5, side: 'o' },
   rover: { n: 'Rover', hp: 50, dmg: 7, rng: 22, cd: 55, spd: 1, sight: 4, side: 'o' },
   roverboog: { n: 'Roverschutter', hp: 35, dmg: 6, rng: 110, cd: 75, spd: 1, sight: 5, side: 'o' },
+  magier: { n: 'Tovenaar', hp: 40, dmg: 13, rng: 140, cd: 70, spd: 1, sight: 5, side: 'h', fire: 1 },
+  watergeest: { n: 'Waterwezen', hp: 90, dmg: 11, rng: 24, cd: 65, spd: 0.8, sight: 4, side: 'h' }, // door een tovenaar opgeroepen, verdwijnt na 45 s
+  demoon: { n: 'Demon', hp: 45, dmg: 8, rng: 22, cd: 45, spd: 1.25, sight: 5, side: 'o' },
+  water: { n: 'Waterwezen', hp: 90, dmg: 11, rng: 24, cd: 65, spd: 0.75, sight: 4, side: 'o' },
+  morvan: { n: 'Morvan', hp: 420, dmg: 15, rng: 150, cd: 85, spd: 0.8, sight: 6, side: 'o', fire: 1 },
 };
 
 export const BLD = {
@@ -445,7 +450,81 @@ export const LEVELS = [
     waves: { first: 5400, every: 4500, units: ['rover', 'rover', 'roverboog'] },
     win: (s) => s.gered() && s.camps() == 0 && s.orcs() == 0,
     procent: (s) => (s.gered() ? 30 : (1 - s.belegeraars() / Math.max(1, s.start().belegeraars)) * 25) + (1 - s.camps() / Math.max(1, s.start().camps)) * 60 + (s.camps() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 10 : 0),
+    tussen: { // het filmpje naar level 7: de monniken weten wie erachter zit
+      uitgang: [30, 18], duur: 24,
+      spreker: 'De monniken weten wie de rovers stuurde: de hoftovenaar Morvan! Hij zit in zijn toren.',
+      grappen: ['eekhoorn', 'plassen'],
+      begin: 'De rovers zijn verjaagd! De oudste monnik heeft nieuws…',
+      eind: 'Maar een klein groepje kwam bij de toren aan.',
+      kaart: [
+        'De hoftovenaar Morvan heeft de koning verraden: hij haalde de orks naar ons land.',
+        'Nu zit hij boven in zijn toren, bewaakt door demonen en waterwezens.',
+        'De koning stuurt twee tovenaars mee. Ze gooien vuurballen en kunnen toveren.',
+        'Klim met je groep de toren in en versla Morvan!',
+      ],
+    },
     voortgang: (s) => (s.gered() ? 'abdij <b>gered ✓</b> · roverkampen nog <b>' + s.camps() + '</b>' + (s.camps() == 0 ? ` · rovers nog <b>${s.orcs()}</b>` : '') : `verjaag de rovers bij de abdij: nog <b>${s.belegeraars()}</b>`),
+  },
+  {
+    naam: 'De toren van Morvan', dungeon: 1, tower: 1, camAt: [5, 27],
+    brief: [
+      'De hoftovenaar Morvan heeft de koning verraden.',
+      'Hij heeft de orks naar ons land gehaald en zit nu boven in zijn toren, bewaakt door demonen en waterwezens.',
+      'Trek met je groep de toren in. Elke verdieping heeft een trap omhoog (↑).',
+      'Je tovenaars gooien vuurballen, en met toverkracht roepen ze een vuurregen of een waterwezen op.',
+      'De genezer houdt iedereen in leven.',
+      'Versla Morvan op de bovenste verdieping!',
+    ],
+    doel: 'Klim naar de top van de toren en versla Morvan',
+    goud: 0, hout: 0, bouw: [],
+    map: [
+      '##############################',
+      '#...........#................#',
+      '#...........#................#',
+      '#...........#...#.....#......#',
+      '#............................#',
+      '#............................#',
+      '#...........#................#',
+      '#...............#.....t......#',
+      '#............................#',
+      '#............................#',
+      '##############################',
+      '#t#########t#####t####t#######',
+      '#........#..........#........#',
+      '#.U......#..........#........#',
+      '#........#...................#',
+      '#............................#',
+      '#...................#........#',
+      '#........#..##tt##..#........#',
+      '#............................#',
+      '#............................#',
+      '#............................#',
+      '##############################',
+      '##############t#########t##t##',
+      '#............................#',
+      '#.............#............U.#',
+      '#.............#..............#',
+      '#............................#',
+      '#.....t###..t#t###..####.....#',
+      '#............................#',
+      '#............................#',
+      '#.............#..............#',
+      '#.............t..............#',
+      '#............................#',
+      '##############################',
+    ],
+    // trappen: wie op een trap (U) komt, staat meteen op de volgende verdieping. Verdieping 1 = onderste stuk van de kaart
+    stairs: [{ from: [27, 24], to: [26, 19], naar: 2 }, { from: [2, 13], to: [3, 8], naar: 3 }],
+    floors: [22, 11, 0], // bovenste rij van verdieping 1, 2 en 3
+    b: [],
+    u: [['soldaat', 3, 29], ['soldaat', 4, 29], ['soldaat', 3, 30], ['soldaat', 4, 30], ['boog', 5, 29], ['boog', 5, 30], ['genezer', 2, 31], ['magier', 3, 31], ['magier', 4, 31]],
+    o: [['demoon', 12, 24], ['demoon', 13, 30], ['water', 20, 29], ['demoon', 22, 25], ['water', 25, 31],
+      ['demoon', 22, 18], ['demoon', 15, 19], ['water', 14, 14], ['demoon', 11, 13], ['water', 5, 16], ['demoon', 3, 18],
+      ['demoon', 8, 4], ['water', 10, 7], ['demoon', 14, 3], ['water', 19, 5], ['morvan', 25, 5]],
+    huts: [],
+    win: (s) => !s.morvan(),
+    procent: (s) => Math.min(90, (s.verdieping() - 1) * 30 + (s.verdieping() == 3 && s.morvan() ? (1 - s.morvan().hp / s.morvan().max) * 30 : 0)),
+    voortgang: (s) => `verdieping <b>${s.verdieping()}/3</b>` + (s.verdieping() == 3 && s.morvan() ? ` · Morvan <b>${Math.max(0, Math.round(s.morvan().hp / s.morvan().max * 100))}%</b>` : ' · zoek de trap omhoog (↑)'),
   },
 ];
 
@@ -459,4 +538,4 @@ export const LAND = {
 };
 
 // Levels uit de 2D-versie die nog naar 3D moeten
-export const BINNENKORT = ['De toren van Morvan'];
+export const BINNENKORT = ['Het Zwarte Moeras'];

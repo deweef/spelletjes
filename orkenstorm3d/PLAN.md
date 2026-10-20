@@ -11,7 +11,7 @@ Volgorde van bouwen:
   moeilijkheid per naam.
 - Beperking: per toestel; delen tussen toestellen (overzetcode of online opslag) is voor later.
 
-## 2. Tussenstukjes tussen de levels — 1 → 2 t/m 5 → 6 KLAAR
+## 2. Tussenstukjes tussen de levels — 1 → 2 t/m 6 → 7 KLAAR
 - Na het winnen een filmpje van 20-30 seconden in de 3D-wereld van het gewonnen level, met knop "Overslaan".
 - Nodig: tekstwolkjes boven mannetjes en een script dat mannetjes laat lopen en praten.
 - Een groepje van de eigen mannetjes van de speler loopt naar de rand van de kaart. Onderweg grappige
@@ -43,4 +43,6 @@ Volgorde van bouwen:
 ## 4. Level 5 "Het Woud van Wilgendaal" — KLAAR, met tussenstukje 4 → 5 en ridder, stal, orkentoren, orkenbaas.
 
 ## 5. Level 6 "De belegerde abdij" — KLAAR, met tussenstukje 5 → 6 (bode), abdij, rovers en roverkampen.
-   Volgende: level 7 "De toren van Morvan" (tovenaars, demonen, waterwezens, trappen tussen verdiepingen).
+
+## 6. Level 7 "De toren van Morvan" — KLAAR, met tussenstukje 6 → 7, tovenaars (vuurregen, waterwezen), demonen, waterwezens, Morvan.
+   Volgende: level 8 "Het Zwarte Moeras" (moeras: half zo snel, wegen: sneller).

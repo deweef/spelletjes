@@ -40,6 +40,8 @@ export const S = {
   camps: () => G.blds.filter((b) => b.k == 'roverkamp').length,
   gered: () => G.saved, // level 6: de rovers bij de abdij zijn verjaagd
   belegeraars: () => G.units.filter((u) => u.siege).length,
+  morvan: () => G.units.find((u) => u.k == 'morvan'),
+  verdieping: () => Math.max(1, ...G.units.filter((u) => u.side == 'h' && u.k != 'watergeest').map((u) => verdieping(u))), // level 7: de hoogste verdieping waar iemand van jou is
   start: () => G.start || {},
   // voor de voortgang in procenten (level 4): hoe dicht je bij Sir Lodewijk bent, en hij bij de trap
   naarHeld: () => {
@@ -63,6 +65,15 @@ export const S = {
   }),
 };
 
+// Level 7 (de toren): de kaart heeft drie verdiepingen onder elkaar; mannetjes vechten alleen op hun eigen verdieping
+export function verdieping(o) {
+  const fl = G.L && G.L.floors; if (!fl) return 1;
+  const y = o.w ? o.y : o.y / T;
+  for (let i = 0; i < fl.length; i++) if (y >= fl[i]) return i + 1;
+  return fl.length;
+}
+const zelfde = (a, b) => !G.L.tower || verdieping(a) == verdieping(b);
+
 export function loadLevel(i) {
   const L = LEVELS[i];
   G.lvl = i; G.L = L; G.MH = L.map.length; G.MW = L.map[0].length;
@@ -73,7 +84,7 @@ export function loadLevel(i) {
   }
   G.mineMax = { ...G.mineG }; G.bijnaLeeg = {};
   const D = DIFF[G.diff];
-  G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false; G.tussen = false;
+  G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false; G.tussen = false; G.regens = []; G.cast = null; G.trapSprong = null;
   nieuweZak();
   G.res = { goud: Math.round(L.goud * D.res / 10) * 10, hout: Math.round(L.hout * D.res / 10) * 10 };
   G.t = 0; G.waveN = 0; G.nextWave = L.waves ? Math.round(L.waves.first * D.wave) : 0; G.paused = false;
@@ -103,7 +114,8 @@ function addUnit(k, tx, ty) {
   const d = UNIT[k], hm = d.side == 'o' ? DIFF[G.diff].hp : 1;
   const u = { id: G.uid++, voice: d.side == 'h' ? nieuweStem(k) : null, k, side: d.side, x: tx * T + T / 2, y: ty * T + T / 2,
     hp: Math.round(d.hp * hm), max: Math.round(d.hp * hm), st: 'idle', path: null, cd: 0, carry: null, swing: 0 };
-  if (d.side == 'h' && k != 'genezer' && k != 'held' && k != 'ridder' && Math.random() < 1 / 6) u.rolstoel = true; // af en toe rijdt er iemand in een rolstoel
+  if (d.side == 'h' && k != 'genezer' && k != 'held' && k != 'ridder' && k != 'watergeest' && Math.random() < 1 / 6) u.rolstoel = true;
+  if (k == 'magier') u.mana = 50; // toverkracht, groeit langzaam tot 100 // af en toe rijdt er iemand in een rolstoel
   G.units.push(u); return u;
 }
 
@@ -203,8 +215,8 @@ function alive(o) { return o.w ? G.blds.includes(o) : G.units.includes(o); }
 function damage(tg, n, by) {
   if (by && by.side == 'o') n *= DIFF[G.diff].dmg;
   tg.hp -= n;
-  if (tg.side == 'o' && by && G.units.includes(by)) { for (const o of G.units) if (o.side == 'o' && o.st != 'attack' && dist(o, tg) < 4 * T) cmdAttack(o, by); }
-  if (tg.side == 'h' && by && G.units.includes(by)) { const c = tg.w ? center(tg) : tg; for (const u of G.units) if (u.side == 'h' && u.k != 'werker' && u.st == 'idle' && dist(u, c) < 10 * T) cmdAttack(u, by); }
+  if (tg.side == 'o' && by && G.units.includes(by)) { for (const o of G.units) if (o.side == 'o' && o.st != 'attack' && dist(o, tg) < 4 * T && zelfde(o, by)) cmdAttack(o, by); }
+  if (tg.side == 'h' && by && G.units.includes(by)) { const c = tg.w ? center(tg) : tg; for (const u of G.units) if (u.side == 'h' && u.k != 'werker' && u.st == 'idle' && dist(u, c) < 10 * T && zelfde(u, by)) cmdAttack(u, by); }
   if (tg.side == 'h' && G.t - G.lastAlert > 600) { G.lastAlert = G.t; sHorn(); say(G.L.dungeon ? 'Je groep wordt aangevallen!' : G.L.keep ? 'De abdij wordt aangevallen!' : 'Je dorp wordt aangevallen!', 150); }
   if (tg.w) {
     if (tg.hp <= 0) {
@@ -218,6 +230,38 @@ function damage(tg, n, by) {
     G.units.splice(G.units.indexOf(tg), 1); G.sel = G.sel.filter((s) => s != tg);
     G.fx.push({ x: tg.x, y: tg.y, l: 90, grave: tg.side }); noise(0.2, 0.06, 500);
   }
+}
+
+// Trap omhoog: wie erop stapt, staat meteen op de volgende verdieping (een beetje naast elkaar)
+function trap(u) {
+  if (u.tp > 0) { u.tp--; return; }
+  const [tx, ty] = tileOf(u), st = G.L.stairs.find((q) => q.from[0] == tx && q.from[1] == ty);
+  if (!st) return;
+  const n = G.units.filter((o) => o.side == 'h' && tileOf(o)[0] <= st.to[0] && tileOf(o)[0] >= st.to[0] - 2 && Math.abs(tileOf(o)[1] - st.to[1]) < 2).length;
+  let ax = st.to[0] - (n % 3), ay = st.to[1] - Math.floor(n / 3) % 2;
+  if (blocked(ax, ay)) { ax = st.to[0]; ay = st.to[1]; }
+  u.x = ax * T + T / 2; u.y = ay * T + T / 2; u.path = null; u.st = 'idle'; u.tg = null; u.tp = 60;
+  snd(660, 0.12, 'triangle', 0.05, 990);
+  if (G.t - (G.trapMelding || -999) > 60) { G.trapMelding = G.t; say('Verdieping ' + st.naar + '!', 120); }
+  if (G.sel.includes(u)) G.trapSprong = { x: u.x, y: u.y, t: G.t }; // de camera gaat mee naar boven
+}
+
+// Tovenaar: vuurregen (80 toverkracht, je kiest daarna een plek) en een waterwezen oproepen (60)
+export function tovenaar() { return G.sel.filter((u) => u.k == 'magier').sort((a, b) => b.mana - a.mana)[0]; }
+export function vuurregen() {
+  const m = tovenaar(); if (!m) return;
+  if (m.mana < 80) { say('Te weinig toverkracht (80 nodig).'); sNee(); return; }
+  G.cast = { spell: 'vuur', m }; G.place = null; sClick();
+  say('Klik op de plek waar de vuurregen moet vallen.', 300);
+}
+export function roepWater() {
+  const m = tovenaar(); if (!m) return;
+  if (m.mana < 60) { say('Te weinig toverkracht (60 nodig).'); sNee(); return; }
+  m.mana -= 60;
+  const [mx, my] = tileOf(m), plek = [[1, 0], [-1, 0], [0, 1], [0, -1], [0, 0]].map(([dx, dy]) => [mx + dx, my + dy]).find(([x, y]) => !blocked(x, y));
+  const w = addUnit('watergeest', plek[0], plek[1]); w.ttl = 60 * 45; w.voice = null;
+  for (let i = 0; i < 14; i++) G.fx.push({ x: w.x + (Math.random() - 0.5) * 20, y: w.y, vx: (Math.random() - 0.5), vy: -1, h: 6, l: 30, c: '#9fd3ff' });
+  snd(300, 0.5, 'sine', 0.06, 700); say('Een waterwezen vecht 45 seconden met je mee!', 150);
 }
 
 // De gevangenis is kapot: vier werkers komen vrij
@@ -234,7 +278,7 @@ function bevrijd(b) {
 
 function nearestEnemy(u, range) {
   let best = null, bd = range;
-  for (const e of G.units) if (e.side != u.side && e.side != 'n') { const d = dist(u, e); if (d < bd && (u.side == 'o' || isExp(...tileOf(e)))) { bd = d; best = e; } }
+  for (const e of G.units) if (e.side != u.side && e.side != 'n' && zelfde(u, e)) { const d = dist(u, e); if (d < bd && (u.side == 'o' || isExp(...tileOf(e)))) { bd = d; best = e; } }
   for (const b of G.blds) if (b.side != u.side) { const d = targetDist(u, b); if (d < bd) { bd = d; best = b; } }
   return best;
 }
@@ -350,6 +394,13 @@ export function update() {
     const d = UNIT[u.k];
     if (u.cd > 0) u.cd--;
     if (u.deel > 0) u.deel--;
+    if (u.k == 'magier' && G.t % 20 == 0 && u.mana < 100) u.mana++;
+    if (u.ttl !== undefined && --u.ttl <= 0) { // het opgeroepen waterwezen lost op
+      G.units.splice(G.units.indexOf(u), 1); G.sel = G.sel.filter((s) => s != u);
+      for (let i = 0; i < 10; i++) G.fx.push({ x: u.x + (Math.random() - 0.5) * 16, y: u.y, vx: (Math.random() - 0.5), vy: -1, h: 6, l: 25, c: '#9fd3ff' });
+      continue;
+    }
+    if (G.L.stairs && u.side == 'h' && !G.tussen) trap(u);
     if (u.side == 'o') { if (!G.tussen) orcBrain(u); }
     else if (u.side == 'n') { gevangenRidder(u); continue; }
     else if (u.k == 'werker' && land(u) == 'it') pizzaPauze(u);
@@ -373,7 +424,8 @@ export function update() {
             const geraakt = [...G.units.filter((e) => e.side != u.side && e.side != 'n' && Math.hypot(e.x - tx, e.y - ty) < 36), ...G.blds.filter((b) => b.side != u.side && targetDist({ x: tx, y: ty }, b) < 36)];
             for (const e of geraakt) if (e.hp > 0) damage(e, d.dmg * (e.w ? d.bld || 1 : 1), u);
           } else {
-            if (d.rng > 40) { G.fx.push({ x: u.x, y: u.y, tx, ty, l: 12, arrow: 1 }); sArrow(); } else sHit();
+            if (d.fire) { G.fx.push({ x: u.x, y: u.y, tx, ty, l: 16, l0: 16, vuur: 1 }); snd(220, 0.25, 'sawtooth', 0.04, 90); }
+            else if (d.rng > 40) { G.fx.push({ x: u.x, y: u.y, tx, ty, l: 12, arrow: 1 }); sArrow(); } else sHit();
             damage(tg, d.dmg, u);
           }
         }
@@ -417,11 +469,33 @@ export function update() {
     }
     sHorn(); say((soort ? 'De rovers vallen aan!' : 'De orks vallen aan!') + ' (golf ' + G.waveN + ')', 180);
   }
+  if (L.tower && G.t % 900 == 0) { // Morvan roept demonen op als je dichtbij komt
+    const m = S.morvan();
+    if (m && G.units.some((h) => h.side == 'h' && dist(h, m) < 9 * T && zelfde(h, m)) && G.units.filter((o) => o.k == 'demoon').length < 7) {
+      for (let i = 0; i < 2; i++) {
+        const [mx, my] = tileOf(m), x = blocked(mx - 1 - i, my + 1) ? mx : mx - 1 - i, y = blocked(x, my + 1) ? my : my + 1;
+        const dm = addUnit('demoon', x, y); dm.home = { x: dm.x, y: dm.y };
+        for (let k = 0; k < 10; k++) G.fx.push({ x: dm.x + (Math.random() - 0.5) * 20, y: dm.y, vx: (Math.random() - 0.5), vy: -1, h: 8, l: 30, c: '#c86bff' });
+      }
+      say('Morvan roept demonen op!', 120); snd(200, 0.5, 'sawtooth', 0.06, 90);
+    }
+  }
+  for (const rn of G.regens) { // vuurregen: elke paar tellen een vuurbal uit de lucht
+    rn.t--;
+    if (rn.t % 12 == 0) {
+      const ax = rn.x + (Math.random() - 0.5) * 90, ay = rn.y + (Math.random() - 0.5) * 90;
+      G.fx.push({ x: ax, y: ay, l: 18, l0: 18, meteoor: 1 });
+      for (const e of [...G.units.filter((e) => e.side == 'o' && Math.hypot(e.x - ax, e.y - ay) < 30), ...G.blds.filter((b) => b.side == 'o' && targetDist({ x: ax, y: ay }, b) < 20)]) if (e.hp > 0) damage(e, 12, null);
+      noise(0.15, 0.05, 500);
+    }
+  }
+  G.regens = G.regens.filter((r) => r.t > 0);
   for (const f of G.fx) { f.l--; if (f.vx !== undefined) { f.x += f.vx; f.h -= f.vy; f.vy += 0.05; } }
   G.fx = G.fx.filter((f) => f.l > 0);
   if (G.msgT > 0) G.msgT--;
   // winst en verlies
-  if (L.dungeon) {
+  if (L.tower) { if (!G.units.some((u) => u.side == 'h' && u.k != 'watergeest')) { G.lostMsg = 'Je hele groep is verslagen...'; G.state = 'verloren'; sHorn(); return; } }
+  else if (L.dungeon) {
     const h = G.units.find((u) => u.k == 'held');
     if (!h) { G.lostMsg = 'Sir Lodewijk is gesneuveld...'; G.state = 'verloren'; sHorn(); return; }
     if (!G.units.some((u) => u.side == 'h' && u.k != 'held') && h.side == 'n') { G.lostMsg = 'Je hele groep is verslagen...'; G.state = 'verloren'; sHorn(); return; }
@@ -600,7 +674,7 @@ export function bouwHier() {
   const d = BLD[G.place.k];
   klik({ gx: G.place.x + Math.floor((d.w - 1) / 2), gy: G.place.y + Math.floor((d.h - 1) / 2), touch: true });
 }
-export function stopKeuze() { G.place = null; G.sel = []; G.selB = null; G.multi = false; }
+export function stopKeuze() { G.cast = null; G.place = null; G.sel = []; G.selB = null; G.multi = false; }
 
 // knoppen "Alle werkers" en "Alle soldaten"
 export function kiesAlle(soldaten) {
@@ -640,6 +714,14 @@ export function klik(p) {
   if (G.state != 'spel' || G.paused) return;
   const { gx, gy } = p;
   const wx = gx * T + T / 2, wy = gy * T + T / 2;
+  if (G.cast) { // vuurregen: waar moet hij vallen?
+    const m = G.cast.m; G.cast = null;
+    if (gx < 0 || !G.units.includes(m) || m.mana < 80) return;
+    if (!isExp(gx, gy)) { say('Daar kun je niet zien: kies een plek die je hebt ontdekt.'); sNee(); return; }
+    if (Math.hypot(wx - m.x, wy - m.y) > 9 * T) { say('Te ver weg voor de tovenaar (maximaal 9 vakjes).'); sNee(); return; }
+    m.mana -= 80; G.regens.push({ x: wx, y: wy, t: 180 }); snd(120, 0.8, 'sawtooth', 0.06, 60); say('Vuurregen!', 90);
+    return;
+  }
   if (G.place) {
     if (gx < 0) return;
     const d = BLD[G.place.k];
