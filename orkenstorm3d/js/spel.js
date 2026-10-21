@@ -99,7 +99,7 @@ export function loadLevel(i) {
   for (const [k, x, y] of L.u) addUnit(k, x, y);
   for (const [k, x, y, f] of L.o) { const u = addUnit(k, x, y); u.home = { x: u.x, y: u.y }; if (f == 'raid') { u.raid = 1; u.st = 'raid'; u.siege = 1; } } // siege: belegert de abdij
   if (L.held) { const h = addUnit('held', L.held[0], L.held[1]); h.side = 'n'; h.hp = 35; h.captive = 1; h.rolstoel = false; h.voice = { lang: 'nl', pitch: 0.6 }; }
-  G.start = { huts: L.huts.length, orcs: L.o.length, camps: (L.camps || []).length, belegeraars: L.o.filter((o) => o[3] == 'raid').length }; G.beste = 0; // voor het scorebord: hoe ver je komt
+  G.start = { huts: L.huts.length, towers: (L.otowers || []).length, orcs: L.o.length, camps: (L.camps || []).length, belegeraars: L.o.filter((o) => o[3] == 'raid').length }; G.beste = 0; // voor het scorebord: hoe ver je komt
   G.lostMsg = ''; reveal(); G.state = 'brief'; G.msg = ''; G.msgT = 0;
   G.levelVersie++; G.mapVersie++;
 }
@@ -139,7 +139,7 @@ export function blocked(x, y) {
   const c = G.map[y][x];
   if (c == 'W' || c == 'M' || c == '#' || c == 't') return true;
   if (c == 'T' && G.trees[x + ',' + y] > 0) return true;
-  return !!bldAt(x, y);
+  const b = bldAt(x, y); return !!b && b.k != 'weg'; // over een weg in aanbouw kun je gewoon lopen
 }
 export function bldAt(x, y) { return G.blds.find((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h); }
 
@@ -189,7 +189,9 @@ function goTo(u, goals) {
 }
 function moveAlong(u) {
   if (!u.path || !u.path.length) return true;
-  const [tx, ty] = u.path[0], gx = tx * T + T / 2, gy = ty * T + T / 2, dx = gx - u.x, dy = gy - u.y, d = Math.hypot(dx, dy), sp = UNIT[u.k].spd * (u.tempo || 1);
+  const [tx, ty] = u.path[0], gx = tx * T + T / 2, gy = ty * T + T / 2, dx = gx - u.x, dy = gy - u.y, d = Math.hypot(dx, dy);
+  const onder = G.map[Math.floor(u.y / T)] && G.map[Math.floor(u.y / T)][Math.floor(u.x / T)]; // moeras: half zo snel, weg: sneller
+  const sp = UNIT[u.k].spd * (u.tempo || 1) * (onder == 'r' ? 1.45 : onder == 'm' ? 0.55 : 1);
   if (blocked(tx, ty) && u.path.length > 1) { u.path = null; return false; }
   if (d <= sp) { u.x = gx; u.y = gy; u.path.shift(); return !u.path.length; }
   u.x += dx / d * sp; u.y += dy / d * sp; return false;
@@ -279,7 +281,7 @@ function bevrijd(b) {
 function nearestEnemy(u, range) {
   let best = null, bd = range;
   for (const e of G.units) if (e.side != u.side && e.side != 'n' && zelfde(u, e)) { const d = dist(u, e); if (d < bd && (u.side == 'o' || isExp(...tileOf(e)))) { bd = d; best = e; } }
-  for (const b of G.blds) if (b.side != u.side) { const d = targetDist(u, b); if (d < bd) { bd = d; best = b; } }
+  for (const b of G.blds) if (b.side != u.side && b.k != 'weg') { const d = targetDist(u, b); if (d < bd) { bd = d; best = b; } }
   return best;
 }
 function attackGoals(tg) { if (tg.w) return ringAround(tg.x, tg.y, tg.w, tg.h); const [x, y] = tileOf(tg); return new Set([x + ',' + y]); }
@@ -549,6 +551,9 @@ function workerBrain(u) {
     const tempo = land(u) == 'de' ? 1.3 : 1;
     b.prog += tempo / BLD[b.k].time; b.hp = Math.min(b.max, b.hp + tempo * b.max / BLD[b.k].time);
     if (G.t % 30 == 0) { u.swing = 12; sBuild(); }
+    if (b.prog >= 1 && b.k == 'weg') { // een stukje weg wordt deel van de kaart
+      G.map[b.y][b.x] = 'r'; G.mapVersie++; G.blds.splice(G.blds.indexOf(b), 1); snd(500, 0.06, 'triangle', 0.03); nextBuild(u); return;
+    }
     if (b.prog >= 1) { b.done = true; b.hp = b.max; sDone(); say(BLD[b.k].n + ' is klaar!', 100); if (land(u) == 'de' && Math.random() < 0.5) setTimeout(() => unitSay(u, 'extra'), 700); nextBuild(u); }
     return;
   }
@@ -645,7 +650,9 @@ export function startPlace(k, touch) {
 export function canPlace(k, x, y) {
   const d = BLD[k];
   for (let j = y; j < y + d.h; j++) for (let i = x; i < x + d.w; i++) {
-    if (!isExp(i, j) || blocked(i, j) || G.map[j][i] == '=') return false;
+    if (!isExp(i, j) || blocked(i, j) || bldAt(i, j) || G.map[j][i] == '=') return false;
+    const c = G.map[j][i];
+    if (k == 'weg' ? !'.ms'.includes(c) : c == 'm') return false; // in het moeras kun je alleen wegen bouwen
     if (G.units.some((u) => u.side == 'o' && tileOf(u)[0] == i && tileOf(u)[1] == j)) return false;
   }
   return true;
@@ -727,7 +734,8 @@ export function klik(p) {
     const d = BLD[G.place.k];
     let bx = gx - Math.floor((d.w - 1) / 2), by = gy - Math.floor((d.h - 1) / 2);
     const onGhost = G.place.x >= 0 && gx >= G.place.x && gx < G.place.x + d.w && gy >= G.place.y && gy < G.place.y + d.h;
-    const los = G.place.k == 'muur' && !p.touch; // met de muis zet je muurstukken met één klik neer; op een aanraakscherm ook met schaduw
+    const reeks = G.place.k == 'muur' || G.place.k == 'weg'; // muur en weg: stukje voor stukje
+    const los = reeks && !p.touch; // met de muis zet je muurstukken met één klik neer; op een aanraakscherm ook met schaduw
     if (p.touch && !onGhost && !los) {
       G.place.x = bx; G.place.y = by;
       say(canPlace(G.place.k, bx, by) ? 'Tik op ✔ Bouw hier of nog een keer op de schaduw om te bouwen.' : 'Daar kan het niet: kies een vrije plek die je al ontdekt hebt.', 240);
@@ -740,12 +748,12 @@ export function klik(p) {
     const ws = G.sel.filter((u) => u.k == 'werker');
     for (const w of ws) assignBuild(w, b);
     const queued = ws.some((w) => w.bq && w.bq.includes(b));
-    if (G.place.k == 'muur' && canAfford(d.cost)) { // muur: meteen door met het volgende stuk
+    if (reeks && canAfford(d.cost)) { // muur of weg: meteen door met het volgende stuk
       // op een aanraakscherm schuift de schaduw een vakje verder, in dezelfde richting als het vorige stuk
       const v = G.vorigeMuur, nx = v && Math.abs(bx - v.x) + Math.abs(by - v.y) == 1 ? [bx - v.x, by - v.y] : (G.muurRichting || [1, 0]);
       G.muurRichting = nx; G.vorigeMuur = { x: bx, y: by };
-      G.place = p.touch ? { k: 'muur', x: bx + nx[0], y: by + nx[1] } : { k: 'muur', x: -1, y: -1 }; sBuild();
-      say(p.touch ? 'Het volgende stuk staat klaar: sleep het en tik op ✔. Klaar? Tik op ✕.' : 'Klik op meer plekken voor muurstukken. Escape of rechts klikken = klaar.', 200);
+      G.place = p.touch ? { k: G.place.k, x: bx + nx[0], y: by + nx[1] } : { k: G.place.k, x: -1, y: -1 }; sBuild();
+      say(p.touch ? 'Het volgende stuk staat klaar: sleep het en tik op ✔. Klaar? Tik op ✕.' : 'Klik op meer plekken voor ' + (G.place.k == 'weg' ? 'stukjes weg' : 'muurstukken') + '. Escape of rechts klikken = klaar.', 200);
       return;
     }
     G.place = null;

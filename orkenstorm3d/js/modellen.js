@@ -409,6 +409,7 @@ const MODEL = {
     return g;
   },
   muur() { return doos(1, 0.9, 1, STEEN, 0, 0.45, 0); },
+  weg() { const g = new THREE.Group(); g.add(doos(0.9, 0.05, 0.9, '#b8955c', 0, 0.03, 0)); for (const x of [-0.25, 0.05, 0.3]) g.add(doos(0.22, 0.06, 0.8, '#8b6a40', x, 0.05, 0)); return g; }, // weg in aanbouw: planken
   smederij() { const g = new THREE.Group(); g.add(doos(1.2, 0.7, 1.0, '#8a7a6a', -0.2, 0.35, -0.2)); g.add(dak(1.3, 0.4, 1.1, '#5a4a3a', -0.2, 0.7, -0.2)); g.add(doos(0.3, 0.3, 0.2, '#6b6a65', 0.5, 0.15, 0.5)); return g; },
   houtzagerij() { const g = new THREE.Group(); g.add(doos(1.2, 0.6, 1.0, '#b08a5a', -0.2, 0.3, -0.2)); g.add(dak(1.3, 0.4, 1.1, '#7a5230', -0.2, 0.6, -0.2)); for (let i = 0; i < 3; i++) { const c = cil(0.1, 0.1, 0.8, HOUT, 0.55, 0.1 + i * 0.2, 0.4, 7); c.rotation.x = Math.PI / 2; g.add(c); } return g; },
   stal() {
@@ -649,21 +650,21 @@ export function maakBrug(midden) {
   for (const x of [-0.42, 0.42]) g.add(doos(0.05, 0.25, 1.0, '#6b4226', x, 0.15, 0));
   return g;
 }
-const modelVoor = (k, w, h) => (K.klaar && BOUW[k] ? BOUW[k]() : MODEL[k] ? MODEL[k]() : doos(w * 0.8, 1, h * 0.8, STEEN, 0, 0.5, 0));
+const modelVoor = (k, w, h) => (k == 'weg' ? MODEL.weg() : K.klaar && BOUW[k] ? BOUW[k]() : MODEL[k] ? MODEL[k]() : doos(w * 0.8, 1, h * 0.8, STEEN, 0, 0.5, 0));
 
 export function maakGebouw(k, w, h) {
   const g = new THREE.Group();
   const model = modelVoor(k, w, h);
   g.add(model);
   const steiger = new THREE.Group();
-  if (K.klaar) { // houten stutten van Kenney langs voor- en achterkant
+  if (k == 'weg') { /* een weg heeft geen steigers */ } else if (K.klaar) { // houten stutten van Kenney langs voor- en achterkant
     for (const z of [-1, 1]) for (let x = -(w - 1) / 2; x <= (w - 1) / 2; x++) zetIn(steiger, 'dungeon/wood-support', x, 0, z * (h / 2 - 0.15), 0, 0.95);
   } else for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) steiger.add(cil(0.035, 0.035, 1.3, '#c9a26b', x * (w / 2 - 0.15), 0.65, z * (h / 2 - 0.15), 5));
-  if (!K.klaar) for (const y of [0.45, 1.0]) {
+  if (!K.klaar && k != 'weg') for (const y of [0.45, 1.0]) {
     steiger.add(doos(w - 0.2, 0.04, 0.08, '#c9a26b', 0, y, h / 2 - 0.15));
     steiger.add(doos(0.08, 0.04, h - 0.2, '#c9a26b', w / 2 - 0.15, y, 0));
   }
-  steiger.add(doos(w * 0.6, 0.06, h * 0.6, '#a07a4a', 0, 0.03, 0));
+  if (k != 'weg') steiger.add(doos(w * 0.6, 0.06, h * 0.6, '#a07a4a', 0, 0.03, 0));
   steiger.visible = false; g.add(steiger);
   const keus = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.2, h + 0.2).rotateX(-Math.PI / 2),
     new THREE.MeshBasicMaterial({ color: 0x7dff7a, transparent: true, opacity: 0.35, depthWrite: false }));

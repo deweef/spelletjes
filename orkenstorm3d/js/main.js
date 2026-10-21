@@ -82,13 +82,21 @@ function tekenGrond() {
     let kleur;
     if (G.L.tower) kleur = t == '#' || t == 't' ? '#28222e' : t == 'U' ? '#c9b27a' : (x + y) % 2 ? (v < 0.5 ? '#6e6878' : '#6a6474') : (v < 0.5 ? '#7a7484' : '#77717f'); // stenen tegelvloer
     else if (G.L.dungeon) kleur = t == '#' || t == 't' ? '#2d2520' : t == 'E' || t == 'U' ? '#c9b27a' : v < 0.33 ? '#7a6a58' : v < 0.66 ? '#74644f' : '#806f5c';
-    else if (t == 'W' || t == '=') kleur = '#3a7bbf';
+    else if (t == 'W' || t == '=') kleur = G.L.moeras ? '#3f6656' : '#3a7bbf';
     else if (t == 'M') kleur = '#8d8170';
     else if (t == 'T') kleur = v < 0.5 ? '#4d7a33' : '#517f36';
     else if (t == 's') kleur = '#7d6a45';
+    else if (t == 'm') kleur = v < 0.33 ? '#4a4a24' : v < 0.66 ? '#45461f' : '#504d28'; // moeras: donker en drassig
+    else if (t == 'r') kleur = (x + y) % 2 ? '#b8955c' : '#b08d55'; // weg
     else kleur = v < 0.33 ? '#6aa84f' : v < 0.66 ? '#70ad53' : '#66a34b';
     c.fillStyle = kleur; c.fillRect(x * S, y * S, S, S);
     if (G.L.dungeon) { if (t == '.' && v > 0.85) { c.fillStyle = '#5f5142'; c.fillRect(x * S + 3, y * S + 4, 4, 3); c.fillRect(x * S + 10, y * S + 9, 3, 3); } continue; }
+    if (t == 'm') { // plasjes en kroos in het moeras
+      if (v > 0.45) { c.fillStyle = 'rgba(70,100,70,.75)'; c.beginPath(); c.ellipse(x * S + 4 + (x * 7) % 8, y * S + 5 + (y * 5) % 7, 3.5, 2, 0, 0, 7); c.fill(); }
+      if (v < 0.2) { c.fillStyle = '#6f8a3a'; c.fillRect(x * S + 9, y * S + 3, 2, 2); c.fillRect(x * S + 3, y * S + 11, 2, 2); }
+      continue;
+    }
+    if (t == 'r') { c.fillStyle = '#9c7c48'; c.fillRect(x * S + 3, y * S + 6, 3, 2); c.fillRect(x * S + 10, y * S + 11, 3, 2); continue; }
     if (t == '.' && v > 0.8) { c.fillStyle = '#86c063'; c.fillRect(x * S + 4 + (v * 37 % 6), y * S + 5, 2, 3); c.fillRect(x * S + 9, y * S + 9 + (v * 51 % 4), 2, 3); }
     if (t == '.' && v < 0.04) { c.fillStyle = '#f4e27a'; c.fillRect(x * S + 7, y * S + 7, 2, 2); }
   }
@@ -168,9 +176,9 @@ function bouwWereld() {
   tekenGrond(); kaartVersie = G.mapVersie;
   // licht en lucht: buiten zonnig, in de mijnen warm en schemerig (maar niet eng)
   const kerker = !!G.L.dungeon;
-  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : '#9fd3f0'; // de toren van Morvan: paars en geheimzinnig
+  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : G.L.moeras ? '#a8bba0' : '#9fd3f0'; // moeras: grauw en nevelig // de toren van Morvan: paars en geheimzinnig
   scene.background.set(lucht); scene.fog.color.set(lucht);
-  scene.fog.near = kerker ? 22 : 28; scene.fog.far = kerker ? 48 : 60;
+  scene.fog.near = kerker ? 22 : G.L.moeras ? 20 : 28; scene.fog.far = kerker ? 48 : G.L.moeras ? 50 : 60;
   hemel.color.set(toren ? '#ead8ff' : kerker ? '#ffe2b8' : '#dff1ff'); hemel.groundColor.set(toren ? '#3a2a4a' : kerker ? '#4a3626' : '#56703a'); hemel.intensity = kerker ? 1.25 : 1.6;
   zon.intensity = kerker ? 1.1 : 2.4;
   const rand = new THREE.Mesh(new THREE.PlaneGeometry(220, 220).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: kerker ? '#241d18' : '#4b7a32' }));
@@ -188,7 +196,7 @@ function bouwWereld() {
   }
   if (waterTegels.length) {
     const water = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
-      new THREE.MeshLambertMaterial({ color: '#4a9be0', transparent: true, opacity: 0.85 }), waterTegels.length);
+      new THREE.MeshLambertMaterial({ color: G.L.moeras ? '#4f7f6a' : '#4a9be0', transparent: true, opacity: 0.85 }) /* moeras: troebel water */, waterTegels.length);
     const m4 = new THREE.Matrix4();
     waterTegels.forEach(([x, y], i) => { m4.makeTranslation(x + 0.5, 0.04, y + 0.5); water.setMatrixAt(i, m4); });
     water.userData = { eigenGeo: 1, eigenMat: 1, water: 1 };
@@ -244,6 +252,19 @@ function bouwWereld() {
   }
 
   trapPijlen.length = 0; if (kerker) bouwKerker(wereld);
+  if (G.L.moeras) { // lisdodden en riet op een deel van de moerastegels
+    const plekken = []; const rr = rnd(41);
+    for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'm' && rr() < 0.22) plekken.push([x + 0.2 + rr() * 0.6, y + 0.2 + rr() * 0.6, rr()]);
+    const n = plekken.length * 3, steel = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.015, 0.02, 1, 4), M.mat('#6f8a3a'), n), kop = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.035, 0.035, 0.14, 5), M.mat('#6b4226'), n);
+    const mm = new THREE.Matrix4(), q0 = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3(); let i = 0;
+    for (const [x, z, v] of plekken) for (let k = 0; k < 3; k++, i++) {
+      const hgt = 0.35 + ((v * 7 + k) % 1) * 0.3, px = x + (k - 1) * 0.08, pz = z + ((k * 0.37 + v) % 1 - 0.5) * 0.12;
+      q0.setFromAxisAngle(new THREE.Vector3(1, 0, 0.4).normalize(), (k - 1) * 0.15);
+      steel.setMatrixAt(i, mm.compose(pv.set(px, hgt / 2, pz), q0, sv.set(1, hgt, 1)));
+      kop.setMatrixAt(i, mm.compose(pv.set(px, hgt + 0.02, pz), q0, sv.set(1, 1, 1)));
+    }
+    for (const im of [steel, kop]) { im.userData = { eigenGeo: 1 }; im.castShadow = true; wereld.add(im); }
+  }
 
   // wolken boven onontdekt gebied (in de mijnen: donkere rook)
   const wpos = [];
@@ -420,7 +441,7 @@ function syncGebouwen(nu) {
       m = M.maakGebouw(b.k, b.w, b.h);
       m.g.position.set(b.x + b.w / 2, 0, b.y + b.h / 2);
       m.g.userData.pick = { bld: b };
-      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4, abdij: 3.6, roverkamp: 1.6 }[b.k] || 2.0; m.g.add(m.balk);
+      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4, abdij: 3.6, roverkamp: 1.6, weg: 0.6 }[b.k] || 2.0; m.g.add(m.balk);
       scene.add(m.g); bMesh.set(b.id, m); pickables.push(m.g);
     }
     m.g.visible = b.side == 'h' || isExp(b.x, b.y);

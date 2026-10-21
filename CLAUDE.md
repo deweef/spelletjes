@@ -209,7 +209,7 @@ Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee
 startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
 
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
-werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij) en 7 (De toren van Morvan) zijn speelbaar; level 8 uit `orkenstorm.html` moet nog
+werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij), 7 (De toren van Morvan) en 8 (Het Zwarte Moeras) zijn speelbaar; level 9 uit `orkenstorm.html` moet nog
 (naam in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
@@ -345,7 +345,13 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   graveyard ghost, doorzichtig blauw, zweeft), Morvan (graveyard vampire, groot, paarse punthoed en staf; roept elke 15 s 2 demonen op
   als je dichtbij bent). Winnen: Morvan verslagen; verliezen: je hele groep weg. Kleur van een Kenney-figuur: `tint(model, kleur, doorzicht)`.
   Tussenstukje 6 → 7: een soldaat vertelt wat de monniken weten.
-- Nog te doen (voor latere levels): weg en moeras (level 8, Het Zwarte Moeras), magiërstoren om tovenaars te trainen.
+- Het Zwarte Moeras (level 8, `moeras: 1`, kaart 36x40): moerastegels `m` (half zo snel: x0.55 in `moveAlong`), wegtegels `r` (x1.45).
+  Gebouw `weg` (5 goud): net als de muur stukje voor stukje (`reeks` in `klik`), alleen op `.`, `m` of `s`; andere gebouwen niet op `m`
+  (`canPlace`). Een weg in aanbouw (planken, `MODEL.weg`, geen steigers) blokkeert niet en wordt niet aangevallen; klaar = de tegel wordt `r`
+  en het gebouw verdwijnt (`G.mapVersie++`, de grond wordt opnieuw getekend). Moeras in 3D: donkere olijfgrond met plasjes, lisdodden
+  (InstancedMesh), troebel groen water, grauwe nevel. Winnen: alle hutten, orkentorens en orks weg. Tussenstukje 7 → 8 (in de toren, `zonder`
+  plassen/eekhoorn): een soldaat leest in de boeken van Morvan.
+- Nog te doen (voor latere levels): magiërstoren om tovenaars te trainen, De Tempel der Verdoemden (level 9).
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.
