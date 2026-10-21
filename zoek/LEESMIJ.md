@@ -15,6 +15,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Camping (level 9, nog inbouwen): https://share.gemini.google/M7etYNmPCWEu
 - Spookslot (level 10, met zaklamp, nog inbouwen): https://share.gemini.google/WlaH7qoo0qjl
 - Ziekenhuis (nog inbouwen): https://share.gemini.google/E6pRDmVF0xuo
+- Dierentuin (nog inbouwen): https://share.gemini.google/T4IDlBJx8Xph
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
