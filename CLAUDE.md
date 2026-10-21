@@ -100,7 +100,7 @@ bedenk dat de site openbaar is.
   niemand bespeelt, popcorn, operaglas; postkantoor: postzegel, ansichtkaart, plakband, nummertje; strand: schepje, snorkel, zwemband) en een
   voorwerp wordt nooit ook als afleider getekend (geen muzikant met hetzelfde instrument, geen tweede ijsje, telefoon of zonnebril bij de mensen:
   daarom laten de grapjeslijsten selfie/koffie/boterham weg), anders tikt iemand op de verkeerde. De rommelkamer mag allerlei spul hebben.
-  Ideeën voor nieuwe levels (Marcel en Anja): supermarkt, spookkasteel, camping, Orkenstorm-dorp (rolstoel, helm, kaas, pizza, stokbrood, bier, ork), plaats delict (iemand onder een laken met een been eruit). Plus: per level een "stoute figuur" om te vinden
+  Ideeën voor nieuwe levels (Marcel en Anja): supermarkt, winterkermis, onder water, Orkenstorm-dorp (rolstoel, helm, kaas, pizza, stokbrood, bier, ork), plaats delict (iemand onder een laken met een been eruit). Plus: per level een "stoute figuur" om te vinden
   (zoals de oldtimer) en een nachtlevel waarin je alleen ziet wat in de lichtbundel van je zaklamp valt. Voortgang per speler en per level-id: `zoek_tijd_<id>:<naam>` (snelste tijd incl. hintstraf; een level is
   open als het vorige een tijd heeft, `isOpen`), `zoek_auto_<id>:<naam>` en `zoek_sjaak_<id>:<naam>`. De vroegere fotolevel met wachtwoord is weg (oude sleutels met
   levelnummers worden bij het laden omgezet). Online scorebord (zelfde Apps Script, geen aanpassing nodig): onderdeel `zoek_tijd_<id>`, modus `gewoon`,
@@ -112,7 +112,9 @@ bedenk dat de site openbaar is.
   mediaan-randkleur; is het resultaat te rafelig of blijft er te weinig over, dan de gewone uitsnede) en gevonden voorwerpen krijgen een groen rondje.
   Gemini-plaatjes staan in `zoek/` (allemaal 1376x768, links en vaste prompt in `zoek/LEESMIJ.md`). Alle levels zijn nu plaatjes: 1 rommelkamer
   (`KAMER_BEELD`), 2 postkantoor (`POST_BEELD`), 3 orkest (`ORKEST_BEELD`), 4 strand (`STRAND_BEELD`), 5 piratenschip (`SCHIP_BEELD`), 6 restaurantkeuken
-  (`keuken.jpg`, `KEUKEN_BEELD`), 7 kermis (`KERMIS_BEELD`), 8 serverruimte (id `server`, `SERVER_BEELD`). De getekende versies van 1-5 staan als reserve in
+  (`keuken.jpg`, `KEUKEN_BEELD`), 7 kermis (`KERMIS_BEELD`), 8 serverruimte (id `server`, `SERVER_BEELD`), 9 camping (`CAMPING_BEELD`, Sjaak 3 vakjes),
+  10 spookslot (id `spook`, `SPOOK_BEELD`, `zaklamp: 1`: alles donker behalve een lichtcirkel rond de muis of je vinger, `lamp`; bij het eindscherm
+  gaat het licht aan), 11 ziekenhuis, 12 dierentuin (id `dieren`), 13 school, 14 vliegveld (id `vlieg`), 15 fotoshoot (id `foto`). De getekende versies van 1-5 staan als reserve in
   commentaarregels in `LEVELS` (de tekenfuncties zijn er nog; `#tegel` gebruikt nog de getekende rommelkamer). `orkest-gemini.jpg` is een eerdere versie.
   `auto` en `sjaak` mogen meer vakjes hebben (postkantoor: twee oldtimers), zie `inVak`. Een nieuw level = regel in `LEVELS` en naam in `ZOEK` in `scores/index.html`.
   Sluipende Sjaak (inbreker met streepjestrui, oogmasker, platte pet en geldzak met $; staat in de Gemini-prompt): `sjaak: [x1, y1, x2, y2]`, niet op het

@@ -54,7 +54,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:#fff;font:16px/1.3 "Tr
 <div class="scherm" id="menu" hidden>
   <div class="kaart">
     <h1>🔍 Zoekplaatje</h1>
-    <p>Zoek de spullen die bovenin staan. Vind je er één, dan komt er een nieuwe bij, tot je ze allemaal hebt. Bovenin zie je hoeveel er nog te vinden zijn. Inzoomen met twee vingers (of het muiswiel), schuiven door te slepen.</p><p>🚗 En let op: in elk level staat ergens de zilveren oldtimer verstopt… 🦹 En in de meeste levels sluipt ook Sjaak rond, de inbreker met zijn geldzak. Betrap hem!</p><p class="zacht">Elk potje kies je uit meer spullen, dus het is steeds een beetje anders. En de plaatjes worden nog af en toe vernieuwd.</p>
+    <p>Zoek de spullen die bovenin staan. Vind je er één, dan komt er een nieuwe bij, tot je ze allemaal hebt. Bovenin zie je hoeveel er nog te vinden zijn. Inzoomen met twee vingers (of het muiswiel), schuiven door te slepen.</p><p>🚗 En let op: in elk level staat ergens de zilveren oldtimer verstopt… 🦹 En in de meeste levels sluipt ook Sjaak rond, de inbreker met zijn geldzak. Betrap hem!</p><p class="zacht">🔦 In het spookslot is het donker: je ziet alleen wat in het licht van je zaklamp valt.</p><p class="zacht">Elk potje kies je uit meer spullen, dus het is steeds een beetje anders. En de plaatjes worden nog af en toe vernieuwd.</p>
     <div id="levels"></div>
     <button class="knop blauw" id="bordknop">🏆 Scorebord</button>
   </div>
@@ -513,6 +513,94 @@ const SERVER_BEELD = [
   ['Stuiterbal', 925, 654, 953, 681], ['Dinosaurus', 1020, 629, 1088, 694], ['Waterfles', 1093, 644, 1118, 716], ['Zak chips', 855, 696, 933, 754],
   ['Notitieblok', 1100, 724, 1170, 766], ['Potlood', 938, 731, 993, 749, 1045, 731, 1095, 751], ['Error 404', 1075, 404, 1168, 511],
   ['Stopcontact', 627, 456, 662, 491],
+];
+// camping.jpg (Gemini, 1376 x 768)
+const CAMPING_BEELD = [
+  ['Eend', 420, 145, 500, 210], ['Oranje vlag', 385, 185, 430, 335], ['Nederlandse vlag', 600, 185, 645, 245, 1288, 200, 1333, 255],
+  ['Barbecue', 1053, 205, 1103, 270, 1003, 434, 1068, 519], ['Luchtbed', 760, 345, 900, 395], ['Koekenpan', 823, 398, 863, 421],
+  ['Emmer', 430, 414, 465, 449], ['Plattegrond', 460, 439, 530, 476, 1188, 729, 1273, 759], ['Zaklamp', 585, 436, 615, 454, 615, 726, 670, 761],
+  ['Hamer', 617, 481, 655, 506, 693, 729, 763, 754], ['Wc-rol', 310, 479, 345, 506], ['Koelbox', 440, 539, 540, 609], ['Radio', 390, 601, 428, 631],
+  ['Slaapzak', 510, 629, 550, 651], ['Tuinkabouter', 215, 594, 260, 689], ['Strohoed', 560, 704, 600, 731], ['Worstje', 247, 706, 290, 729],
+  ['Muggenspray', 758, 489, 781, 534], ['Badmintonracket', 903, 519, 978, 577], ['Jerrycan', 1008, 539, 1063, 601], ['Steelpan', 1073, 514, 1113, 544],
+  ['Vuilnisbak', 1118, 554, 1166, 634], ['Zonnebril', 703, 569, 738, 599], ['Speelkaarten', 938, 581, 966, 601], ['Mes', 925, 616, 968, 639],
+  ['Vliegenmepper', 983, 631, 1043, 664], ['Picknickmand', 838, 624, 906, 689], ['Ketchup en mosterd', 1070, 466, 1091, 489],
+  ['Opblaastent', 785, 160, 1050, 340], ['Opblaasbadje', 793, 449, 948, 537], ['Hangmat', 565, 585, 800, 705], ['Lantaarn', 1128, 85, 1153, 110],
+];
+// spookslot.jpg (Gemini, 1376 x 768)
+const SPOOK_BEELD = [
+  ['Kandelaar', 35, 25, 100, 195, 1148, 494, 1170, 544], ['Bang spookje', 565, 15, 650, 165], ['Muis', 652, 152, 688, 178, 833, 416, 873, 434],
+  ['Schilderij met ogen', 102, 212, 202, 320], ['Harp', 8, 335, 75, 460],
+  ['Tovenaarshoed', 555, 215, 605, 255, 430, 501, 483, 551, 645, 200, 700, 235], ['Mummie', 450, 280, 555, 460], ['Klok', 695, 5, 723, 50],
+  ['Spiegel', 853, 25, 893, 100],
+  ['Schatkist', 975, 95, 1080, 190, 1203, 135, 1293, 195, 1295, 210, 1360, 270, 1073, 596, 1138, 709, 1255, 591, 1376, 739],
+  ['Vleermuis', 1023, 5, 1116, 40, 1036, 180, 1118, 205, 1128, 172, 1198, 200], ['Uil', 1280, 35, 1323, 100], ['Pompoen', 1200, 185, 1270, 245],
+  ['Spin', 1203, 97, 1223, 120, 1078, 250, 1096, 273, 1143, 310, 1161, 330],
+  ['Vliegend boek', 710, 225, 753, 260, 748, 295, 793, 335, 666, 248, 692, 282], ['Vampier', 1205, 325, 1270, 384], ['Kaars', 1318, 340, 1338, 384],
+  ['Harnas', 910, 345, 1000, 470], ['Zandloper', 770, 365, 800, 410], ['Toverboek', 693, 391, 758, 431], ['Kristallen bol', 597, 464, 630, 504],
+  ['Ganzenveer', 645, 486, 688, 516], ['Bezem', 15, 566, 75, 741], ['Zwarte kat', 67, 591, 133, 656], ['Heksenketel', 312, 629, 433, 754],
+  ['Pollepels', 205, 554, 265, 624],
+  ['Toverdrankje', 517, 529, 550, 571, 527, 604, 558, 649, 480, 521, 495, 556, 425, 564, 443, 604, 487, 596, 523, 634, 452, 716, 478, 764],
+  ['Sleutelbos', 728, 589, 773, 656], ['Schedel', 953, 534, 988, 564], ['Bal aan een ketting', 740, 704, 851, 759],
+  ['Speelkaarten', 873, 644, 900, 666], ['Geldbuidel', 985, 691, 1015, 724], ['Groot spook', 1195, 445, 1370, 590],
+];
+// ziekenhuis.jpg (Gemini, 1376 x 768)
+const ZIEKENHUIS_BEELD = [
+  ['Stethoscoop', 20, 15, 75, 105], ['Thermometer', 100, 12, 168, 55, 22, 135, 70, 210], ['Pleister', 197, 12, 255, 55, 20, 580, 75, 645],
+  ['Krukken', 280, 10, 370, 55, 25, 362, 65, 470], ['Ballon Beterschap', 400, 5, 450, 65, 853, 95, 893, 150], ['Bedpan', 942, 10, 1006, 55],
+  ['Mondkapje', 1025, 10, 1093, 58], ['Pillendoosje', 1116, 10, 1200, 58, 1302, 425, 1370, 465], ['Reflexhamer', 1220, 10, 1278, 60],
+  ['Rubberen handschoen', 1305, 10, 1360, 75, 1312, 685, 1362, 750], ['Druiventros', 1305, 115, 1365, 190],
+  ['Fruitmand', 1303, 215, 1368, 280, 1226, 435, 1288, 498], ['Teddybeer', 1305, 308, 1368, 385, 15, 670, 75, 745], ['Infuuszak', 22, 233, 68, 345],
+  ['Rolstoel', 13, 485, 80, 555], ['Wattenstaafjes', 1312, 494, 1366, 545], ['Beterschapskaart', 1305, 573, 1365, 655],
+  ['Emmer met watten', 398, 212, 433, 248], ['Röntgenfoto met autootje', 180, 300, 290, 370], ['Bos bloemen', 330, 310, 372, 355],
+  ['Injectiespuit', 790, 555, 915, 640], ['Zak drop', 1200, 388, 1245, 435], ['Klok', 1055, 105, 1081, 130], ['Pionnetje', 655, 594, 683, 649],
+  ['Handtas', 1005, 714, 1068, 754], ['Klembord', 893, 342, 928, 372], ['Kartonnen doos', 210, 165, 245, 192],
+];
+// dierentuin.jpg (Gemini, 1376 x 768)
+const DIERENTUIN_BEELD = [
+  ['Vlinder', 80, 82, 110, 105], ['Roze ballon', 325, 105, 355, 148], ['Olifant', 35, 295, 250, 505], ['Giraf', 760, 140, 880, 340],
+  ['Hoed', 958, 110, 1043, 152], ['Pinguïn', 945, 282, 995, 362, 975, 222, 1000, 262], ['IJskar', 1005, 240, 1090, 340], ['Emmer', 868, 345, 898, 375],
+  ['Camera', 285, 262, 303, 280], ['Strandbal', 670, 425, 720, 460], ['Zeehond', 665, 470, 765, 585], ['Struisvogel', 580, 555, 665, 720],
+  ['Verzorger', 405, 545, 560, 720], ['Papegaai', 913, 384, 988, 500], ['Leeuw', 1200, 370, 1360, 550], ['Krant', 873, 610, 938, 675],
+  ['Rugzak', 965, 650, 1010, 705, 315, 705, 345, 755], ['Kinderwagen', 1225, 630, 1310, 750, 455, 330, 518, 450, 693, 315, 755, 390],
+  ['Geit', 30, 640, 130, 740, 145, 655, 235, 745, 220, 615, 300, 695, 145, 620, 200, 665], ['Picknickmand', 818, 350, 850, 375],
+  ['Aap', 420, 210, 480, 285, 575, 195, 675, 325], ['Hondje', 1175, 250, 1230, 300, 263, 275, 293, 330], ['Eend', 673, 150, 705, 185],
+];
+// school.jpg (Gemini, 1376 x 768)
+const SCHOOL_BEELD = [
+  ['Papieren vliegtuigje', 350, 55, 430, 85], ['Kalender', 293, 20, 343, 133], ['Wereldkaart', 445, 15, 602, 133, 55, 305, 130, 380],
+  ['Krijtje', 230, 150, 255, 162], ['Etui', 248, 193, 285, 213, 368, 222, 405, 236],
+  ['Rugzak', 65, 228, 118, 277, 203, 242, 262, 300, 340, 272, 398, 329, 640, 298, 680, 345, 1138, 450, 1178, 494, 1278, 474, 1316, 514],
+  ['Rekenmachine', 112, 270, 148, 287], ['Gum', 273, 300, 297, 312], ['Liniaal', 300, 303, 345, 322], ['Globe', 612, 148, 665, 215],
+  ['Dik boek', 490, 247, 625, 292], ['Stapel boeken', 583, 328, 637, 368, 683, 298, 735, 330], ['Schoolbel', 903, 13, 930, 73, 885, 230, 921, 295],
+  ['Sleutelbos', 933, 120, 968, 147, 885, 410, 930, 450], ['Tosti', 950, 320, 996, 336, 1213, 169, 1243, 184, 1036, 724, 1080, 745],
+  ['Kledinghanger', 1303, 60, 1353, 90], ['Skelet', 340, 365, 390, 530, 425, 440, 485, 612], ['Voetbal', 292, 546, 328, 580],
+  ['Reageerbuisje', 205, 425, 248, 480, 260, 440, 286, 476], ['Schaar', 512, 570, 537, 600], ['Koptelefoon', 488, 590, 530, 626],
+  ['Lunchtrommel', 633, 594, 682, 635], ['Proefwerk', 622, 516, 659, 556], ['Hamster', 933, 459, 970, 486], ['Blauwe map', 708, 545, 762, 580],
+  ['Rood boek', 777, 525, 822, 556], ['Fiets', 755, 625, 870, 710, 875, 668, 980, 725, 790, 575, 900, 640], ['Pion', 1073, 676, 1108, 716],
+  ['Trom', 1140, 560, 1250, 680], ['Trompet', 1272, 726, 1340, 758], ['Muzieknoot', 1115, 535, 1145, 565, 1155, 525, 1190, 555, 1230, 532, 1260, 568],
+];
+// vliegveld.jpg (Gemini, 1376 x 768)
+const VLIEGVELD_BEELD = [
+  ['Paspoort', 583, 138, 611, 160], ['Onderbroek', 520, 208, 553, 236], ['Sokken', 637, 210, 665, 236], ['Openstaande koffer', 553, 250, 625, 302],
+  ['Blauwe koffer', 628, 288, 683, 318, 1045, 565, 1115, 612], ['Rode rolkoffer', 200, 280, 235, 335], ['Snuffelhond', 365, 392, 470, 462],
+  ['Worst', 462, 428, 488, 447], ['Piloot', 50, 570, 115, 750], ['Rugzak', 305, 420, 345, 465], ['Gele tas', 280, 467, 345, 515],
+  ['Bagagewagentje', 893, 225, 980, 295, 1180, 205, 1270, 275], ['Slapende man', 1060, 265, 1195, 345], ['Tankwagen', 980, 135, 1185, 235],
+  ['Vliegtuigtrap', 795, 120, 850, 175], ['Snoepkarretje', 745, 620, 855, 740], ['Stewardess', 705, 545, 765, 705],
+  ['Paarse koffer', 1105, 590, 1185, 645], ['Gele koffer', 1203, 615, 1270, 665], ['Groene koffer', 1188, 478, 1230, 520],
+  ['Grijze rolkoffer', 465, 620, 510, 705], ['Instapkaart', 286, 355, 305, 378, 385, 620, 410, 646], ['Plattegrond van de stad', 120, 500, 175, 620],
+  ['Blauw tasje', 1113, 486, 1146, 520], ['Krant', 157, 708, 185, 738],
+];
+// fotoshoot.jpg (Gemini, 1376 x 768)
+const FOTOSHOOT_BEELD = [
+  ['Pruik', 360, 65, 450, 140], ['Ventilator', 220, 190, 325, 335], ['Lamp', 668, 5, 730, 80, 860, 8, 932, 65], ['Kledingrek', 715, 118, 958, 365],
+  ['Lippenstift', 393, 394, 410, 440], ['Handspiegel', 533, 397, 580, 420],
+  ['Hoge hak', 710, 386, 752, 421, 1068, 288, 1131, 350, 1145, 550, 1185, 612], ['Haarborstel', 612, 436, 666, 470],
+  ['Camera', 322, 460, 385, 530, 580, 605, 642, 662], ['Hoed met veren', 755, 425, 840, 497], ['Strikje', 770, 497, 820, 522],
+  ['Poederdons', 532, 365, 575, 387], ['Bos bloemen', 422, 618, 542, 698], ['Koffiekopje', 585, 700, 625, 746, 546, 644, 580, 690, 798, 672, 833, 724],
+  ['Waterflesje', 648, 660, 680, 744], ['Kabels', 15, 400, 90, 560], ['Hark', 75, 470, 280, 730], ['Zonnebril', 930, 590, 976, 612],
+  ['Make-upspiegeltje', 855, 585, 910, 617], ['Hondje', 1016, 515, 1110, 660], ['Banaan', 928, 680, 990, 716], ['Telefoon', 721, 722, 788, 758],
+  ['Sleutelbos', 842, 724, 875, 758], ['Speldenkussen', 872, 706, 905, 734], ['Schaar', 1110, 676, 1186, 725], ['Meetlint', 1140, 716, 1293, 746],
+  ['Roze jurk', 695, 580, 860, 690], ['Rode sjaal', 388, 582, 470, 610],
 ];
 const OW = 2000, OH = 1300;
 function rng(zaad) { return () => { zaad |= 0; zaad = zaad + 0x6D2B79F5 | 0; let t = Math.imul(zaad ^ zaad >>> 15, 1 | zaad); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -1061,6 +1149,7 @@ const SCHIP = [ // op het plaatje van 2000 x 1300; alleen piratenspullen, en gee
 ];
 
 // ---------- spelstatus ----------
+let lamp = null; // spookslot: waar de zaklamp schijnt (schermpixels); volgt de muis of je vinger
 let autoGevonden = false, autoMelding = 0, sjaakGevonden = false, sjaakMelding = 0, gekozen = -1, melding = null; // gekozen: welk vakje bovenin je hebt aangetikt
 let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, totaal = 25, start = 0, hints = 0, hintKlaar = 0, hintPuls = null, effecten = [];
 // achter/voor/items: tekening en voorwerpen van een getekend level; auto: waar de zilveren oldtimer staat [x, y, schaal, draai]
@@ -1078,6 +1167,13 @@ const LEVELS = [
   { id: 'keuken', naam: 'De restaurantkeuken', uitleg: 'Vuur, schuim en een kat met een vis', beeld: 'zoek/keuken.jpg', items: KEUKEN_BEELD, auto: [888, 659, 1025, 756], sjaak: [580, 545, 770, 768] },
   { id: 'kermis', naam: 'De kermis', uitleg: 'Botsauto’s, oliebollen en een reuzenteddybeer', beeld: 'zoek/kermis.jpg', items: KERMIS_BEELD, auto: [405, 302, 518, 355], sjaak: [953, 516, 1051, 666] },
   { id: 'server', naam: 'De serverruimte', uitleg: 'Heeft u hem al uit en aan gezet?', beeld: 'zoek/serverruimte.jpg', items: SERVER_BEELD, auto: [375, 60, 585, 140], sjaak: [1038, 277, 1150, 400] },
+  { id: 'camping', naam: 'De camping', uitleg: 'Tentjes, caravans en een barbecue die te hard rookt', beeld: 'zoek/camping.jpg', items: CAMPING_BEELD, auto: [455, 50, 680, 145], sjaak: [128, 590, 225, 768, 200, 135, 230, 180, 37, 664, 68, 709] },
+  { id: 'spook', naam: 'Het spookslot', uitleg: 'Het is donker… schijn met je zaklamp!', beeld: 'zoek/spookslot.jpg', items: SPOOK_BEELD, auto: [252, 52, 475, 148], sjaak: [1140, 536, 1255, 758], zaklamp: 1 },
+  { id: 'ziekenhuis', naam: 'Het ziekenhuis', uitleg: 'Beterschap! Maar eerst zoeken', beeld: 'zoek/ziekenhuis.jpg', items: ZIEKENHUIS_BEELD, auto: [395, 80, 490, 112], sjaak: [1080, 295, 1140, 475, 1193, 549, 1226, 574] },
+  { id: 'dieren', naam: 'De dierentuin', uitleg: 'Niet voeren! Wel zoeken', beeld: 'zoek/dierentuin.jpg', items: DIERENTUIN_BEELD, auto: [515, 50, 675, 115], sjaak: [818, 425, 865, 500] },
+  { id: 'school', naam: 'De school', uitleg: 'Stilte: proefwerk!', beeld: 'zoek/school.jpg', items: SCHOOL_BEELD, auto: [628, 700, 800, 768], sjaak: [540, 455, 615, 635] },
+  { id: 'vlieg', naam: 'Het vliegveld', uitleg: 'Je vliegtuig vertrekt bijna!', beeld: 'zoek/vliegveld.jpg', items: VLIEGVELD_BEELD, auto: [1238, 468, 1286, 512], sjaak: [1275, 584, 1355, 750] },
+  { id: 'foto', naam: 'De fotoshoot', uitleg: 'Glamour, glitter en een wegwaaiende pruik', beeld: 'zoek/fotoshoot.jpg', items: FOTOSHOOT_BEELD, auto: [975, 150, 1205, 280], sjaak: [1243, 105, 1330, 300] },
 ];
 // voortgang per level-id: zoek_tijd_<id> (snelste tijd in seconden, een hint telt als 20 s) en zoek_auto_<id> (oldtimer gevonden)
 for (const [n, id] of [[1, 'kamer'], [3, 'orkest']]) for (const k of ['zoek_tijd', 'zoek_auto']) { const v = opslag.get(k + n); if (v && !opslag.get(k + '_' + id)) opslag.set(k + '_' + id, v); } // oude sleutels met levelnummers
@@ -1159,7 +1255,7 @@ function startLevel(n) {
   // heeft een plaatje meer voorwerpen dan PER_POTJE, dan is elk potje anders
   rij = schud(voorwerpen()).slice(0, PER_POTJE); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
-  autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
+  lamp = null; autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
   $('titel').textContent = 'Level ' + n + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
   vulBalk(); maat.klaar = false; maat(); start = performance.now();
 }
@@ -1238,7 +1334,7 @@ $('hint').onclick = () => {
   const v = kies[Math.floor(Math.random() * kies.length)]; hints++; hintKlaar = performance.now() + 15000;
   hintPuls = { v, t: 0 }; kiesVak(actief.indexOf(v));
   // als hij buiten beeld is: er naartoe schuiven
-  const top = $('boven').offsetHeight; ox = innerWidth / 2 - v.midden[0] * zoom; oy = top + (innerHeight - top) / 2 - v.midden[1] * zoom; begrens();
+  const top = $('boven').offsetHeight; lamp = null; ox = innerWidth / 2 - v.midden[0] * zoom; oy = top + (innerHeight - top) / 2 - v.midden[1] * zoom; begrens();
 };
 
 // ---------- tekenen ----------
@@ -1268,6 +1364,13 @@ function teken() {
     }
   }
   ctx.restore();
+  if (level && level.zaklamp && $('klaar').hidden) { // spookslot: alles is donker, behalve waar je zaklamp schijnt
+    const top = $('boven').offsetHeight, R = Math.max(95, Math.min(innerWidth, innerHeight) * 0.2) * (1 + Math.sin(performance.now() / 140) * 0.015), l = lamp || { x: innerWidth / 2, y: top + (innerHeight - top) / 2 };
+    const g = ctx.createRadialGradient(l.x, l.y, R * 0.55, l.x, l.y, R);
+    g.addColorStop(0, 'rgba(8,6,20,0)'); g.addColorStop(0.7, 'rgba(8,6,20,.75)'); g.addColorStop(1, 'rgba(8,6,20,.97)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, innerWidth, innerHeight);
+    ctx.fillStyle = 'rgba(255,240,180,.06)'; ctx.beginPath(); ctx.arc(l.x, l.y, R * 0.6, 0, 7); ctx.fill(); // warm lichtje
+  }
   for (const e of effecten) if (e.scherm) { e.t++; e.x += e.vx; e.y += e.vy; ctx.fillStyle = e.k; ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.t * 0.1); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); }
   if (autoMelding && performance.now() - autoMelding < 2600) { const tx = innerWidth / 2, ty = innerHeight * 0.55; ctx.font = 'bold 22px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(42,31,58,.9)'; ctx.fillRect(tx - 170, ty - 34, 340, 62); ctx.fillStyle = '#ffd34d'; ctx.fillText('🚗 Oh jee, daar is hij weer!', tx, ty); ctx.font = 'bold 13px "Trebuchet MS",sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('Je vond de zilveren oldtimer', tx, ty + 20); }
@@ -1282,6 +1385,8 @@ function teken() {
 
 // ---------- aanraken: slepen = schuiven, twee vingers = zoomen, tikken = zoeken ----------
 const vingers = new Map(); let neer = null, knijp = null;
+cv.addEventListener('pointerdown', (e) => { lamp = { x: e.clientX, y: e.clientY }; });
+cv.addEventListener('pointermove', (e) => { if (e.pointerType == 'mouse' || e.buttons) lamp = { x: e.clientX, y: e.clientY }; });
 cv.addEventListener('pointerdown', (e) => {
   unlock(); cv.setPointerCapture(e.pointerId); vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (vingers.size == 1) neer = { x: e.clientX, y: e.clientY, ox, oy, t: performance.now(), bewogen: false };

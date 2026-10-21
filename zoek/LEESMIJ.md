@@ -12,13 +12,13 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Restaurantkeuken (nieuw level): https://share.gemini.google/OxaiRzd5Q6rc
 - Kermis (nieuw level): https://share.gemini.google/KjMga9z82IgN
 - Serverruimte (nieuw level): https://share.gemini.google/HeXb6XxiPegF
-- Camping (level 9, nog inbouwen): https://share.gemini.google/M7etYNmPCWEu
-- Spookslot (level 10, met zaklamp, nog inbouwen): https://share.gemini.google/WlaH7qoo0qjl
-- Ziekenhuis (nog inbouwen): https://share.gemini.google/E6pRDmVF0xuo
-- Dierentuin (nog inbouwen): https://share.gemini.google/T4IDlBJx8Xph
-- School (nog inbouwen): https://share.gemini.google/hTyNzOKcv0U8
-- Vliegveld (nog inbouwen): https://share.gemini.google/6RCua5sUgyvU
-- Fotoshoot (nog inbouwen): https://share.gemini.google/YrJIuIeQcglb
+- Camping: https://share.gemini.google/M7etYNmPCWEu
+- Spookslot (met zaklamp): https://share.gemini.google/WlaH7qoo0qjl
+- Ziekenhuis : https://share.gemini.google/E6pRDmVF0xuo
+- Dierentuin : https://share.gemini.google/T4IDlBJx8Xph
+- School : https://share.gemini.google/hTyNzOKcv0U8
+- Vliegveld : https://share.gemini.google/6RCua5sUgyvU
+- Fotoshoot : https://share.gemini.google/YrJIuIeQcglb
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
