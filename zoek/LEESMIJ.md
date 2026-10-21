@@ -17,6 +17,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Ziekenhuis (nog inbouwen): https://share.gemini.google/E6pRDmVF0xuo
 - Dierentuin (nog inbouwen): https://share.gemini.google/T4IDlBJx8Xph
 - School (nog inbouwen): https://share.gemini.google/hTyNzOKcv0U8
+- Vliegveld (nog inbouwen): https://share.gemini.google/6RCua5sUgyvU
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
