@@ -86,6 +86,7 @@ function tekenGrond() {
     else if (t == 'M') kleur = '#8d8170';
     else if (t == 'T') kleur = v < 0.5 ? '#4d7a33' : '#517f36';
     else if (t == 's') kleur = '#7d6a45';
+    else if (t == 'g') kleur = '#5b6b45'; // graf: aarde met wat gras
     else if (t == 'm') kleur = v < 0.33 ? '#4a4a24' : v < 0.66 ? '#45461f' : '#504d28'; // moeras: donker en drassig
     else if (t == 'r') kleur = (x + y) % 2 ? '#b8955c' : '#b08d55'; // weg
     else kleur = v < 0.33 ? '#6aa84f' : v < 0.66 ? '#70ad53' : '#66a34b';
@@ -114,7 +115,7 @@ function tekenGrond() {
 }
 
 // Muren, fakkels, de trap naar buiten en wat tonnen en banieren in de Donkere Mijnen
-const trapPijlen = []; // pijltjes boven de trappen omhoog: pas te zien als je die plek ontdekt hebt
+const trapPijlen = [], graven = []; // graven: { g, k } (de grond schudt even als er een skelet uitkruipt) // pijltjes boven de trappen omhoog: pas te zien als je die plek ontdekt hebt
 function bouwKerker(groep) {
   const { MW, MH } = G, r = rnd(31);
   const muren = [], fakkels = [], trap = [], vloer = [];
@@ -176,9 +177,9 @@ function bouwWereld() {
   tekenGrond(); kaartVersie = G.mapVersie;
   // licht en lucht: buiten zonnig, in de mijnen warm en schemerig (maar niet eng)
   const kerker = !!G.L.dungeon;
-  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : G.L.moeras ? '#a8bba0' : '#9fd3f0'; // moeras: grauw en nevelig // de toren van Morvan: paars en geheimzinnig
+  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : G.L.moeras ? '#a8bba0' : G.L.graves ? '#6e6a8a' : '#9fd3f0'; // tempel: onweerslucht // moeras: grauw en nevelig // de toren van Morvan: paars en geheimzinnig
   scene.background.set(lucht); scene.fog.color.set(lucht);
-  scene.fog.near = kerker ? 22 : G.L.moeras ? 20 : 28; scene.fog.far = kerker ? 48 : G.L.moeras ? 50 : 60;
+  scene.fog.near = kerker ? 22 : G.L.moeras || G.L.graves ? 20 : 28; scene.fog.far = kerker ? 48 : G.L.moeras || G.L.graves ? 50 : 60;
   hemel.color.set(toren ? '#ead8ff' : kerker ? '#ffe2b8' : '#dff1ff'); hemel.groundColor.set(toren ? '#3a2a4a' : kerker ? '#4a3626' : '#56703a'); hemel.intensity = kerker ? 1.25 : 1.6;
   zon.intensity = kerker ? 1.1 : 2.4;
   const rand = new THREE.Mesh(new THREE.PlaneGeometry(220, 220).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: kerker ? '#241d18' : '#4b7a32' }));
@@ -252,6 +253,14 @@ function bouwWereld() {
   }
 
   trapPijlen.length = 0; if (kerker) bouwKerker(wereld);
+  graven.length = 0;
+  if (G.L.graves) { // grafstenen op de graven (g): daar kruipen de skeletten uit
+    const rr = rnd(53), soorten = ['graveyard/gravestone-round', 'graveyard/gravestone-cross-large', 'graveyard/gravestone-broken'];
+    for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'g') {
+      const g = M.maakGraf2(soorten[Math.floor(rr() * 3)]); g.position.set(x + 0.5, 0, y + 0.5); g.rotation.y = (rr() - 0.5) * 0.5; wereld.add(g);
+      graven.push({ g, k: x + ',' + y });
+    }
+  }
   if (G.L.moeras) { // lisdodden en riet op een deel van de moerastegels
     const plekken = []; const rr = rnd(41);
     for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'm' && rr() < 0.22) plekken.push([x + 0.2 + rr() * 0.6, y + 0.2 + rr() * 0.6, rr()]);
@@ -441,7 +450,7 @@ function syncGebouwen(nu) {
       m = M.maakGebouw(b.k, b.w, b.h);
       m.g.position.set(b.x + b.w / 2, 0, b.y + b.h / 2);
       m.g.userData.pick = { bld: b };
-      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4, abdij: 3.6, roverkamp: 1.6, weg: 0.6 }[b.k] || 2.0; m.g.add(m.balk);
+      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4, abdij: 3.6, roverkamp: 1.6, weg: 0.6, tempel: 3.4 }[b.k] || 2.0; m.g.add(m.balk);
       scene.add(m.g); bMesh.set(b.id, m); pickables.push(m.g);
     }
     m.g.visible = b.side == 'h' || isExp(b.x, b.y);
@@ -454,7 +463,7 @@ function syncGebouwen(nu) {
     m.keus.visible = G.selB == b;
     m.balk.visible = !G.tussen && (G.selB == b || b.hp < b.max);
     if (m.balk.visible) zetBalk(m.balk, b.hp / b.max, b.side);
-    m.model.traverse((o) => { if (o.userData.vlag) o.rotation.y = Math.sin(nu / 300 + b.id) * 0.3; });
+    m.model.traverse((o) => { if (o.userData.vlag) o.rotation.y = Math.sin(nu / 300 + b.id) * 0.3; if (o.userData.vlam) o.scale.y = 0.8 + Math.sin(nu / 90 + o.position.x * 5) * 0.25; });
     if (b.k == 'muur') { // smalle muur die aansluit op de buurmuren
       const bu = { l: muren.has((b.x - 1) + ',' + b.y), r: muren.has((b.x + 1) + ',' + b.y), o: muren.has(b.x + ',' + (b.y - 1)), n: muren.has(b.x + ',' + (b.y + 1)) };
       const sl = JSON.stringify(bu); if (m.muurSl != sl) { m.muurSl = sl; M.muurVorm(m.model, bu); m.eigenMat = null; m.door = 1; }
@@ -523,6 +532,7 @@ function zetBoom(i, m) {
 }
 
 function syncWereld(nu) {
+  if (G.graafOpen) for (const gr of graven) { const t = G.t - G.graafOpen.t; gr.g.position.y = gr.k == G.graafOpen.k && t < 40 ? Math.sin(t * 1.2) * 0.04 + 0.03 : 0; }
   for (const p of trapPijlen) p.visible = isExp(...p.userData.tegel) && G.state != 'tussen';
   // omgehakte bomen weghalen
   if (kaartVersie != G.mapVersie) {
@@ -766,7 +776,7 @@ function tekenPaneel(forceer) {
   const p = $('paneel');
   let h = '';
   const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters', ridder: 'ridders', genezer: 'genezers', magier: 'tovenaars', watergeest: 'waterwezens' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
-  h += `<div class="kiesbalk">${G.L && G.L.dungeon ? '<button data-alle="groep">Hele groep</button>' : '<button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button>'}<button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
+  h += `<div class="kiesbalk">${G.L && (G.L.dungeon || G.L.army) ? '<button data-alle="groep">Hele groep</button>' : '<button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button>'}<button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
   if (sel.length == 1) {
     const u = sel[0], l = LAND[u.voice && u.voice.lang];
     h += `<div class="kop"><b>${esc(UNIT[u.k].n)}</b><span id="pstatus"></span></div><div class="hp"><div id="php"></div></div>`;
@@ -816,7 +826,7 @@ function vulPaneel() {
 
 function tekenBalk() {
   const f = food();
-  for (const id of ['goud', 'hout', 'voedsel']) $(id).parentElement.hidden = !!G.L.dungeon;
+  for (const id of ['goud', 'hout', 'voedsel']) $(id).parentElement.hidden = !!(G.L.dungeon || G.L.army);
   $('goud').textContent = G.res.goud;
   $('hout').textContent = G.res.hout;
   $('voedsel').textContent = f.use + '/' + f.cap;

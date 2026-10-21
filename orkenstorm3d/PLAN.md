@@ -11,7 +11,7 @@ Volgorde van bouwen:
   moeilijkheid per naam.
 - Beperking: per toestel; delen tussen toestellen (overzetcode of online opslag) is voor later.
 
-## 2. Tussenstukjes tussen de levels — 1 → 2 t/m 7 → 8 KLAAR
+## 2. Tussenstukjes tussen de levels — 1 → 2 t/m 8 → 9 KLAAR
 - Na het winnen een filmpje van 20-30 seconden in de 3D-wereld van het gewonnen level, met knop "Overslaan".
 - Nodig: tekstwolkjes boven mannetjes en een script dat mannetjes laat lopen en praten.
 - Een groepje van de eigen mannetjes van de speler loopt naar de rand van de kaart. Onderweg grappige
@@ -47,4 +47,6 @@ Volgorde van bouwen:
 ## 6. Level 7 "De toren van Morvan" — KLAAR, met tussenstukje 6 → 7, tovenaars (vuurregen, waterwezen), demonen, waterwezens, Morvan.
 
 ## 7. Level 8 "Het Zwarte Moeras" — KLAAR, met tussenstukje 7 → 8, moeras en wegen.
-   Volgende: level 9 "De Tempel der Verdoemden".
+
+## 8. Level 9 "De Tempel der Verdoemden" — KLAAR, met tussenstukje 8 → 9, orkpriesters, graven en de tempel.
+   Volgende: level 10 "De twee orkensteden" (met magiërstoren).

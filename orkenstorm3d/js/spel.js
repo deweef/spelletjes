@@ -41,6 +41,8 @@ export const S = {
   gered: () => G.saved, // level 6: de rovers bij de abdij zijn verjaagd
   belegeraars: () => G.units.filter((u) => u.siege).length,
   morvan: () => G.units.find((u) => u.k == 'morvan'),
+  priesters: () => G.units.filter((u) => u.k == 'orkpriester').length,
+  tempel: () => G.blds.find((b) => b.k == 'tempel'),
   verdieping: () => Math.max(1, ...G.units.filter((u) => u.side == 'h' && u.k != 'watergeest').map((u) => verdieping(u))), // level 7: de hoogste verdieping waar iemand van jou is
   start: () => G.start || {},
   // voor de voortgang in procenten (level 4): hoe dicht je bij Sir Lodewijk bent, en hij bij de trap
@@ -96,6 +98,7 @@ export function loadLevel(i) {
   for (const [x, y] of L.kooi || []) addBld('kooi', x, y, 1);
   G.saved = !L.siege;
   for (const [x, y] of L.camps || []) addBld('roverkamp', x, y, 1);
+  for (const [k, x, y] of L.ob || []) addBld(k, x, y, 1); // gebouwen van de vijand (de tempel)
   for (const [k, x, y] of L.u) addUnit(k, x, y);
   for (const [k, x, y, f] of L.o) { const u = addUnit(k, x, y); u.home = { x: u.x, y: u.y }; if (f == 'raid') { u.raid = 1; u.st = 'raid'; u.siege = 1; } } // siege: belegert de abdij
   if (L.held) { const h = addUnit('held', L.held[0], L.held[1]); h.side = 'n'; h.hp = 35; h.captive = 1; h.rolstoel = false; h.voice = { lang: 'nl', pitch: 0.6 }; }
@@ -219,7 +222,7 @@ function damage(tg, n, by) {
   tg.hp -= n;
   if (tg.side == 'o' && by && G.units.includes(by)) { for (const o of G.units) if (o.side == 'o' && o.st != 'attack' && dist(o, tg) < 4 * T && zelfde(o, by)) cmdAttack(o, by); }
   if (tg.side == 'h' && by && G.units.includes(by)) { const c = tg.w ? center(tg) : tg; for (const u of G.units) if (u.side == 'h' && u.k != 'werker' && u.st == 'idle' && dist(u, c) < 10 * T && zelfde(u, by)) cmdAttack(u, by); }
-  if (tg.side == 'h' && G.t - G.lastAlert > 600) { G.lastAlert = G.t; sHorn(); say(G.L.dungeon ? 'Je groep wordt aangevallen!' : G.L.keep ? 'De abdij wordt aangevallen!' : 'Je dorp wordt aangevallen!', 150); }
+  if (tg.side == 'h' && G.t - G.lastAlert > 600) { G.lastAlert = G.t; sHorn(); say(G.L.dungeon ? 'Je groep wordt aangevallen!' : G.L.army ? 'Je leger wordt aangevallen!' : G.L.keep ? 'De abdij wordt aangevallen!' : 'Je dorp wordt aangevallen!', 150); }
   if (tg.w) {
     if (tg.hp <= 0) {
       G.blds.splice(G.blds.indexOf(tg), 1);
@@ -482,6 +485,23 @@ export function update() {
       say('Morvan roept demonen op!', 120); snd(200, 0.5, 'sawtooth', 0.06, 90);
     }
   }
+  if (L.graves && G.t % 30 == 0) { // orkpriesters laten skeletten uit de graven (g) opstaan als je leger dichtbij is
+    for (const pr of G.units.filter((u) => u.k == 'orkpriester')) {
+      pr.raiseT = (pr.raiseT || 0) + 30;
+      if (pr.raiseT < 540 || !G.units.some((h) => h.side == 'h' && dist(h, pr) < 13 * T) || G.units.filter((o) => o.k == 'skelet').length >= 20) continue;
+      pr.raiseT = 0;
+      const [px0, py0] = tileOf(pr); let best = null, bd = 1e9;
+      for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) if (G.map[y][x] == 'g') { const dd = (x - px0) ** 2 + (y - py0) ** 2; if (dd < bd && dd < 100) { bd = dd; best = [x, y]; } }
+      if (!best) continue;
+      for (let q = 0; q < 2; q++) {
+        const z = addUnit('skelet', blocked(best[0] + q, best[1]) ? best[0] : best[0] + q, best[1]); z.home = { x: z.x, y: z.y };
+        for (let k = 0; k < 12; k++) G.fx.push({ x: z.x + (Math.random() - 0.5) * 16, y: z.y, vx: (Math.random() - 0.5), vy: -1.2, h: 4, l: 30, c: '#7aff6a' });
+      }
+      G.graafOpen = { k: best[0] + ',' + best[1], t: G.t };
+      snd(150, 0.5, 'sawtooth', 0.05, 60);
+      if (G.t - (G.opstaanMelding || -999) > 600) { G.opstaanMelding = G.t; say('Een orkpriester laat skeletten uit hun graf opstaan!', 150); }
+    }
+  }
   for (const rn of G.regens) { // vuurregen: elke paar tellen een vuurbal uit de lucht
     rn.t--;
     if (rn.t % 12 == 0) {
@@ -496,7 +516,7 @@ export function update() {
   G.fx = G.fx.filter((f) => f.l > 0);
   if (G.msgT > 0) G.msgT--;
   // winst en verlies
-  if (L.tower) { if (!G.units.some((u) => u.side == 'h' && u.k != 'watergeest')) { G.lostMsg = 'Je hele groep is verslagen...'; G.state = 'verloren'; sHorn(); return; } }
+  if (L.tower || L.army) { if (!G.units.some((u) => u.side == 'h' && u.k != 'watergeest')) { G.lostMsg = 'Je hele groep is verslagen...'; G.state = 'verloren'; sHorn(); return; } }
   else if (L.dungeon) {
     const h = G.units.find((u) => u.k == 'held');
     if (!h) { G.lostMsg = 'Sir Lodewijk is gesneuveld...'; G.state = 'verloren'; sHorn(); return; }
@@ -769,7 +789,7 @@ export function klik(p) {
       for (const u of G.sel) cmdAttack(u, enemy);
       sClick(); unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerAanval' : 'aanval');
       G.fx.push({ x: enemy.w ? center(enemy).x : enemy.x, y: enemy.w ? center(enemy).y : enemy.y, l: 20, ring: '#e0574c' });
-    } else { G.selB = null; G.sel = []; say(enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
+    } else { G.selB = null; G.sel = []; say(enemy.k == 'tempel' ? 'De Tempel der Verdoemden! Je katapult doet daar veel schade.' : enemy.k == 'orkpriester' ? 'Een orkpriester: hij wekt de doden op. Pak hem snel!' : enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
     return;
   }
   if (hitU && hitU.side == 'n') { say('Sir Lodewijk! Stuur iemand naar hem toe om hem te bevrijden.', 150); return; }

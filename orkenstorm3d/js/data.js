@@ -19,6 +19,7 @@ export const UNIT = {
   watergeest: { n: 'Waterwezen', hp: 90, dmg: 11, rng: 24, cd: 65, spd: 0.8, sight: 4, side: 'h' }, // door een tovenaar opgeroepen, verdwijnt na 45 s
   demoon: { n: 'Demon', hp: 45, dmg: 8, rng: 22, cd: 45, spd: 1.25, sight: 5, side: 'o' },
   water: { n: 'Waterwezen', hp: 90, dmg: 11, rng: 24, cd: 65, spd: 0.75, sight: 4, side: 'o' },
+  orkpriester: { n: 'Orkpriester', hp: 75, dmg: 9, rng: 130, cd: 80, spd: 0.8, sight: 6, side: 'o', fire: 1 },
   morvan: { n: 'Morvan', hp: 420, dmg: 15, rng: 150, cd: 85, spd: 0.8, sight: 6, side: 'o', fire: 1 },
 };
 
@@ -37,6 +38,7 @@ export const BLD = {
   kooi: { n: 'Gevangenis', w: 2, h: 2, hp: 200, side: 'o' },
   abdij: { n: 'Abdij', w: 3, h: 3, hp: 1500, food: 16, side: 'h' },
   roverkamp: { n: 'Roverkamp', w: 2, h: 2, hp: 350, side: 'o' },
+  tempel: { n: 'Tempel der Verdoemden', w: 3, h: 3, hp: 1400, side: 'o' },
 };
 
 export const DIFF = [
@@ -601,9 +603,78 @@ export const LEVELS = [
     o: [['orkbaas', 29, 6], ['ork', 27, 7], ['ork', 30, 9], ['speerork', 25, 6], ['ork', 32, 5], ['speerork', 28, 11], ['ork', 24, 9], ['ork', 18, 18], ['speerork', 17, 17], ['ork', 19, 19], ['ork', 26, 24], ['speerork', 14, 8], ['ork', 10, 15]],
     huts: [[27, 3], [31, 7], [25, 10]], otowers: [[22, 6], [19, 17]],
     waves: { first: 8400, every: 6600 },
+    tussen: { // het filmpje naar level 9: het leger van de koning
+      uitgang: [32, 2], duur: 22,
+      spreker: 'Een gevangen ork vertelt: in een oude tempel wekken orkpriesters de doden op!',
+      grappen: ['plassen', 'eekhoorn'],
+      begin: 'De buitenpost in het moeras is verwoest! Een gevangen ork begint te praten…',
+      eind: 'Wie het moeras uit kwam, had natte sokken. Heel natte sokken.',
+      kaart: [
+        'In de Tempel der Verdoemden wekken orkpriesters de doden op uit hun graven.',
+        'De koning stuurt zijn beste leger: ridders, soldaten, boogschutters, tovenaars en een katapult.',
+        'Er komen geen versterkingen. Je moet het doen met dit leger.',
+        'Versla de priesters en sla de tempel tot puin!',
+      ],
+    },
     win: (s) => s.huts() == 0 && s.towers() == 0 && s.orcs() == 0,
     procent: (s) => (1 - (s.huts() + s.towers()) / Math.max(1, s.start().huts + s.start().towers)) * 85 + (s.huts() + s.towers() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 15 : 0),
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b> · orkentorens nog <b>${s.towers()}</b>` + (s.huts() + s.towers() == 0 ? ` · orks nog <b>${s.orcs()}</b>` : ''),
+  },
+  {
+    naam: 'De Tempel der Verdoemden', army: 1, graves: 1, camAt: [16, 29],
+    brief: [
+      'In de Tempel der Verdoemden wekken orkpriesters de doden op.',
+      'Uit de graven rondom kruipen steeds nieuwe skeletten.',
+      'Er komen geen versterkingen: je moet het doen met dit leger.',
+      'Ga snel op de priesters af voordat er te veel skeletten zijn,',
+      'en sla de tempel tot puin. Gebruik je katapult tegen de tempel!',
+    ],
+    doel: 'Versla de orkpriesters en verwoest de tempel',
+    goud: 0, hout: 0, bouw: [],
+    map: [
+      'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
+      'T....T..T......................T',
+      'T........................T.....T',
+      'T...T.......................TT.T',
+      'T........T..................T..T',
+      'T.....T.................T......T',
+      'TT....T........................T',
+      'T..............................T',
+      'T.....g........................T',
+      'T.T..g..g......................T',
+      'T...T.T...............gT..g....T',
+      'T....g...T....................TT',
+      'T.....Tgg..T...........ggg.....T',
+      'T.....T.T....T............Tg.TTT',
+      'T.......T.........T............T',
+      'TT........T.......T.T..........T',
+      'T.............................TT',
+      'T.....T.....................T..T',
+      'TT..........T..................T',
+      'T....T.g....g......g...........T',
+      'T.....................g......T.T',
+      'T......T.gTgT...T........g...T.T',
+      'T.......T..g.g........g........T',
+      'T..................g..g.g..TTT.T',
+      'T..........TT.......T.....T....T',
+      'T.......T......................T',
+      'T....T................T........T',
+      'TT........T........T...........T',
+      'TT......TT...........TT...T....T',
+      'TT......T...............T......T',
+      'T..........................T...T',
+      'T..T...................T.......T',
+      'T.T........T...............T...T',
+      'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT',
+    ],
+    b: [], ob: [['tempel', 15, 3]],
+    u: [['ridder', 14, 28], ['ridder', 16, 28], ['ridder', 18, 28], ['soldaat', 14, 29], ['soldaat', 16, 29], ['soldaat', 18, 29], ['boog', 15, 30], ['boog', 17, 30], ['genezer', 16, 31], ['magier', 14, 30], ['magier', 18, 30], ['katapult', 16, 30]],
+    o: [['orkpriester', 13, 8], ['orkpriester', 19, 8], ['orkpriester', 16, 11], ['ork', 12, 6], ['ork', 20, 6], ['orkbaas', 16, 8], ['ork', 18, 12], ['speerork', 13, 10], ['speerork', 19, 10],
+      ['skelet', 8, 10], ['skelet', 24, 11], ['skelet', 25, 10], ['skelet', 10, 20], ['skelet', 22, 21], ['skelet', 23, 20], ['speerork', 14, 15], ['speerork', 18, 15]],
+    huts: [],
+    win: (s) => !s.tempel() && s.priesters() == 0 && s.orcs() == 0,
+    procent: (s) => (1 - s.priesters() / 3) * 40 + (s.tempel() ? (1 - s.tempel().hp / s.tempel().max) * 45 : 45) + (!s.tempel() && s.priesters() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 15 : 0),
+    voortgang: (s) => `priesters nog <b>${s.priesters()}</b> · tempel <b>${s.tempel() ? Math.round(s.tempel().hp / s.tempel().max * 100) + '%' : 'verwoest ✓'}</b>` + (!s.tempel() && s.priesters() == 0 ? ` · vijanden nog <b>${s.orcs()}</b>` : ''),
   },
 ];
 
@@ -617,4 +688,4 @@ export const LAND = {
 };
 
 // Levels uit de 2D-versie die nog naar 3D moeten
-export const BINNENKORT = ['De Tempel der Verdoemden'];
+export const BINNENKORT = ['De twee orkensteden'];

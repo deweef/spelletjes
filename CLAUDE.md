@@ -209,7 +209,7 @@ Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee
 startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
 
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
-werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij), 7 (De toren van Morvan) en 8 (Het Zwarte Moeras) zijn speelbaar; level 9 uit `orkenstorm.html` moet nog
+werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij), 7 (De toren van Morvan), 8 (Het Zwarte Moeras) en 9 (De Tempel der Verdoemden) zijn speelbaar; level 10 uit `orkenstorm.html` moet nog
 (naam in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
@@ -351,7 +351,13 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   en het gebouw verdwijnt (`G.mapVersie++`, de grond wordt opnieuw getekend). Moeras in 3D: donkere olijfgrond met plasjes, lisdodden
   (InstancedMesh), troebel groen water, grauwe nevel. Winnen: alle hutten, orkentorens en orks weg. Tussenstukje 7 → 8 (in de toren, `zonder`
   plassen/eekhoorn): een soldaat leest in de boeken van Morvan.
-- Nog te doen (voor latere levels): magiërstoren om tovenaars te trainen, De Tempel der Verdoemden (level 9).
+- De Tempel der Verdoemden (level 9, `army: 1`, `graves: 1`, kaart 32x34): geen gebouwen en geen grondstoffen, alleen een vast leger (ridders,
+  soldaten, boogschutters, genezer, 2 tovenaars, katapult; knop Hele groep). Vijandelijke gebouwen staan in `ob` (BLD `tempel`, 1400 levens:
+  graveyard crypt-small met dak, zuilen, obelisk, altaar en vuurmanden met groene vlammen, `kenneyTempel`). Graven `g` in de kaart
+  (`maakGraf2`: aardehoop + grafsteen); elke 9 s laat elke orkpriester (`orkpriester`: ork met zwarte kap, groene oogjes, schedelstaf,
+  vuurballen) 2 skeletten opstaan uit het dichtstbijzijnde graf als je leger binnen 13 vakjes is (max 20 skeletten; het graf schudt,
+  `G.graafOpen`). Winnen: tempel weg, priesters weg en geen vijanden meer; verliezen: hele leger weg. Onweerslucht. Tussenstukje 8 → 9: een gevangen ork praat.
+- Nog te doen (voor latere levels): magiërstoren om tovenaars te trainen, De twee orkensteden (level 10).
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.

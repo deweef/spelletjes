@@ -45,6 +45,7 @@ const KLEDING = {
   ork: { romp: '#6b4a2b', broek: '#3e2d1c', huid: '#5f9e3c' },
   speerork: { romp: '#7a5530', broek: '#3e2d1c', huid: '#6aab45' },
   orkbaas: { romp: '#3e2d1c', broek: '#2a1e14', huid: '#4f8a30' },
+  orkpriester: { romp: '#1a1420', broek: '#1a1420', huid: '#5f9e3c' },
   ridder: { romp: '#c9ced4', broek: '#3b3b48' },
   rover: { romp: '#5a1e1e', broek: '#2a2a2a' },
   roverboog: { romp: '#6b2a2a', broek: '#2a2a2a' },
@@ -158,7 +159,7 @@ function kenneyMannetje(k, side, land, rolstoel) {
   const g = new THREE.Group(), lijf = new THREE.Group();
   g.add(lijf); lijf.add(f.model);
   const ork = side == 'o';
-  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : k == 'orkbaas' ? 1.6 : k == 'morvan' ? 1.7 : k == 'water' || k == 'watergeest' ? 1.35 : ork ? 1.2 : 1.1);
+  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : k == 'orkbaas' ? 1.6 : k == 'orkpriester' ? 1.3 : k == 'morvan' ? 1.7 : k == 'water' || k == 'watergeest' ? 1.35 : ork ? 1.2 : 1.1);
   const armR = f.bot('arm-right'), armL = f.bot('arm-left'), hoofd = f.bot('head'), romp = f.bot('torso');
   const p = { ring: keuzering(side) };
   const inHand = (arm, ding, links) => { // ding staat rechtop (+y); in de hand wijst het naar voren
@@ -210,6 +211,11 @@ function kenneyMannetje(k, side, land, rolstoel) {
     staf.add(cil(0.025, 0.025, 0.7, '#6b4a2b', 0, 0.1, 0, 6));
     const bolStaf = new THREE.Mesh(geo('stafbol', () => new THREE.IcosahedronGeometry(0.07, 1)), new THREE.MeshBasicMaterial({ color: paars ? 0xc86bff : 0x8fd0ff }));
     bolStaf.position.y = 0.48; staf.add(bolStaf); inHand(armR, staf);
+  } else if (k == 'orkpriester') { // orkpriester: ork met een zwarte kap, groene oogjes en een staf met een schedel
+    tint(f.model, '#6a8a5a');
+    hoofd.add(kegel(0.27, 0.36, '#1a1420', 0, 0.42, -0.03, 10));
+    for (const x of [-0.07, 0.07]) { const o = new THREE.Mesh(geo('oogje', () => new THREE.IcosahedronGeometry(0.025, 0)), new THREE.MeshBasicMaterial({ color: 0x7aff6a })); o.position.set(x, 0.28, 0.2); hoofd.add(o); }
+    const staf = new THREE.Group(); staf.add(cil(0.025, 0.025, 0.7, '#3a2a1a', 0, 0.1, 0, 6)); staf.add(bol(0.07, '#efe8d8', 0, 0.48, 0, 1)); inHand(armR, staf);
   } else if (k == 'demoon') { // demon: rode ork met hoorntjes en vleermuisvleugels
     tint(f.model, '#ff5a4a');
     for (const x of [-1, 1]) { const h = kegel(0.05, 0.2, '#2a1414', x * 0.16, 0.42, 0.02, 6); h.rotation.z = -x * 0.4; hoofd.add(h); }
@@ -629,7 +635,33 @@ function kenneyRoverkamp() {
   return g;
 }
 
-const BOUW = { abdij: kenneyAbdij, roverkamp: kenneyRoverkamp, stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
+// Graf: een aardehoop met een grafsteen erachter (level 9)
+export function maakGraf2(steen) {
+  const g = new THREE.Group();
+  if (!K.klaar) { g.add(doos(0.5, 0.08, 0.7, '#6b4a2b', 0, 0.04, 0.05)); g.add(doos(0.4, 0.5, 0.1, STEEN, 0, 0.25, -0.35)); return g; }
+  zetIn(g, 'graveyard/grave', 0, 0, 0.12, 0, 0.8); zetIn(g, steen, 0, 0, -0.3, 0, 0.9);
+  return g;
+}
+
+// Tempel der Verdoemden (3x3): donkere tempel met zuilen, een obelisk, een altaar en een groen vuur
+function kenneyTempel() {
+  const g = new THREE.Group();
+  const t = new THREE.Group(); g.add(t);
+  zetIn(t, 'graveyard/crypt-small', 0, 0, -0.25, 0, 1.6); zetIn(t, 'graveyard/crypt-small-roof', 0, 1.6, -0.25, 0, 1.6);
+  for (const x of [-1.2, 1.2]) for (const z of [-1.2, 0.9]) zetIn(t, 'graveyard/column-large', x, 0, z, 0, 1.4);
+  zetIn(t, 'graveyard/pillar-obelisk', 0, 0, -1.25, 0, 1.8);
+  zetIn(t, 'graveyard/altar-stone', 0, 0, 1.05, 0, 0.8);
+  zetIn(t, 'graveyard/fire-basket', -0.75, 0, 1.15, 0, 0.8); zetIn(t, 'graveyard/fire-basket', 0.75, 0, 1.15, 0, 0.8);
+  tintAlles(t, '#7a7290');
+  for (const x of [-0.75, 0.75]) { // groene vlammen
+    const v = new THREE.Mesh(geo('vlam', () => new THREE.ConeGeometry(0.12, 0.35, 6)), new THREE.MeshBasicMaterial({ color: 0x7aff6a })); v.position.set(x, 0.3, 1.15); v.userData.vlam = 1; g.add(v);
+  }
+  g.add(vlag('#2a3a1a', 1.3, 0.3, -1.3));
+  return g;
+}
+function tintAlles(groep, kleur) { groep.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.color.multiply(new THREE.Color(kleur)); } }); }
+
+const BOUW = { tempel: kenneyTempel, abdij: kenneyAbdij, roverkamp: kenneyRoverkamp, stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
   muur: kenneyMuur, smederij: kenneySmederij, houtzagerij: kenneyHoutzagerij };
 
 // Katapult: een voertuig, geen mannetje. Bij een schot zwiept hij even naar achteren.
