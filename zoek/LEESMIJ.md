@@ -14,11 +14,12 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Serverruimte (nieuw level): https://share.gemini.google/HeXb6XxiPegF
 - Camping: https://share.gemini.google/M7etYNmPCWEu
 - Spookslot (met zaklamp): https://share.gemini.google/WlaH7qoo0qjl
-- Ziekenhuis : https://share.gemini.google/E6pRDmVF0xuo
-- Dierentuin : https://share.gemini.google/T4IDlBJx8Xph
-- School : https://share.gemini.google/hTyNzOKcv0U8
-- Vliegveld : https://share.gemini.google/6RCua5sUgyvU
-- Fotoshoot : https://share.gemini.google/YrJIuIeQcglb
+- Ziekenhuis: https://share.gemini.google/E6pRDmVF0xuo
+- Dierentuin: https://share.gemini.google/T4IDlBJx8Xph
+- School: https://share.gemini.google/hTyNzOKcv0U8
+- Vliegveld: https://share.gemini.google/6RCua5sUgyvU
+- Fotoshoot: https://share.gemini.google/YrJIuIeQcglb
+- Nachtwacht (level 16, nog inbouwen): https://share.gemini.google/uWLTaa5aHD59
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
