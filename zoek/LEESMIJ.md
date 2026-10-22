@@ -28,9 +28,11 @@ Vast blokje onderaan elke Gemini-opdracht (versie 2):
    hele plaatje dan grote stapels. Elk voorwerp staat op een logische plek in de tekening (vastgehouden, op tafel, op de grond,
    aan de muur, in een vensterbank): niets zweeft in de lucht, geen rand met losse voorwerpen en geen lege achtergrond.
    Het hele plaatje is een volle tekening tot in de hoeken.
-2. Verstop ergens een klein zilveren oldtimertje (open sportwagen uit de jaren 50, zonder merk of logo), net zichtbaar.
+2. Verstop ergens een piepklein zilveren oldtimertje (open sportwagen uit de jaren 50, zonder merk of logo), niet groter dan een kat,
+   ver op de achtergrond en half achter iets anders, zodat je hem echt moet zoeken.
 3. Verstop ergens Sluipende Sjaak, een kleine boef: mager mannetje met een zwart-wit gestreepte trui, zwart oogmaskertje,
-   platte zwarte pet en een grote zak met een dollarteken over zijn schouder. Precies één keer, klein, en half verstopt:
+   platte zwarte pet en een grote zak met een dollarteken over zijn schouder. Precies één keer, klein (kleiner dan de andere mensen,
+   niet vooraan en niet in het midden), en half verstopt:
    hij gluurt achter iets vandaan of sluipt half achter een ding langs, zodat je hem goed moet zoeken. Zijn pet,
    maskertje en geldzak blijven wel zichtbaar. Hij doet iets stouts dat bij de plek past.
 4. Geen echte merken, logo's of bekende stripfiguren. Teksten op bordjes in het Nederlands.
