@@ -23,6 +23,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Bruin café (nog inbouwen): https://share.gemini.google/IEHFPhJNJ6rO
 - Onderwaterstadje (nog inbouwen): https://share.gemini.google/TsrtRT13rAh1
 - Supermarkt (nog inbouwen): https://share.gemini.google/MDGZ8rbvUymZ
+- Ruimtestation (level 20, nog inbouwen): https://share.gemini.google/h1q1antouN3x
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
