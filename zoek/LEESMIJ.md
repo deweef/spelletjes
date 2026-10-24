@@ -21,6 +21,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Fotoshoot: https://share.gemini.google/YrJIuIeQcglb
 - Nachtwacht (level 16, nog inbouwen): https://share.gemini.google/uWLTaa5aHD59
 - Bruin café (nog inbouwen): https://share.gemini.google/IEHFPhJNJ6rO
+- Onderwaterstadje (nog inbouwen): https://share.gemini.google/TsrtRT13rAh1
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
