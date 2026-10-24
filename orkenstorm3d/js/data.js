@@ -175,7 +175,7 @@ export const LEVELS = [
     procent: (s) => (1 - s.huts() / Math.max(1, s.start().huts)) * 80 + (s.huts() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 20 : 0),
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b> · orks nog <b>${s.orcs()}</b>`,
     tussen: { // het filmpje naar level 3: feest, nacht en de overval
-      soort: 'overval', duur: 26,
+      soort: 'overval',
       begin: 'De orks zijn verslagen! Dat moet gevierd worden…',
       eind: 'De soldaten werden pas wakker toen het al te laat was.',
       kaart: [
@@ -305,7 +305,7 @@ export const LEVELS = [
     huts: [],
     ambush: [[5, 12], [2, 17], [8, 21], [12, 24], [6, 9]],
     tussen: { // het filmpje naar level 5
-      uitgang: [11, 28], held: 1, vertrek: 8, duur: 25, zonder: ['plassen', 'eekhoorn'], // geen bomen en eekhoorns onder de grond
+      uitgang: [11, 28], held: 1, vertrek: 8, zonder: ['plassen', 'eekhoorn'], // geen bomen en eekhoorns onder de grond
       spreker: 'Dank jullie wel! Kom mee naar mijn buitenpost aan de rand van het woud.',
       grappen: ['schat', 'krukken', 'enkel'],
       begin: 'Sir Lodewijk is vrij! Nu snel naar boven, voordat de skeletten weer opstaan…',
@@ -387,7 +387,7 @@ export const LEVELS = [
     procent: (s) => (1 - s.huts() / Math.max(1, s.start().huts)) * 80 + (s.huts() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 20 : 0),
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b>` + (s.huts() == 0 ? ` · orks nog <b>${s.orcs()}</b>` : ''),
     tussen: { // het filmpje naar level 6: een bode komt melden dat de abdij belegerd wordt
-      uitgang: [33, 22], duur: 24, voorop: 'ridder',
+      uitgang: [33, 22], voorop: 'ridder',
       spreker: 'Een bode van de abdij! De monniken worden belegerd door rovers. Alleen ridders zijn snel genoeg!',
       grappen: ['enkel', 'plassen'],
       begin: 'Het woud is bevrijd! Maar dan komt er een bode aangerend…',
@@ -459,7 +459,7 @@ export const LEVELS = [
     win: (s) => s.gered() && s.camps() == 0 && s.orcs() == 0,
     procent: (s) => (s.gered() ? 30 : (1 - s.belegeraars() / Math.max(1, s.start().belegeraars)) * 25) + (1 - s.camps() / Math.max(1, s.start().camps)) * 60 + (s.camps() == 0 ? (1 - Math.min(1, s.orcs() / Math.max(1, s.start().orcs))) * 10 : 0),
     tussen: { // het filmpje naar level 7: de monniken weten wie erachter zit
-      uitgang: [30, 18], duur: 24,
+      uitgang: [30, 18],
       spreker: 'De monniken weten wie de rovers stuurde: de hoftovenaar Morvan! Hij zit in zijn toren.',
       grappen: ['eekhoorn', 'plassen'],
       begin: 'De rovers zijn verjaagd! De oudste monnik heeft nieuws…',
@@ -531,7 +531,7 @@ export const LEVELS = [
       ['demoon', 8, 4], ['water', 10, 7], ['demoon', 14, 3], ['water', 19, 5], ['morvan', 25, 5]],
     huts: [],
     tussen: { // het filmpje naar level 8: weg uit de toren, op naar het moeras
-      uitgang: [1, 1], duur: 22, zonder: ['plassen', 'eekhoorn'], // de groep staat bovenin de toren
+      uitgang: [1, 1], zonder: ['plassen', 'eekhoorn'], // de groep staat bovenin de toren
       spreker: 'In de boeken van Morvan staat waar de orks vandaan komen: uit een buitenpost in het Zwarte Moeras!',
       grappen: ['enkel'],
       begin: 'Morvan is verslagen! Zijn toverstaf ligt in stukken op de grond…',
@@ -609,7 +609,7 @@ export const LEVELS = [
     huts: [[27, 3], [31, 7], [25, 10]], otowers: [[22, 6], [19, 17]],
     waves: { first: 8400, every: 6600 },
     tussen: { // het filmpje naar level 9: het leger van de koning
-      uitgang: [32, 2], duur: 22,
+      uitgang: [32, 2],
       spreker: 'Een gevangen ork vertelt: in een oude tempel wekken orkpriesters de doden op!',
       grappen: ['plassen', 'eekhoorn'],
       begin: 'De buitenpost in het moeras is verwoest! Een gevangen ork begint te praten…',
@@ -678,7 +678,7 @@ export const LEVELS = [
       ['skelet', 8, 10], ['skelet', 24, 11], ['skelet', 25, 10], ['skelet', 10, 20], ['skelet', 22, 21], ['skelet', 23, 20], ['speerork', 14, 15], ['speerork', 18, 15]],
     huts: [],
     tussen: { // het filmpje naar level 10: op naar de orkensteden
-      uitgang: [16, 1], duur: 22, zonder: ['eekhoorn'],
+      uitgang: [16, 1], zonder: ['eekhoorn'],
       spreker: 'De tempel ligt in puin! Nu nog de twee orkensteden achter de rivier, dan is het land weer vrij.',
       grappen: ['plassen', 'enkel'],
       begin: 'Van de tempel is niets meer over dan een hoop stenen en een verbaasd skelet…',
@@ -771,7 +771,7 @@ export const LEVELS = [
     huts: [[6, 5], [11, 4], [5, 11], [29, 4], [34, 5], [34, 11]], otowers: [[13, 10], [8, 14], [27, 10], [32, 14]],
     waves: { first: 9000, every: 6000, units: ['ork', 'ork', 'speerork', 'orkbaas'], cat: 1 }, // cat: elke derde golf een orkenkatapult
     tussen: { // het filmpje naar level 11: op naar de Zwarte Rots
-      uitgang: [20, 1], duur: 24,
+      uitgang: [20, 1],
       spreker: 'Beide steden zijn gevallen! Nu nog Opperork Zwartvuist, op de Zwarte Rots. Dan is het voorbij.',
       grappen: ['plassen', 'eekhoorn', 'enkel'],
       begin: 'De orkensteden liggen in puin. In de verte rookt een zwarte berg…',

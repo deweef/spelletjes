@@ -241,7 +241,7 @@ Opbouw:
   elke grap hooguit één keer en er komt altijd minstens één aan. Tekstwolkjes in de eigen taal, verteller
   in het Nederlands, knop Overslaan, daarna een tekstkaart en de uitleg van het volgende level. Mannetjes
   krijgen daarvoor `u.pose` (animatie), `u.tempo` (snelheid), `u.zigzag` (dronken) en `u.hidden` (weg).
-  Extra velden: `spreker` (een werker vertelt eerst iets), `grappen` (deze grappen eerst), `duur` (seconden), `voorop` (deze soort gaat zeker mee, bv. de ridders in 5 → 6).
+  Extra velden: `spreker` (een werker vertelt eerst iets), `grappen` (deze grappen eerst; 7 s per grap, `STAP`, de lengte rekent zich zelf uit), `voorop` (deze soort gaat zeker mee, bv. de ridders in 5 → 6).
   `soort: 'overval'` (2 → 3) is anders: feest bij het kasteel, nacht (`api.nacht(f)`), orks komen (via
   `plaats` in spel.js) en sleuren de werkers mee. Tijdens een filmpje (`G.tussen`) vallen orks niet aan.
   Beginfilmpje: `intro: { van, naar, begin, orks, bouw, eind }` bij een level (nu level 1: aankomst, kasteel

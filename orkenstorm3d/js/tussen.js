@@ -12,6 +12,15 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const taal = (u) => (u.voice && u.voice.lang) || 'nl';
 const tegel = (u) => [Math.floor(u.x / T), Math.floor(u.y / T)];
 
+// Nederlandse vertaling onder vaste zinnen in een andere taal (in het tekstwolkje, klein eronder)
+const VERTAAL = {
+  'Prost! … Hik!': 'Proost! … Hik!', 'Hik! Wo ist mein Bett?': 'Hik! Waar is mijn bed?', 'Prost! Hik!': 'Proost! Hik!',
+  'Mmm, ma baguette… toute entière!': 'Mmm, mijn stokbrood… helemaal op!', 'Aïe, mon ventre!': 'Au, mijn buik!', 'Où sont les toilettes?!': 'Waar is de wc?!',
+  "Tea time! I shan't be a minute.": 'Theetijd! Ik ben zo terug.', 'Mamma mia, prima la pizza!': 'Mamma mia, eerst de pizza!',
+  "Tea first. One doesn't build on an empty stomach.": 'Eerst thee. Met een lege maag bouw je niet.', 'Ein Bier zum Richtfest! Prost!': 'Een biertje op het hoogste punt! Proost!',
+  'E la pizzeria, dove la mettiamo?': 'En de pizzeria, waar komt die?', "Ce château n'est pas assez chic…": 'Dit kasteel is niet chic genoeg…',
+};
+
 // ---------- de grappen ----------
 // zin: per taal wat het mannetje zelf zegt (in een tekstwolkje en hardop), verteller: de ondertitel in het Nederlands
 const GRAPPEN = {
@@ -120,7 +129,7 @@ export function start(api, info, klaar) {
   const a = actief = { api, info, klaar, t: 0, taken: [], wolkjes: [], acteurs: [], groep: eigen, aankomers: [], thuis, uitgang: info.uitgang || [0, 0], kaart: false };
   const f = hulpjes(a);
   if (info.soort == 'overval') overval(a, f, eigen, kasteel); else tocht(a, f, eigen);
-  f.later(info.duur || 24, () => toonKaart(a));
+  f.later(a.duur || info.duur || 24, () => toonKaart(a));
   $('hud').hidden = true; $('tussen').hidden = false;
   $('overslaan').onclick = () => toonKaart(a);
 }
@@ -134,11 +143,11 @@ function tocht(a, f, eigen) {
   let start = 0;
   if (info.spreker) { // eerst vertelt iemand iets (een werker, of Sir Lodewijk)
     const s = held || werkers[werkers.length - 1] || eigen[0];
-    f.wolkje(s, info.spreker); f.zeg(s, info.spreker); start = 3;
+    f.wolkje(s, info.spreker); f.zeg(s, info.spreker, 'nl'); start = 5;
   }
   // vertrek: meteen, of pas later (als de uitgang vlakbij is, eerst de grappen)
   const weg = start + (info.vertrek || 0);
-  f.later(weg, () => { for (const u of groep) if (!info.vertrek || !a.bezet.has(u)) { u.tempo = 1.25; stuur(u, a.uitgang[0], a.uitgang[1]); } });
+  f.later(weg, () => { for (const u of groep) if (!info.vertrek || !a.bezet.has(u)) { u.tempo = a.bezet.has(u) ? 0.6 : 0.85; stuur(u, a.uitgang[0], a.uitgang[1]); } });
   // wie krijgt welke grap (er blijft altijd minstens één over die aankomt)
   const vrij = [...groep], plan = [];
   const neem = (soort) => { // elke grap hooguit één keer per filmpje
@@ -160,13 +169,17 @@ function tocht(a, f, eigen) {
     f.later(weg + 1.5, () => a.aankomers.push(held)); // pas verdwijnen als hij echt op weg is
   }
   f.verteller(info.begin);
-  plan.forEach(([u, soort], i) => f.later(start + (info.vertrek ? 0.8 : 2.5) + i * 2.6, () => {
+  const STAP = 7; // seconden tussen twee grappen, zodat je ze goed kunt volgen
+  const eerste = start + (info.vertrek ? 1 : 4);
+  plan.forEach(([u, soort], i) => f.later(eerste + i * STAP, () => {
     const g = GRAPPEN[soort];
     const zin = g.zin[taal(u)] || g.zin.nl || Object.values(g.zin)[0];
-    f.wolkje(u, zin); f.zeg(u, zin); f.verteller(g.verteller);
+    f.wolkje(u, zin, g.zin.nl); f.zeg(u, zin); f.verteller(g.verteller);
     g.doe(u, f);
   }));
-  f.later(start + 16, () => f.verteller(info.eind));
+  const eind = eerste + plan.length * STAP + 1;
+  f.later(eind, () => f.verteller(info.eind));
+  a.duur = eind + 6;
 }
 
 // Feest in het dorp, het wordt nacht, iedereen slaapt, en de orks voeren de werkers mee
@@ -179,26 +192,26 @@ function overval(a, f, eigen, kasteel) {
   const k = kasteel || { x: tegel(eigen[0])[0], y: tegel(eigen[0])[1], w: 1, h: 1 };
   eigen.forEach((u, i) => { u.tempo = 1.3; stuur(u, k.x - 1 + (i % 6), k.y + k.h + 1 + Math.floor(i / 6)); });
   f.verteller(info.begin);
-  eigen.slice(0, 5).forEach((u, i) => f.later(1.5 + i * 0.9, () => { const z = FEEST[taal(u)] || FEEST.nl; u.pose = 'emote-yes'; f.wolkje(u, z); f.zeg(u, z); }));
-  f.later(6.5, () => {
+  eigen.slice(0, 5).forEach((u, i) => f.later(2 + i * 1.6, () => { const z = FEEST[taal(u)] || FEEST.nl; u.pose = 'emote-yes'; f.wolkje(u, z, FEEST.nl); f.zeg(u, z); }));
+  f.later(10.5, () => {
     f.verteller('Het werd laat… en één voor één vielen ze in slaap.');
     for (const u of eigen) { u.pose = 'sit'; u.path = null; }
   });
-  for (let i = 0; i <= 20; i++) f.later(6.5 + i * 0.1, () => api.nacht && api.nacht(i / 20));
-  f.later(7.5, () => { for (const u of soldaten.slice(0, 2)) f.wolkje(u, 'Zzz…'); });
+  for (let i = 0; i <= 20; i++) f.later(10.5 + i * 0.15, () => api.nacht && api.nacht(i / 20));
+  f.later(12.5, () => { for (const u of soldaten.slice(0, 2)) f.wolkje(u, 'Zzz…'); });
   // de orks komen
   // de orks komen van een vrij plekje zo'n 12 vakjes boven het dorp
   let rand = [Math.floor(G.MW / 2), 1];
   zoek: for (let y = Math.max(1, k.y - 12); y < k.y; y++) for (let d = 0; d < G.MW; d++) for (const x of [k.x + 4 + d, k.x + 4 - d]) {
     if (x > 0 && x < G.MW - 1 && !blocked(x, y) && !blocked(x + 1, y)) { rand = [x, y]; break zoek; }
   }
-  f.later(8.5, () => {
+  f.later(15, () => {
     f.verteller('Toen slopen de orks het dorp in…');
     werkers.forEach((w, i) => {
       const [wx, wy] = tegel(w);
       const o = plaats(i % 3 == 2 ? 'speerork' : 'ork', rand[0], rand[1]);
       o.x += (i % 3 - 1) * 10; o.y += Math.floor(i / 3) * 10;
-      o.tempo = 2.1; stuur(o, wx, wy); o.rover = w;
+      o.tempo = 1.9; stuur(o, wx, wy); o.rover = w;
       a.acteurs.push({ ork: o });
     });
   });
@@ -209,14 +222,22 @@ function overval(a, f, eigen, kasteel) {
       const w = o.rover;
       if (Math.hypot(o.x - w.x, o.y - w.y) < 1.4 * T) {
         ac.mee = true; w.pose = null;
-        const z = HELP[taal(w)] || HELP.nl; f.wolkje(w, z); f.zeg(w, z);
-        stuur(o, rand[0], rand[1]); stuur(w, rand[0], rand[1]); o.tempo = 1.7; w.tempo = 1.7;
+        const z = HELP[taal(w)] || HELP.nl; f.wolkje(w, z, HELP.nl); f.zeg(w, z);
+        stuur(o, rand[0], rand[1]); stuur(w, rand[0], rand[1]); o.tempo = 1.3; w.tempo = 1.3;
         a.aankomers.push(o, w);
       }
     }
+    // pas als alle orks met hun werkers uit beeld zijn, worden de soldaten wakker
+    if (!a.wakker && a.t > 20 && a.acteurs.length && a.acteurs.every((ac) => ac.mee && ac.ork.hidden && ac.ork.rover.hidden)) wordWakker();
   };
   a.uitgang = rand;
-  f.later(19, () => { f.verteller(info.eind); const s = soldaten[0]; if (s) { s.pose = null; f.wolkje(s, 'Huh? Waar is iedereen?'); } });
+  const wordWakker = () => {
+    if (a.wakker) return; a.wakker = true;
+    f.later(2.5, () => { f.verteller(info.eind); const s = soldaten[0]; if (s) { s.pose = null; f.wolkje(s, 'Huh? Waar is iedereen?'); } });
+    f.later(9, () => toonKaart(a));
+  };
+  f.later(50, wordWakker); // voor als er iets blijft haken
+  a.duur = 70;
 }
 
 // ---------- het beginfilmpje van een level (level 1: aankomst en het kasteel bouwen) ----------
@@ -244,7 +265,7 @@ export function intro(api, info, klaar) {
   if (kasteel) { kasteel.done = false; kasteel.prog = 0; kasteel.hp = 1; }
   const a = actief = { api, info, klaar: () => { stop(); klaar(); }, t: 0, taken: [], wolkjes: [], acteurs: [], groep: eigen, aankomers: [], thuis: info.naar, uitgang: [-99, -99], kaart: false };
   const f = hulpjes(a);
-  const zeg = (u, lijst) => { if (!u) return; const z = lijst[taal(u)] || lijst.nl; f.wolkje(u, z); f.zeg(u, z); };
+  const zeg = (u, lijst) => { if (!u) return; const z = lijst[taal(u)] || lijst.nl; f.wolkje(u, z, lijst.nl); f.zeg(u, z); };
   f.verteller(info.begin);
   eigen.forEach((u, i) => f.later(0.3 + i * 0.4, () => { u.tempo = 1.1; stuur(u, info.naar[0] + (i % 3), info.naar[1] + Math.floor(i / 3)); }));
   const [w1, w2] = werkers, s = soldaten[0];
@@ -291,11 +312,12 @@ function hulpjes(a) {
   const f = {
     later: (sec, fn) => a.taken.push({ op: a.t + sec, fn }),
     verteller: (tekst) => { const v = $('verteller'); v.textContent = tekst; v.classList.remove('nieuw'); void v.offsetWidth; v.classList.add('nieuw'); },
-    wolkje: (u, tekst) => {
-      const el = document.createElement('div'); el.className = 'wolkje'; el.innerHTML = esc(tekst);
-      $('wolkjes').appendChild(el); a.wolkjes.push({ el, u, tot: a.t + 3.2 });
+    wolkje: (u, tekst, nl) => {
+      nl = taal(u) == 'nl' ? null : nl || VERTAAL[tekst];
+      const el = document.createElement('div'); el.className = 'wolkje'; el.innerHTML = esc(tekst) + (nl && nl != tekst ? `<small>${esc(nl)}</small>` : '');
+      $('wolkjes').appendChild(el); a.wolkjes.push({ el, u, tot: a.t + 5 });
     },
-    zeg: (u, tekst) => speak(tekst, (u.voice && u.voice.pitch) || 1, taal(u), true),
+    zeg: (u, tekst, lang) => speak(tekst, (u.voice && u.voice.pitch) || 1, lang || taal(u), true),
     naarHuis: (u) => stuur(u, a.thuis[0], a.thuis[1]),
     uitgang: () => a.uitgang,
     boomBij: (u) => { // een vrij vakje naast de dichtstbijzijnde boom
