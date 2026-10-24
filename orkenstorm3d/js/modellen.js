@@ -58,7 +58,7 @@ const KLEDING = {
 };
 
 export function maakMannetje(k, side, land, rolstoel) {
-  if (k == 'katapult') return maakKatapult();
+  if (k == 'katapult' || k == 'orkkatapult') return maakKatapult(k == 'orkkatapult');
   if (K.klaar) return kenneyMannetje(k, side, land, rolstoel);
   if (k == 'ridder') { const m = maakMannetje('soldaat', side, land, false); return opPaard(m, false); }
   const kl = KLEDING[k] || KLEDING.werker;
@@ -432,6 +432,8 @@ const MODEL = {
     g.add(vlag('#7a1e1e', 0.6, 2.6, -0.6));
     return g;
   },
+  orkmuur() { const g = new THREE.Group(); for (let i = -2; i <= 2; i++) g.add(kegel(0.09, 1.1, '#6b4a2b', i * 0.2, 0.55, 0, 6)); return g; },
+  magiertoren() { const g = new THREE.Group(); g.add(cil(0.45, 0.55, 2.0, STEEN, 0, 1.0, 0, 8)); g.add(kegel(0.65, 0.9, '#6a3fa8', 0, 2.45, 0, 8)); return g; },
   orkhut() {
     const g = new THREE.Group();
     g.add(kegel(0.9, 1.2, '#7a5a38', 0, 0.6, 0, 7));
@@ -661,15 +663,32 @@ function kenneyTempel() {
 }
 function tintAlles(groep, kleur) { groep.traverse((o) => { if (o.isMesh) { o.material = o.material.clone(); o.material.color.multiply(new THREE.Color(kleur)); } }); }
 
-const BOUW = { tempel: kenneyTempel, abdij: kenneyAbdij, roverkamp: kenneyRoverkamp, stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
+// Magiërstoren (2x2): slanke toren met een paars puntdak, een gloeiende toverbol en sterretjes
+function kenneyMagiertoren() {
+  const g = new THREE.Group(), t = new THREE.Group(); g.add(t);
+  zetIn(t, 'castle/tower-hexagon-base', 0, 0, 0, 0, 1.2); zetIn(t, 'castle/tower-hexagon-mid', 0, 1.31 * 1.2, 0, 0, 1.2);
+  const dak = zetIn(g, 'castle/tower-hexagon-roof', 0, 1.77 * 1.2 + 1.31 * 1.2 - 1.31 * 1.2, 0, 0, 1.25); tintAlles(dak, '#9a6ad8');
+  const bolT = new THREE.Mesh(geo('toverbol', () => new THREE.IcosahedronGeometry(0.16, 1)), new THREE.MeshBasicMaterial({ color: 0xc86bff }));
+  bolT.position.set(0, 3.4, 0); bolT.userData.vlam = 1; g.add(bolT);
+  for (let i = 0; i < 3; i++) { const st = new THREE.Mesh(geo('ster', () => new THREE.OctahedronGeometry(0.06, 0)), new THREE.MeshBasicMaterial({ color: 0xffe07a })); st.position.set(Math.cos(i * 2.1) * 0.75, 1.0 + i * 0.6, Math.sin(i * 2.1) * 0.75); st.userData.vlam = 1; g.add(st); }
+  zetIn(g, 'survival/barrel', 0.75, 0, 0.7, 0, 1.2);
+  g.add(vlag('#6a3fa8', -0.7, 0, 0.7));
+  return g;
+}
+
+// Palissade (1x1): een stuk houten orkenmuur met puntige palen
+function kenneyPalissade() { const g = new THREE.Group(); const m = zetIn(g, 'survival/fence-fortified', 0, 0, 0, 0, 2); m.scale.z = 5; m.position.z = 1.11; return g; } // het hek staat in het model achteraan: dikker maken en centreren
+
+const BOUW = { magiertoren: kenneyMagiertoren, orkmuur: kenneyPalissade, tempel: kenneyTempel, abdij: kenneyAbdij, roverkamp: kenneyRoverkamp, stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
   muur: kenneyMuur, smederij: kenneySmederij, houtzagerij: kenneyHoutzagerij };
 
 // Katapult: een voertuig, geen mannetje. Bij een schot zwiept hij even naar achteren.
-function maakKatapult() {
+function maakKatapult(ork) {
   const g = new THREE.Group(), lijf = new THREE.Group(); g.add(lijf);
-  if (K.klaar) { const c = K.stuk('castle/siege-catapult'); c.scale.setScalar(0.55); c.rotation.y = Math.PI / 2; c.position.y = 0.11; lijf.add(c); }
+  if (K.klaar) { const c = K.stuk('castle/siege-catapult'); c.scale.setScalar(0.55); c.rotation.y = Math.PI / 2; c.position.y = 0.11; lijf.add(c); if (ork) tintAlles(c, '#b07060'); }
   else { lijf.add(doos(0.5, 0.2, 0.8, HOUT, 0, 0.2, 0)); lijf.add(doos(0.06, 0.6, 0.06, HOUT, 0, 0.5, -0.1)); }
-  const p = { ring: keuzering('h') }; p.ring.scale.setScalar(1.6); g.add(p.ring);
+  if (ork) { lijf.add(vlag('#7a1e1e', -0.2, 0.2, -0.3)); for (const x of [-0.18, 0.18]) { const h = kegel(0.03, 0.14, '#efe6d2', x, 0.3, 0.38, 5); h.rotation.x = 0.6; lijf.add(h); } } // orkenkatapult: rood, met een orkenvlag en slagtanden
+  const p = { ring: keuzering(ork ? 'o' : 'h') }; p.ring.scale.setScalar(1.6); g.add(p.ring);
   return { g, lijf, p, voertuig: true };
 }
 

@@ -450,7 +450,7 @@ function syncGebouwen(nu) {
       m = M.maakGebouw(b.k, b.w, b.h);
       m.g.position.set(b.x + b.w / 2, 0, b.y + b.h / 2);
       m.g.userData.pick = { bld: b };
-      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4, abdij: 3.6, roverkamp: 1.6, weg: 0.6, tempel: 3.4 }[b.k] || 2.0; m.g.add(m.balk);
+      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4, abdij: 3.6, roverkamp: 1.6, weg: 0.6, tempel: 3.4, magiertoren: 4.2, orkmuur: 1.5 }[b.k] || 2.0; m.g.add(m.balk);
       scene.add(m.g); bMesh.set(b.id, m); pickables.push(m.g);
     }
     m.g.visible = b.side == 'h' || isExp(b.x, b.y);
@@ -464,13 +464,19 @@ function syncGebouwen(nu) {
     m.balk.visible = !G.tussen && (G.selB == b || b.hp < b.max);
     if (m.balk.visible) zetBalk(m.balk, b.hp / b.max, b.side);
     m.model.traverse((o) => { if (o.userData.vlag) o.rotation.y = Math.sin(nu / 300 + b.id) * 0.3; if (o.userData.vlam) o.scale.y = 0.8 + Math.sin(nu / 90 + o.position.x * 5) * 0.25; });
+    if (b.k == 'orkmuur' && !m.palDraai) { // palissade: in de lengte van de buren draaien
+      m.palDraai = 1; const pal = new Set(G.blds.filter((o) => o.k == 'orkmuur').map((o) => o.x + ',' + o.y));
+      const lr = pal.has((b.x - 1) + ',' + b.y) || pal.has((b.x + 1) + ',' + b.y), ob = pal.has(b.x + ',' + (b.y - 1)) || pal.has(b.x + ',' + (b.y + 1));
+      if (ob && !lr) m.model.rotation.y = Math.PI / 2;
+      else if (!lr && !ob) m.model.rotation.y = (pal.has((b.x - 1) + ',' + (b.y + 1)) || pal.has((b.x + 1) + ',' + (b.y - 1))) ? Math.PI / 4 : -Math.PI / 4; // schuin stuk
+    }
     if (b.k == 'muur') { // smalle muur die aansluit op de buurmuren
       const bu = { l: muren.has((b.x - 1) + ',' + b.y), r: muren.has((b.x + 1) + ',' + b.y), o: muren.has(b.x + ',' + (b.y - 1)), n: muren.has(b.x + ',' + (b.y + 1)) };
       const sl = JSON.stringify(bu); if (m.muurSl != sl) { m.muurSl = sl; M.muurVorm(m.model, bu); m.eigenMat = null; m.door = 1; }
     }
     // staat er een mannetje achter dit gebouw (gezien vanaf de camera)? dan doorzichtig
     let achter = false;
-    if (m.g.visible && b.k != 'muur' && !G.tussen) {
+    if (m.g.visible && b.k != 'muur' && b.k != 'orkmuur' && !G.tussen) {
       doosB.min.set(b.x + 0.1, 0, b.y + 0.1); doosB.max.set(b.x + b.w - 0.1, m.balk.position.y - 0.3, b.y + b.h - 0.1);
       for (const u of G.units) {
         const um = uMesh.get(u.id); if (!um || !um.g.visible) continue;

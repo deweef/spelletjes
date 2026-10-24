@@ -470,7 +470,7 @@ export function update() {
       const h = huts[i % huts.length], ring = [...ringAround(h.x, h.y, h.w, h.h)];
       if (!ring.length) continue;
       const [x, y] = ring[i % ring.length].split(',').map(Number);
-      const o = addUnit(soort ? soort[i % soort.length] : i % 3 == 2 ? 'speerork' : 'ork', x, y); o.raid = 1; o.st = 'raid';
+      const o = addUnit(L.waves.cat && i == 0 && G.waveN % 3 == 0 ? 'orkkatapult' : soort ? soort[i % soort.length] : i % 3 == 2 ? 'speerork' : 'ork', x, y); o.raid = 1; o.st = 'raid'; // cat: elke derde golf een orkenkatapult
     }
     sHorn(); say((soort ? 'De rovers vallen aan!' : 'De orks vallen aan!') + ' (golf ' + G.waveN + ')', 180);
   }
@@ -789,7 +789,7 @@ export function klik(p) {
       for (const u of G.sel) cmdAttack(u, enemy);
       sClick(); unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerAanval' : 'aanval');
       G.fx.push({ x: enemy.w ? center(enemy).x : enemy.x, y: enemy.w ? center(enemy).y : enemy.y, l: 20, ring: '#e0574c' });
-    } else { G.selB = null; G.sel = []; say(enemy.k == 'tempel' ? 'De Tempel der Verdoemden! Je katapult doet daar veel schade.' : enemy.k == 'orkpriester' ? 'Een orkpriester: hij wekt de doden op. Pak hem snel!' : enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
+    } else { G.selB = null; G.sel = []; say(enemy.k == 'orkmuur' ? 'Een palissade. Sla er een gat in, of neem de poort!' : enemy.k == 'orkkatapult' ? 'Een orkenkatapult! Die schiet op je gebouwen: pak hem snel.' : enemy.k == 'tempel' ? 'De Tempel der Verdoemden! Je katapult doet daar veel schade.' : enemy.k == 'orkpriester' ? 'Een orkpriester: hij wekt de doden op. Pak hem snel!' : enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
     return;
   }
   if (hitU && hitU.side == 'n') { say('Sir Lodewijk! Stuur iemand naar hem toe om hem te bevrijden.', 150); return; }

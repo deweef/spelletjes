@@ -211,7 +211,7 @@ Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee
 startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
 
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
-werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij), 7 (De toren van Morvan), 8 (Het Zwarte Moeras) en 9 (De Tempel der Verdoemden) zijn speelbaar; level 10 uit `orkenstorm.html` moet nog
+werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij), 7 (De toren van Morvan), 8 (Het Zwarte Moeras), 9 (De Tempel der Verdoemden) en 10 (De twee orkensteden) zijn speelbaar; level 11 uit `orkenstorm.html` moet nog
 (naam in `BINNENKORT` in `js/data.js`).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
@@ -359,7 +359,13 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   (`maakGraf2`: aardehoop + grafsteen); elke 9 s laat elke orkpriester (`orkpriester`: ork met zwarte kap, groene oogjes, schedelstaf,
   vuurballen) 2 skeletten opstaan uit het dichtstbijzijnde graf als je leger binnen 13 vakjes is (max 20 skeletten; het graf schudt,
   `G.graafOpen`). Winnen: tempel weg, priesters weg en geen vijanden meer; verliezen: hele leger weg. Onweerslucht. Tussenstukje 8 → 9: een gevangen ork praat.
-- Nog te doen (voor latere levels): magiërstoren om tovenaars te trainen, De twee orkensteden (level 10).
+- De twee orkensteden (level 10, kaart 40x44): twee steden achter de rivier met palissaden (BLD `orkmuur` in `ob`, survival fence-fortified,
+  gedraaid naar de buren, schuin bij diagonale stukken; je mannetjes slaan er vanzelf een gat in als er geen weg is). Magiërstoren (BLD
+  `magiertoren`, 150/100: castle zeshoekige toren met paars dak, gloeiende bol en sterretjes) traint tovenaars (`magier` 120/20). Golven met
+  `waves.units` en `cat: 1`: elke derde golf een orkenkatapult (`orkkatapult`, rood getinte castle-katapult met orkenvlag, schiet op gebouwen).
+  Winnen: alle hutten, torens en orks weg. Tussenstukje 9 → 10.
+- Nog te doen: De Zwarte Rots (level 11: lava, orkenheksen met gifwolken, Opperork Zwartvuist). Ideeën van Marcels broer (Warcraft 2):
+  werkers laten repareren, upgrades bij smederij/houtzagerij, en later een deel 2 over zee met boten en kanonnen (eigen namen gebruiken).
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.
