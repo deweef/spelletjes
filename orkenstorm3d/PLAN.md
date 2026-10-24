@@ -11,7 +11,7 @@ Volgorde van bouwen:
   moeilijkheid per naam.
 - Beperking: per toestel; delen tussen toestellen (overzetcode of online opslag) is voor later.
 
-## 2. Tussenstukjes tussen de levels — 1 → 2 t/m 9 → 10 KLAAR
+## 2. Tussenstukjes tussen de levels — 1 → 2 t/m 10 → 11 KLAAR
 - Na het winnen een filmpje van 20-30 seconden in de 3D-wereld van het gewonnen level, met knop "Overslaan".
 - Nodig: tekstwolkjes boven mannetjes en een script dat mannetjes laat lopen en praten.
 - Een groepje van de eigen mannetjes van de speler loopt naar de rand van de kaart. Onderweg grappige
@@ -51,4 +51,6 @@ Volgorde van bouwen:
 ## 8. Level 9 "De Tempel der Verdoemden" — KLAAR, met tussenstukje 8 → 9, orkpriesters, graven en de tempel.
 
 ## 9. Level 10 "De twee orkensteden" — KLAAR, met tussenstukje 9 → 10, magiërstoren, palissaden en orkenkatapulten.
-   Volgende: level 11 "De Zwarte Rots" (laatste level). Daarna misschien: repareren, upgrades, deel 2 over zee.
+
+## 10. Level 11 "De Zwarte Rots" — KLAAR, met tussenstukje 10 → 11, lava, orkenheksen met gifwolken en Opperork Zwartvuist.
+   Alle levels uit 2D zitten nu in 3D. Volgende ideeën: werkers laten repareren, upgrades bij smederij en houtzagerij, deel 2 over zee.

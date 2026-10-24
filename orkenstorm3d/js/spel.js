@@ -43,6 +43,7 @@ export const S = {
   morvan: () => G.units.find((u) => u.k == 'morvan'),
   priesters: () => G.units.filter((u) => u.k == 'orkpriester').length,
   tempel: () => G.blds.find((b) => b.k == 'tempel'),
+  zwartvuist: () => G.units.find((u) => u.k == 'zwartvuist'),
   verdieping: () => Math.max(1, ...G.units.filter((u) => u.side == 'h' && u.k != 'watergeest').map((u) => verdieping(u))), // level 7: de hoogste verdieping waar iemand van jou is
   start: () => G.start || {},
   // voor de voortgang in procenten (level 4): hoe dicht je bij Sir Lodewijk bent, en hij bij de trap
@@ -86,7 +87,7 @@ export function loadLevel(i) {
   }
   G.mineMax = { ...G.mineG }; G.bijnaLeeg = {};
   const D = DIFF[G.diff];
-  G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false; G.tussen = false; G.regens = []; G.cast = null; G.trapSprong = null;
+  G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false; G.tussen = false; G.regens = []; G.gif = []; G.cast = null; G.trapSprong = null;
   nieuweZak();
   G.res = { goud: Math.round(L.goud * D.res / 10) * 10, hout: Math.round(L.hout * D.res / 10) * 10 };
   G.t = 0; G.waveN = 0; G.nextWave = L.waves ? Math.round(L.waves.first * D.wave) : 0; G.paused = false;
@@ -140,7 +141,7 @@ export function food() {
 export function blocked(x, y) {
   if (x < 0 || y < 0 || x >= G.MW || y >= G.MH) return true;
   const c = G.map[y][x];
-  if (c == 'W' || c == 'M' || c == '#' || c == 't') return true;
+  if (c == 'W' || c == 'M' || c == '#' || c == 't' || c == 'L') return true; // L = lava
   if (c == 'T' && G.trees[x + ',' + y] > 0) return true;
   const b = bldAt(x, y); return !!b && b.k != 'weg'; // over een weg in aanbouw kun je gewoon lopen
 }
@@ -502,6 +503,24 @@ export function update() {
       if (G.t - (G.opstaanMelding || -999) > 600) { G.opstaanMelding = G.t; say('Een orkpriester laat skeletten uit hun graf opstaan!', 150); }
     }
   }
+  if (L.heksen && G.t % 30 == 0) { // orkenheksen: elke 13 s een demon, elke 10 s een gifwolk op je mannetjes vlakbij
+    for (const hx of G.units.filter((u) => u.k == 'orkheks')) {
+      hx.sT = (hx.sT || 0) + 30; hx.pT = (hx.pT || 0) + 30;
+      const dichtbij = G.units.filter((h) => h.side == 'h' && dist(h, hx) < 7 * T);
+      if (hx.sT >= 780 && dichtbij.length && G.units.filter((o) => o.k == 'demoon').length < 8) {
+        hx.sT = 0; const [x0, y0] = tileOf(hx), x = blocked(x0 + 1, y0) ? x0 : x0 + 1;
+        const dm = addUnit('demoon', x, y0); dm.home = { x: dm.x, y: dm.y };
+        for (let k = 0; k < 10; k++) G.fx.push({ x: dm.x + (Math.random() - 0.5) * 20, y: dm.y, vx: (Math.random() - 0.5), vy: -1, h: 8, l: 30, c: '#c86bff' });
+        snd(200, 0.5, 'sawtooth', 0.05, 90);
+      }
+      if (hx.pT >= 600 && dichtbij.length) {
+        hx.pT = 0; const tg = dichtbij[Math.floor(Math.random() * dichtbij.length)];
+        G.gif.push({ x: tg.x, y: tg.y, t: 180 }); say('Een orkenheks roept een gifwolk op! Loop eruit!', 120); snd(90, 0.6, 'sawtooth', 0.04, 60);
+      }
+    }
+  }
+  for (const g of G.gif) { g.t--; if (g.t % 30 == 0) for (const h of G.units.filter((h) => h.side == 'h' && Math.hypot(h.x - g.x, h.y - g.y) < 44)) damage(h, 4, null); }
+  G.gif = G.gif.filter((g) => g.t > 0);
   for (const rn of G.regens) { // vuurregen: elke paar tellen een vuurbal uit de lucht
     rn.t--;
     if (rn.t % 12 == 0) {
@@ -672,7 +691,7 @@ export function canPlace(k, x, y) {
   for (let j = y; j < y + d.h; j++) for (let i = x; i < x + d.w; i++) {
     if (!isExp(i, j) || blocked(i, j) || bldAt(i, j) || G.map[j][i] == '=') return false;
     const c = G.map[j][i];
-    if (k == 'weg' ? !'.ms'.includes(c) : c == 'm') return false; // in het moeras kun je alleen wegen bouwen
+    if (k == 'weg' ? !'.ms'.includes(c) : c == 'm' || c == 'b') return false; // in het moeras alleen wegen; op de zwarte rots niets
     if (G.units.some((u) => u.side == 'o' && tileOf(u)[0] == i && tileOf(u)[1] == j)) return false;
   }
   return true;
@@ -789,7 +808,7 @@ export function klik(p) {
       for (const u of G.sel) cmdAttack(u, enemy);
       sClick(); unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerAanval' : 'aanval');
       G.fx.push({ x: enemy.w ? center(enemy).x : enemy.x, y: enemy.w ? center(enemy).y : enemy.y, l: 20, ring: '#e0574c' });
-    } else { G.selB = null; G.sel = []; say(enemy.k == 'orkmuur' ? 'Een palissade. Sla er een gat in, of neem de poort!' : enemy.k == 'orkkatapult' ? 'Een orkenkatapult! Die schiet op je gebouwen: pak hem snel.' : enemy.k == 'tempel' ? 'De Tempel der Verdoemden! Je katapult doet daar veel schade.' : enemy.k == 'orkpriester' ? 'Een orkpriester: hij wekt de doden op. Pak hem snel!' : enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
+    } else { G.selB = null; G.sel = []; say(enemy.k == 'zwartvuist' ? 'Opperork Zwartvuist! Val hem met je hele leger tegelijk aan.' : enemy.k == 'orkheks' ? 'Een orkenheks: zij roept demonen en gifwolken op. Pak haar eerst!' : enemy.k == 'orkmuur' ? 'Een palissade. Sla er een gat in, of neem de poort!' : enemy.k == 'orkkatapult' ? 'Een orkenkatapult! Die schiet op je gebouwen: pak hem snel.' : enemy.k == 'tempel' ? 'De Tempel der Verdoemden! Je katapult doet daar veel schade.' : enemy.k == 'orkpriester' ? 'Een orkpriester: hij wekt de doden op. Pak hem snel!' : enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
     return;
   }
   if (hitU && hitU.side == 'n') { say('Sir Lodewijk! Stuur iemand naar hem toe om hem te bevrijden.', 150); return; }

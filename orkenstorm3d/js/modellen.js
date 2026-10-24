@@ -46,6 +46,8 @@ const KLEDING = {
   speerork: { romp: '#7a5530', broek: '#3e2d1c', huid: '#6aab45' },
   orkbaas: { romp: '#3e2d1c', broek: '#2a1e14', huid: '#4f8a30' },
   orkpriester: { romp: '#1a1420', broek: '#1a1420', huid: '#5f9e3c' },
+  orkheks: { romp: '#2a3a1a', broek: '#2a3a1a', huid: '#6aab45' },
+  zwartvuist: { romp: '#3a3038', broek: '#2a2028', huid: '#4f8a30' },
   ridder: { romp: '#c9ced4', broek: '#3b3b48' },
   rover: { romp: '#5a1e1e', broek: '#2a2a2a' },
   roverboog: { romp: '#6b2a2a', broek: '#2a2a2a' },
@@ -159,7 +161,7 @@ function kenneyMannetje(k, side, land, rolstoel) {
   const g = new THREE.Group(), lijf = new THREE.Group();
   g.add(lijf); lijf.add(f.model);
   const ork = side == 'o';
-  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : k == 'orkbaas' ? 1.6 : k == 'orkpriester' ? 1.3 : k == 'morvan' ? 1.7 : k == 'water' || k == 'watergeest' ? 1.35 : ork ? 1.2 : 1.1);
+  lijf.scale.setScalar(k == 'skelet' ? 1.45 : k == 'held' ? 1.3 : k == 'orkbaas' ? 1.6 : k == 'zwartvuist' ? 2.1 : k == 'orkheks' ? 1.25 : k == 'orkpriester' ? 1.3 : k == 'morvan' ? 1.7 : k == 'water' || k == 'watergeest' ? 1.35 : ork ? 1.2 : 1.1);
   const armR = f.bot('arm-right'), armL = f.bot('arm-left'), hoofd = f.bot('head'), romp = f.bot('torso');
   const p = { ring: keuzering(side) };
   const inHand = (arm, ding, links) => { // ding staat rechtop (+y); in de hand wijst het naar voren
@@ -216,6 +218,20 @@ function kenneyMannetje(k, side, land, rolstoel) {
     hoofd.add(kegel(0.27, 0.36, '#1a1420', 0, 0.42, -0.03, 10));
     for (const x of [-0.07, 0.07]) { const o = new THREE.Mesh(geo('oogje', () => new THREE.IcosahedronGeometry(0.025, 0)), new THREE.MeshBasicMaterial({ color: 0x7aff6a })); o.position.set(x, 0.28, 0.2); hoofd.add(o); }
     const staf = new THREE.Group(); staf.add(cil(0.025, 0.025, 0.7, '#3a2a1a', 0, 0.1, 0, 6)); staf.add(bol(0.07, '#efe8d8', 0, 0.48, 0, 1)); inHand(armR, staf);
+  } else if (k == 'orkheks') { // orkenheks: ork met een groene punthoed, een gloeiend groen bolletje en een kromme staf
+    tint(f.model, '#7aa860');
+    const hoed = kegel(0.22, 0.5, '#2a3a1a', 0, 0.6, -0.04, 8); hoed.rotation.x = -0.25; hoofd.add(hoed); hoofd.add(cil(0.3, 0.3, 0.03, '#2a3a1a', 0, 0.38, 0, 12));
+    const staf = new THREE.Group(); staf.add(cil(0.025, 0.025, 0.7, '#3a2a1a', 0, 0.1, 0, 6));
+    const gl = new THREE.Mesh(geo('gifbol', () => new THREE.IcosahedronGeometry(0.07, 1)), new THREE.MeshBasicMaterial({ color: 0x7aff6a })); gl.position.y = 0.48; staf.add(gl); inHand(armR, staf);
+  } else if (k == 'zwartvuist') { // Opperork Zwartvuist: reus met een gouden kroon met hoorns, een rode cape en een enorme bijl
+    tint(f.model, '#5a7a40');
+    const bijl = K.stuk('survival/tool-axe'); bijl.scale.setScalar(2.4); inHand(armR, bijl);
+    const kroon = new THREE.Group(); kroon.add(cil(0.22, 0.24, 0.12, '#e8c547', 0, 0.38, 0, 8));
+    for (let i = 0; i < 5; i++) { const p = kegel(0.04, 0.12, '#e8c547', Math.cos(i * 1.256) * 0.2, 0.5, Math.sin(i * 1.256) * 0.2, 4); kroon.add(p); }
+    for (const x of [-1, 1]) { const h = kegel(0.05, 0.26, '#f2ead6', x * 0.24, 0.5, 0, 6); h.rotation.z = -x * 0.7; kroon.add(h); }
+    hoofd.add(kroon);
+    const cape = doos(0.42, 0.5, 0.03, '#a8281f', 0, 0.0, -0.17); cape.rotation.x = 0.15; romp.add(cape);
+    romp.add(doos(0.46, 0.1, 0.32, '#3a3038', 0, 0.28, 0)); // zwarte schouderstukken
   } else if (k == 'demoon') { // demon: rode ork met hoorntjes en vleermuisvleugels
     tint(f.model, '#ff5a4a');
     for (const x of [-1, 1]) { const h = kegel(0.05, 0.2, '#2a1414', x * 0.16, 0.42, 0.02, 6); h.rotation.z = -x * 0.4; hoofd.add(h); }

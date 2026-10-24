@@ -84,8 +84,10 @@ function tekenGrond() {
     else if (G.L.dungeon) kleur = t == '#' || t == 't' ? '#2d2520' : t == 'E' || t == 'U' ? '#c9b27a' : v < 0.33 ? '#7a6a58' : v < 0.66 ? '#74644f' : '#806f5c';
     else if (t == 'W' || t == '=') kleur = G.L.moeras ? '#3f6656' : '#3a7bbf';
     else if (t == 'M') kleur = '#8d8170';
-    else if (t == 'T') kleur = v < 0.5 ? '#4d7a33' : '#517f36';
+    else if (t == 'T') kleur = G.L.heksen && y < 20 ? '#3a3440' : v < 0.5 ? '#4d7a33' : '#517f36';
     else if (t == 's') kleur = '#7d6a45';
+    else if (t == 'b') kleur = v < 0.5 ? '#3a3440' : '#35303c'; // zwarte rots
+    else if (t == 'L') kleur = v < 0.5 ? '#ff6a1a' : '#ff8a2a'; // lava
     else if (t == 'g') kleur = '#5b6b45'; // graf: aarde met wat gras
     else if (t == 'm') kleur = v < 0.33 ? '#4a4a24' : v < 0.66 ? '#45461f' : '#504d28'; // moeras: donker en drassig
     else if (t == 'r') kleur = (x + y) % 2 ? '#b8955c' : '#b08d55'; // weg
@@ -97,6 +99,8 @@ function tekenGrond() {
       if (v < 0.2) { c.fillStyle = '#6f8a3a'; c.fillRect(x * S + 9, y * S + 3, 2, 2); c.fillRect(x * S + 3, y * S + 11, 2, 2); }
       continue;
     }
+    if (t == 'b') { if (v > 0.7) { c.strokeStyle = 'rgba(160,70,40,.5)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x * S + 3, y * S + 2); c.lineTo(x * S + 9, y * S + 8); c.lineTo(x * S + 6, y * S + 14); c.stroke(); } continue; }
+    if (t == 'L') { c.fillStyle = '#ffc04a'; c.fillRect(x * S + (v * 13 % 10), y * S + 4, 5, 3); c.fillStyle = 'rgba(120,30,10,.5)'; c.fillRect(x * S + 2, y * S + 10 + (v * 7 % 4), 6, 2); continue; }
     if (t == 'r') { c.fillStyle = '#9c7c48'; c.fillRect(x * S + 3, y * S + 6, 3, 2); c.fillRect(x * S + 10, y * S + 11, 3, 2); continue; }
     if (t == '.' && v > 0.8) { c.fillStyle = '#86c063'; c.fillRect(x * S + 4 + (v * 37 % 6), y * S + 5, 2, 3); c.fillRect(x * S + 9, y * S + 9 + (v * 51 % 4), 2, 3); }
     if (t == '.' && v < 0.04) { c.fillStyle = '#f4e27a'; c.fillRect(x * S + 7, y * S + 7, 2, 2); }
@@ -115,6 +119,7 @@ function tekenGrond() {
 }
 
 // Muren, fakkels, de trap naar buiten en wat tonnen en banieren in de Donkere Mijnen
+let lavaMesh = null; // Zwarte Rots: de lava pulseert
 const trapPijlen = [], graven = []; // graven: { g, k } (de grond schudt even als er een skelet uitkruipt) // pijltjes boven de trappen omhoog: pas te zien als je die plek ontdekt hebt
 function bouwKerker(groep) {
   const { MW, MH } = G, r = rnd(31);
@@ -177,7 +182,7 @@ function bouwWereld() {
   tekenGrond(); kaartVersie = G.mapVersie;
   // licht en lucht: buiten zonnig, in de mijnen warm en schemerig (maar niet eng)
   const kerker = !!G.L.dungeon;
-  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : G.L.moeras ? '#a8bba0' : G.L.graves ? '#6e6a8a' : '#9fd3f0'; // tempel: onweerslucht // moeras: grauw en nevelig // de toren van Morvan: paars en geheimzinnig
+  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : G.L.moeras ? '#a8bba0' : G.L.graves ? '#6e6a8a' : G.L.heksen ? '#5a3a3a' : '#9fd3f0'; // Zwarte Rots: rode, rokerige lucht // tempel: onweerslucht // moeras: grauw en nevelig // de toren van Morvan: paars en geheimzinnig
   scene.background.set(lucht); scene.fog.color.set(lucht);
   scene.fog.near = kerker ? 22 : G.L.moeras || G.L.graves ? 20 : 28; scene.fog.far = kerker ? 48 : G.L.moeras || G.L.graves ? 50 : 60;
   hemel.color.set(toren ? '#ead8ff' : kerker ? '#ffe2b8' : '#dff1ff'); hemel.groundColor.set(toren ? '#3a2a4a' : kerker ? '#4a3626' : '#56703a'); hemel.intensity = kerker ? 1.25 : 1.6;
@@ -261,6 +266,13 @@ function bouwWereld() {
       graven.push({ g, k: x + ',' + y });
     }
   }
+  if (G.L.heksen) { // lava gloeit: een lichtgevend vlak boven de lavategels
+    const lt = []; for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'L') lt.push([x, y]);
+    const lava = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ff7a2a' }), lt.length);
+    const mm = new THREE.Matrix4(); lt.forEach(([x, y], i) => lava.setMatrixAt(i, mm.makeTranslation(x + 0.5, 0.03, y + 0.5)));
+    lava.userData = { eigenGeo: 1, eigenMat: 1, lava: 1 }; wereld.add(lava); lavaMesh = lava;
+    for (let i = 0; i < lt.length; i += 9) { const l = new THREE.PointLight('#ff6a1a', 3, 4, 1.6); l.position.set(lt[i][0] + 0.5, 0.6, lt[i][1] + 0.5); wereld.add(l); }
+  } else lavaMesh = null;
   if (G.L.moeras) { // lisdodden en riet op een deel van de moerastegels
     const plekken = []; const rr = rnd(41);
     for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'm' && rr() < 0.22) plekken.push([x + 0.2 + rr() * 0.6, y + 0.2 + rr() * 0.6, rr()]);
@@ -281,7 +293,7 @@ function bouwWereld() {
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) wpos.push({ x, y, ox: (r2() - 0.5) * 0.4, oz: (r2() - 0.5) * 0.4, s: 1 + r2() * 0.5, h: 1.7 + r2() * 0.6, f: r2() * 6.28 });
   const wm = new THREE.InstancedMesh(M.wolk(), new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true }), wpos.length);
   const kl = new THREE.Color();
-  wpos.forEach((w, i) => { kl.setHSL(kerker ? (G.L.tower ? 0.75 : 0.07) : 0.6, kerker ? 0.12 : 0.15, kerker ? 0.16 + r2() * 0.05 : 0.9 + r2() * 0.1); wm.setColorAt(i, kl); });
+  wpos.forEach((w, i) => { const rook = kerker || G.L.heksen; kl.setHSL(kerker ? (G.L.tower ? 0.75 : 0.07) : G.L.heksen ? 0.02 : 0.6, rook ? 0.12 : 0.15, rook ? (G.L.heksen ? 0.22 : 0.16) + r2() * 0.05 : 0.9 + r2() * 0.1); /* Zwarte Rots: rookwolken */ wm.setColorAt(i, kl); });
   wm.userData = { eigenGeo: 1, eigenMat: 1 };
   wereld.add(wm);
   const schaal = new Float32Array(wpos.length);
@@ -337,7 +349,7 @@ function syncMannetjes(nu) {
     if (!m) {
       m = M.maakMannetje(u.k, u.side, u.voice && u.voice.lang, u.rolstoel);
       m.g.scale.multiplyScalar(1.3);
-      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : u.k == 'orkbaas' ? 1.4 : u.k == 'morvan' ? 2.0 : u.k == 'water' || u.k == 'watergeest' ? 1.3 : 1.05; m.g.add(m.balk);
+      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : u.k == 'orkbaas' ? 1.4 : u.k == 'zwartvuist' ? 1.85 : u.k == 'morvan' ? 2.0 : u.k == 'water' || u.k == 'watergeest' ? 1.3 : 1.05; m.g.add(m.balk);
       m.px = u.x; m.py = u.y; m.rot = u.side == 'o' ? 0 : Math.PI; m.loop = 0;
       m.g.rotation.y = m.rot;
       scene.add(m.g); uMesh.set(u.id, m);
@@ -538,6 +550,7 @@ function zetBoom(i, m) {
 }
 
 function syncWereld(nu) {
+  if (lavaMesh) lavaMesh.material.color.setHSL(0.06, 1, 0.52 + Math.sin(nu / 500) * 0.06);
   if (G.graafOpen) for (const gr of graven) { const t = G.t - G.graafOpen.t; gr.g.position.y = gr.k == G.graafOpen.k && t < 40 ? Math.sin(t * 1.2) * 0.04 + 0.03 : 0; }
   for (const p of trapPijlen) p.visible = isExp(...p.userData.tegel) && G.state != 'tussen';
   // omgehakte bomen weghalen
@@ -593,7 +606,19 @@ const rookGeo = new THREE.IcosahedronGeometry(0.2, 1);
 const steenGeo = new THREE.DodecahedronGeometry(0.16, 0);
 const vuurGeo = new THREE.IcosahedronGeometry(0.13, 1), vuurMat = new THREE.MeshBasicMaterial({ color: 0xff8a2a });
 
+const gifMesh = new Map(), gifGeo = new THREE.IcosahedronGeometry(0.5, 1);
+function syncGif(nu) { // groene gifwolken van de orkenheksen
+  const gezien = new Set();
+  for (const g of G.gif || []) {
+    gezien.add(g); let m = gifMesh.get(g);
+    if (!m) { m = new THREE.Group(); for (let i = 0; i < 5; i++) m.add(new THREE.Mesh(gifGeo, new THREE.MeshBasicMaterial({ color: 0x8adc4a, transparent: true, opacity: 0.35, depthWrite: false }))); scene.add(m); gifMesh.set(g, m); }
+    m.position.set(wx(g.x), 0.5, wz(g.y)); const a = Math.min(1, g.t / 40);
+    m.children.forEach((c, i) => { c.position.set(Math.sin(nu / 700 + i * 1.3) * 0.6, Math.sin(nu / 500 + i) * 0.15, Math.cos(nu / 800 + i) * 0.4); c.material.opacity = 0.35 * a; });
+  }
+  for (const [g, m] of gifMesh) if (!gezien.has(g)) { scene.remove(m); m.children.forEach((c) => c.material.dispose()); gifMesh.delete(g); }
+}
 function syncEffecten() {
+  syncGif(performance.now());
   const gezien = new Set();
   for (const f of G.fx) {
     gezien.add(f);
@@ -930,7 +955,7 @@ $('beginknop').onclick = () => { unlock(); primeVoice(); G.state = 'spel'; toon(
 function eindScherm() {
   const won = G.state == 'gewonnen';
   $('eindtitel').textContent = won ? (speler() ? `Goed gedaan, ${speler()}!` : 'Gewonnen!') : (speler() ? `Helaas, ${speler()}…` : 'Verloren');
-  $('eindtekst').textContent = won ? (G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : 'Knap gedaan! Level ' + (G.lvl + 2) + ' in 3D komt binnenkort.') : G.lostMsg;
+  $('eindtekst').textContent = won ? (G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : BINNENKORT.length ? 'Knap gedaan! Level ' + (G.lvl + 2) + ' in 3D komt binnenkort.' : 'Zwartvuist is verslagen en het land is weer vrij! Je hebt Orkenstorm 3D uitgespeeld. Hoera!') : G.lostMsg;
   $('volgende').hidden = !(won && G.lvl + 1 < LEVELS.length);
   $('volgende').textContent = G.L.tussen ? 'Verder met het verhaal' : 'Volgend level';
   $('opnieuw').textContent = won ? 'Nog een keer' : 'Opnieuw proberen';

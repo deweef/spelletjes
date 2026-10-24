@@ -78,7 +78,7 @@ export function delen(n) {
 
 // een mannetje met botten en animaties (lopen, aanvallen, omvallen, rolstoel, ...)
 const FIGUUR = { werker: 'dungeon/character-human', soldaat: 'dungeon/character-human', genezer: 'dungeon/character-human', held: 'dungeon/character-human',
-  boog: 'forest/character-archer', ork: 'dungeon/character-orc', speerork: 'dungeon/character-orc', orkbaas: 'dungeon/character-orc', orkpriester: 'dungeon/character-orc', ridder: 'dungeon/character-human', rover: 'dungeon/character-human', monnik: 'dungeon/character-human', roverboog: 'forest/character-archer', magier: 'dungeon/character-human', demoon: 'dungeon/character-orc',
+  boog: 'forest/character-archer', ork: 'dungeon/character-orc', speerork: 'dungeon/character-orc', orkbaas: 'dungeon/character-orc', orkpriester: 'dungeon/character-orc', orkheks: 'dungeon/character-orc', zwartvuist: 'dungeon/character-orc', ridder: 'dungeon/character-human', rover: 'dungeon/character-human', monnik: 'dungeon/character-human', roverboog: 'forest/character-archer', magier: 'dungeon/character-human', demoon: 'dungeon/character-orc',
   water: 'graveyard/character-ghost', watergeest: 'graveyard/character-ghost', morvan: 'graveyard/character-vampire', skelet: 'graveyard/character-skeleton' };
 export function figuur(k) {
   const bron = glb[FIGUUR[k] || FIGUUR.werker];

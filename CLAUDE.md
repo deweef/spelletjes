@@ -215,8 +215,8 @@ Wat er hierna gebouwd wordt (namen per speler, tussenstukjes tussen levels, twee
 startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
 
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
-werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij), 7 (De toren van Morvan), 8 (Het Zwarte Moeras), 9 (De Tempel der Verdoemden) en 10 (De twee orkensteden) zijn speelbaar; level 11 uit `orkenstorm.html` moet nog
-(naam in `BINNENKORT` in `js/data.js`).
+werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij), 7 (De toren van Morvan), 8 (Het Zwarte Moeras), 9 (De Tempel der Verdoemden), 10 (De twee orkensteden) en 11 (De Zwarte Rots) zijn speelbaar: alle levels uit
+`orkenstorm.html` zitten erin (`BINNENKORT` is leeg; na level 11 zegt het eindscherm dat je het spel hebt uitgespeeld).
 Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
 
@@ -368,7 +368,12 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   `magiertoren`, 150/100: castle zeshoekige toren met paars dak, gloeiende bol en sterretjes) traint tovenaars (`magier` 120/20). Golven met
   `waves.units` en `cat: 1`: elke derde golf een orkenkatapult (`orkkatapult`, rood getinte castle-katapult met orkenvlag, schiet op gebouwen).
   Winnen: alle hutten, torens en orks weg. Tussenstukje 9 → 10.
-- Nog te doen: De Zwarte Rots (level 11: lava, orkenheksen met gifwolken, Opperork Zwartvuist). Ideeën van Marcels broer (Warcraft 2):
+- De Zwarte Rots (level 11, `heksen: 1`, kaart 40x44): zwarte rots `b` (lopen mag, bouwen niet) en lava `L` (blokkeert; gloeiend vlak dat
+  pulseert, `lavaMesh`, plus wat oranje lampjes), rode lucht en donkere rookwolken. Orkenheksen (`orkheks`: groen getinte ork met groene
+  punthoed en gifstaf, vuurballen) roepen elke 13 s een demon en elke 10 s een gifwolk op je mannetjes binnen 7 vakjes (`G.gif`, 3 s, 4 schade
+  per halve seconde, groene bollen in `syncGif`). Opperork Zwartvuist (`zwartvuist`, 750 levens: grote ork met gouden hoornkroon, rode cape,
+  reuzenbijl). Palissade rond zijn vesting (`ob`). Winnen: Zwartvuist verslagen en alle hutten weg. Tussenstukje 10 → 11.
+- Nog te doen: ideeën van Marcels broer (Warcraft 2):
   werkers laten repareren, upgrades bij smederij/houtzagerij, en later een deel 2 over zee met boten en kanonnen (eigen namen gebruiken).
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
