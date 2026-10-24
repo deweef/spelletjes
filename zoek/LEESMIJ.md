@@ -19,11 +19,11 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - School: https://share.gemini.google/hTyNzOKcv0U8
 - Vliegveld: https://share.gemini.google/6RCua5sUgyvU
 - Fotoshoot: https://share.gemini.google/YrJIuIeQcglb
-- Nachtwacht (level 16, nog inbouwen): https://share.gemini.google/uWLTaa5aHD59
-- Bruin café (nog inbouwen): https://share.gemini.google/IEHFPhJNJ6rO
-- Onderwaterstadje (nog inbouwen): https://share.gemini.google/TsrtRT13rAh1
-- Supermarkt (nog inbouwen): https://share.gemini.google/MDGZ8rbvUymZ
-- Ruimtestation (level 20, nog inbouwen): https://share.gemini.google/h1q1antouN3x
+- Nachtwacht: https://share.gemini.google/uWLTaa5aHD59
+- Bruin café: https://share.gemini.google/IEHFPhJNJ6rO
+- Onderwaterstadje: https://share.gemini.google/TsrtRT13rAh1
+- Supermarkt: https://share.gemini.google/MDGZ8rbvUymZ
+- Ruimtestation: https://share.gemini.google/h1q1antouN3x
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
