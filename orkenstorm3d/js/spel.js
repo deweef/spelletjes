@@ -573,9 +573,13 @@ function orcBrain(u) {
   if (u.home && dist(u, u.home) > T * 1.5 && u.st == 'idle') { u.st = 'move'; goTo(u, new Set([Math.floor(u.home.x / T) + ',' + Math.floor(u.home.y / T)])); }
 }
 
+// een gebouw waar een werker aan kan werken: nog niet af, of af maar beschadigd (repareren)
+const teDoen = (b) => alive(b) && (!b.done || b.hp < b.max);
+const HERSTEL = 0.4; // een gebouw helemaal repareren kost 40% van wat het bouwen kostte
+
 function nextBuild(u) {
   u.path = null;
-  while (u.bq && u.bq.length) { const n = u.bq.shift(); if (alive(n) && !n.done) { u.st = 'build'; u.tg = n; return; } }
+  while (u.bq && u.bq.length) { const n = u.bq.shift(); if (teDoen(n)) { u.st = 'build'; u.tg = n; return; } }
   u.st = 'idle'; u.tg = null;
   if (u.job) { const j = u.job; u.job = null; u.st = j.st; u.tg = j.tg; }
 }
@@ -584,10 +588,21 @@ function workerBrain(u) {
   const h = hall();
   if (u.st == 'build') {
     const b = u.tg;
-    if (!b || !alive(b) || b.done) { nextBuild(u); return; }
+    if (!b || !teDoen(b)) { if (b && b.done && u.bezig == b) say(BLD[b.k].n + ' is weer helemaal heel!', 100); nextBuild(u); return; }
     if (targetDist(u, b) > T * 0.8) { if (!u.path || !u.path.length) { if (!goTo(u, ringAround(b.x, b.y, b.w, b.h))) { u.st = 'idle'; return; } } moveAlong(u); return; }
     u.path = null; u.bezig = b;
     const tempo = land(u) == 'de' ? 1.3 : 1;
+    if (b.done) { // repareren: half zo snel als bouwen, en het kost een beetje goud en hout
+      const erbij = Math.min(b.max - b.hp, tempo * b.max / (BLD[b.k].time || 600) / 2), c = BLD[b.k].cost || [b.max / 4, b.max / 8]; // kasteel en abdij hebben geen prijs
+      const k = b.herstelKost = b.herstelKost || [0, 0];
+      k[0] += c[0] * HERSTEL * erbij / b.max; k[1] += c[1] * HERSTEL * erbij / b.max;
+      const nu = [Math.floor(k[0]), Math.floor(k[1])];
+      if (!canAfford(nu)) { say('Niet genoeg goud of hout om verder te repareren.', 150); u.bq = []; nextBuild(u); return; }
+      pay(nu); k[0] -= nu[0]; k[1] -= nu[1];
+      b.hp = Math.min(b.max, b.hp + erbij);
+      if (G.t % 30 == 0) { u.swing = 12; sBuild(); }
+      return;
+    }
     b.prog += tempo / BLD[b.k].time; b.hp = Math.min(b.max, b.hp + tempo * b.max / BLD[b.k].time);
     if (G.t % 30 == 0) { u.swing = 12; sBuild(); }
     if (b.prog >= 1 && b.k == 'weg') { // een stukje weg wordt deel van de kaart
@@ -741,7 +756,7 @@ export function kiesGroep(lijst, erbij) {
 export function haalWeg(k) { G.sel = G.sel.filter((u) => u.k != k); if (!G.sel.length) G.multi = false; sClick(); }
 
 function assignBuild(w, b) {
-  if (w.st == 'build' && w.tg && alive(w.tg) && !w.tg.done && w.tg != b) { (w.bq = w.bq || []).push(b); return; }
+  if (w.st == 'build' && w.tg && teDoen(w.tg) && w.tg != b) { (w.bq = w.bq || []).push(b); return; }
   if (w.st == 'wood' || w.st == 'gold') w.job = { st: w.st, tg: w.tg };
   w.st = 'build'; w.tg = b; w.path = null; w.hidden = false; w.inMine = 0;
 }
@@ -823,7 +838,12 @@ export function klik(p) {
   }
   if (hitB && hitB.side == 'h') {
     const ws = G.sel.filter((u) => u.k == 'werker');
-    if (!hitB.done && ws.length) { for (const w of ws) { w.bq = []; w.st = 'idle'; assignBuild(w, hitB); } say('De werker gaat verder met bouwen.', 100); sClick(); return; }
+    if (teDoen(hitB) && ws.length) {
+      for (const w of ws) { w.bq = []; w.st = 'idle'; assignBuild(w, hitB); }
+      if (hitB.done) { say((ws.length > 1 ? 'De werkers gaan' : 'De werker gaat') + (hitB.k == 'kasteel' ? ' het ' : ' de ') + BLD[hitB.k].n.toLowerCase() + ' repareren.', 120); unitSay(ws[0], 'bouw'); }
+      else say('De werker gaat verder met bouwen.', 100);
+      sClick(); return;
+    }
     G.sel = []; G.selB = hitB; sClick(); return;
   }
   // klik op een mijn zonder werkers: hoeveel goud zit er nog in?
@@ -863,5 +883,6 @@ export function statusTekst(u) {
   if (u.thee > 0) return 'drinkt een kopje thee';
   if (u.hidden) return 'is in de mijn';
   if (u.carry) return u.carry == 'goud' ? 'brengt goud naar het kasteel' : 'brengt hout naar het kasteel';
+  if (u.st == 'build' && u.tg && u.tg.done) return 'repareert';
   return { idle: 'staat te wachten', move: 'loopt', wood: 'hakt hout', gold: 'gaat goud halen', build: 'bouwt', attack: 'valt aan', raid: 'valt aan' }[u.st] || '';
 }

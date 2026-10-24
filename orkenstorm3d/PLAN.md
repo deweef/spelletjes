@@ -53,4 +53,4 @@ Volgorde van bouwen:
 ## 9. Level 10 "De twee orkensteden" — KLAAR, met tussenstukje 9 → 10, magiërstoren, palissaden en orkenkatapulten.
 
 ## 10. Level 11 "De Zwarte Rots" — KLAAR, met tussenstukje 10 → 11, lava, orkenheksen met gifwolken en Opperork Zwartvuist.
-   Alle levels uit 2D zitten nu in 3D. Volgende ideeën: werkers laten repareren, upgrades bij smederij en houtzagerij, deel 2 over zee.
+   Alle levels uit 2D zitten nu in 3D. Repareren zit erin. Upgrades en zee/buskruit/vliegers bewaren we voor deel 2.

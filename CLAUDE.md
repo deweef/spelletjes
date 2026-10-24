@@ -373,8 +373,11 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   punthoed en gifstaf, vuurballen) roepen elke 13 s een demon en elke 10 s een gifwolk op je mannetjes binnen 7 vakjes (`G.gif`, 3 s, 4 schade
   per halve seconde, groene bollen in `syncGif`). Opperork Zwartvuist (`zwartvuist`, 750 levens: grote ork met gouden hoornkroon, rode cape,
   reuzenbijl). Palissade rond zijn vesting (`ob`). Winnen: Zwartvuist verslagen en alle hutten weg. Tussenstukje 10 → 11.
-- Nog te doen: ideeën van Marcels broer (Warcraft 2):
-  werkers laten repareren, upgrades bij smederij/houtzagerij, en later een deel 2 over zee met boten en kanonnen (eigen namen gebruiken).
+- Repareren: werkers kiezen en op een beschadigd eigen gebouw klikken (`teDoen` in spel.js: niet af óf beschadigd). Half zo snel als
+  bouwen, kost samen 40% van de bouwprijs (`HERSTEL`, betaald per stukje; kasteel en abdij zonder prijs: max/4 goud, max/8 hout).
+  Geen geld meer = de werker stopt. Status "repareert", tip in het paneel bij een beschadigd gebouw.
+- Plan deel 2 (nog niet bouwen, eerst deel 1 uitspelen): over zee met haven, scheepswerf, vis als grondstof, schepen, buskruit
+  (kanontoren, springstof), vliegers, en uitgebreide upgrades (kasteel → burcht → vesting, smid in 3 stappen). Eigen namen gebruiken.
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.

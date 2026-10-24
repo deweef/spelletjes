@@ -800,7 +800,7 @@ const prijs = (c) => `<span class="prijs">${c[0] ? `<i class="goud"></i>${c[0]}`
 let paneelSleutel = '';
 function tekenPaneel(forceer) {
   const sel = G.sel, b = G.selB, ws = sel.filter((u) => u.k == 'werker');
-  const sleutel = JSON.stringify([G.multi, sel.map((u) => u.id), b && b.id, b && b.done, b && b.q, G.place && G.place.k, G.L && G.L.bouw.map((k) => canAfford(BLD[k].cost)),
+  const sleutel = JSON.stringify([G.multi, sel.map((u) => u.id), b && b.id, b && b.done, b && b.hp < b.max, b && b.q, G.place && G.place.k, G.L && G.L.bouw.map((k) => canAfford(BLD[k].cost)),
     ['werker', 'soldaat', 'boog', 'katapult', 'ridder', 'genezer'].map((k) => canAfford(UNIT[k].cost)), S.count('smederij'), S.count('houtzagerij'), G.saved, tovenaar() && Math.floor(tovenaar().mana / 5), !!G.cast]);
   if (!forceer && sleutel == paneelSleutel) return vulPaneel();
   paneelSleutel = sleutel;
@@ -828,6 +828,7 @@ function tekenPaneel(forceer) {
     h += `<div class="kop"><b>${esc(BLD[b.k].n)}</b><span id="pstatus"></span></div><div class="hp"><div id="php"></div></div>`;
     if (b.done && b.side == 'h') {
       const kan = Object.keys(UNIT).filter((k) => UNIT[k].from && UNIT[k].from.includes(b.k) && (k != 'katapult' || G.L.bouw.includes('smederij')) && (b.k != 'abdij' || G.saved));
+      if (b.hp < b.max && b.k != 'weg') h += `<div class="tip">Beschadigd! Kies een werker en klik op dit gebouw om het te repareren (kost een beetje goud en hout).</div>`;
       if (b.k == 'abdij' && !G.saved) h += '<div class="tip">De abdij wordt belegerd! Verjaag eerst de rovers, dan kun je hier soldaten en genezers trainen.</div>';
       if (kan.length) h += '<div class="knoppen">' + kan.map((k) => { const mist = UNIT[k].needs && !UNIT[k].needs.every((n) => S.count(n)); return `<button data-train="${k}" class="${!mist && canAfford(UNIT[k].cost) ? '' : 'duur'}">${esc(UNIT[k].n)}${mist ? '<span class="prijs">eerst smederij + houtzagerij</span>' : prijs(UNIT[k].cost)}</button>`; }).join('') + '</div>';
       if (b.q.length) h += `<div class="rij">${b.q.map((k, i) => `<span class="${i ? '' : 'nu'}">${esc(UNIT[k].n)}${i ? '' : '<i id="qbalk"></i>'}</span>`).join('')}</div>`;
