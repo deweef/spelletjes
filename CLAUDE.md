@@ -130,7 +130,9 @@ bedenk dat de site openbaar is.
   In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
   `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!" en een 🚗 bij het level.
 - Pizzabaas (`pizzabaas.html`, concept, idee van Pizza Tycoon maar met eigen naam en grappen): eigen pizzeria van bovenaf op een raster
-  van 12x9 (`W`, `H`, `T`; rij 0-1 keuken met ovens en kok, deur onderaan `DEUR`). Twee standen (`modus`): inrichten (spullen uit `SPUL`
+  van 15x15 vloertegels zoals in het oude spel (`W`, `H`, `T` = 48; rij 0-2 keuken met ovens en koks, deur onderaan `DEUR`). Tafeltje voor 2 = 4x2
+  tegels (stoel, tafel 2x2, stoel), tafel voor 4 = 4x4; poppetjes ongeveer een tegel groot (`MENS`). Oude opslag zonder `versie: 2` krijgt zijn
+  spullen terugbetaald en begint opnieuw met twee tafeltjes. Twee standen (`modus`): inrichten (spullen uit `SPUL`
   kopen en neerzetten: tafeltje voor 2, tafel voor 4, plant, jukebox; tik op een tafel = menu met kleedje/kaarsje (`EXTRA`), verplaatsen,
   verkopen; extra ovens en obers in `PERSONEEL`) en open (een werkdag van `DAG` = 120 s, 17:00-22:00). Klantengroepjes zoeken een vrije
   tafel (anders "vol", reputatie omlaag), bestellen, de oven bakt (`BAKTIJD`), een ober brengt de pizza, ze eten en betalen `PRIJS` plus fooi

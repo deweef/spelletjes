@@ -87,23 +87,28 @@ const lees = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch 
 const schrijf = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
 // ---------- de wereld ----------
-const W = 12, H = 9, T = 64;          // vakjes en pixels per vakje
-const KEUKEN = 2;                     // rijen 0 en 1
-const DEUR = { x: 6, y: 8 };          // de deur zit in de onderste muur
+const W = 15, H = 15, T = 48;         // 15 x 15 vloertegels (zoals in het oude spel), pixels per tegel
+const KEUKEN = 3;                     // rijen 0 t/m 2 zijn de keuken
+const DEUR = { x: 7, y: 15 };         // de deur zit in de onderste muur
 const DAG = 120;                      // seconden per werkdag
 const HUUR = 60, LOON = 15, PRIJS = 9, BAKTIJD = 5, ETEN = 8, GEDULD = 25;
 
 const SPUL = {
-  tafel2: { n: 'Tafeltje voor 2', ik: '🪑', prijs: 50, w: 1, h: 1 },
-  tafel4: { n: 'Tafel voor 4', ik: '🍽️', prijs: 90, w: 2, h: 1 },
+  tafel2: { n: 'Tafeltje voor 2', ik: '🪑', prijs: 50, w: 4, h: 2 }, // stoel, tafel van 2 x 2, stoel
+  tafel4: { n: 'Tafel voor 4', ik: '🍽️', prijs: 90, w: 4, h: 4 },  // tafel van 2 x 2 met aan elke kant een stoel
   plant: { n: 'Plant', ik: '🪴', prijs: 20, w: 1, h: 1 },
   jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 1, h: 1, een: true },
 };
 const EXTRA = { kleed: { n: 'Kleedje', ik: '🟥', prijs: 10 }, kaars: { n: 'Kaarsje', ik: '🕯️', prijs: 8 } };
 const PERSONEEL = { oven: { n: 'Extra oven', ik: '🔥', prijs: 250, max: 3 }, ober: { n: 'Extra ober', ik: '🤵', prijs: 200, max: 3, loon: true } };
 
-const NIEUW = () => ({ geld: 300, dag: 1, rep: 20, ovens: 1, obers: 1, spullen: [{ t: 'tafel2', x: 3, y: 4 }, { t: 'tafel2', x: 8, y: 4 }], best: 0 });
+const BEGIN = () => [{ t: 'tafel2', x: 2, y: 6 }, { t: 'tafel2', x: 9, y: 6 }];
+const NIEUW = () => ({ versie: 2, geld: 300, dag: 1, rep: 20, ovens: 1, obers: 1, spullen: BEGIN(), best: 0 });
 let S = lees(SLEUTEL) || (speler && lees('pizzabaas')) || NIEUW();
+if (S.versie != 2) { // de zaak is kleiner geworden met grotere tegels: oude spullen terugbetalen en opnieuw beginnen met twee tafeltjes
+  S.geld += S.spullen.reduce((a, s) => a + (SPUL[s.t] ? SPUL[s.t].prijs : 0) + (s.kleed ? 10 : 0) + (s.kaars ? 8 : 0), 0) - 100;
+  S.spullen = BEGIN(); S.versie = 2;
+}
 const bewaar = () => { if (!TEGEL) schrijf(SLEUTEL, S); };
 
 // ---------- teksten ----------
@@ -121,7 +126,7 @@ const ZEG = {
 const vrij = (x, y, w, h, behalve) => {
   for (let i = 0; i < w; i++) for (let j = 0; j < h; j++) {
     const a = x + i, b = y + j;
-    if (a < 0 || a >= W || b < KEUKEN || b >= H - 1) return false;
+    if (a < 0 || a >= W || b < KEUKEN || b >= H) return false;
     if (a == DEUR.x && b == DEUR.y - 1) return false; // voor de deur vrijhouden
     for (const s of S.spullen) if (s != behalve && a >= s.x && a < s.x + SPUL[s.t].w && b >= s.y && b < s.y + SPUL[s.t].h) return false;
   }
@@ -129,15 +134,16 @@ const vrij = (x, y, w, h, behalve) => {
 };
 const op = (x, y) => S.spullen.find((s) => x >= s.x && x < s.x + SPUL[s.t].w && y >= s.y && y < s.y + SPUL[s.t].h);
 const isTafel = (s) => s.t == 'tafel2' || s.t == 'tafel4';
-function stoelen(s) { // plekken (in vakjes, middelpunt) waar klanten zitten
-  if (s.t == 'tafel2') return [[s.x + 0.14, s.y + 0.5], [s.x + 0.86, s.y + 0.5]];
-  if (s.t == 'tafel4') return [[s.x + 0.6, s.y + 0.12], [s.x + 1.4, s.y + 0.12], [s.x + 0.6, s.y + 0.88], [s.x + 1.4, s.y + 0.88]];
+function stoelen(s) { // plekken (in tegels, middelpunt) waar klanten zitten
+  if (s.t == 'tafel2') return [[s.x + 0.5, s.y + 1], [s.x + 3.5, s.y + 1]];
+  if (s.t == 'tafel4') return [[s.x + 2, s.y + 0.5], [s.x + 2, s.y + 3.5], [s.x + 0.5, s.y + 2], [s.x + 3.5, s.y + 2]];
   return [];
 }
+const midden = (s) => [s.x + SPUL[s.t].w / 2, s.y + SPUL[s.t].h / 2];
 function gezellig(s) { // 1 tot 6 sterretjes
   let g = 1 + (s.kleed ? 1 : 0) + (s.kaars ? 1 : 0);
-  const cx = s.x + SPUL[s.t].w / 2, cy = s.y + 0.5;
-  g += Math.min(2, S.spullen.filter((p) => p.t == 'plant' && Math.hypot(p.x + 0.5 - cx, p.y + 0.5 - cy) <= 2.3).length);
+  const [cx, cy] = midden(s);
+  g += Math.min(2, S.spullen.filter((p) => p.t == 'plant' && Math.hypot(p.x + 0.5 - cx, p.y + 0.5 - cy) <= 3.6).length);
   if (S.spullen.some((p) => p.t == 'jukebox')) g += 1;
   return g;
 }
@@ -150,28 +156,28 @@ let tel = {};
 let kies = null; // wat er gekocht en neergezet wordt
 
 function maakPersoneel() {
-  obers = []; for (let i = 0; i < S.obers; i++) obers.push({ x: 6 + i * 0.7, y: 2.4, thuis: [6 + i * 0.7, 2.4], taak: null, draagt: null });
+  obers = []; for (let i = 0; i < S.obers; i++) obers.push({ x: 7 + i, y: KEUKEN + 0.5, thuis: [7 + i, KEUKEN + 0.5], taak: null, draagt: null });
   ovens = []; for (let i = 0; i < S.ovens; i++) ovens.push(maakOven(i));
 }
 // per oven een kok: die rolt het deeg uit en gooit het op (aan de werkbank naast de oven), schuift de pizza in de oven
 // en brengt hem als hij klaar is naar de toonbank, waar een ober hem ophaalt
-const KOK_HUIS = (i) => [1.3 + i * 1.9, 1.2], BANK = (i) => [2.05 + i * 1.9, 1.15], TOONBANK = (i) => [7.6 + i * 1.1, 1.6];
-function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: 1.3 + i * 1.9, bezig: null, t: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2 } }; }
+const KOK_HUIS = (i) => [1.5 + i * 2.6, 2.1], BANK = (i) => [2.6 + i * 2.6, 2], TOONBANK = (i) => [9.5 + i * 1.5, 2.6];
+function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: 1.5 + i * 2.6, bezig: null, t: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2 } }; }
 const DEEG = 1.6;
 function stapOven(o, dt) {
   const k = o.kok;
   if (o.fase == 'leeg') {
-    beweeg(k, KOK_HUIS(o.i), 1.6, dt); k.poets = (k.poets || 0) + dt;
+    beweeg(k, KOK_HUIS(o.i), 2.2, dt); k.poets = (k.poets || 0) + dt;
     const b = wachtrij.shift(); if (b) { o.bezig = b; o.t = 0; o.fase = 'deeg'; }
   } else if (o.fase == 'deeg') { // naar de werkbank, deeg uitrollen en opgooien
-    if (beweeg(k, BANK(o.i), 1.8, dt)) { o.t += dt; k.gooi = o.t; if (o.t >= DEEG) { o.fase = 'inschuiven'; k.gooi = 0; } }
+    if (beweeg(k, BANK(o.i), 2.4, dt)) { o.t += dt; k.gooi = o.t; if (o.t >= DEEG) { o.fase = 'inschuiven'; k.gooi = 0; } }
   } else if (o.fase == 'inschuiven') {
-    if (beweeg(k, [o.x, 1.05], 1.8, dt)) { o.fase = 'bak'; o.t = 0; ding(300, 0.08, 'triangle', 0.05); }
+    if (beweeg(k, [o.x, 1.7], 2.4, dt)) { o.fase = 'bak'; o.t = 0; ding(300, 0.08, 'triangle', 0.05); }
   } else if (o.fase == 'bak') {
-    o.t += dt; beweeg(k, KOK_HUIS(o.i), 1.2, dt);
+    o.t += dt; beweeg(k, KOK_HUIS(o.i), 1.8, dt);
     if (o.t >= BAKTIJD - DEEG) { o.fase = 'breng'; k.draagt = true; ding(1200, 0.05); }
   } else if (o.fase == 'breng') {
-    if (beweeg(k, TOONBANK(o.i), 2, dt)) { o.bezig.plek = TOONBANK(o.i); klaar.push(o.bezig); o.bezig = null; k.draagt = false; o.fase = 'leeg'; }
+    if (beweeg(k, TOONBANK(o.i), 2.8, dt)) { o.bezig.plek = TOONBANK(o.i); klaar.push(o.bezig); o.bezig = null; k.draagt = false; o.fase = 'leeg'; }
   }
   if (o.bezig && !mensen.includes(o.bezig.m)) { o.bezig = null; k.draagt = false; k.gooi = 0; o.fase = 'leeg'; } // klant al weg
 }
@@ -248,7 +254,7 @@ function stap(dt) {
 
   for (const m of [...mensen]) {
     m.t += dt;
-    if (m.st == 'loop' && beweeg(m, m.doel, 2.2, dt)) {
+    if (m.st == 'loop' && beweeg(m, m.doel, 3, dt)) {
       m.st = 'wacht'; m.t = 0; m.bestelling = { m, klaar: false };
       wachtrij.push(m.bestelling);
       if (Math.random() < 0.25) { const g = gezellig(m.tafel); if (g >= 4) zeg(m, R(ZEG.gezellig)); else if (g <= 1) zeg(m, R(ZEG.kaal)); }
@@ -262,18 +268,18 @@ function stap(dt) {
       S.geld += PRIJS + fooi; tel.omzet += PRIJS; tel.fooi += fooi; tel.blij++; S.rep = Math.min(100, S.rep + (m.wacht < 12 ? 0.8 : 0.3));
       muntjes.push({ x: m.x, y: m.y, t: 1.2, tekst: '+€' + Math.round(PRIJS + fooi) }); kassa();
       m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6];
-    } else if (m.st == 'weg' && beweeg(m, m.doel, 2.2, dt)) mensen.splice(mensen.indexOf(m), 1);
+    } else if (m.st == 'weg' && beweeg(m, m.doel, 3, dt)) mensen.splice(mensen.indexOf(m), 1);
   }
   // ovens bakken wat er besteld is
   for (const o of ovens) stapOven(o, dt);
   // obers brengen de pizza's rond
   for (const ob of obers) {
     if (!ob.taak && klaar.length) { ob.taak = klaar.shift(); ob.fase = 'halen'; ob.taak.m.onderweg = true; }
-    if (!ob.taak) { beweeg(ob, ob.thuis, 2.6, dt); continue; }
+    if (!ob.taak) { beweeg(ob, ob.thuis, 3.4, dt); continue; }
     const m = ob.taak.m;
     if (!mensen.includes(m) || m.st != 'wacht') { ob.taak = null; ob.draagt = null; continue; }
-    if (ob.fase == 'halen') { if (beweeg(ob, [ob.taak.plek[0], 2.3], 2.6, dt)) { ob.fase = 'brengen'; ob.draagt = true; } }
-    else if (beweeg(ob, [m.x + (m.x < m.tafel.x + SPUL[m.tafel.t].w / 2 ? 0.35 : -0.35), m.y], 2.6, dt)) {
+    if (ob.fase == 'halen') { if (beweeg(ob, [ob.taak.plek[0], KEUKEN + 0.4], 3.4, dt)) { ob.fase = 'brengen'; ob.draagt = true; } }
+    else if (beweeg(ob, [m.x + (m.x < midden(m.tafel)[0] ? -0.6 : 0.6) * (m.tafel.t == 'tafel2' ? 1 : 0), m.y + (m.tafel.t == 'tafel4' ? (m.y < midden(m.tafel)[1] ? -0.6 : 0.6) : 0.7)], 3.4, dt)) {
       m.st = 'eet'; m.wacht = m.t; tel.wacht += m.t; tel.wachtN++; m.t = 0; m.onderweg = false; ob.taak = null; ob.draagt = null;
       if (Math.random() < 0.35) zeg(m, R(ZEG.eten));
     }
@@ -305,17 +311,17 @@ const achter = document.createElement('canvas'); achter.width = WW; achter.heigh
   const a = achter.getContext('2d');
   let zaad = 7; const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
   // vloer: tegeltjes van een half vakje, om en om wit met rood of geel
-  const t = T / 2;
-  for (let y = KEUKEN * 2; y < H * 2; y++) for (let x = 0; x < W * 2; x++) {
+  const t = T;
+  for (let y = KEUKEN; y < H; y++) for (let x = 0; x < W; x++) {
     a.fillStyle = (x + y) % 2 ? '#f3e6c9' : (Math.floor(x / 2) + Math.floor(y / 2)) % 2 ? '#e2492f' : '#f2c230';
     a.fillRect(x * t, y * t, t, t);
-    for (let k = 0; k < 14; k++) { a.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '255,255,255'},${0.05 + rnd() * 0.08})`; a.fillRect(x * t + rnd() * t, y * t + rnd() * t, 2, 2); }
+    for (let k = 0; k < 30; k++) { a.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '255,255,255'},${0.05 + rnd() * 0.08})`; a.fillRect(x * t + rnd() * t, y * t + rnd() * t, 2, 2); }
     a.fillStyle = 'rgba(0,0,0,.08)'; a.fillRect(x * t, y * t + t - 1, t, 1); a.fillRect(x * t + t - 1, y * t, 1, t);
   }
   // keuken: grijs-witte tegels
-  for (let y = 0; y < KEUKEN * 2; y++) for (let x = 0; x < W * 2; x++) { a.fillStyle = (x + y) % 2 ? '#e8e8e8' : '#9aa0a6'; a.fillRect(x * t, y * t, t, t); }
+  for (let y = 0; y < KEUKEN; y++) for (let x = 0; x < W; x++) { a.fillStyle = (x + y) % 2 ? '#e8e8e8' : '#9aa0a6'; a.fillRect(x * t, y * t, t, t); }
   // werkbanken met deeg en meel
-  for (let i = 0; i < 3; i++) { const [bx, by] = BANK(i); a.fillStyle = '#b07a45'; a.fillRect((bx - 0.32) * T, (by - 0.95) * T, 0.64 * T, 0.5 * T); a.fillStyle = 'rgba(255,255,255,.6)'; a.beginPath(); a.arc(bx * T, (by - 0.7) * T, 9, 0, 7); a.fill(); }
+  for (let i = 0; i < 3; i++) { const [bx, by] = BANK(i); a.fillStyle = '#b07a45'; a.fillRect((bx - 0.45) * T, (by - 1.3) * T, 0.9 * T, 0.75 * T); a.fillStyle = 'rgba(255,255,255,.6)'; a.beginPath(); a.arc(bx * T, (by - 0.95) * T, 10, 0, 7); a.fill(); }
   // toonbank: houten blad op bakstenen
   a.fillStyle = '#8b3a22'; a.fillRect(0, KEUKEN * T - 20, WW, 20);
   a.fillStyle = 'rgba(0,0,0,.25)'; for (let x = 0; x < WW; x += 16) a.fillRect(x + ((x / 16) % 2) * 8, KEUKEN * T - 10, 1, 10);
@@ -335,7 +341,7 @@ function pizza(x, y, r, half) {
   g.fillStyle = '#3c8d2f'; for (let i = 0; i < 3; i++) { const a = i * 2.1 + 1; g.beginPath(); g.arc(x + Math.cos(a) * r * 0.25, y + Math.sin(a) * r * 0.25, r * 0.1, 0, 7); g.fill(); }
   if (half) { g.fillStyle = '#fff'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, r + 1, -0.3, 2.2); g.fill(); }
 }
-function bord(x, y, vol, half) { g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.arc(x + 1, y + 2, 10, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 10, 0, 7); g.fill(); g.strokeStyle = '#d8d8d8'; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 7.5, 0, 7); g.stroke(); if (vol) pizza(x, y, 7, half); }
+function bord(x, y, vol, half) { g.save(); g.translate(x, y); g.scale(1.4, 1.4); x = 0; y = 0; g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.arc(x + 1, y + 2, 10, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 10, 0, 7); g.fill(); g.strokeStyle = '#d8d8d8'; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 7.5, 0, 7); g.stroke(); if (vol) pizza(x, y, 7, half); g.restore(); }
 // een poppetje van bovenaf dat de kant van `kijk` op kijkt: schouders, armpjes, hoofd met haar aan de achterkant
 function poppetje(p, opties = {}) {
   const kijk = p.kijk ?? Math.PI / 2, loop = p.loopT ? Math.sin(p.loopT * 12) : 0;
@@ -355,16 +361,17 @@ function poppetje(p, opties = {}) {
   g.restore();
   if (opties.draagt) { g.fillStyle = '#ddd'; g.beginPath(); g.arc(Math.cos(kijk) * 16, Math.sin(kijk) * 16 - 4, 12, 0, 7); g.fill(); pizza(Math.cos(kijk) * 16, Math.sin(kijk) * 16 - 4, 9); }
 }
+const MENS = 1.4; // poppetjes zijn ongeveer een tegel groot, net als in het oude spel
 const naarScherm = (x, y) => [ox + x * T * schaal, oy + y * T * schaal];
 function ober(o) {
   const [x, y] = naarScherm(o.x, o.y);
-  g.save(); g.translate(x, y); g.scale(schaal, schaal);
+  g.save(); g.translate(x, y); g.scale(schaal * MENS, schaal * MENS);
   poppetje({ kleur: '#222', huid: '#f0c7a2', haar: '#3b2414', loopT: o.loopT, kijk: o.kijk }, { draagt: o.draagt, armen: o.draagt ? 0.8 : 0 });
   g.restore();
 }
 function kok(k, nu) {
   const [x, y] = naarScherm(k.x, k.y);
-  g.save(); g.translate(x, y); g.scale(schaal, schaal);
+  g.save(); g.translate(x, y); g.scale(schaal * MENS, schaal * MENS);
   const werkt = k.gooi > 0;
   if (werkt) k.kijk = -Math.PI / 2; // naar de werkbank
   poppetje({ kleur: '#fafafa', huid: '#f0c7a2', haar: '#3b2414', muts: true, loopT: k.loopT, kijk: k.kijk }, { draagt: k.draagt, armen: werkt ? 0.9 + Math.sin(nu / 60) * 0.3 : 0 });
@@ -390,7 +397,7 @@ function teken(nu) {
   // ovens: stenen koepels met vuur
   const ovs = modus == 'inrichten' ? Array.from({ length: S.ovens }, (_, i) => maakOven(i)) : ovens;
   for (const o of ovs) {
-    const x = o.x * T, y = 0.08 * T;
+    const x = o.x * T, y = 0.15 * T;
     g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(x + 3, y + 36, 34, 30, 0, 0, 7); g.fill();
     g.fillStyle = '#a84a2c'; g.beginPath(); g.ellipse(x, y + 32, 33, 29, 0, 0, 7); g.fill();
     g.strokeStyle = '#7a3520'; g.lineWidth = 2; for (let r = 10; r < 30; r += 7) { g.beginPath(); g.ellipse(x, y + 32, r * 1.1, r, 0, 0, 7); g.stroke(); }
@@ -434,7 +441,7 @@ function teken(nu) {
   }
 }
 function stoel(x, y, hoek) { // van bovenaf: houten stoeltje met gestreepte zitting, leuning aan de kant van `hoek`
-  g.save(); g.translate(x, y); g.rotate(hoek);
+  g.save(); g.translate(x, y); g.rotate(hoek); g.scale(1.6, 1.6);
   g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(-11, -9, 24, 22);
   g.fillStyle = '#7a4a22'; g.fillRect(-12, -12, 24, 22);
   g.fillStyle = '#eef3f8'; g.fillRect(-9, -6, 18, 14);
@@ -442,8 +449,9 @@ function stoel(x, y, hoek) { // van bovenaf: houten stoeltje met gestreepte zitt
   g.fillStyle = '#5a3416'; g.fillRect(-12, -14, 24, 6); // leuning
   g.restore();
 }
-function tekenSpul(s, nu, zitten) {
-  const x = s.x * T, y = s.y * T;
+// plant en jukebox, getekend op een vakje van 64 x 64 (wordt geschaald naar de tegel)
+function tekenKlein(s, nu) {
+  const x = 0, y = 0;
   if (s.t == 'plant') {
     g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(x + 35, y + 36, 22, 20, 0, 0, 7); g.fill();
     g.fillStyle = '#c7782e'; g.beginPath(); g.arc(x + 32, y + 32, 15, 0, 7); g.fill();
@@ -460,12 +468,15 @@ function tekenSpul(s, nu, zitten) {
     if (modus != 'inrichten') { g.fillStyle = '#3a2414'; g.font = '16px system-ui'; g.textAlign = 'center'; g.fillText('♪', x + 58, y + 14 + Math.sin(nu / 200) * 4); }
     return;
   }
+}
+function tekenSpul(s, nu, zitten) {
+  const x = s.x * T, y = s.y * T;
+  if (s.t == 'plant' || s.t == 'jukebox') { g.save(); g.translate(x, y); g.scale(T / 64, T / 64); tekenKlein(s, nu); g.restore(); return; }
   // stoelen (leuning van de tafel af)
-  const cx = x + SPUL[s.t].w * T / 2, cy = y + T / 2;
+  const cx = midden(s)[0] * T, cy = midden(s)[1] * T;
   for (const [sx, sy] of stoelen(s)) stoel(sx * T, sy * T, Math.atan2(sy * T - cy, sx * T - cx) - Math.PI / 2 + Math.PI);
   // tafelblad: lichtgrijs gemêleerd, of met een rood-wit kleed
-  const w = SPUL[s.t].w * T;
-  const tx = s.t == 'tafel2' ? x + 14 : x + 10, ty = s.t == 'tafel2' ? y + 12 : y + 15, tw = s.t == 'tafel2' ? 36 : w - 20, th = s.t == 'tafel2' ? 40 : T - 30;
+  const tx = cx - T + 4, ty = cy - T + 4, tw = 2 * T - 8, th = 2 * T - 8;
   g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(tx + 4, ty + 5, tw, th);
   g.fillStyle = '#d6d2cc'; g.fillRect(tx, ty, tw, th);
   g.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < tw; i += 5) for (let j = (i % 2) * 2; j < th; j += 5) g.fillRect(tx + i, ty + j, 1.5, 1.5);
@@ -492,8 +503,8 @@ function tekenSpul(s, nu, zitten) {
 function tekenMens(m, nu) {
   const [x, y] = naarScherm(m.x, m.y);
   const zit = m.st == 'wacht' || m.st == 'eet';
-  if (zit) { const t = m.tafel, cx = t.x + SPUL[t.t].w / 2, cy = t.y + 0.5; m.kijk = Math.atan2(cy - m.y, cx - m.x); m.loopT = 0; }
-  g.save(); g.translate(x, y); g.scale(schaal, schaal);
+  if (zit) { const [cx, cy] = midden(m.tafel); m.kijk = Math.atan2(cy - m.y, cx - m.x); m.loopT = 0; }
+  g.save(); g.translate(x, y); g.scale(schaal * MENS, schaal * MENS);
   poppetje(m, { armen: m.st == 'eet' ? 0.7 + Math.sin(nu / 150 + m.x * 5) * 0.25 : 0 });
   if (m.st == 'wacht') { // geduldbalkje
     const f = Math.max(0, 1 - m.t / m.geduld);
@@ -510,13 +521,13 @@ function naarVak(e) {
   const px = ((e.clientX - r.left) * dpr - ox) / schaal / T, py = ((e.clientY - r.top) * dpr - oy) / schaal / T;
   return { x: Math.floor(px), y: Math.floor(py), fx: px, fy: py };
 }
-doek.addEventListener('pointermove', (e) => { if (modus != 'inrichten' || !kies) return; const v = naarVak(e); const d = SPUL[kies]; hover = { x: Math.max(0, Math.min(W - d.w, v.x)), y: v.y }; });
+doek.addEventListener('pointermove', (e) => { if (modus != 'inrichten' || !kies) return; const v = naarVak(e); const d = SPUL[kies]; hover = { x: Math.max(0, Math.min(W - d.w, v.x - Math.floor(d.w / 2))), y: Math.max(KEUKEN, Math.min(H - d.h, v.y - Math.floor(d.h / 2))) }; });
 doek.addEventListener('pointerdown', (e) => {
   wekGeluid();
   if (modus != 'inrichten') return;
   const v = naarVak(e);
   if (kies) {
-    const d = SPUL[kies]; const x = Math.max(0, Math.min(W - d.w, v.x)), y = v.y;
+    const d = SPUL[kies]; const x = Math.max(0, Math.min(W - d.w, v.x - Math.floor(d.w / 2))), y = Math.max(KEUKEN, Math.min(H - d.h, v.y - Math.floor(d.h / 2)));
     hover = { x, y };
     if (e.pointerType != 'mouse' && (!laatsteTik || laatsteTik.x != x || laatsteTik.y != y)) { laatsteTik = { x, y }; return; } // aanraken: eerst de schaduw laten zien, tweede tik zet neer
     laatsteTik = null;
@@ -619,12 +630,12 @@ if (lees(SLEUTEL) && !TEGEL) { $('welkom').classList.add('verborgen'); tekenKnop
 
 if (TEGEL) { // plaatje voor de startpagina
   $('welkom').classList.add('verborgen');
-  S = { geld: 999, dag: 3, rep: 60, ovens: 2, obers: 2, spullen: [
-    { t: 'tafel2', x: 1, y: 3, kleed: 1, kaars: 1 }, { t: 'tafel4', x: 4, y: 3, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 9, y: 3, kleed: 1 },
-    { t: 'tafel4', x: 1, y: 6, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 8, y: 6, kaars: 1 }, { t: 'plant', x: 11, y: 2 }, { t: 'plant', x: 0, y: 2 }, { t: 'jukebox', x: 11, y: 7 }, { t: 'plant', x: 4, y: 7 } ] };
+  S = { versie: 2, geld: 999, dag: 3, rep: 60, ovens: 2, obers: 2, spullen: [
+    { t: 'tafel2', x: 0, y: 4, kleed: 1, kaars: 1 }, { t: 'tafel4', x: 5, y: 3, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 4, kleed: 1 },
+    { t: 'tafel4', x: 0, y: 8, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 9, kaars: 1 }, { t: 'plant', x: 14, y: 3 }, { t: 'plant', x: 4, y: 3 }, { t: 'jukebox', x: 14, y: 13 }, { t: 'plant', x: 5, y: 12 }, { t: 'tafel2', x: 5, y: 9 } ] };
   modus = 'open'; tel = { blij: 0, boos: 0, vol: 0, omzet: 0, fooi: 0, wacht: 0, wachtN: 0 }; maakPersoneel();
   for (const s of S.spullen.filter(isTafel)) stoelen(s).forEach((p, i) => { if (Math.random() < 0.8) { const m = maakMens(s, i); m.x = p[0]; m.y = p[1]; m.st = Math.random() < 0.6 ? 'eet' : 'wacht'; m.t = Math.random() * 3; m.geduld = 999; mensen.push(m); } });
-  klaar = [{ plek: TOONBANK(0) }, { plek: TOONBANK(1) }]; ovens[0].fase = 'bak'; ovens[0].t = 1; ovens[1].kok.x = BANK(1)[0]; ovens[1].kok.y = BANK(1)[1]; ovens[1].kok.gooi = 0.3; obers[0].x = 6.5; obers[0].y = 5.2; obers[0].draagt = true; obers[1].x = 3.2; obers[1].y = 2.4;
+  klaar = [{ plek: TOONBANK(0) }, { plek: TOONBANK(1) }]; ovens[0].fase = 'bak'; ovens[0].t = 1; ovens[1].kok.x = BANK(1)[0]; ovens[1].kok.y = BANK(1)[1]; ovens[1].kok.gooi = 0.3; obers[0].x = 8.5; obers[0].y = 7.6; obers[0].draagt = true; obers[1].x = 4.2; obers[1].y = 3.5;
   wolkjes.push({ m: mensen[2], tekst: 'Mamma mia!', t: 999 });
 }
 
