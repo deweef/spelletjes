@@ -41,6 +41,13 @@ tafels slepen, jukebox 2x2. Punten 6 en 7 wachten op nieuwe Gemini-vellen van Ma
 
 Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van erdoorheen.
 
+## Klanten als eigen figuren (stap 2 hieronder), afgesproken 25 okt
+- `pizza/kind-gemini.jpg` (zonder opdracht): peuter met feesthoedje en slab: staan, lopen, eten (pizzapunt), met eten gooien,
+  driftbui op de grond, plus losse hoedjes/slabben/kruimels. Idee: **kinderfeestje** als soort klant (lawaai, rommel op de vloer
+  die je moet opruimen, andere tafels vinden het minder gezellig, maar ze bestellen veel).
+- Aanpak per soort klant (werker, student, toerist, villa, opa/oma), één rij per Gemini-opdracht, met het ober-vel als
+  stijlvoorbeeld: 1) lopen opzij (7), 2) zitten: van voren, van achteren, van opzij, eten. Beginnen met de werker (komt het vaakst).
+
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
 2. **Klanten als eigen figuren** (net als kok en ober), met Gemini; de zittende houdingen staan al op de vellen.
