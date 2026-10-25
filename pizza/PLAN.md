@@ -43,6 +43,8 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 
 ## Sfeer: meer oude pizzeria, minder McDonald's (Marcel, 25 okt; zie `pizza/voorbeeld/origineel-1-zaak.jpg`,
 `origineel-4-zaak-steen.jpg` en ons eigen `ons-25okt.jpg`)
+- **Gedaan (25 okt):** tafels en stoelen los. Nog te doen: lange tafel voor 6 en klein tafeltje voor 2 (Gemini-opdracht staat in
+  het gesprek: lange tafel liggend en staand, met en zonder rood-wit kleed, klein tafeltje).
 - Tafels en stoelen **los neerzetten** zoals in het origineel (stoel draait naar de tafel ernaast), dan kan je ook een hoekje
   met 3 stoelen maken; stoelen tegen de tafel aan, niet met een gat ertussen.
   Meerdere tafels: klein (2), vierkant (4), lang (6 stoelen eromheen), zoals in het origineel. De fontein moest je in het
@@ -67,6 +69,10 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 - Villa-dame (Grok): `pizza/dame-grok.jpg`: mooie stijl, maar 7 keer precies hetzelfde plaatje (geen loopcyclus); bruikbaar als
   staand plaatje. Grok kopieert: per plaatje de beenstand uitschrijven en maar 4 plaatjes vragen.
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
+
+## Bank (idee Marcel, 25 okt)
+Geld lenen bij de bank: rente per dag en aflossen. Niet oneindig: hoeveel je mag lenen hangt af van je omzet/populariteit; betaal
+je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag op spullen, of failliet).
 
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).

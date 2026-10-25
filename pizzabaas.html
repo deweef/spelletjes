@@ -99,7 +99,7 @@
   <div class="kaart">
     <h1>🍕 Pizzabaas</h1>
     <p>Je hebt een klein zaakje gehuurd aan de rand van de stad. Een oven, een kok, een ober en twee wiebelige tafeltjes. Maak er de beste pizzeria van de stad van!</p>
-    <p><b>Inrichten:</b> koop tafels, kleedjes, kaarsjes en plantjes en zet ze neer. Verplaatsen = vasthouden en slepen. Tik op een leeg stuk vloer voor een andere vloer. Hoe gezelliger, hoe meer fooi.<br>
+    <p><b>Inrichten:</b> koop tafels en stoelen (een stoel naast een tafel draait er vanzelf naartoe), kleedjes, kaarsjes en plantjes en zet ze neer. Verplaatsen = vasthouden en slepen. Tik op een leeg stuk vloer voor een andere vloer. Hoe gezelliger, hoe meer fooi.<br>
     <b>Open de deuren:</b> klanten komen binnen, bestellen en eten. Laat ze niet te lang wachten, en zorg dat er plek is!<br>
     Aan het eind van de dag betaal je de huur.</p>
     <button class="groot" id="begin">Aan de slag!</button>
@@ -131,8 +131,8 @@ const DAG = 120;                      // seconden per werkdag
 const HUUR = 60, LOON = 15, PRIJS = 9, BAKTIJD = 5, ETEN = 8, GEDULD = 25;
 
 const SPUL = {
-  tafel2: { n: 'Tafeltje voor 2', ik: '🪑', prijs: 50, w: 4, h: 2 }, // stoel, tafel van 2 x 2, stoel
-  tafel4: { n: 'Tafel voor 4', ik: '🍽️', prijs: 90, w: 4, h: 4 },  // tafel van 2 x 2 met aan elke kant een stoel
+  tafel: { n: 'Tafel', ik: '🍽️', prijs: 40, w: 2, h: 2 }, // tafels en stoelen los, zoals in het origineel
+  stoel: { n: 'Stoel', ik: '🪑', prijs: 12, w: 1, h: 1 },  // een stoel naast een tafel draait er vanzelf naartoe
   plant: { n: 'Plant', ik: '🪴', prijs: 20, w: 1, h: 1 },
   jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 2, h: 2, een: true },
 };
@@ -212,12 +212,24 @@ const MARGHERITA = () => ({ naam: 'Margherita', prijs: 8, stukjes: [
   { i: 'tomaat', x: -0.4, y: -0.3, r: 0.3 }, { i: 'tomaat', x: 0.45, y: -0.2, r: 2 }, { i: 'tomaat', x: 0, y: 0.5, r: 4 },
   { i: 'kaas', x: 0.05, y: -0.55, r: 1 }, { i: 'kaas', x: -0.45, y: 0.3, r: 3 }, { i: 'kaas', x: 0.45, y: 0.35, r: 5 }] });
 
-const BEGIN = () => [{ t: 'tafel2', x: 2, y: 6 }, { t: 'tafel2', x: 9, y: 6 }];
-const NIEUW = () => ({ versie: 2, geld: 300, dag: 1, rep: 20, ovens: 1, obers: 1, spullen: BEGIN(), best: 0, menu: [MARGHERITA()] });
+const BEGIN = () => [{ t: 'tafel', x: 3, y: 6 }, { t: 'stoel', x: 2, y: 6 }, { t: 'stoel', x: 5, y: 7 }, { t: 'tafel', x: 10, y: 6 }, { t: 'stoel', x: 9, y: 6 }, { t: 'stoel', x: 12, y: 7 }];
+// opslag versie 2 had vaste sets (tafel2 = 4 x 2 met 2 stoelen, tafel4 = 4 x 4 met 4 stoelen): omzetten naar een losse tafel met losse stoelen
+function zetOm(spullen) {
+  const uit = [];
+  for (const s of spullen) {
+    const extra = { ...(s.kleed ? { kleed: s.kleed } : {}), ...(s.kaars ? { kaars: s.kaars } : {}) };
+    if (s.t == 'tafel2') uit.push({ t: 'tafel', x: s.x + 1, y: s.y, ...extra }, { t: 'stoel', x: s.x, y: s.y }, { t: 'stoel', x: s.x + 3, y: s.y + 1 });
+    else if (s.t == 'tafel4') uit.push({ t: 'tafel', x: s.x + 1, y: s.y + 1, ...extra }, { t: 'stoel', x: s.x + 1, y: s.y }, { t: 'stoel', x: s.x + 2, y: s.y + 3 }, { t: 'stoel', x: s.x, y: s.y + 2 }, { t: 'stoel', x: s.x + 3, y: s.y + 1 });
+    else uit.push(s);
+  }
+  return uit;
+}
+const NIEUW = () => ({ versie: 3, geld: 300, dag: 1, rep: 20, ovens: 1, obers: 1, spullen: BEGIN(), best: 0, menu: [MARGHERITA()] });
 let S = lees(SLEUTEL) || (speler && lees('pizzabaas')) || NIEUW();
-if (S.versie != 2) { // de zaak is kleiner geworden met grotere tegels: oude spullen terugbetalen en opnieuw beginnen met twee tafeltjes
-  S.geld += S.spullen.reduce((a, s) => a + (SPUL[s.t] ? SPUL[s.t].prijs : 0) + (s.kleed ? 10 : 0) + (s.kaars ? 8 : 0), 0) - 100;
-  S.spullen = BEGIN(); S.versie = 2;
+if (S.versie == 2) { S.spullen = zetOm(S.spullen); S.versie = 3; } // vaste sets worden losse tafels en stoelen
+if (S.versie != 3) { // de zaak is kleiner geworden met grotere tegels: oude spullen terugbetalen en opnieuw beginnen met twee tafeltjes
+  S.geld += S.spullen.reduce((a, s) => a + ({ tafel2: 50, tafel4: 90, plant: 20, jukebox: 150 }[s.t] || 0) + (s.kleed ? 10 : 0) + (s.kaars ? 8 : 0), 0) - 100;
+  S.spullen = BEGIN(); S.versie = 3;
 }
 if (!S.menu || !S.menu.length) S.menu = [MARGHERITA()]; // opslag van voor de menukaart
 const bewaar = () => { if (!TEGEL) schrijf(SLEUTEL, S); };
@@ -253,12 +265,30 @@ const vrij = (x, y, w, h, behalve) => {
   return true;
 };
 const op = (x, y) => S.spullen.find((s) => x >= s.x && x < s.x + SPUL[s.t].w && y >= s.y && y < s.y + SPUL[s.t].h);
-const isTafel = (s) => s.t == 'tafel2' || s.t == 'tafel4';
-function stoelen(s) { // plekken (in tegels, middelpunt) waar klanten zitten
-  if (s.t == 'tafel2') return [[s.x + 0.5, s.y + 1], [s.x + 3.5, s.y + 1]];
-  if (s.t == 'tafel4') return [[s.x + 2, s.y + 0.5], [s.x + 2, s.y + 3.5], [s.x + 0.5, s.y + 2], [s.x + 3.5, s.y + 2]];
-  return [];
+const isTafel = (s) => s.t == 'tafel';
+// bij welke tafel hoort een stoel op (x, y), en aan welke kant: 0 boven de tafel, 1 eronder, 2 links, 3 rechts (de eerste tafel die ernaast staat)
+function kantVoor(x, y) {
+  for (const t of S.spullen) {
+    if (!isTafel(t)) continue; const w = SPUL[t.t].w, h = SPUL[t.t].h;
+    if (x >= t.x && x < t.x + w && y == t.y - 1) return { kant: 0, tafel: t };
+    if (x >= t.x && x < t.x + w && y == t.y + h) return { kant: 1, tafel: t };
+    if (y >= t.y && y < t.y + h && x == t.x - 1) return { kant: 2, tafel: t };
+    if (y >= t.y && y < t.y + h && x == t.x + w) return { kant: 3, tafel: t };
+  }
+  return { kant: 0, tafel: null };
 }
+let indelingSleutel = '', indelingData = null;
+function indeling() { // per tafel de stoelen eromheen ({ sx, sy, kant, stoel }), en per stoel zijn kant; opnieuw als er iets verschoven is
+  const k = S.spullen.map((s) => s.t + s.x + ',' + s.y).join('|');
+  if (k == indelingSleutel && indelingData) return indelingData;
+  const per = new Map(), kantVan = new Map();
+  for (const t of S.spullen) if (isTafel(t)) per.set(t, []);
+  for (const c of S.spullen) if (c.t == 'stoel') { const { kant, tafel } = kantVoor(c.x, c.y); kantVan.set(c, kant); if (tafel) per.get(tafel).push({ sx: c.x + 0.5, sy: c.y + 0.5, kant, stoel: c }); }
+  indelingSleutel = k; return indelingData = { per, kantVan };
+}
+const stoelPlekken = (t) => indeling().per.get(t) || [];
+const stoelen = (t) => stoelPlekken(t).map((p) => [p.sx, p.sy]); // plekken (in tegels, middelpunt) waar klanten zitten
+const RICHTING = [[0, 1], [0, -1], [1, 0], [-1, 0]]; // per kant: van de stoel naar de tafel
 const midden = (s) => [s.x + SPUL[s.t].w / 2, s.y + SPUL[s.t].h / 2];
 function gezellig(s) { // 1 tot 6 sterretjes
   const kl = kleedVan(s);
@@ -356,7 +386,7 @@ const KLEUR = ['#e85d4a', '#3f88c5', '#f4b942', '#6ab04c', '#9b59b6', '#e67e22',
 const HUID = ['#f5d0b5', '#e8b48f', '#c98e64', '#8d5a3b', '#5e3a24'];
 const HAAR = ['#2b1b10', '#5a3a1e', '#c8a24a', '#a33c1c', '#888', '#111'];
 function nieuweGroep() {
-  const n = Math.random() < 0.45 ? 1 : Math.random() < 0.7 ? 2 : Math.random() < 0.6 ? 3 : 4;
+  const k = Math.random(), n = k < 0.38 ? 1 : k < 0.68 ? 2 : k < 0.8 ? 3 : k < 0.92 ? 4 : k < 0.97 ? 5 : 6;
   // zoek een tafel met genoeg vrije stoelen (de kleinste die past)
   const tafels = S.spullen.filter(isTafel).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => !mensen.some((m) => m.tafel == s && m.stoel == i)) }))
     .filter((t) => t.vrij.length >= n && !mensen.some((m) => m.tafel == t.s)).sort((a, b) => a.vrij.length - b.vrij.length);
@@ -407,8 +437,7 @@ function maakBezet() {
   const blok = (x0, y0, x1, y1) => { for (let j = 0; j < RH; j++) for (let i = 0; i < RW; i++) { const x = (i + 0.5) / R2, y = (j + 0.5) / R2; if (x > x0 && x < x1 && y > y0 && y < y1) bezet[j * RW + i] = 1; } };
   blok(-1, -1, W + 1, KEUKEN); // de keuken (achter de toonbank)
   for (const s of S.spullen) {
-    if (isTafel(s)) { const [cx, cy] = midden(s); blok(cx - 0.9, cy - 0.9, cx + 0.9, cy + 0.9); for (const [sx, sy] of stoelen(s)) blok(sx - 0.45, sy - 0.45, sx + 0.45, sy + 0.45); }
-    else blok(s.x, s.y, s.x + SPUL[s.t].w, s.y + SPUL[s.t].h);
+    blok(s.x + 0.05, s.y + 0.05, s.x + SPUL[s.t].w - 0.05, s.y + SPUL[s.t].h - 0.05);
   }
 }
 const cel = (x, y) => [Math.max(0, Math.min(RW - 1, Math.floor(x * R2))), Math.max(KEUKEN * R2, Math.min(RH - 1, Math.floor(y * R2)))];
@@ -522,7 +551,8 @@ function stap(dt) {
       continue;
     }
     const m = borden[0].m;
-    if (loopNaar(ob, [m.x + (m.x < midden(m.tafel)[0] ? -0.6 : 0.6) * (m.tafel.t == 'tafel2' ? 1 : 0), m.y + (m.tafel.t == 'tafel4' ? (m.y < midden(m.tafel)[1] ? -0.6 : 0.6) : 0.7)], 3.4, dt)) {
+    const p = stoelPlekken(m.tafel)[m.stoel] || { sx: m.x, sy: m.y, kant: 0 }, [rx, ry] = RICHTING[p.kant]; // de ober komt achter de stoel staan
+    if (loopNaar(ob, [p.sx - rx * 0.8, p.sy - ry * 0.8], 3.4, dt)) {
       m.st = 'eet'; m.wacht = m.t; tel.wacht += m.t; tel.wachtN++; m.t = 0; borden.shift(); ob.draagt = borden.length; ob.serveer = 0.6;
       if (!borden.length) ob.taak = null;
       if (Math.random() < 0.35) zeg(m, R(ZEG.eten));
@@ -768,7 +798,11 @@ function teken(nu) {
 
   // spullen
   const zitten = mensen.filter((m) => m.st == 'wacht' || m.st == 'eet');
-  for (const s of S.spullen) if (!(sleep && sleep.bewogen && s == sleep.s)) tekenSpul(s, nu, zitten);
+  // eerst de stoelen boven en naast de tafels, dan tafels en de rest (van boven naar beneden), dan de stoelen onder de tafels (die staan ervoor)
+  const lijst = S.spullen.filter((s) => !(sleep && sleep.bewogen && s == sleep.s)), kv = indeling().kantVan;
+  for (const s of lijst) if (s.t == 'stoel' && kv.get(s) != 1) tekenSpul(s, nu, zitten);
+  for (const s of [...lijst].filter((s) => s.t != 'stoel').sort((a, b) => a.y + SPUL[a.t].h - b.y - SPUL[b.t].h)) tekenSpul(s, nu, zitten);
+  for (const s of lijst) if (s.t == 'stoel' && kv.get(s) == 1) tekenSpul(s, nu, zitten);
   if (sleep && sleep.bewogen) { // een spul dat versleept wordt: half doorzichtig, groen = past, rood = geen plek
     const d = SPUL[sleep.s.t], ok = vrij(sleep.x, sleep.y, d.w, d.h, sleep.s);
     g.globalAlpha = 0.7; tekenSpul({ ...sleep.s, x: sleep.x, y: sleep.y }, nu, []); g.globalAlpha = 1;
@@ -865,11 +899,13 @@ const KLEDEN = new Image(); KLEDEN.src = 'pizza/kleden.png'; // pizza/tafels-gem
 function tekenSpul(s, nu, zitten) {
   const x = s.x * T, y = s.y * T;
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
-  // stoelen (leuning van de tafel af)
+  if (s.t == 'stoel') { // losse stoel, met de leuning van zijn tafel af
+    const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y).kant;
+    if (STOELEN.complete && STOELEN.naturalWidth) gemStoel({ sx: s.x + 0.5, sy: s.y + 0.5, kant });
+    else stoel(x + T / 2, y + T / 2, [0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
+    return;
+  }
   const cx = midden(s)[0] * T, cy = midden(s)[1] * T;
-  const plekken = stoelen(s).map(([sx, sy]) => ({ sx, sy, kant: sy * T < cy - 1 ? 0 : sy * T > cy + 1 ? 1 : sx * T < cx ? 2 : 3 }));
-  if (STOELEN.complete && STOELEN.naturalWidth) { for (const p of plekken) if (p.kant != 1) gemStoel(p); } // de stoel onder de tafel komt na de tafel
-  else for (const { sx, sy } of plekken) stoel(sx * T, sy * T, Math.atan2(sy * T - cy, sx * T - cx) - Math.PI / 2 + Math.PI);
   // tafelblad: lichtgrijs gemêleerd, of met een rood-wit kleed
   if (TAFELS.complete && TAFELS.naturalWidth) { // Gemini-tafel: 0 marmer, 1 rood-wit geruit kleed (2-3 wit kleed, voor later)
     const w = 2 * T, h = w * 156 / 192, x0 = cx - w / 2, y0 = cy - h / 2;
@@ -889,10 +925,9 @@ function tekenSpul(s, nu, zitten) {
     g.restore();
   }
   }
-  if (STOELEN.complete && STOELEN.naturalWidth) for (const p of plekken) if (p.kant == 1) gemStoel(p);
-  // borden: leeg (wachten) of met pizza (eten)
+  // borden: leeg (wachten) of met pizza (eten), op de tafel voor de stoel
   for (const m of zitten) if (m.tafel == s) {
-    const [sx, sy] = stoelen(s)[m.stoel], px = sx + (cx / T - sx) * 0.45, py = sy + (cy / T - sy) * 0.45;
+    const p = stoelPlekken(s)[m.stoel]; if (!p) continue; const px = p.sx + RICHTING[p.kant][0] * 0.85, py = p.sy + RICHTING[p.kant][1] * 0.85;
     bord(px * T, py * T, m.st == 'eet', m.st == 'eet' && m.t > ETEN / 2);
   }
   if (s.kaars) {
@@ -906,7 +941,7 @@ function tekenSpul(s, nu, zitten) {
 function tekenMens(m, nu) {
   const [x, y] = naarScherm(m.x, m.y);
   const zit = m.st == 'wacht' || m.st == 'eet';
-  if (zit) { const [cx, cy] = midden(m.tafel); m.kijk = Math.atan2(cy - m.y, cx - m.x); m.loopT = 0; }
+  if (zit) { const p = stoelPlekken(m.tafel)[m.stoel]; const [rx, ry] = RICHTING[p ? p.kant : 0]; m.kijk = Math.atan2(ry, rx); m.loopT = 0; } // naar de tafel
   g.save(); g.translate(x, y); g.scale(schaal * MENS, schaal * MENS);
   poppetje(m, { armen: m.st == 'eet' ? 0.7 + Math.sin(nu / 150 + m.x * 5) * 0.25 : 0 });
   if (m.st == 'wacht') { // geduldbalkje
@@ -1194,6 +1229,7 @@ if (TEGEL) { // plaatje voor de startpagina
   S = { versie: 2, geld: 999, dag: 3, rep: 60, ovens: 2, obers: 2, menu: [MARGHERITA()], spullen: [
     { t: 'tafel2', x: 0, y: 4, kleed: 1, kaars: 1 }, { t: 'tafel4', x: 5, y: 3, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 4, kleed: 1 },
     { t: 'tafel4', x: 0, y: 8, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 9, kaars: 1 }, { t: 'plant', x: 14, y: 3, v: 1 }, { t: 'plant', x: 4, y: 3, v: 2 }, { t: 'jukebox', x: 13, y: 13 }, { t: 'plant', x: 5, y: 12, v: 3 }, { t: 'tafel2', x: 5, y: 9 } ] };
+  S.spullen = zetOm(S.spullen); S.versie = 3;
   modus = 'open'; tel = NIEUWTEL(); maakPersoneel();
   for (const s of S.spullen.filter(isTafel)) stoelen(s).forEach((p, i) => { if (Math.random() < 0.8) { const m = maakMens(s, i); m.x = p[0]; m.y = p[1]; m.st = Math.random() < 0.6 ? 'eet' : 'wacht'; m.t = Math.random() * 3; mensen.push(m); } });
   klaar = [{}, {}, {}]; ovens[0].fase = 'bak'; ovens[0].t = 1; ovens[1].kok.x = BANK(1)[0]; ovens[1].kok.y = BANK(1)[1]; ovens[1].kok.gooi = 0.3; obers[0].x = 8.5; obers[0].y = 7.6; obers[0].draagt = 2; obers[1].x = 4.2; obers[1].y = 3.5;

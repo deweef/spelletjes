@@ -3,10 +3,12 @@
 Plan en afspraken: `pizza/PLAN.md`.
 
 Pizzabaas (`pizzabaas.html`, concept, idee van Pizza Tycoon maar met eigen naam en grappen): eigen pizzeria van bovenaf op een raster
-van 15x15 vloertegels zoals in het oude spel (`W`, `H`, `T` = 48; rij 0-2 keuken met ovens en koks, deur onderaan `DEUR`). Tafeltje voor 2 = 4x2
-tegels (stoel, tafel 2x2, stoel), tafel voor 4 = 4x4; poppetjes ongeveer een tegel groot (`MENS`). Oude opslag zonder `versie: 2` krijgt zijn
+van 15x15 vloertegels zoals in het oude spel (`W`, `H`, `T` = 48; rij 0-2 keuken met ovens en koks, deur onderaan `DEUR`). Tafels (2x2) en stoelen (1x1) los, zoals in het
+origineel (opslag `versie: 3`; versie 2 had vaste sets tafel2/tafel4, die `zetOm` omzet naar tafel + stoelen in een molentje): een stoel hoort bij de tafel waar hij tegenaan staat
+(`kantVoor`, `indeling` → `stoelPlekken(tafel)` = { sx, sy, kant, stoel }, kant 0 boven/1 onder/2 links/3 rechts, `RICHTING`); groepjes van 1-6 zoeken een tafel met genoeg vrije stoelen;
+de ober komt achter de stoel staan; tekenvolgorde: stoelen boven/naast, dan tafels en de rest, dan stoelen eronder; poppetjes ongeveer een tegel groot (`MENS`). Oude opslag zonder `versie: 2` krijgt zijn
 spullen terugbetaald en begint opnieuw met twee tafeltjes. Twee standen (`modus`): inrichten (spullen uit `SPUL`
-kopen en neerzetten: tafeltje voor 2, tafel voor 4, plant, jukebox (2x2; oude opslag met een 1x1-jukebox krijgt een vrije plek of geld terug);
+kopen en neerzetten: tafel, stoel, plant, jukebox (2x2; oude opslag met een 1x1-jukebox krijgt een vrije plek of geld terug);
 vasthouden en slepen = verplaatsen (`sleep`), tikken = menu met kleedje (`KLEED`: 11 kleedjes als kleurknopjes, `s.kleed` = naam, oud `true` = 'rood' via `kleedVan`; €10, chic ✨ €20 en +1 gezellig; ronde = ronde tafel; plaatjes `pizza/kleden.png` (`KLEDEN`, vakjes 192x192)), kaarsje (`EXTRA`) en verkopen; extra ovens en obers in `PERSONEEL`) en open (een werkdag van `DAG` = 120 s, 17:00-22:00). Klantengroepjes (`groep`) zoeken een vrije
 tafel (anders "vol", reputatie omlaag). Zit de hele tafel, dan bestellen ze samen (`bestel`) en bakt de keuken hun pizza's achter elkaar
 (`wachtrij`, `BAKTIJD`). Pas als alle pizza's van de tafel op het uitgiftepunt staan (`klaar`, `tafelKlaar`) komen er loopjes (`ritten`)
