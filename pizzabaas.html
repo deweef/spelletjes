@@ -99,7 +99,7 @@
   <div class="kaart">
     <h1>🍕 Pizzabaas</h1>
     <p>Je hebt een klein zaakje gehuurd aan de rand van de stad. Een oven, een kok, een ober en twee wiebelige tafeltjes. Maak er de beste pizzeria van de stad van!</p>
-    <p><b>Inrichten:</b> koop tafels, kleedjes, kaarsjes en plantjes en zet ze neer. Verplaatsen = vasthouden en slepen. Hoe gezelliger, hoe meer fooi.<br>
+    <p><b>Inrichten:</b> koop tafels, kleedjes, kaarsjes en plantjes en zet ze neer. Verplaatsen = vasthouden en slepen. Tik op een leeg stuk vloer voor een andere vloer. Hoe gezelliger, hoe meer fooi.<br>
     <b>Open de deuren:</b> klanten komen binnen, bestellen en eten. Laat ze niet te lang wachten, en zorg dat er plek is!<br>
     Aan het eind van de dag betaal je de huur.</p>
     <button class="groot" id="begin">Aan de slag!</button>
@@ -551,19 +551,24 @@ if (window.ResizeObserver) new ResizeObserver(() => maat()).observe($('veld')); 
 
 // de vaste achtergrond (vloer, keuken, muren) één keer vooraf tekenen
 const achter = document.createElement('canvas'); achter.width = WW; achter.height = WH;
-(function tekenAchter() {
+function tekenAchter() {
   const a = achter.getContext('2d');
   let zaad = 7; const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
-  // vloer zoals het origineel: tegels van een vakje, om en om crème met rood of geel, doffe kleuren vol spikkels
-  const t = T, h = T;
-  const TEGELS = [['#ecdcbe', '#d6c09a', '#f6ead2'], ['#cf5338', '#a83a24', '#e2765a'], ['#dcb848', '#b8952a', '#ecd06e']]; // [kleur, donker, licht]
-  for (let j = KEUKEN; j < H; j++) for (let i = 0; i < W; i++) {
-    const [kl, dk, lc] = TEGELS[(i + j) % 2 ? 0 : (Math.floor(i / 2) + Math.floor(j / 2)) % 2 ? 1 : 2];
-    const x = i * h, y = j * h;
-    a.fillStyle = kl; a.fillRect(x, y, h, h);
-    a.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '255,255,255'},${rnd() * 0.06})`; a.fillRect(x, y, h, h); // elke tegel net iets anders
-    for (let k = 0; k < 110; k++) { a.fillStyle = rnd() < 0.6 ? dk : lc; a.fillRect(x + Math.floor(rnd() * (h - 2)), y + Math.floor(rnd() * (h - 2)), 2, 2); }
-    a.fillStyle = 'rgba(70,35,15,.22)'; a.fillRect(x, y + h - 1, h, 1); a.fillRect(x + h - 1, y, 1, h); // voegen
+  // vloer: S.vloer (VLOER). Plaatjes uit pizza/vloeren.png herhalen (6 x 6 tegels per vak), of zelf tekenen: tegels van een
+  // vakje, om en om crème met een kleur, doffe kleuren vol spikkels (zoals het origineel)
+  const t = T, h = T, vl = VLOER[S.vloer] || VLOER.klassiek;
+  if (vl.i != null && VLOEREN.complete && VLOEREN.naturalWidth) {
+    for (let y = KEUKEN * T; y < H * T; y += 288) for (let x = 0; x < WW; x += 288) a.drawImage(VLOEREN, vl.i * 288, 0, 288, 288, x, y, 288, 288);
+  } else {
+    const TEGELS = vl.tegels || VLOER.klassiek.tegels;
+    for (let j = KEUKEN; j < H; j++) for (let i = 0; i < W; i++) {
+      const [kl, dk, lc] = TEGELS[(i + j) % 2 ? 0 : (Math.floor(i / 2) + Math.floor(j / 2)) % 2 ? 1 : 2];
+      const x = i * h, y = j * h;
+      a.fillStyle = kl; a.fillRect(x, y, h, h);
+      a.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '255,255,255'},${rnd() * 0.06})`; a.fillRect(x, y, h, h); // elke tegel net iets anders
+      for (let k = 0; k < 110; k++) { a.fillStyle = rnd() < 0.6 ? dk : lc; a.fillRect(x + Math.floor(rnd() * (h - 2)), y + Math.floor(rnd() * (h - 2)), 2, 2); }
+      a.fillStyle = 'rgba(70,35,15,.22)'; a.fillRect(x, y + h - 1, h, 1); a.fillRect(x + h - 1, y, 1, h); // voegen
+    }
   }
   // deurmat voor de deur (daar mag niets staan: MAT)
   a.fillStyle = 'rgba(0,0,0,.25)'; a.fillRect(MAT.x * T + 6, MAT.y * T + 10, MAT.w * T - 6, T - 12);
@@ -589,7 +594,18 @@ const achter = document.createElement('canvas'); achter.width = WW; achter.heigh
   a.fillStyle = '#7a2414'; for (let r = 0; r < 3; r++) { a.fillRect(0, H * T + r * 10, WW, 1); for (let x = (r % 2) * 10; x < WW; x += 20) a.fillRect(x, H * T + r * 10, 1, 10); }
   a.fillStyle = '#5a4a3a'; a.fillRect(DEUR.x * T + 4, H * T, T - 8, 30); a.fillStyle = '#8a7a6a'; a.fillRect(DEUR.x * T + 8, H * T + 4, T - 16, 22);
   a.fillStyle = '#3a2a1a'; a.fillRect(DEUR.x * T + 8, H * T + 4, T - 16, 3);
-})();
+}
+// vloeren om uit te kiezen (tik in het inrichten op een leeg stuk vloer); i = vak in pizza/vloeren.png (uit pizza/vloeren-gemini.jpg),
+// tegels = zelf getekend: [crème, kleur 1, kleur 2], elk [kleur, donker, licht]
+const VLOER = {
+  klassiek: { n: 'Rood-geel geblokt', prijs: 0, kl: '#cf5338', tegels: [['#ecdcbe', '#d6c09a', '#f6ead2'], ['#cf5338', '#a83a24', '#e2765a'], ['#dcb848', '#b8952a', '#ecd06e']] },
+  rood: { n: 'Rood-crème geblokt', prijs: 100, kl: '#9e2a24', tegels: [['#efe2bf', '#d9c79c', '#f8efd6'], ['#9e2a24', '#7a1c17', '#b8443a'], ['#9e2a24', '#7a1c17', '#b8443a']] },
+  terracotta: { n: 'Terracotta', prijs: 150, kl: '#c0643c', i: 0 },
+  kasseien: { n: 'Oude kasseien', prijs: 150, kl: '#8e8e88', i: 1 },
+  hout: { n: 'Donker hout', prijs: 200, kl: '#4a2c1a', i: 2 },
+};
+const VLOEREN = new Image(); VLOEREN.onload = () => tekenAchter(); VLOEREN.src = 'pizza/vloeren.png';
+tekenAchter();
 
 function rondRect(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 function pizza(x, y, r, half) {
@@ -927,12 +943,12 @@ doek.addEventListener('pointerdown', (e) => {
     laatsteTik = null;
     if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
-    S.spullen.push({ t: kies, x, y, ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; // planten om de beurt een andere soort plof(); bewaar();
+    S.spullen.push({ t: kies, x, y, ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
     if (d.een) kies = null;
     tekenKnoppen(); return;
   }
   const s = op(v.x, v.y);
-  if (!s) { sluitMenu(); return; }
+  if (!s) { if (v.y >= KEUKEN && v.y < H) toonVloer(e.clientX, e.clientY); else sluitMenu(); return; }
   // vasthouden en schuiven = verplaatsen; alleen tikken = het menuutje (kleedje, kaarsje, verkopen)
   sleep = { s, fx: v.fx, fy: v.fy, dx: v.fx - s.x, dy: v.fy - s.y, x: s.x, y: s.y, bewogen: false };
   try { doek.setPointerCapture(e.pointerId); } catch (err) {}
@@ -974,6 +990,18 @@ function toonMenu(s, cx, cy) {
     if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
     if (a == 'verkoop') { S.geld += Math.floor(d.prijs / 2) + (kleedVan(s) ? Math.floor(KLEED[kleedVan(s)].prijs / 2) : 0) + (s.kaars ? 4 : 0); S.spullen.splice(S.spullen.indexOf(s), 1); kassa(); sluitMenu(); }
     bewaar(); tekenKnoppen(); if (a != 'verkoop') toonMenu(s, cx, cy);
+  });
+}
+function toonVloer(cx, cy) { // menuutje: de vloer van de zaak kiezen
+  gekozen = null;
+  const m = $('menu'), nu = S.vloer || 'klassiek';
+  m.innerHTML = `<b>🟫 Vloer</b>` + Object.entries(VLOER).map(([k, d]) => `<button data-v="${k}" ${k != nu && S.geld < d.prijs ? 'disabled' : ''}><span style="display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px;background:${d.kl}"></span>${esc(d.n)}${k == nu ? ' ✓' : d.prijs ? ` (€${d.prijs})` : ''}</button>`).join('');
+  m.style.display = 'block';
+  const bw = m.offsetWidth, bh = m.offsetHeight;
+  m.style.left = Math.min(innerWidth - bw - 8, Math.max(8, cx - bw / 2)) + 'px'; m.style.top = Math.min(innerHeight - bh - 80, Math.max(56, cy + 12)) + 'px';
+  m.querySelectorAll('button').forEach((b) => b.onclick = () => {
+    const k = b.dataset.v; if (k == nu) { sluitMenu(); return; }
+    S.geld -= VLOER[k].prijs; S.vloer = k; tekenAchter(); kassa(); bewaar(); tekenKnoppen(); sluitMenu(); meld('Nieuwe vloer: ' + VLOER[k].n + '!');
   });
 }
 function sluitMenu() { $('menu').style.display = 'none'; gekozen = null; }

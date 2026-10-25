@@ -54,6 +54,9 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 - Geluid van geld is te simpel: mooier kassageluid.
 - **Stap A gedaan** (25 okt): doffe gespikkelde vloer (zelfde tegelgrootte als het origineel; halve tegels was te druk),
   terracotta keuken, bakstenen zijmuren, schaduwen, deurmat, kassageluid. Volgende: B (tafels en stoelen los), C (keuken), D (muren).
+- Vloer kiezen gedaan (`pizza/vloeren-gemini.jpg`; rood-crème zelf getekend want het plaatje sloot niet aan).
+- Bakkers-vel voor C: `pizza/bakkers-gemini.jpg` (bebaarde kok met groen shirt en schort: lopen met pizza, deeg kneden,
+  staan/gebaren, zitten; leerling met rode bandana: lopen; plus ingrediënten en krijtborden).
 
 ## Klanten als eigen figuren (stap 2 hieronder), afgesproken 25 okt
 - `pizza/kind-gemini.jpg` (zonder opdracht): peuter met feesthoedje en slab: staan, lopen, eten (pizzapunt), met eten gooien,
