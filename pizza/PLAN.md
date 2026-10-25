@@ -76,6 +76,8 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   staand plaatje. Grok kopieert: per plaatje de beenstand uitschrijven en maar 4 plaatjes vragen.
 - `pizza/vader-kind-gemini.jpg`: vader met peuter in kinderstoel (lopen, pizzadozen dragen = afhaalklant!, zitten, kind voeren,
   kruimels, kinderstoel). Idee: afhalen, en kinderstoel als meubel.
+- `pizza/moeder-kind-gemini.jpg`: moeder met peuter (zelfde opzet: lopen voor/opzij/achter, kind op de arm, zitten, voeren).
+  Samen met de vader: soort klant **gezin**.
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
 ## Bank (idee Marcel, 25 okt)
