@@ -41,6 +41,16 @@ tafels slepen, jukebox 2x2. Punten 6 en 7 wachten op nieuwe Gemini-vellen van Ma
 
 Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van erdoorheen.
 
+## Sfeer: meer oude pizzeria, minder McDonald's (Marcel, 25 okt; zie `pizza/voorbeeld/origineel-1-zaak.jpg`,
+`origineel-4-zaak-steen.jpg` en ons eigen `ons-25okt.jpg`)
+- Tafels en stoelen **los neerzetten** zoals in het origineel (stoel draait naar de tafel ernaast), dan kan je ook een hoekje
+  met 3 stoelen maken; stoelen tegen de tafel aan, niet met een gat ertussen.
+- Keuken: max. 2 pizzabakkers, die er **verschillend** uitzien; een oven links en een rechts (ander pand: rechtsboven/-onder).
+- Ingang: deurmat bij de deur waar je niets neer kunt zetten; iets meer bij de ingang (kapstok, lessenaar).
+- Warmer en voller: andere vloer (origineel: kleinere, gevlekte tegels of grijze kasseien), schaduwen, bakstenen muren,
+  wijnrek en kasten tegen de muur, lampen.
+- Geluid van geld is te simpel: mooier kassageluid.
+
 ## Klanten als eigen figuren (stap 2 hieronder), afgesproken 25 okt
 - `pizza/kind-gemini.jpg` (zonder opdracht): peuter met feesthoedje en slab: staan, lopen, eten (pizzapunt), met eten gooien,
   driftbui op de grond, plus losse hoedjes/slabben/kruimels. `pizza/kind2-gemini.jpg`: zelfde vel met een meisje met staartjes (lila shirt), eet zittend op de grond; plus pizzapunten, hele pizza, kruimels. Idee: **kinderfeestje** als soort klant (lawaai, rommel op de vloer
