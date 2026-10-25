@@ -96,7 +96,10 @@ rij 2: 4 plaatjes lopen naar de kijker toe; rij 3: 4 plaatjes van achteren. Daar
 op een tafel (voorovergebogen), en staan met de borden. Alle voeten op dezelfde hoogte. Effen felgroene achtergrond (#00FF00),
 geen schaduwen, geen tekst."
 
-**D1. Tafels**: gedaan (25 okt), `pizza/tafels-gemini.jpg`; de onderste rij (bijna recht van boven) past het best. Daarna D2 stoelen
+**D1. Tafels**: gedaan (25 okt), `pizza/tafels-gemini.jpg`; de onderste rij (bijna recht van boven) past het best.
+Extra vel `pizza/tafels2-gemini.jpg` (nog niet ingebouwd): ronde tafels (blauw/oranje marmer, geruit turquoise/geel/zwart/groen,
+wit, paars paisley), vierkante tafels met damast/motief-kleden (lichtblauw, olijf, donkerblauw, rood gestreept) en zeshoekige
+tafels (marmer, lappendeken, zwart-wit). Idee: kleedjes kiezen in het tafelmenu, en tafelstijlen per soort klant (punt 7). Daarna D2 stoelen
 (dezelfde stoel in 4 richtingen) en D3 plant/palm/jukebox, steeds één rij per opdracht.
 **D. Meubels, schuin van boven zoals het origineel** (oude tekst, alles in één keer) (stuur `pizza/voorbeeld/origineel-1-zaak.jpg` mee als voorbeeld):
 "Pixelart voor een pizzeria-spel in de stijl van dit plaatje: alles van bovenaf gezien en een klein beetje schuin, zodat je net de
