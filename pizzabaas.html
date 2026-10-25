@@ -137,6 +137,11 @@ const SPUL = {
   lang: { n: 'Lange tafel', ik: '🍽️', prijs: 80, w: 2, h: 4, onder: 'tafel', kleden: ['rood', 'wit'] },
   langL: { n: 'Lange tafel (liggend)', ik: '🍽️', prijs: 80, w: 4, h: 2, onder: 'tafel', kleden: ['rood', 'wit'] },
   tafeltje: { n: 'Tafeltje voor 2', ik: '🍽️', prijs: 25, w: 1, h: 1, onder: 'tafel', kleden: [] },
+  // versiering: de knop Plant wisselt ook (VERSIERING); plaatjes in pizza/versiering.png (vakjes van 360, b = breedte, h = hoogte van het plaatje)
+  kapstok: { n: 'Kapstok', ik: '🧥', prijs: 30, w: 1, h: 1, onder: 'plant', vak: 0, b: 126, hh: 301, tw: 0.9 },
+  wijnrek: { n: 'Wijnrekje', ik: '🍷', prijs: 40, w: 1, h: 1, onder: 'plant', vak: 1, b: 117, hh: 184, tw: 1 },
+  wijnkast: { n: 'Wijnkast', ik: '🍾', prijs: 120, w: 2, h: 1, onder: 'plant', vak: 2, b: 331, hh: 369, tw: 2.1 },
+  servieskast: { n: 'Servieskast', ik: '🍽️', prijs: 120, w: 2, h: 1, onder: 'plant', vak: 3, b: 311, hh: 343, tw: 2 },
   plant: { n: 'Plant', ik: '🪴', prijs: 20, w: 1, h: 1 },
   jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 2, h: 2, een: true },
 };
@@ -272,6 +277,8 @@ const vrij = (x, y, w, h, behalve) => {
 const op = (x, y) => S.spullen.find((s) => x >= s.x && x < s.x + SPUL[s.t].w && y >= s.y && y < s.y + SPUL[s.t].h);
 const TAFELSOORT = ['tafel', 'lang', 'langL', 'tafeltje'];
 const isTafel = (s) => TAFELSOORT.includes(s.t);
+const VERSIERING = ['plant', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast'];
+const GROEP = { tafel: TAFELSOORT, plant: VERSIERING }; // knoppen die bij elke klik naar de volgende soort gaan
 // bij welke tafel hoort een stoel op (x, y), en aan welke kant: 0 boven de tafel, 1 eronder, 2 links, 3 rechts (de eerste tafel die ernaast staat)
 function kantVoor(x, y) {
   for (const t of S.spullen) {
@@ -300,7 +307,7 @@ function gezellig(s) { // 1 tot 6 sterretjes
   const kl = kleedVan(s);
   let g = 1 + (kl ? 1 + (KLEED[kl].chic ? 1 : 0) : 0) + (s.kaars ? 1 : 0);
   const [cx, cy] = midden(s);
-  g += Math.min(2, S.spullen.filter((p) => p.t == 'plant' && Math.hypot(p.x + 0.5 - cx, p.y + 0.5 - cy) <= 3.6).length);
+  g += Math.min(3, S.spullen.filter((p) => VERSIERING.includes(p.t) && Math.hypot(p.x + 0.5 - cx, p.y + 0.5 - cy) <= 3.6).length);
   if (S.spullen.some((p) => p.t == 'jukebox')) g += 1;
   return g;
 }
@@ -924,9 +931,15 @@ const KLEDEN = new Image(); KLEDEN.src = 'pizza/kleden.png';
 // pizza/lange-tafels.png (uit pizza/lange-tafels-gemini.jpg): staand 192 x 512 (0 marmer, 1 rood-wit, 2 wit), daaronder liggend
 // 512 x 192 (een kwartslag gedraaid), daaronder het tafeltje 192 x 204
 const LANG = new Image(); LANG.src = 'pizza/lange-tafels.png';
+const VERSIER = new Image(); VERSIER.src = 'pizza/versiering.png'; // kapstok, wijnrekje, wijnkast (pizza/kapstok-wijn-gemini.jpg), servieskast (pizza/kasten-gemini.jpg)
 const HOUT = new Image(); HOUT.src = 'pizza/houten-tafels.png'; // uit pizza/houten-tafels3-gemini.jpg; de staande is het vierkante blad uitgerekt // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
 function tekenSpul(s, nu, zitten) {
   const x = s.x * T, y = s.y * T;
+  if (SPUL[s.t].vak != null && VERSIER.complete && VERSIER.naturalWidth) { // versiering staat op zijn vakje en steekt naar boven uit
+    const d = SPUL[s.t], w = d.tw * T, h = w * d.hh / d.b;
+    metSchaduw(VERSIER, d.vak * 360 + (360 - d.b) / 2, 360 - d.hh, d.b, d.hh, x + (d.w * T - w) / 2, y + T - h + 2, w, h);
+    return;
+  }
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
   if (s.t == 'stoel') { // losse stoel, met de leuning van zijn tafel af
     const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y).kant;
@@ -1199,9 +1212,9 @@ function tekenKnoppen() {
   let h = '';
   for (const [t0, d0] of Object.entries(SPUL)) {
     if (d0.onder) continue;
-    const t = t0 == 'tafel' && TAFELSOORT.includes(kies) ? kies : t0, d = SPUL[t]; // de knop Tafel laat de gekozen soort tafel zien
+    const t = GROEP[t0] && GROEP[t0].includes(kies) ? kies : t0, d = SPUL[t]; // de knop Tafel/Plant laat de gekozen soort zien
     const op = d.een && S.spullen.some((s) => s.t == t);
-    h += `<button data-k="${t}" class="${kies == t ? 'actief' : ''} ${S.geld < d.prijs ? 'duur' : ''}" ${open || op ? 'disabled' : ''} title="${esc(d.n)}"><span class="ik">${d.ik}</span>${esc(d.n.replace('Tafeltje voor 2', 'Tafel 2').replace('Tafel voor 4', 'Tafel 4'))}<span class="pr">${op ? 'staat er al' : '€' + d.prijs}</span></button>`;
+    h += `<button data-k="${t0}" class="${kies == t ? 'actief' : ''} ${S.geld < d.prijs ? 'duur' : ''}" ${open || op ? 'disabled' : ''} title="${esc(d.n)}"><span class="ik">${d.ik}</span>${esc(d.n.replace('Tafeltje voor 2', 'Tafel 2').replace('Tafel voor 4', 'Tafel 4'))}<span class="pr">${op ? 'staat er al' : '€' + d.prijs}</span></button>`;
   }
   for (const [t, d] of Object.entries(PERSONEEL)) {
     const n = t == 'oven' ? S.ovens : S.obers, vol = n >= d.max;
@@ -1211,8 +1224,11 @@ function tekenKnoppen() {
   h += `<button data-dag><span class="ik">📊</span>Gisteren<span class="pr">overzicht</span></button>`;
   h += open ? `<button class="open" disabled><span class="ik">🔔</span>Open</button>` : `<button class="open" id="open"><span class="ik">🔔</span>Open de deuren</button>`;
   k.innerHTML = h;
-  k.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { wekGeluid(); sluitMenu(); const k = b.dataset.k; kies = TAFELSOORT.includes(k) ? (kies == 'tafeltje' ? null : TAFELSOORT.includes(kies) ? TAFELSOORT[TAFELSOORT.indexOf(kies) + 1] : 'tafel') : kies == k ? null : k;
-    if (TAFELSOORT.includes(kies)) meld(SPUL[kies].n + ' (€' + SPUL[kies].prijs + '). Klik nog eens op de knop voor een andere tafel.'); laatsteTik = null; hover = null; if (kies) meld(isAanraak ? 'Tik op een plek: je ziet hem eerst staan, tik nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten. Klik nog eens op de knop om te stoppen.'); tekenKnoppen(); });
+  k.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { wekGeluid(); sluitMenu(); const k = b.dataset.k, gr = GROEP[k];
+    kies = gr ? (kies == gr[gr.length - 1] ? null : gr.includes(kies) ? gr[gr.indexOf(kies) + 1] : k) : kies == k ? null : k;
+    laatsteTik = null; hover = null;
+    if (gr && kies) meld(SPUL[kies].n + ' (€' + SPUL[kies].prijs + '). Klik nog eens op de knop voor ' + (k == 'tafel' ? 'een andere tafel.' : 'andere versiering.'));
+    else if (kies) meld(isAanraak ? 'Tik op een plek: je ziet hem eerst staan, tik nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten. Klik nog eens op de knop om te stoppen.'); tekenKnoppen(); });
   k.querySelectorAll('[data-p]').forEach((b) => b.onclick = () => {
     const d = PERSONEEL[b.dataset.p]; if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     S.geld -= d.prijs; if (b.dataset.p == 'oven') S.ovens++; else S.obers++; kassa(); bewaar(); tekenKnoppen();
@@ -1294,7 +1310,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>

@@ -58,6 +58,9 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   `pizza/stoelen5-gemini.jpg` (stoel met rood kussen in 4 richtingen = houten stijl!), `pizza/houten-tafels3-gemini.jpg`.
 - **Houten stijl gedaan** (25 okt): per tafel en stoel wisselen in het menu.
 - Ingang: deurmat bij de deur waar je niets neer kunt zetten; iets meer bij de ingang (kapstok, lessenaar).
+- **D gedaan** (25 okt): kapstok, wijnrekje, wijnkast, servieskast via de knop Plant (wisselt). Fontein nog niet (geen plaatje).
+- Nieuwe klantvellen: `pizza/student-gemini.jpg` (dikke student met hoodie, eet kip, pizzadozen), `pizza/meid-gemini.jpg` (meisje met
+  knot, spijkerjack). Zelfde opzet als vader/moeder: lopen voor/opzij/achter, zitten.
 - Warmer en voller: andere vloer (origineel: kleinere, gevlekte tegels of grijze kasseien), schaduwen, bakstenen muren,
   wijnrek en kasten tegen de muur, lampen.
 - Geluid van geld is te simpel: mooier kassageluid.
