@@ -39,6 +39,8 @@ tafels slepen, jukebox 2x2. Punten 6 en 7 wachten op nieuwe Gemini-vellen van Ma
   de voorkant van tafels en stoelen, met schaduw naar rechtsonder), grijze marmeren tafels, stoelen met blauw-wit gestreepte
   zitting, ook bankjes, een fontein, een gestreepte zuil/jukebox en planten; klanten zitten aan tafel van boven gezien.
 
+Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van erdoorheen.
+
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
 2. **Klanten als eigen figuren** (net als kok en ober), met Gemini; de zittende houdingen staan al op de vellen.
@@ -106,6 +108,7 @@ terracotta bakken, een olijfboompje en pepers tegen een houten rek; schuin en re
 **Keuken** (zonder opdracht van Marcel): `pizza/keuken-gemini.jpg` (stoelen, tafels, bank, 2 ovens, werkbank met ingrediënten, kassa,
 taartenvitrine, pizzadozen, OPEN-bord, bar), `pizza/ovens-gemini.jpg` (stenen ovens, ook met pizza op de schep; moderne
 ovens = later als duurdere oven), `pizza/toonbanken-gemini.jpg` (toonbanken, kassa's, menubord, werkbanken, aanrecht, bar).
+`pizza/kapstok-wijn-gemini.jpg`: kapstokken met jassen en hoeden (gleufhoed: achterkamer!), wandhaken, wijnrekken, flessen, kistjes.
 `pizza/kasten-gemini.jpg`: buffetkasten, servieskast met borden/glazen/flessen, koffiebuffet, wandrekjes met flessen.
 Ovens zijn ingebouwd. Idee: werkbank naast de oven, toonbank en kassa uit deze vellen.
 **D3 planten** gedaan: `pizza/planten-gemini.jpg` (bovenste rij: plantje, palm, citroenboompje, cactus).

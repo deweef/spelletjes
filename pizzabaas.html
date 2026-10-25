@@ -297,7 +297,7 @@ const NIEUWTEL = () => ({ blij: 0, boos: 0, vol: 0, niks: 0, omzet: 0, fooi: 0, 
 function openDeuren() {
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
-  tel = NIEUWTEL();
+  tel = NIEUWTEL(); bezet = null; // de inrichting kan veranderd zijn: looproutes opnieuw
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen();
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
@@ -377,6 +377,66 @@ function kiesPizza(m) {
   return best && best.o >= 1 ? best : null;
 }
 function zeg(m, tekst) { wolkjes.push({ m, tekst, t: 3 }); }
+// ---------- om de tafels heen lopen ----------
+// raster van halve tegels over de zaal; tafelbladen, stoelen, planten en de jukebox zijn bezet. zoekPad zoekt met A* een weg
+// en trekt die daarna strak (rechte stukken waar dat kan); loopNaar loopt die route af
+const R2 = 2, RW = W * R2, RH = H * R2;
+let bezet = null; // Uint8Array RW x RH, 1 = bezet; opnieuw na het inrichten (null)
+function maakBezet() {
+  bezet = new Uint8Array(RW * RH);
+  const blok = (x0, y0, x1, y1) => { for (let j = 0; j < RH; j++) for (let i = 0; i < RW; i++) { const x = (i + 0.5) / R2, y = (j + 0.5) / R2; if (x > x0 && x < x1 && y > y0 && y < y1) bezet[j * RW + i] = 1; } };
+  blok(-1, -1, W + 1, KEUKEN); // de keuken (achter de toonbank)
+  for (const s of S.spullen) {
+    if (isTafel(s)) { const [cx, cy] = midden(s); blok(cx - 0.9, cy - 0.9, cx + 0.9, cy + 0.9); for (const [sx, sy] of stoelen(s)) blok(sx - 0.45, sy - 0.45, sx + 0.45, sy + 0.45); }
+    else blok(s.x, s.y, s.x + SPUL[s.t].w, s.y + SPUL[s.t].h);
+  }
+}
+const cel = (x, y) => [Math.max(0, Math.min(RW - 1, Math.floor(x * R2))), Math.max(KEUKEN * R2, Math.min(RH - 1, Math.floor(y * R2)))];
+function vrijeLijn(a, b, va, vb) { // kan je in een rechte lijn van a naar b zonder iets te raken? (va, vb = start- en eindcel mogen bezet zijn)
+  const d = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.ceil(d / 0.15);
+  for (let k = 1; k < n; k++) { const [i, j] = cel(a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n), c = j * RW + i; if (bezet[c] && c != va && c != vb) return false; }
+  return true;
+}
+function zoekPad(van, naar) {
+  if (!bezet) maakBezet();
+  // binnen het raster blijven (de deur zit onder de onderste rij): begin- en eindpunt erbuiten komen er los bij
+  const binnen = (p) => [Math.max(0.25, Math.min(W - 0.25, p[0])), Math.max(KEUKEN + 0.25, Math.min(H - 0.25, p[1]))];
+  const a = binnen(van), b = binnen(naar), [ai, aj] = cel(...a), [bi, bj] = cel(...b), start = aj * RW + ai, eind = bj * RW + bi;
+  const kost = new Float32Array(RW * RH).fill(1e9), vorige = new Int32Array(RW * RH).fill(-1), dicht = new Uint8Array(RW * RH);
+  const h = (c) => { const dx = Math.abs(c % RW - bi), dy = Math.abs(Math.floor(c / RW) - bj); return Math.max(dx, dy) + 0.414 * Math.min(dx, dy); };
+  const vrijCel = (x) => !bezet[x] || x == eind || x == start;
+  const open = [start]; kost[start] = 0;
+  while (open.length) {
+    let bk = 0; for (let k = 1; k < open.length; k++) if (kost[open[k]] + h(open[k]) < kost[open[bk]] + h(open[bk])) bk = k;
+    const c = open.splice(bk, 1)[0]; if (c == eind) break; if (dicht[c]) continue; dicht[c] = 1;
+    const ci = c % RW, cj = Math.floor(c / RW);
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+      if (!di && !dj) continue;
+      const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni >= RW || nj >= RH) continue;
+      const n = nj * RW + ni;
+      if (!vrijCel(n) || (di && dj && (!vrijCel(cj * RW + ni) || !vrijCel(nj * RW + ci)))) continue; // niet schuin langs een hoek
+      const k = kost[c] + (di && dj ? 1.414 : 1);
+      if (k < kost[n]) { kost[n] = k; vorige[n] = c; open.push(n); }
+    }
+  }
+  if (vorige[eind] < 0 && eind != start) return [naar]; // geen weg: dan maar rechtdoor
+  const cellen = []; for (let c = eind; c != start && c >= 0; c = vorige[c]) cellen.unshift(c);
+  const punten = [a, ...cellen.slice(0, -1).map((c) => [(c % RW + 0.5) / R2, (Math.floor(c / RW) + 0.5) / R2]), b];
+  const strak = [punten[0]]; // strak trekken: steeds het verste punt dat je nog in een rechte lijn haalt
+  for (let k = 0; k < punten.length - 1;) { let v = punten.length - 1; while (v > k + 1 && !vrijeLijn(punten[k], punten[v], start, eind)) v--; strak.push(punten[v]); k = v; }
+  const pad = strak.slice(1);
+  if (a[0] != van[0] || a[1] != van[1]) pad.unshift(a); // van buiten (de deur) eerst naar binnen
+  if (b[0] != naar[0] || b[1] != naar[1]) pad.push(naar); // en naar buiten
+  return pad;
+}
+function loopNaar(o, doel, snel, dt) { // als beweeg, maar om de tafels heen
+  if (!o.pad || o.padDoel[0] != doel[0] || o.padDoel[1] != doel[1]) { o.pad = zoekPad([o.x, o.y], doel); o.padDoel = [...doel]; }
+  if (o.pad.length > 1) { // tussenpunt: doorlopen zonder de loopanimatie te onderbreken
+    const lt = o.loopT; if (beweeg(o, o.pad[0], snel, dt)) { o.pad.shift(); o.loopT = lt; } return false;
+  }
+  if (beweeg(o, o.pad[0] || doel, snel, dt)) { o.pad = null; return true; }
+  return false;
+}
 function beweeg(o, doel, snel, dt) {
   const dx = doel[0] - o.x, dy = doel[1] - o.y, d = Math.hypot(dx, dy);
   if (d < 0.05) { o.x = doel[0]; o.y = doel[1]; o.loopT = 0; return true; }
@@ -396,7 +456,7 @@ function stap(dt) {
 
   for (const m of [...mensen]) {
     m.t += dt;
-    if (m.st == 'loop' && beweeg(m, m.doel, 3, dt)) {
+    if (m.st == 'loop' && loopNaar(m, m.doel, 3, dt)) {
       const keus = kiesPizza(m);
       if (!keus) { // niks lekkers op de kaart: weer weg
         m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; zeg(m, R(ZEG.niks)); tel.niks++; S.rep = Math.max(0, S.rep - 1);
@@ -415,7 +475,7 @@ function stap(dt) {
       muntjes.push({ x: m.x, y: m.y, t: 1.2, tekst: '+€' + Math.round(prijs + fooi) }); kassa();
       if (Math.random() < 0.5 && (o >= 4.5 || o < 2.5)) zeg(m, R(LEKKER[m.soort][o >= 4.5 ? 0 : 1]));
       m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6];
-    } else if (m.st == 'weg' && beweeg(m, m.doel, 3, dt)) mensen.splice(mensen.indexOf(m), 1);
+    } else if (m.st == 'weg' && loopNaar(m, m.doel, 3, dt)) mensen.splice(mensen.indexOf(m), 1);
   }
   // geduld per tafel: tot een ober de borden komt halen
   for (const groep of new Set(mensen.filter((m) => m.st == 'wacht').map((m) => m.groep))) {
@@ -434,15 +494,15 @@ function stap(dt) {
   for (const ob of obers) {
     if (ob.serveer > 0) { ob.serveer -= dt; continue; } // even de stolp optillen: "Prego!"
     if (!ob.taak && ritten.length) { ob.taak = ritten.shift(); ob.fase = 'halen'; ob.taak.groep.opgehaald = true; }
-    if (!ob.taak) { beweeg(ob, ob.thuis, 3.4, dt); continue; }
+    if (!ob.taak) { loopNaar(ob, ob.thuis, 3.4, dt); continue; }
     const borden = ob.taak.borden = ob.taak.borden.filter((b) => mensen.includes(b.m) && b.m.st == 'wacht'); // wie er nog zit
     if (!borden.length) { ob.taak = null; ob.draagt = 0; continue; }
     if (ob.fase == 'halen') { // naar het uitgiftepunt, de borden pakken (één in elke hand)
-      if (beweeg(ob, [UITGIFTE()[0] + 0.4, KEUKEN + 0.4], 3.4, dt)) { ob.fase = 'brengen'; ob.draagt = borden.length; klaar = klaar.filter((b) => !borden.includes(b)); }
+      if (loopNaar(ob, [UITGIFTE()[0] + 0.4, KEUKEN + 0.4], 3.4, dt)) { ob.fase = 'brengen'; ob.draagt = borden.length; klaar = klaar.filter((b) => !borden.includes(b)); }
       continue;
     }
     const m = borden[0].m;
-    if (beweeg(ob, [m.x + (m.x < midden(m.tafel)[0] ? -0.6 : 0.6) * (m.tafel.t == 'tafel2' ? 1 : 0), m.y + (m.tafel.t == 'tafel4' ? (m.y < midden(m.tafel)[1] ? -0.6 : 0.6) : 0.7)], 3.4, dt)) {
+    if (loopNaar(ob, [m.x + (m.x < midden(m.tafel)[0] ? -0.6 : 0.6) * (m.tafel.t == 'tafel2' ? 1 : 0), m.y + (m.tafel.t == 'tafel4' ? (m.y < midden(m.tafel)[1] ? -0.6 : 0.6) : 0.7)], 3.4, dt)) {
       m.st = 'eet'; m.wacht = m.t; tel.wacht += m.t; tel.wachtN++; m.t = 0; borden.shift(); ob.draagt = borden.length; ob.serveer = 0.6;
       if (!borden.length) ob.taak = null;
       if (Math.random() < 0.35) zeg(m, R(ZEG.eten));
@@ -1047,7 +1107,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; } };
+window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>
