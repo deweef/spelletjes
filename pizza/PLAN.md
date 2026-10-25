@@ -33,9 +33,11 @@ tafels slepen, jukebox 2x2. Punten 6 en 7 wachten op nieuwe Gemini-vellen van Ma
    van achteren, 4 plaatjes. Alle voeten op dezelfde hoogte. Effen felgroene achtergrond, geen schaduwen, geen tekst."
 7. Meubelstijlen (later, met Gemini-meubelvellen van bovenaf op groen): plastic klapstoeltjes (studenten), houten bistrotafel met
    geruit kleed (toeristen), wit damast met kroonluchter (villabewoners), fijne stoelen met kussens (opa en oma).
-- **Nog open: plaatjes van het origineel.** Screenshots van Pizza Tycoon komen in `pizza/voorbeeld/` (Marcel plakt ze in de chat,
-  als ze niet ergens uit een algemene games-map te halen zijn), zodat het uiterlijk er dichter bij kan en we kunnen nakijken welke
-  tafels, stoelen en kleedjes het origineel had (ook als voorbeeld voor de Gemini-meubelvellen van punt 7).
+- Plaatjes van het origineel staan in `pizza/voorbeeld/` (uit het gesprek "Algemeen games setup" gehaald): `origineel-1-zaak.jpg`
+  (de zaak, 15x15), `origineel-2-recept.jpg` en `origineel-3-pizza-maken.jpg` (pizza maken), en `pc3-*.jpg` (Pizza Connection 3,
+  het nieuwe spel, alleen als idee voor het pizzascherm). Wat opvalt in het origineel: alles een beetje schuin van boven (je ziet
+  de voorkant van tafels en stoelen, met schaduw naar rechtsonder), grijze marmeren tafels, stoelen met blauw-wit gestreepte
+  zitting, ook bankjes, een fontein, een gestreepte zuil/jukebox en planten; klanten zitten aan tafel van boven gezien.
 
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
@@ -81,8 +83,9 @@ rij 2: 4 plaatjes lopen naar de kijker toe; rij 3: 4 plaatjes van achteren. Daar
 op een tafel (voorovergebogen), en staan met de borden. Alle voeten op dezelfde hoogte. Effen felgroene achtergrond (#00FF00),
 geen schaduwen, geen tekst."
 
-**D. Meubels, recht van boven** (zoals een plattegrond; de vloer in het spel is ook recht van boven):
-"Pixelart voor een pizzeria-spel, alles recht van bovenaf gezien (bovenaanzicht, zoals een plattegrond), in een net raster van
+**D. Meubels, schuin van boven zoals het origineel** (stuur `pizza/voorbeeld/origineel-1-zaak.jpg` mee als voorbeeld):
+"Pixelart voor een pizzeria-spel in de stijl van dit plaatje: alles van bovenaf gezien en een klein beetje schuin, zodat je net de
+voorkant ziet, met een korte schaduw naar rechtsonder. Zet het in een net raster van
 4 kolommen, elk ding in een eigen vierkant vak, niets overlapt. Rij 1: vierkante tafel zonder kleed, dezelfde tafel met
 rood-wit geruit kleed, dezelfde met wit kleed en kaarsje, dezelfde met wijnfles en kaars. Rij 2: houten stoel van boven
 (leuning aan de bovenkant), dezelfde stoel met rood kussen, plastic klapstoeltje, chique stoel met fluweel. Rij 3: plant in
