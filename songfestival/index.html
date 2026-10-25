@@ -101,7 +101,7 @@
   function probeer() {
     stopPogingen(); speelt = false; zelfGestopt = false; wacht = true;
     pogingen = [1000, 2500, 4500].map((t) => setTimeout(speel, t));
-    pogingen.push(setTimeout(() => { wacht = false; if (!speelt) $('speel').classList.add('tik'); }, 5500));
+    pogingen.push(setTimeout(() => { if (!speelt) $('speel').classList.add('tik'); }, 1500), setTimeout(() => { wacht = false; }, 5500));
   }
   window.onSpotifyIframeApiReady = (a) => { api = a; if (wil) laad(wil); };
   const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true; document.body.appendChild(s);

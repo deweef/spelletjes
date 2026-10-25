@@ -144,7 +144,7 @@ bedenk dat de site openbaar is.
   printpagina. Het wachtwoord staat nergens in de repo; Marcel weet het. Lijst aanpassen: in `kaartjes.html` openen met het wachtwoord,
   of in Node met `SLOT.sleutel(ww)` + `SLOT.lijst(K)`; daarna opnieuw versleutelen met DEZELFDE sleutel (anders werken geprinte kaartjes niet
   meer): lijst-items { id, jaar, land, vlag, artiest, titel, spotify (track-id), won }, id's nooit hergebruiken.
-  `index.html` = speler: grote ▶ (Spotify Embed IFrame API: controller pas maken als het liedje bekend is, `loadUri` pas na zijn `ready`, anders loopt hij vast; daarna `play()` zodra Spotify meldt dat het liedje geladen is (`playback_update` met `duration`) plus pogingen na 1, 2,5 en 4,5 s; mag het niet van de browser, dan knippert de ▶ (`tik`)), de Spotify-speler onder een afdekking behalve zijn
+  `index.html` = speler: grote ▶ (Spotify Embed IFrame API: controller pas maken als het liedje bekend is, `loadUri` pas na zijn `ready`, anders loopt hij vast; daarna `play()` zodra Spotify meldt dat het liedje geladen is (`playback_update` met `duration`) plus pogingen na 1, 2,5 en 4,5 s; na 1,5 s knippert de ▶ al (`tik`). Een iPhone met Safari laat nooit vanzelf starten (geluid in een iframe van een andere site pas na een tik daar), dus daar blijft het één tik), de Spotify-speler onder een afdekking behalve zijn
   play-knopje, "Laat zien" toont het antwoord, onderaan 📷 Volgende kaartje = scanner in de pagina (camera via getUserMedia, `lib/jsQR.js`,
   Apache-2.0). `kaartjes.html` = A4 printvellen (6,5 cm, 12 per vel; QR met `lib/qrcode.js`, MIT; achterkanten per rij gespiegeld voor
   dubbelzijdig printen). Spotify-id's zoeken met de Spotify-tool; YouTube en Wikipedia zijn vanuit de cloud niet bereikbaar.
