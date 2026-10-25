@@ -19,6 +19,15 @@
     - B8 De boerendans: zoek de verschillen tussen twee bijna gelijke platen.
     - B9 De val van Icarus: piepkleine details, ver inzoomen (alleen een paar beentjes in het water).
     - B10 Afsluiter: één grote Bruegel-mix met figuren uit B1-B9 en alle spelvormen door elkaar.
+  - Extra effecten per level (zoals de windvlagen bij de herfststorm), voorstel okt 2026:
+    - B3 Jagers in de sneeuw (al gebouwd): sneeuwbuien, en ijsbloemen die langzaam vanaf de randen over het scherm groeien; elk gevonden ding ontdooit een stuk.
+    - B4 Boerenbruiloft: proost! Na elk biertje (gevonden kan) wiebelt het beeld wat meer; vind de koffiepot voor een nuchtere blik.
+    - B5 Carnaval en Vasten: confettikanon en een trommel die het beeld op de maat laat stuiteren.
+    - B6 Luilekkerland: slaapmeter, het beeld wordt langzaam wazig en donker (je dommelt in); elk gevonden hapje maakt je weer wakker.
+    - B7 Toren van Babel: spraakverwarring, de namen bovenin staan in een andere taal (Engels, Duits, Frans, Fries, Limburgs) en wisselen af en toe.
+    - B8 Boerendans: doedelzakmuziekje en het plaatje danst op de maat (heen en weer).
+    - B9 Val van Icarus: de zon verblindt, een fel wit lichtvlak dat langzaam over het plaatje schuift (het omgekeerde van de zaklamp).
+    - B10 Afsluiter: elk halve minuut een ander effect uit de reeks (storm, sneeuw, wazig, Babel, zon).
 - **Sjaak-plaat**: één plaat met ±20 Sjaakjes, gaat open als je Sjaak in alle levels hebt betrapt; een Sjaak-teller in het menu.
   Afgesproken: een geheim level, los van 21-30 en B1-B10, dat pas in het menu verschijnt als Sjaak overal betrapt is.
 - Orkest en strand hebben nog geen Sjaak (nieuwe Gemini-plaat of Sjaak erin plakken zoals de oldtimer bij het strand).
