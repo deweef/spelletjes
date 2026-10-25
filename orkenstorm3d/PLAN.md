@@ -54,3 +54,9 @@ Volgorde van bouwen:
 
 ## 10. Level 11 "De Zwarte Rots" — KLAAR, met tussenstukje 10 → 11, lava, orkenheksen met gifwolken en Opperork Zwartvuist.
    Alle levels uit 2D zitten nu in 3D. Repareren zit erin. Upgrades en zee/buskruit/vliegers bewaren we voor deel 2.
+
+## Nu
+- Marcel speelt deel 1 uit en noteert kleine verbeterpunten. Al gedaan na zijn eerste feedback: tussenfilmpjes rustiger
+  (7 s per grap, vertaling in de wolkjes, verteller in het Nederlands, overval eindigt pas als de orks weg zijn) en repareren.
+- Deel 2 (later, eigen verhaal): zee met haven, scheepswerf, vis als grondstof, schepen, buskruit (kanontoren, springstof),
+  vliegers, en uitgebreide upgrades (kasteel → burcht → vesting, smid in 3 stappen). Zie CLAUDE.md.

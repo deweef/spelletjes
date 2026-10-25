@@ -172,6 +172,8 @@ bedenk dat de site openbaar is.
   vanuit dat menu naar de startpagina.
 
 ## Werkwijze
+- Per spel staan open punten en afspraken in een eigen bestand: `orkenstorm3d/PLAN.md`, `pizza/PLAN.md`,
+  `songfestival/PLAN.md`, `zoek/IDEEEN.md` (en `zoek/LEESMIJ.md`). Lees dat eerst als je aan dat spel begint, en werk het bij.
 - De familie mag meespelen met concept-versies. Zet wijzigingen daarom direct op `main` (dan publiceert
   GitHub Pages ze binnen een minuut), maar alleen nadat het getest is.
 - Werk in kleine stappen en vertel per stap wat er te zien en te testen is.
