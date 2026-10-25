@@ -71,6 +71,8 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   stijlvoorbeeld: 1) lopen opzij (7), 2) zitten: van voren, van achteren, van opzij, eten. Beginnen met de werker (komt het vaakst).
 - Villa-dame (Grok): `pizza/dame-grok.jpg`: mooie stijl, maar 7 keer precies hetzelfde plaatje (geen loopcyclus); bruikbaar als
   staand plaatje. Grok kopieert: per plaatje de beenstand uitschrijven en maar 4 plaatjes vragen.
+- `pizza/vader-kind-gemini.jpg`: vader met peuter in kinderstoel (lopen, pizzadozen dragen = afhaalklant!, zitten, kind voeren,
+  kruimels, kinderstoel). Idee: afhalen, en kinderstoel als meubel.
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
 ## Bank (idee Marcel, 25 okt)
