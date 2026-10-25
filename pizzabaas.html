@@ -534,7 +534,8 @@ function ober(o) {
   if (OBER.complete && OBER.naturalWidth) {
     g.save(); g.translate(x, y); g.scale(schaal, schaal);
     if (o.draagt > 0 && !(o.serveer > 0) && OBER_BORD.complete && OBER_BORD.naturalWidth) // bord in de hand; bij twee ook een in de andere hand
-      figuur(OBER_BORD, o, false, false, o.draagt > 1 ? () => tweedeBord(-40, -100) : null);
+      if (o.draagt == 1) figuur(OBER_BORD, o, false, false);
+      else figuur(OBER_TWEE, o, false, false, o.loopT > 0 && Math.sin(o.kijk ?? 0) < -Math.abs(Math.cos(o.kijk ?? 0)) ? () => tweedeBord(-40, -100) : null); // van achteren: tweede bord zelf tekenen
     else figuur(OBER, o, o.serveer > 0, false);
     g.restore(); return;
   }
@@ -550,9 +551,12 @@ const OBER = new Image(); OBER.src = 'pizza/ober.png'; // pizza/ober2-gemini.jpg
 KOK.vel = { staan: 0, opzij: [2, 3, 4, 5, 6, 7, 8], rechts: true, bijzonder: 9, rug: 10, rugLoop: [11, 12, 13, 14], fps: 10 };
 OBER.vel = { ...KOK.vel, bijzonder: 9 }; // zelfde indeling; 9 = stolp optillen
 // de ober met een bord in de hand (pizza/ober-borden-gemini.jpg), vakjes van 180 breed zodat het bord erin past:
-// 0 staan van voren, 1-7 lopen opzij (neus naar rechts), 8-11 lopen naar achteren; het bord zit rechts (x +55, 104 boven de voeten)
+// 0 staan van voren, 1-7 lopen opzij (neus naar rechts), 8-11 lopen naar achteren; het bord zit rechts (x +55, 104 boven de voeten).
+// Met twee borden (pizza/ober-borden2-gemini.jpg): 12 staan van voren, 13-19 lopen opzij; Gemini vergat op 14, 16 en 17 het
+// tweede bord, dus die slaan we over. Van achteren is er geen vel met twee borden: daar tekent `tweedeBord` het tweede.
 const OBER_BORD = new Image(); OBER_BORD.src = 'pizza/ober-borden.png';
 OBER_BORD.vel = { staan: 0, opzij: [1, 2, 3, 4, 5, 6, 7], rechts: true, rug: 8, rugLoop: [8, 9, 10, 11], fps: 10, sw: 180 };
+const OBER_TWEE = Object.assign(new Image(), { src: 'pizza/ober-borden.png', vel: { ...OBER_BORD.vel, staan: 12, opzij: [13, 15, 18, 19], fps: 6 } });
 const SW = 113, SH = 192;
 function figuur(img, p, bijzonder, rug, achter) {
   const v = img.vel, sw = v.sw || SW;
