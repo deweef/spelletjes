@@ -63,6 +63,7 @@ tafels slepen, jukebox 2x2. Punten 6 en 7 wachten op nieuwe Gemini-vellen van Ma
   kleren … effen felgroene achtergrond, geen schaduwen, geen tekst".
 
 ### Gemini-opdrachten (Claude schrijft ze, Marcel plakt ze in Gemini en zet het plaatje terug in de chat)
+Algemene regels: `uitleg/gemini-en-plaatjes.md`. Eén opdracht per keer, in deze volgorde: A, B, C, D.
 Altijd het oude vel (`pizza/kok-gemini.jpg` / `pizza/ober-gemini.jpg`) meesturen, zodat het hetzelfde figuurtje blijft.
 
 **A. Kok, loopvel** (tegen het moonwalken):
@@ -85,10 +86,10 @@ geen schaduwen, geen tekst."
 
 **D. Meubels, schuin van boven zoals het origineel** (stuur `pizza/voorbeeld/origineel-1-zaak.jpg` mee als voorbeeld):
 "Pixelart voor een pizzeria-spel in de stijl van dit plaatje: alles van bovenaf gezien en een klein beetje schuin, zodat je net de
-voorkant ziet, met een korte schaduw naar rechtsonder. Zet het in een net raster van
+voorkant ziet. Zet het in een net raster van
 4 kolommen, elk ding in een eigen vierkant vak, niets overlapt. Rij 1: vierkante tafel zonder kleed, dezelfde tafel met
 rood-wit geruit kleed, dezelfde met wit kleed en kaarsje, dezelfde met wijnfles en kaars. Rij 2: houten stoel van boven
 (leuning aan de bovenkant), dezelfde stoel met rood kussen, plastic klapstoeltje, chique stoel met fluweel. Rij 3: plant in
 terracotta pot, grote palm in pot, jukebox (felle kleuren, lampjes), wit bord met pizza. Effen felgroene achtergrond (#00FF00),
-geen schaduwen, geen tekst."
+geen schaduwen, geen tekst." (De schaduw naar rechtsonder tekent het spel zelf: een schaduw van Gemini knipt niet goed uit.)
 (Stoel = 1x1 tegel, tafel = 2x2 tegels, jukebox = 2x2.)
