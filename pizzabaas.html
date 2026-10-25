@@ -369,8 +369,20 @@ function ober(o) {
   poppetje({ kleur: '#222', huid: '#f0c7a2', haar: '#3b2414', loopT: o.loopT, kijk: o.kijk }, { draagt: o.draagt, armen: o.draagt ? 0.8 : 0 });
   g.restore();
 }
+// de kok is een eigen ontwerp (Gemini, uitgeknipt): pizza/kok.png = 6 plaatjes van 100 x 192 naast elkaar:
+// 0 staan, 1-2 lopen naar voren, 3 naar links, 4 naar rechts, 5 deeg opgooien
+const KOK = new Image(); KOK.src = 'pizza/kok.png';
+function kokPlaatje(k, nu) {
+  let f = 0;
+  if (k.gooi > 0) f = 5;
+  else if (k.loopT > 0) { const c = Math.cos(k.kijk ?? 0), s = Math.sin(k.kijk ?? 0); f = Math.abs(c) > Math.abs(s) ? (c < 0 ? 3 : 4) : (Math.floor(k.loopT * 6) % 2 ? 1 : 2); }
+  const h = 1.9 * T, w = h * 100 / 192;
+  g.drawImage(KOK, f * 100, 0, 100, 192, -w / 2, -h + 6, w, h);
+  if (k.draagt) { g.fillStyle = '#ddd'; g.beginPath(); g.arc(0, -h * 0.42, 13, 0, 7); g.fill(); pizza(0, -h * 0.42, 10); }
+}
 function kok(k, nu) {
   const [x, y] = naarScherm(k.x, k.y);
+  if (KOK.complete && KOK.naturalWidth) { g.save(); g.translate(x, y); g.scale(schaal, schaal); kokPlaatje(k, nu); g.restore(); return; }
   g.save(); g.translate(x, y); g.scale(schaal * MENS, schaal * MENS);
   const werkt = k.gooi > 0;
   if (werkt) k.kijk = -Math.PI / 2; // naar de werkbank
