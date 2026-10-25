@@ -24,10 +24,11 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Onderwaterstadje: https://share.gemini.google/TsrtRT13rAh1
 - Supermarkt: https://share.gemini.google/MDGZ8rbvUymZ
 - Ruimtestation: https://share.gemini.google/h1q1antouN3x
-- Hockeywedstrijd (level 21, plaatje nog niet in de repo): https://share.gemini.google/SZNoUlD491HF
-- Spreekwoorden (B1, Bruegel-lijn, plaatje nog niet in de repo): https://share.gemini.google/dLRILwRK1UZC
-- Kinderspelen (B2, Bruegel-lijn, plaatje nog niet in de repo): https://share.gemini.google/OaDav9QRH8uq
-- Jagers in de sneeuw / winterspelen (B3, wat hoort er niet bij, plaatje nog niet in de repo): https://share.gemini.google/EQltclTI4uSA
+- Hockeywedstrijd (level 21, `zoek/hockey.jpg`): https://share.gemini.google/SZNoUlD491HF
+- Spreekwoorden (B1, Bruegel-lijn, `zoek/spreekwoorden.jpg`): https://share.gemini.google/dLRILwRK1UZC
+- Kinderspelen (B2, Bruegel-lijn, `zoek/kinderspelen.jpg`): https://share.gemini.google/OaDav9QRH8uq
+- Jagers in de sneeuw / winterspelen (B3, wat hoort er niet bij, `zoek/jagers.jpg`): https://share.gemini.google/EQltclTI4uSA
+- Herfststorm (level 22, `zoek/herfst.jpg`): https://share.gemini.google/oA5r20yQiPnK
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
