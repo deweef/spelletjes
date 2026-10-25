@@ -7,8 +7,23 @@ Idee: Pizza Tycoon / Pizza Connection (1994), maar met eigen naam, plaatjes en g
 - Uiterlijk zoals het origineel: geblokte vloer, houten kader, paneel met zwart schermpje en 3x3 knoppen.
 - Kok en ober zijn eigen ontwerpen, gemaakt met Gemini (zie hieronder).
 
+## Eerst (afgesproken na het testen van het pizza-samenstellen, 25 oktober)
+1. Pizza's klaarzetten naast de ovens (één uitgiftepunt bij de ovens), niet helemaal rechts op de toonbank (`TOONBANK`).
+2. Een tafel bestelt samen; de keuken bakt de pizza's voor die tafel achter elkaar; geduld telt per tafel.
+3. De ober wacht tot de bestelling voor de hele tafel klaar is en draagt er twee tegelijk (één per hand); bij vier personen loopt hij twee keer.
+4. Tafels verplaatsen door te slepen (vasthouden en schuiven); het menuutje blijft voor kleedje, kaarsje en verkopen.
+5. Jukebox 2x2 tegels in plaats van 1x1.
+6. De kok "moonwalkt": de loopplaatjes zijn schuin van voren en bijna gelijk. Nieuw Gemini-vel nodig (ook voor de ober):
+   "Een vel met spelfiguurtjes voor een computerspel in pixelart, één en hetzelfde figuurtje (deze kok), steeds precies dezelfde
+   kleren en grootte. Rij 1: loopcyclus precies van opzij (profiel, neus naar rechts), 6 plaatjes: hak neer, doorzakken, been
+   passeert, omhoog, andere hak neer, doorzakken. Rij 2: loopcyclus recht naar de kijker toe, 4 plaatjes. Rij 3: loopcyclus recht
+   van achteren, 4 plaatjes. Alle voeten op dezelfde hoogte. Effen felgroene achtergrond, geen schaduwen, geen tekst."
+7. Meubelstijlen (later, met Gemini-meubelvellen van bovenaf op groen): plastic klapstoeltjes (studenten), houten bistrotafel met
+   geruit kleed (toeristen), wit damast met kroonluchter (villabewoners), fijne stoelen met kussens (opa en oma).
+- Screenshots van het origineel komen in `pizza/voorbeeld/` (Marcel), zodat het uiterlijk er dichter bij kan.
+
 ## Volgende stappen (in deze volgorde)
-1. **Pizza's samenstellen** (knop 📖 Pizza's, nu "binnenkort"), zoals Pizza Connection: ingrediënten op een bodem leggen,
+1. **Pizza's samenstellen** (gebouwd in commit c7df2f7 van de eerste Pizzabaas-sessie; staat online zodra die is overgezet) (knop 📖 Pizza's, nu "binnenkort"), zoals Pizza Connection: ingrediënten op een bodem leggen,
    schermpje met vet / zoet / zout / pittig, elke soort klant (student, villabewoner, toerist, werker, opa/oma) vindt er wat
    anders van. Ingrediëntplaatjes: Kenney food-kit `Previews/*.png` (64x64) uit `bronnen/kenney_food-kit.zip`
    (tomato-slice, mushroom-half, paprika-slice, cheese-cut, sausage-half, onion-half, pineapple, fish, bacon, egg-half, ...).
