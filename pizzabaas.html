@@ -545,9 +545,9 @@ function ober(o) {
 // plaatje wat is: staan (van voren), opzij (loopcyclus; `rechts` = de neus wijst naar rechts, anders naar links, gespiegeld = de
 // andere kant op), bijzonder (deeg opgooien / stolp optillen), rug (staan op de rug) en rugLoop (lopen naar achteren)
 const KOK = new Image(); KOK.src = 'pizza/kok.png';   // pizza/kok2-gemini.jpg (lopen) + het deeg van pizza/kok-gemini.jpg
-const OBER = new Image(); OBER.src = 'pizza/ober.png'; // pizza/ober-gemini.jpg
+const OBER = new Image(); OBER.src = 'pizza/ober.png'; // pizza/ober2-gemini.jpg (lopen) + de stolp van pizza/ober-gemini.jpg
 KOK.vel = { staan: 0, opzij: [2, 3, 4, 5, 6, 7, 8], rechts: true, bijzonder: 9, rug: 10, rugLoop: [11, 12, 13, 14], fps: 10 };
-OBER.vel = { staan: 0, opzij: [2, 3], rechts: false, bijzonder: 5, rug: 6, rugLoop: [7, 8, 9, 10, 11, 12], fps: 7 };
+OBER.vel = { ...KOK.vel, bijzonder: 9 }; // zelfde indeling; 9 = stolp optillen
 const SW = 113, SH = 192;
 function figuur(img, p, bijzonder, rug) {
   const v = img.vel;

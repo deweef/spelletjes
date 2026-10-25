@@ -76,7 +76,7 @@ Rij 2: 4 plaatjes, recht naar de kijker toe lopen (linkerbeen voor, staan, recht
 Rij 3: 4 plaatjes, recht van achteren weglopen (zelfde ritme).
 Alle voeten op dezelfde hoogte. Effen felgroene achtergrond (#00FF00), geen schaduwen, geen vloer, geen tekst."
 
-**B. Ober, loopvel** (stuur `pizza/ober-gemini.jpg` mee). Les van A: Gemini doet de eerste rij goed en kopieert daarna het oude
+**B. Ober, loopvel** (stuur `pizza/ober-gemini.jpg` mee). Gedaan (25 okt): `pizza/ober2-gemini.jpg`; weer alleen rij 1 goed, rest nagetekend. Les van A: Gemini doet de eerste rij goed en kopieert daarna het oude
 vel; dus weinig rijen, kleren noemen, en zeggen wat er níet op moet:
 "Maak een nieuw vel met spelfiguurtjes van precies deze ober: zelfde pixelart-stijl, snor, haar en grootte, en dezelfde kleren:
 zwarte broek, zwart gilet, wit overhemd, zwarte vlinderdas. Alleen deze 2 rijen, in een net raster, elk figuurtje even groot met
