@@ -99,7 +99,9 @@ geen schaduwen, geen tekst."
 **D1. Tafels**: gedaan (25 okt), `pizza/tafels-gemini.jpg`; de onderste rij (bijna recht van boven) past het best.
 Extra vel `pizza/tafels2-gemini.jpg` (nog niet ingebouwd): ronde tafels (blauw/oranje marmer, geruit turquoise/geel/zwart/groen,
 wit, paars paisley), vierkante tafels met damast/motief-kleden (lichtblauw, olijf, donkerblauw, rood gestreept) en zeshoekige
-tafels (marmer, lappendeken, zwart-wit). Idee: kleedjes kiezen in het tafelmenu, en tafelstijlen per soort klant (punt 7). Daarna D2 stoelen
+tafels (marmer, lappendeken, zwart-wit). Idee: kleedjes kiezen in het tafelmenu, en tafelstijlen per soort klant (punt 7).
+Stoelen zonder opdracht: `pizza/stoelen-gemini.jpg` (4 zittingen: marmer, groen geruit, blauw motief, rood motief; rij 1 en 4
+schuin, rij 2 recht van voren, rij 3 precies van opzij). Bruikbaar: van voren voor stoelen boven de tafel, van opzij voor links/rechts. Daarna D2 stoelen
 (dezelfde stoel in 4 richtingen) en D3 plant/palm/jukebox, steeds één rij per opdracht.
 **D. Meubels, schuin van boven zoals het origineel** (oude tekst, alles in één keer) (stuur `pizza/voorbeeld/origineel-1-zaak.jpg` mee als voorbeeld):
 "Pixelart voor een pizzeria-spel in de stijl van dit plaatje: alles van bovenaf gezien en een klein beetje schuin, zodat je net de
