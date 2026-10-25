@@ -45,6 +45,19 @@
   #menu .kleden button { margin: 0; height: 28px; padding: 0; border-radius: 7px; border: 2px solid rgba(0,0,0,.25); text-align: center; font-size: 12px; }
   #menu .kleden button.aan { border: 3px solid #2e9d52; box-shadow: 0 0 0 2px #fff inset; }
   .scherm { position: fixed; inset: 0; z-index: 8; background: rgba(20,10,4,.78); display: flex; overflow-y: auto; padding: 20px 14px; }
+  .aanbieder { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 14px; padding: 10px 12px; margin: 8px 0 0; font: 14px system-ui, sans-serif; cursor: pointer; }
+  .aanbieder:disabled { opacity: .5; cursor: default; }
+  .aanbieder .gz { font-size: 34px; }
+  .aanbieder b { font-size: 15px; }
+  .contract { background: #fffdf6; border: 2px solid #c9b48a; border-radius: 6px; padding: 12px 14px; font-family: Georgia, serif; font-size: 14px; margin: 10px 0; }
+  .contract h2 { margin: 0 0 6px; font-size: 18px; text-align: center; }
+  .contract .klein { font-size: 10px; color: #7a6a50; margin-top: 8px; line-height: 1.3; }
+  .contract td { padding: 2px 4px; } .contract td:last-child { text-align: right; font-weight: bold; }
+  .bedragen { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .bedragen button { flex: 1; min-width: 60px; border: 2px solid #c9b48a; background: #fff; border-radius: 8px; padding: 6px; font: 600 14px system-ui; cursor: pointer; }
+  .bedragen button.aan { background: #2e9d52; color: #fff; border-color: #2e9d52; }
+  .teken { display: flex; gap: 8px; align-items: center; margin: 8px 0; font-size: 14px; }
+  .teken input { width: 22px; height: 22px; }
   .kaart { margin: auto; background: #fff7e8; color: #3a2414; border-radius: 18px; padding: 20px 22px; max-width: 440px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
   .kaart h1 { margin: 0 0 6px; font-size: 26px; color: #b5361f; }
   .kaart p { line-height: 1.45; margin: 8px 0; }
@@ -106,6 +119,7 @@
   </div>
 </div>
 <div class="scherm verborgen" id="einde"><div class="kaart" id="eindkaart"></div></div>
+<div class="scherm verborgen" id="bank"><div class="kaart" id="bankkaart"></div></div>
 <div class="scherm verborgen" id="pizzas"><div class="kaart breed" id="pizzakaart"></div></div>
 
 <script>
@@ -143,7 +157,7 @@ const SPUL = {
   wijnkast: { n: 'Wijnkast', ik: '🍾', prijs: 120, w: 2, h: 1, onder: 'plant', vak: 2, b: 331, hh: 369, tw: 2.1 },
   servieskast: { n: 'Servieskast', ik: '🍽️', prijs: 120, w: 2, h: 1, onder: 'plant', vak: 3, b: 311, hh: 343, tw: 2 },
   plant: { n: 'Plant', ik: '🪴', prijs: 20, w: 1, h: 1 },
-  jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 2, h: 2, een: true },
+  jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 2, h: 2, een: true, onder: 'plant' },
 };
 const EXTRA = { kleed: { n: 'Kleedje', ik: '🟥', prijs: 10 }, kaars: { n: 'Kaarsje', ik: '🕯️', prijs: 8 } };
 // kleedjes (plaatjes in pizza/kleden.png, vakjes van 192 x 192, in deze volgorde; uit pizza/tafels-gemini.jpg en pizza/tafels2-gemini.jpg).
@@ -277,7 +291,7 @@ const vrij = (x, y, w, h, behalve) => {
 const op = (x, y) => S.spullen.find((s) => x >= s.x && x < s.x + SPUL[s.t].w && y >= s.y && y < s.y + SPUL[s.t].h);
 const TAFELSOORT = ['tafel', 'lang', 'langL', 'tafeltje'];
 const isTafel = (s) => TAFELSOORT.includes(s.t);
-const VERSIERING = ['plant', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast'];
+const VERSIERING = ['plant', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast', 'jukebox'];
 const GROEP = { tafel: TAFELSOORT, plant: VERSIERING }; // knoppen die bij elke klik naar de volgende soort gaan
 // bij welke tafel hoort een stoel op (x, y), en aan welke kant: 0 boven de tafel, 1 eronder, 2 links, 3 rechts (de eerste tafel die ernaast staat)
 function kantVoor(x, y) {
@@ -370,6 +384,7 @@ function eindeDag() {
   modus = 'inrichten';
   const lonen = (S.obers - 1) * LOON, totaal = tel.omzet + tel.fooi - tel.kosten - HUUR - lonen;
   S.geld += -HUUR - lonen; // omzet, fooi en ingrediënten zijn al verrekend
+  S.omzetGisteren = tel.omzet; const lening = aflossen();
   const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
   const oud = S.dag; S.dag++; bewaar();
@@ -387,6 +402,7 @@ function eindeDag() {
       <tr><td>🏠 Huur</td><td>− € ${HUUR}</td></tr>
       ${lonen ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
+      ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
     </table>
     <p>${tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : tel.boos > 2 ? 'Klanten moesten te lang wachten. Een extra oven of ober helpt!' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
     <button class="groot" id="verder">Verder met inrichten</button>`;
@@ -394,6 +410,84 @@ function eindeDag() {
   $('einde').classList.remove('verborgen');
   $('verder').onclick = () => { $('einde').classList.add('verborgen'); tekenKnoppen(); };
   if (S.geld < 0) meld('Je staat rood! Verkoop iets of verdien het morgen terug.');
+}
+
+// ---------- geld lenen: kies de aanbieder ----------
+// rente = wat je in totaal extra terugbetaalt; dagen = in hoeveel dagen (elke avond een deel); max = hoeveel ze je willen lenen
+const AANBIEDER = {
+  bank: { n: 'Banca Fortuna', gz: '🏦', wie: 'De nette bank op de hoek. Lage rente, maar ze lenen alleen aan zaken die goed lopen.',
+    rente: 0.1, dagen: 10, max: () => Math.max(0, Math.round((100 + S.rep * 12 + Math.min(1500, (S.omzetGisteren || 0) * 3)) / 50) * 50),
+    weiger: () => (S.leningen || []).some((l) => l.achter) ? 'U heeft een betalingsachterstand. Wij doen geen zaken met wanbetalers.' : S.dag < 3 ? 'Uw zaak is nog te nieuw. Komt u over een paar dagen terug.' : null,
+    klein: 'Banca Fortuna mag bij een betalingsachterstand van twee dagen spullen uit uw zaak verkopen. Rente wordt berekend over het hele bedrag. Koffie is gratis.' },
+  oma: { n: 'Oma Truus', gz: '👵', wie: 'Je lieve oma. Geen rente, maar het moet wel snel terug, want ze gaat op cruise.',
+    rente: 0, dagen: 3, max: () => 200, weiger: () => S.leningen.some((l) => l.van == 'oma') ? 'Eerst die vorige keer terugbetalen, lieverd.' : null,
+    klein: 'Je komt zondag wel even op de koffie. En je neemt een pizza mee. Met ananas, daar houdt opa van.' },
+  sjaak: { n: 'Ome Sjaak', gz: '🕶️', wie: 'Gouden ketting, dikke auto, stelt geen vragen. Leent altijd, tegen woekerrente.',
+    rente: 0.6, dagen: 5, max: () => 3000, weiger: () => null,
+    klein: 'Wie niet op tijd betaalt, krijgt bezoek van mijn neven Dirk en Dennis. Die nemen dan wat mee. Ook de jukebox. Geen bonnetjes, geen gezeur.' },
+};
+function toonBank(gekozen, bedrag) {
+  S.leningen = S.leningen || [];
+  const k = $('bankkaart');
+  if (!gekozen) {
+    const lopend = S.leningen.map((l, i) => `<tr><td>${AANBIEDER[l.van].gz} ${esc(AANBIEDER[l.van].n)}${l.achter ? ' ⚠️' : ''}</td><td>nog € ${l.rest}</td><td>€ ${l.perDag} per dag</td><td><button data-los="${i}" ${S.geld < l.rest ? 'disabled' : ''}>Aflossen</button></td></tr>`).join('');
+    k.innerHTML = `<h1>💰 Geld lenen</h1>
+      ${lopend ? `<p><b>Lopende leningen</b> (elke avond gaat er een deel af):</p><table style="width:100%;font-size:13px">${lopend}</table>` : ''}
+      <p><b>Kies de aanbieder:</b></p>
+      ${Object.entries(AANBIEDER).map(([id, a]) => { const nee = a.weiger(); return `<button class="aanbieder" data-van="${id}"><span class="gz">${a.gz}</span><span><b>${esc(a.n)}</b><br>${esc(a.wie)}<br><small>${nee ? '❌ ' + esc(nee) : `Tot € ${a.max()} · rente ${Math.round(a.rente * 100)}% · terug in ${a.dagen} dagen`}</small></span></button>`; }).join('')}
+      <button class="groot" id="bankdicht" style="margin-top:14px">Sluiten</button>`;
+    k.querySelectorAll('[data-van]').forEach((b) => b.onclick = () => { const a = AANBIEDER[b.dataset.van], nee = a.weiger();
+      if (nee) { meld(a.n + ': ' + nee); return; } if (a.max() < 50) { meld(a.n + ' wil je nu niets lenen.'); return; } toonBank(b.dataset.van); });
+    k.querySelectorAll('[data-los]').forEach((b) => b.onclick = () => { const l = S.leningen[+b.dataset.los]; S.geld -= l.rest; S.leningen.splice(+b.dataset.los, 1); kassa(); bewaar(); tekenKnoppen(); meld('Afgelost! Je bent ' + AANBIEDER[l.van].n + ' niets meer schuldig.'); toonBank(); });
+  } else {
+    const a = AANBIEDER[gekozen], max = a.max(), stap = max > 1000 ? 250 : 50, keuzes = [...new Set([stap, Math.round(max / 4 / stap) * stap, Math.round(max / 2 / stap) * stap, max].filter((v) => v >= stap && v <= max))];
+    bedrag = bedrag || keuzes[Math.min(1, keuzes.length - 1)];
+    const terug = Math.round(bedrag * (1 + a.rente)), perDag = Math.ceil(terug / a.dagen);
+    k.innerHTML = `<div class="contract"><h2>${a.gz} Leenovereenkomst</h2>
+      <p>Tussen <b>${esc(a.n)}</b> en <b>Pizzeria ${esc(speler || 'de Baas')}</b>.</p>
+      <div class="bedragen">${keuzes.map((v) => `<button data-b="${v}" class="${v == bedrag ? 'aan' : ''}">€ ${v}</button>`).join('')}</div>
+      <table style="width:100%">
+        <tr><td>Je leent</td><td>€ ${bedrag}</td></tr>
+        <tr><td>Rente (${Math.round(a.rente * 100)}%)</td><td>€ ${terug - bedrag}</td></tr>
+        <tr><td>Totaal terugbetalen</td><td>€ ${terug}</td></tr>
+        <tr><td>Elke avond</td><td>€ ${perDag}, ${a.dagen} dagen lang</td></tr>
+      </table>
+      <div class="klein">Kleine lettertjes: ${esc(a.klein)}</div></div>
+      <label class="teken"><input type="checkbox" id="akkoord"> Ik heb alles gelezen en ga akkoord</label>
+      <button class="groot" id="teken" disabled>✍️ Ondertekenen</button>
+      <button class="groot" id="terugbank" style="margin-top:8px;background:#a88">Terug</button>`;
+    k.querySelectorAll('[data-b]').forEach((b) => b.onclick = () => toonBank(gekozen, +b.dataset.b));
+    $('akkoord').onchange = () => { $('teken').disabled = !$('akkoord').checked; };
+    $('teken').onclick = () => {
+      S.leningen.push({ van: gekozen, rest: terug, perDag, achter: 0 }); S.geld += bedrag; kassa(); bewaar(); tekenKnoppen();
+      $('bank').classList.add('verborgen'); meld(gekozen == 'sjaak' ? 'Ome Sjaak telt de briefjes uit. "Tot over vijf dagen, vriend."' : gekozen == 'oma' ? 'Oma geeft je ook nog een kus en een rolletje pepermunt.' : 'Banca Fortuna: "Prettig zaken doen."');
+    };
+    $('terugbank').onclick = () => toonBank();
+  }
+  if ($('bankdicht')) $('bankdicht').onclick = () => $('bank').classList.add('verborgen');
+  $('bank').classList.remove('verborgen');
+}
+// 's avonds aflossen; wie niet kan betalen krijgt een achterstand, en dan komt de bank (na 2 dagen) of de neven van Ome Sjaak (meteen)
+function aflossen() {
+  const regels = []; S.leningen = S.leningen || [];
+  for (const l of [...S.leningen]) {
+    const a = AANBIEDER[l.van], bedrag = Math.min(l.perDag, l.rest);
+    if (S.geld >= bedrag) { S.geld -= bedrag; l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n}`, -bedrag]); }
+    else { l.achter++; regels.push([`${a.gz} ${a.n}: niet betaald! ⚠️`, 0]); }
+    if (l.rest <= 0) { S.leningen.splice(S.leningen.indexOf(l), 1); regels.push([`🎉 Lening van ${a.n} afbetaald`, 0]); }
+    else if (l.achter && (l.van == 'sjaak' || l.achter >= 2)) { // beslag: spullen meenemen tot de schuld betaald is
+      // ze nemen het duurste mee, maar geen tafels en stoelen (dan kan je niet meer verder), en hooguit 2 (neven) of 3 (deurwaarder) dingen
+      let buit = 0; const weg = [], max = l.van == 'sjaak' ? 2 : 3;
+      for (const s of [...S.spullen].filter((s) => !isTafel(s) && s.t != 'stoel').sort((x, y) => SPUL[y.t].prijs - SPUL[x.t].prijs)) {
+        if (buit >= l.rest || weg.length >= max) break; buit += Math.floor(SPUL[s.t].prijs * (l.van == 'sjaak' ? 0.4 : 0.6)); weg.push(SPUL[s.t].n.toLowerCase()); S.spullen.splice(S.spullen.indexOf(s), 1);
+      }
+      l.rest = Math.max(0, l.rest - buit); l.achter = 0;
+      if (l.van == 'sjaak') S.rep = Math.max(0, S.rep - 10); // de neven zitten de hele avond in de zaak: slecht voor je naam
+      regels.push([l.van == 'sjaak' ? (weg.length ? `😬 De neven van Ome Sjaak namen mee: ${weg.join(', ')}` : '😬 De neven van Ome Sjaak aten gratis, en joegen de klanten weg') : weg.length ? `📜 De deurwaarder nam mee: ${weg.join(', ')}` : '📜 De deurwaarder kwam langs en vond niets', 0]);
+      if (l.rest <= 0) S.leningen.splice(S.leningen.indexOf(l), 1);
+    }
+  }
+  return regels;
 }
 
 // ---------- klanten ----------
@@ -1031,6 +1125,7 @@ doek.addEventListener('pointerdown', (e) => {
     laatsteTik = null;
     if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
+    if (d.een && S.spullen.some((s) => s.t == kies)) { meld('Je hebt al een ' + d.n.toLowerCase() + '.'); return; }
     S.spullen.push({ t: kies, x, y, ...((kies == 'stoel' ? S.houtStoel : isTafel({ t: kies }) && S.houtTafel) ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
     if (d.een) kies = null;
     tekenKnoppen(); return;
@@ -1221,6 +1316,8 @@ function tekenKnoppen() {
     h += `<button data-p="${t}" class="${S.geld < d.prijs ? 'duur' : ''}" ${open || vol ? 'disabled' : ''}><span class="ik">${d.ik}</span>${t == 'oven' ? 'Oven + kok' : 'Ober'}<span class="pr">${vol ? 'maximaal' : '€' + d.prijs}</span></button>`;
   }
   h += `<button data-pizza ${open ? 'disabled' : ''}><span class="ik">📖</span>Pizza's<span class="pr">${S.menu.length} op de kaart</span></button>`;
+  const schuld = (S.leningen || []).reduce((a, l) => a + l.rest, 0);
+  h += `<button data-bank ${open ? 'disabled' : ''}><span class="ik">🏦</span>Geld lenen<span class="pr">${schuld ? 'schuld €' + schuld : 'bank en meer'}</span></button>`;
   h += `<button data-dag><span class="ik">📊</span>Gisteren<span class="pr">overzicht</span></button>`;
   h += open ? `<button class="open" disabled><span class="ik">🔔</span>Open</button>` : `<button class="open" id="open"><span class="ik">🔔</span>Open de deuren</button>`;
   k.innerHTML = h;
@@ -1235,6 +1332,7 @@ function tekenKnoppen() {
     meld(b.dataset.p == 'oven' ? 'Een extra oven met een kok erbij! Nu bakken er meer pizza\'s tegelijk.' : 'Een extra ober! Die kost wel ' + LOON + ' euro loon per dag.');
   });
   k.querySelector('[data-pizza]').onclick = () => { wekGeluid(); sluitMenu(); kies = null; toonKaart(); };
+  k.querySelector('[data-bank]').onclick = () => { wekGeluid(); sluitMenu(); kies = null; toonBank(); };
   k.querySelector('[data-dag]').onclick = () => { if (laatsteDag) { $('eindkaart').innerHTML = laatsteDag; $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); } else meld('Je hebt nog geen dag gedraaid.'); };
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }

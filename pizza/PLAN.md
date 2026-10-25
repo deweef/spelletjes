@@ -84,7 +84,8 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   Samen met de vader: soort klant **gezin**.
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
-## Bank (idee Marcel, 25 okt)
+## Bank (idee Marcel, 25 okt) — gedaan: Banca Fortuna, Oma Truus en Ome Sjaak (woekeraar), zie CLAUDE.md.
+`pizza/skater-lening-gemini.jpg`: skater-klant, plus leendocumenten/paspoort/stempel (kan later in het contractscherm).
 Geld lenen bij de bank: rente per dag en aflossen. Niet oneindig: hoeveel je mag lenen hangt af van je omzet/populariteit; betaal
 je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag op spullen, of failliet).
 

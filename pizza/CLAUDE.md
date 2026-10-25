@@ -25,4 +25,10 @@ Pizza's (📖, `toonKaart`, `toonMaak`): `S.menu` = lijst { naam, prijs, stukjes
 Margherita). Ingrediënten in `ING` (smaak `f` = [vet, zoet, zout, pittig] per stukje, inkoop `k`, soort `s`: it/groen/vlees/vis/gek) met
 plaatjes uit `pizza/ingredienten.png` (20 x 64x64 uit de Kenney food-kit, volgorde van `ING`). Soorten klanten in `SOORT` (wil, budget,
 kans, uiterlijk); `oordeel(pizza, soort)` = 0-6 (`GEZICHT`), `kiesPizza` kiest per klant de lekkerste (onder 1 = weg, `ZEG.niks`).
+Geld lenen (knop 🏦, `toonBank`): "kies de aanbieder" uit `AANBIEDER` (rente = totaal extra, dagen, `max()`, `weiger()`, kleine lettertjes):
+Banca Fortuna (10%, 10 dagen, max hangt af van populariteit en omzet van gisteren `S.omzetGisteren`, niet de eerste 2 dagen en niet bij
+achterstand), Oma Truus (€200, 0%, 3 dagen, één tegelijk), Ome Sjaak (tot €3000, 60%, 5 dagen). Leenovereenkomst met bedragknopjes, vinkje
+"akkoord" en Ondertekenen. `S.leningen` = [{ van, rest, perDag, achter }]; elke avond `aflossen` (in het dagoverzicht); niet kunnen
+betalen = achterstand: neven van Sjaak meteen, deurwaarder van de bank na 2 dagen: nemen 2-3 dure spullen mee (nooit tafels/stoelen).
+Aflossen kan ook in één keer in het bankscherm. De jukebox zit nu bij de versiering-knop (Plant).
 Plan en volgende stappen: `pizza/PLAN.md`.
