@@ -47,7 +47,8 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   `pizza/houten-tafels-gemini.jpg` (houten tafels, bar met krukken) heeft een nep-doorzichtige geblokte achtergrond: niet uit te knippen,
   opnieuw vragen met groene achtergrond als we hem willen.
   `pizza/stoelen3-gemini.jpg`: houten caféstoelen (gebogen Thonet-stoel, ladderstoel, rood gestoffeerd, geruit kussen), barkrukken,
-  losse kussens; richtingen niet compleet (geen nette 4 kanten per stoel). Idee: stoelsoort kiezen in het stoelmenu, krukken bij een bar.
+  losse kussens; `pizza/stoelen4-gemini.jpg` = zelfde met gestapelde stoelen; `pizza/houten-tafels2-gemini.jpg` = houten tafels op
+  groen (vierkant, lang liggend, met geruit kleed, bar met krukken; bruikbaar als houten tafelstijl). Richtingen niet compleet (geen nette 4 kanten per stoel). Idee: stoelsoort kiezen in het stoelmenu, krukken bij een bar.
 - Tafels en stoelen **los neerzetten** zoals in het origineel (stoel draait naar de tafel ernaast), dan kan je ook een hoekje
   met 3 stoelen maken; stoelen tegen de tafel aan, niet met een gat ertussen.
   Meerdere tafels: klein (2), vierkant (4), lang (6 stoelen eromheen), zoals in het origineel. De fontein moest je in het
