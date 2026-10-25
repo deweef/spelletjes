@@ -129,6 +129,15 @@ bedenk dat de site openbaar is.
   Vakjes nalopen: geen twee voorwerpen mogen elkaars midden raken, en voorwerpen die vaker voorkomen (koffiemok, tamboerijn, pizza) krijgen meer vakjes.
   In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
   `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!" en een 🚗 bij het level.
+- Pizzabaas (`pizzabaas.html`, concept, idee van Pizza Tycoon maar met eigen naam en grappen): eigen pizzeria van bovenaf op een raster
+  van 12x9 (`W`, `H`, `T`; rij 0-1 keuken met ovens en kok, deur onderaan `DEUR`). Twee standen (`modus`): inrichten (spullen uit `SPUL`
+  kopen en neerzetten: tafeltje voor 2, tafel voor 4, plant, jukebox; tik op een tafel = menu met kleedje/kaarsje (`EXTRA`), verplaatsen,
+  verkopen; extra ovens en obers in `PERSONEEL`) en open (een werkdag van `DAG` = 120 s, 17:00-22:00). Klantengroepjes zoeken een vrije
+  tafel (anders "vol", reputatie omlaag), bestellen, de oven bakt (`BAKTIJD`), een ober brengt de pizza, ze eten en betalen `PRIJS` plus fooi
+  (`gezellig`: kleedje, kaarsje, planten dichtbij, jukebox); te lang wachten (`GEDULD`) = boos weg. Reputatie `S.rep` bepaalt hoe vaak er
+  klanten komen. Aan het eind huur (`HUUR`) en loon, en een dagoverzicht. Opslag per speler in `pizzabaas:<naam>`. `#tegel` = plaatje.
+  Plan: 2 pizza's verzinnen met smaken per buurt, 3 dubieuze klanten en pakketjes-ritjes (geen echte wapens of drugs), 4 sabotage door
+  Luigi van de overkant, 5 meer buurten en filialen.
 - Songfestival-hits (`songfestival/`, test, nog niet op de startpagina): zelfgeprinte kaartjes in Hitster-stijl (die naam niet op de site
   gebruiken, is een merk). `liedjes.js` = `LIEDJES` (id, jaar, land, vlag, artiest, titel, spotify-track-id, won); id's nooit hergebruiken.
   `index.html?k=<id>` = speler: grote ▶ (Spotify Embed IFrame API, `togglePlay`), de Spotify-speler zit onder een afdekking behalve zijn

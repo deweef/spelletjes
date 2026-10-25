@@ -80,5 +80,13 @@
     "stand": "liggend",
     "concept": true,
     "soort": "3d"
+  },
+  {
+    "naam": "Pizzabaas",
+    "omschrijving": "Huur een pizzeria en richt hem in met tafeltjes, kleedjes, kaarsjes en een jukebox. Laat klanten niet te lang wachten op hun pizza, betaal de huur en word de beste pizzabaas van de stad.",
+    "bestand": "pizzabaas.html",
+    "plaatje": "pizzabaas.jpg",
+    "stand": "liggend",
+    "concept": true
   }
 ]
