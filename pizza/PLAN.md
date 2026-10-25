@@ -59,3 +59,33 @@ tafels slepen, jukebox 2x2. Punten 6 en 7 wachten op nieuwe Gemini-vellen van Ma
   figuren op kolommen splitsen, de rugrij schalen naar dezelfde lengte als de voorkant, op één rij zetten van 113x192 per plaatje.
 - Prompt die werkte: "Een vel met spelfiguurtjes voor een computerspel … één en hetzelfde figuurtje, steeds precies dezelfde
   kleren … effen felgroene achtergrond, geen schaduwen, geen tekst".
+
+### Gemini-opdrachten (Claude schrijft ze, Marcel plakt ze in Gemini en zet het plaatje terug in de chat)
+Altijd het oude vel (`pizza/kok-gemini.jpg` / `pizza/ober-gemini.jpg`) meesturen, zodat het hetzelfde figuurtje blijft.
+
+**A. Kok, loopvel** (tegen het moonwalken):
+"Maak een nieuw vel met spelfiguurtjes van precies deze kok (zelfde pixelart-stijl, kleren, snor, muts en grootte als op het
+plaatje). Zet ze in een net raster: 3 rijen, elk figuurtje even groot en met ruimte ertussen, niets overlapt.
+Rij 1: 6 plaatjes, lopen precies van opzij (profiel, neus naar rechts): hak neer, doorzakken, been passeert, omhoog, andere hak
+neer, doorzakken. Benen en armen duidelijk verschillend per plaatje.
+Rij 2: 4 plaatjes, recht naar de kijker toe lopen (linkerbeen voor, staan, rechterbeen voor, staan).
+Rij 3: 4 plaatjes, recht van achteren weglopen (zelfde ritme).
+Alle voeten op dezelfde hoogte. Effen felgroene achtergrond (#00FF00), geen schaduwen, geen vloer, geen tekst."
+
+**B. Ober, loopvel**: hetzelfde als A, maar "precies deze ober" en het ober-vel meesturen.
+
+**C. Ober met twee borden**:
+"Maak een vel met precies deze ober (zelfde stijl en grootte). Hij draagt in elke hand een wit bord met een pizza, armen
+gebogen naar voren. 3 rijen in een net raster, niets overlapt: rij 1: 6 plaatjes lopen van opzij (neus naar rechts);
+rij 2: 4 plaatjes lopen naar de kijker toe; rij 3: 4 plaatjes van achteren. Daarna nog 2 losse plaatjes: één bord neerzetten
+op een tafel (voorovergebogen), en staan met de borden. Alle voeten op dezelfde hoogte. Effen felgroene achtergrond (#00FF00),
+geen schaduwen, geen tekst."
+
+**D. Meubels, recht van boven** (zoals een plattegrond; de vloer in het spel is ook recht van boven):
+"Pixelart voor een pizzeria-spel, alles recht van bovenaf gezien (bovenaanzicht, zoals een plattegrond), in een net raster van
+4 kolommen, elk ding in een eigen vierkant vak, niets overlapt. Rij 1: vierkante tafel zonder kleed, dezelfde tafel met
+rood-wit geruit kleed, dezelfde met wit kleed en kaarsje, dezelfde met wijnfles en kaars. Rij 2: houten stoel van boven
+(leuning aan de bovenkant), dezelfde stoel met rood kussen, plastic klapstoeltje, chique stoel met fluweel. Rij 3: plant in
+terracotta pot, grote palm in pot, jukebox (felle kleuren, lampjes), wit bord met pizza. Effen felgroene achtergrond (#00FF00),
+geen schaduwen, geen tekst."
+(Stoel = 1x1 tegel, tafel = 2x2 tegels, jukebox = 2x2.)
