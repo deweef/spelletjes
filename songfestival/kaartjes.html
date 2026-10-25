@@ -25,23 +25,39 @@
 </style>
 </head>
 <body>
-<div class="uitleg">
-  <b>Songfestival-kaartjes (test)</b><br>
+<div class="uitleg" id="slot">
+  <b>Songfestival-kaartjes</b><br>
+  De liedjes zijn geheim. Vul het wachtwoord in om de kaartjes te zien en te printen.<br>
+  <form id="ww"><input type="password" id="wachtwoord" placeholder="Wachtwoord" autocomplete="current-password" style="font-size:16px;padding:8px;border-radius:8px;border:1px solid #bbb;margin-top:8px">
+  <button style="font-size:16px;padding:8px 14px;border-radius:8px;border:0;background:#7b2cbf;color:#fff">Open</button> <span id="mis" style="color:#c0392b"></span></form>
+</div>
+<div class="uitleg" id="uitleg" hidden>
+  <b>Songfestival-kaartjes</b><br>
   Scan een QR-code met de camera van je telefoon: dan opent de speler. Printen: dubbelzijdig, "omslaan via lange kant", geen marges/schaal 100%.
   Daarna knippen langs de stippellijntjes.
 </div>
 <div id="vellen"></div>
 <script src="lib/qrcode.js"></script>
-<script src="liedjes.js"></script>
+<script src="geheim.js"></script>
+<script src="slot.js"></script>
 <script>
   const BASIS = 'https://deweef.github.io/spelletjes/songfestival/?k=';
   const KLEUREN = ['#7b2cbf', '#e5383b', '#1d7ec9', '#f77f00', '#2a9d8f', '#d6336c'];
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const qr = (tekst) => { const q = qrcode(0, 'M'); q.addData(tekst); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); };
+  document.getElementById('ww').onsubmit = async (e) => {
+    e.preventDefault();
+    let K, LIEDJES;
+    try { K = await SLOT.sleutel(document.getElementById('wachtwoord').value); LIEDJES = await SLOT.lijst(K); }
+    catch (er) { document.getElementById('mis').textContent = 'Dat wachtwoord klopt niet.'; return; }
+    document.getElementById('slot').hidden = true; document.getElementById('uitleg').hidden = false;
+    tekenVellen(LIEDJES, K);
+  };
+  function tekenVellen(LIEDJES, K) {
   let h = '';
   for (let i = 0; i < LIEDJES.length; i += 12) {
     const vel = LIEDJES.slice(i, i + 12);
-    h += '<div class="vel">' + vel.map((l) => `<div class="kaart voor">${qr(BASIS + l.id)}<div class="nr">🎤 ${l.id}</div></div>`).join('') + '</div>';
+    h += '<div class="vel">' + vel.map((l) => `<div class="kaart voor">${qr(BASIS + l.id + '#' + K)}<div class="nr">🎤 ${l.id}</div></div>`).join('') + '</div>';
     // achterkanten: per rij van 3 in omgekeerde volgorde (lege plekjes opvullen zodat het spiegelen klopt)
     let achter = '';
     for (let r = 0; r < vel.length; r += 3) {
@@ -51,6 +67,7 @@
     h += '<div class="vel">' + achter + '</div>';
   }
   document.getElementById('vellen').innerHTML = h;
+  }
 </script>
 </body>
 </html>

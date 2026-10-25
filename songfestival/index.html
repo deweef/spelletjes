@@ -7,10 +7,10 @@
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; color: #fff; text-align: center;
-    background: radial-gradient(circle at 50% 20%, #5b2a9e, #1a0b3a 70%); display: flex; flex-direction: column; align-items: center; padding: 60px 16px 30px; }
+    background: radial-gradient(circle at 50% 20%, #5b2a9e, #1a0b3a 70%); display: flex; flex-direction: column; align-items: center; padding: 60px 16px 110px; }
   .terug { position: fixed; top: 12px; left: 12px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.35); color: #fff; text-decoration: none; font-size: 26px; line-height: 38px; }
   h1 { margin: 0 0 4px; font-size: 22px; letter-spacing: .5px; }
-  .sub { opacity: .75; margin: 0 0 26px; }
+  .sub { opacity: .75; margin: 0 0 26px; min-height: 1.2em; }
   #speel { width: 170px; height: 170px; border-radius: 50%; border: 0; font-size: 70px; color: #3a1470; background: #ffd23f; box-shadow: 0 0 0 10px rgba(255,210,63,.25), 0 10px 30px rgba(0,0,0,.4); cursor: pointer; }
   #speel.speelt { animation: puls 1.1s ease-in-out infinite; }
   @keyframes puls { 50% { box-shadow: 0 0 0 22px rgba(255,210,63,.12), 0 10px 30px rgba(0,0,0,.4); } }
@@ -24,7 +24,14 @@
   #antwoord .jaar { font-size: 64px; font-weight: 900; color: #ffd23f; line-height: 1; }
   #antwoord .wie { font-size: 20px; margin-top: 10px; }
   #antwoord .land { margin-top: 6px; opacity: .85; }
-  .fout { margin-top: 40px; opacity: .85; }
+  .fout { margin-top: 30px; opacity: .85; line-height: 1.5; }
+  #volgende { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom)); border: 0; border-radius: 30px; padding: 15px 28px; background: #fff; color: #3a1470; font: 800 18px system-ui, sans-serif; box-shadow: 0 6px 20px rgba(0,0,0,.4); cursor: pointer; white-space: nowrap; }
+  /* de scanner */
+  #scanner { position: fixed; inset: 0; background: #000; display: none; z-index: 10; }
+  #scanner video { width: 100%; height: 100%; object-fit: cover; }
+  #kader { position: absolute; left: 50%; top: 45%; width: min(70vw, 300px); aspect-ratio: 1; transform: translate(-50%, -50%); border: 4px solid #ffd23f; border-radius: 18px; box-shadow: 0 0 0 100vmax rgba(0,0,0,.45); }
+  #scantekst { position: absolute; left: 0; right: 0; top: calc(45% + min(35vw, 150px) + 20px); font-weight: 700; font-size: 17px; text-shadow: 0 1px 4px #000; }
+  #stopscan { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 14px; width: 46px; height: 46px; border-radius: 50%; border: 0; background: rgba(255,255,255,.9); font-size: 22px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -39,32 +46,91 @@
   <button id="toon">Laat zien</button>
   <div id="antwoord"><div class="jaar"></div><div class="wie"></div><div class="land"></div></div>
 </div>
-<script src="liedjes.js"></script>
+<p class="fout" id="fout" hidden></p>
+<button id="volgende">📷 Volgende kaartje</button>
+<div id="scanner"><video id="video" playsinline muted></video><div id="kader"></div><div id="scantekst">Houd de QR-code in het vak</div><button id="stopscan" aria-label="Stoppen">✕</button></div>
+
+<script src="geheim.js"></script>
+<script src="slot.js"></script>
+<script src="lib/jsQR.js"></script>
 <script>
   const $ = (id) => document.getElementById(id);
-  const k = +new URLSearchParams(location.search).get('k');
-  const L = LIEDJES.find((l) => l.id == k);
-  let ctl = null, speelt = false;
-  if (!L) {
-    $('spel').innerHTML = '<p class="fout">Dit kaartje ken ik niet. Scan een kaartje met de camera van je telefoon.</p>';
-  } else {
+  let lijst = null, sleutel = null, ctl = null, wachtUri = null, L = null;
+
+  // ---------- een kaartje laten zien ----------
+  function fout(t) { $('spel').hidden = true; $('fout').hidden = false; $('fout').innerHTML = t; $('nummer').textContent = ''; }
+  async function kaartje(k, s) {
+    if (s && s != sleutel) { try { lijst = await SLOT.lijst(s); sleutel = s; } catch (e) { lijst = null; } }
+    if (!lijst) { fout('Scan een kaartje met de knop hieronder of met de camera van je telefoon.'); return; }
+    L = lijst.find((l) => l.id == k);
+    if (!L) { fout('Dit kaartje ken ik niet.'); return; }
+    $('spel').hidden = false; $('fout').hidden = true;
     $('nummer').textContent = 'Kaartje ' + L.id;
-    window.onSpotifyIframeApiReady = (api) => {
-      api.createController($('speler'), { uri: 'spotify:track:' + L.spotify, width: '100%', height: 80 }, (c) => {
-        ctl = c;
-        c.addListener('playback_update', (e) => { speelt = !e.data.isPaused; $('speel').textContent = speelt ? '❚❚' : '▶'; $('speel').classList.toggle('speelt', speelt); });
-      });
-    };
-    const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true; document.body.appendChild(s);
-    $('speel').onclick = () => { if (ctl) ctl.togglePlay(); };
-    $('toon').onclick = () => {
-      const a = $('antwoord');
-      a.querySelector('.jaar').textContent = L.jaar;
-      a.querySelector('.wie').innerHTML = '<b>' + L.artiest + '</b> – ' + L.titel;
-      a.querySelector('.land').textContent = L.vlag + ' ' + L.land + (L.won ? ' · 🏆 winnaar' : '');
-      a.style.display = 'block'; $('toon').style.display = 'none'; $('afdek').style.display = 'none';
-    };
+    $('antwoord').style.display = 'none'; $('toon').style.display = ''; $('afdek').style.display = '';
+    zetKnop(false);
+    const uri = 'spotify:track:' + L.spotify;
+    if (ctl) ctl.loadUri(uri); else wachtUri = uri;
   }
+  function zetKnop(speelt) { $('speel').textContent = speelt ? '❚❚' : '▶'; $('speel').classList.toggle('speelt', speelt); }
+
+  // ---------- Spotify ----------
+  window.onSpotifyIframeApiReady = (api) => {
+    api.createController($('speler'), { uri: wachtUri || 'spotify:track:3ML1JVicjXbdsyYrPdfr5E', width: '100%', height: 80 }, (c) => {
+      ctl = c; c.addListener('playback_update', (e) => zetKnop(!e.data.isPaused));
+      if (wachtUri) c.loadUri(wachtUri);
+    });
+  };
+  const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true; document.body.appendChild(s);
+  $('speel').onclick = () => { if (ctl) ctl.togglePlay(); };
+  $('toon').onclick = () => {
+    const a = $('antwoord');
+    a.querySelector('.jaar').textContent = L.jaar;
+    a.querySelector('.wie').innerHTML = '<b>' + L.artiest + '</b> – ' + L.titel;
+    a.querySelector('.land').textContent = L.vlag + ' ' + L.land + (L.won ? ' · 🏆 winnaar' : '');
+    a.style.display = 'block'; $('toon').style.display = 'none'; $('afdek').style.display = 'none';
+  };
+
+  // ---------- scannen in de pagina ----------
+  let stroom = null, bezig = false;
+  const doek = document.createElement('canvas'), g = doek.getContext('2d', { willReadFrequently: true });
+  async function startScan() {
+    if (ctl) ctl.pause();
+    $('scanner').style.display = 'block'; $('scantekst').textContent = 'Houd de QR-code in het vak';
+    try {
+      stroom = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    } catch (e) { $('scantekst').textContent = 'De camera mag niet aan. Sta de camera toe in je browser, of scan met de camera-app.'; return; }
+    const v = $('video'); v.srcObject = stroom; await v.play().catch(() => {});
+    bezig = true; requestAnimationFrame(kijk);
+  }
+  function stopScan() {
+    bezig = false; $('scanner').style.display = 'none';
+    if (stroom) { stroom.getTracks().forEach((t) => t.stop()); stroom = null; }
+  }
+  function kijk() {
+    if (!bezig) return;
+    const v = $('video');
+    if (v.videoWidth) {
+      const w = 480, h = Math.round(v.videoHeight / v.videoWidth * w); doek.width = w; doek.height = h;
+      g.drawImage(v, 0, 0, w, h);
+      const r = jsQR(g.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
+      if (r && r.data) {
+        try {
+          const u = new URL(r.data); const k = u.searchParams.get('k'), s = u.hash.slice(1);
+          if (k && u.pathname.includes('/songfestival/')) {
+            stopScan(); if (navigator.vibrate) navigator.vibrate(60);
+            history.replaceState(null, '', '?k=' + k + '#' + s); kaartje(k, s); return;
+          }
+        } catch (e) {}
+        $('scantekst').textContent = 'Dat is geen songfestival-kaartje';
+      }
+    }
+    requestAnimationFrame(kijk);
+  }
+  $('volgende').onclick = startScan;
+  $('stopscan').onclick = stopScan;
+
+  const q = new URLSearchParams(location.search);
+  kaartje(q.get('k'), location.hash.slice(1));
 </script>
 </body>
 </html>

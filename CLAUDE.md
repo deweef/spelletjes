@@ -139,11 +139,15 @@ bedenk dat de site openbaar is.
   Plan: 2 pizza's verzinnen met smaken per buurt, 3 dubieuze klanten en pakketjes-ritjes (geen echte wapens of drugs), 4 sabotage door
   Luigi van de overkant, 5 meer buurten en filialen.
 - Songfestival-hits (`songfestival/`, test, nog niet op de startpagina): zelfgeprinte kaartjes in Hitster-stijl (die naam niet op de site
-  gebruiken, is een merk). `liedjes.js` = `LIEDJES` (id, jaar, land, vlag, artiest, titel, spotify-track-id, won); id's nooit hergebruiken.
-  `index.html?k=<id>` = speler: grote ▶ (Spotify Embed IFrame API, `togglePlay`), de Spotify-speler zit onder een afdekking behalve zijn
-  play-knopje, "Laat zien" toont het antwoord. `kaartjes.html` = A4 printvellen (6,5 cm, 12 per vel; QR met `lib/qrcode.js`, MIT,
-  qrcode-generator; achterkanten per rij gespiegeld voor dubbelzijdig printen). Spotify-id's zoeken met de Spotify-tool; YouTube en
-  Wikipedia zijn vanuit de cloud niet bereikbaar.
+  gebruiken, is een merk). De liedjes zijn geheim: `geheim.js` = `GEHEIM` met de lijst versleuteld (AES-GCM, `slot.js`) met een vaste
+  sleutel die in elke QR-code achter het # staat (`?k=<id>#<sleutel>`), plus diezelfde sleutel versleuteld met het wachtwoord (PBKDF2) voor de
+  printpagina. Het wachtwoord staat nergens in de repo; Marcel weet het. Lijst aanpassen: in `kaartjes.html` openen met het wachtwoord,
+  of in Node met `SLOT.sleutel(ww)` + `SLOT.lijst(K)`; daarna opnieuw versleutelen met DEZELFDE sleutel (anders werken geprinte kaartjes niet
+  meer): lijst-items { id, jaar, land, vlag, artiest, titel, spotify (track-id), won }, id's nooit hergebruiken.
+  `index.html` = speler: grote ▶ (Spotify Embed IFrame API, `togglePlay`/`loadUri`), de Spotify-speler onder een afdekking behalve zijn
+  play-knopje, "Laat zien" toont het antwoord, onderaan 📷 Volgende kaartje = scanner in de pagina (camera via getUserMedia, `lib/jsQR.js`,
+  Apache-2.0). `kaartjes.html` = A4 printvellen (6,5 cm, 12 per vel; QR met `lib/qrcode.js`, MIT; achterkanten per rij gespiegeld voor
+  dubbelzijdig printen). Spotify-id's zoeken met de Spotify-tool; YouTube en Wikipedia zijn vanuit de cloud niet bereikbaar.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een
