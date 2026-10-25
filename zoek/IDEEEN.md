@@ -8,7 +8,7 @@
   - In het menu heten ze "B1", "B2", ... (eigen nummering, los van 21-30); de `id` blijft een naam (bijv. `spreekwoorden`),
     zoals bij de andere levels. Open-regel: B1 na level 20 (`ruimte`), Bn na B(n-1), 21 na 20, 31 na 30 of B10.
     Bouwen: per level een veld `pad: 'B'` en `na: [ids]` in `LEVELS`, nummering en `isOpen` daarop aanpassen.
-  - Voorstel voor de platen en spelvormen (nog niet vast):
+  - Gebouwd: B1, B2, B3 (gewoon zoeken; B3 = de moderne dingen zoeken). Voorstel voor de rest (nog niet vast):
     - B1 Nederlandse Spreekwoorden: zoek het spreekwoord ("met het hoofd tegen de muur lopen", "de kat de bel aanbinden").
     - B2 Kinderspelen: zoek het spelletje (hoepelen, bokspringen, tollen, haasje-over).
     - B3 Jagers in de sneeuw: wat hoort er niet bij? (snowboarder, sneeuwscooter, iemand met een telefoon, Sjaak op ski's).
@@ -22,8 +22,6 @@
 - **Sjaak-plaat**: één plaat met ±20 Sjaakjes, gaat open als je Sjaak in alle levels hebt betrapt; een Sjaak-teller in het menu.
   Afgesproken: een geheim level, los van 21-30 en B1-B10, dat pas in het menu verschijnt als Sjaak overal betrapt is.
 - Orkest en strand hebben nog geen Sjaak (nieuwe Gemini-plaat of Sjaak erin plakken zoals de oldtimer bij het strand).
-- **Level 21: dameshockeywedstrijd** (gekozen, okt 2026): eerste sportlevel; link staat in `LEESMIJ.md`; Marcel zet straks 5 platen tegelijk in de repo.
-- **Level 22: herfststorm** (idee Marcel, okt 2026): omgewaaide boom op een veldje, eikels, kastanjes (vaker = meer vakjes),
-  paddenstoelen. Spelvorm-idee: af en toe waait er een vlaag bladeren over het scherm die even dingen afdekt.
+- Herfststorm (level 22, gebouwd): nog toevoegen dat er af en toe een vlaag bladeren over het scherm waait die even dingen afdekt.
 - Meer levels: winterkermis, Orkenstorm-dorp, plaats delict (iemand onder een laken met een been eruit).
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.

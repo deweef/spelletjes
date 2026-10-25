@@ -675,6 +675,76 @@ const RUIMTE_BEELD = [
   ['Koptelefoon', 158, 412, 205, 462], ['Appel', 20, 494, 57, 528], ['Drinkje', 320, 394, 345, 422], ['Springtouw', 370, 456, 415, 532],
   ['Loopband', 370, 520, 580, 680], ['Wc-rol', 1225, 640, 1270, 690], ['Wc-borstel', 1348, 682, 1370, 742], ['Kaart op de muur', 1305, 560, 1368, 610],
 ];
+// level 21 t/m 22 en de Bruegel-lijn B1 t/m B3 (Gemini, 1376 x 768): [naam, x1, y1, x2, y2, (nog een vakje)...]
+const HOCKEY_BEELD = [
+  ['Kat', 313, 248, 382, 310, 266, 170, 300, 202], ['Oranje jas', 391, 193, 426, 241], ['Emmer', 408, 255, 442, 292],
+  ['Waterfles', 446, 264, 458, 295, 712, 472, 731, 501], ['Puck', 414, 299, 433, 312], ['Boek', 179, 102, 201, 121],
+  ['Megafoon', 48, 252, 82, 282, 81, 584, 138, 643, 199, 596, 260, 646], ['Spandoek', 74, 133, 176, 210, 150, 538, 362, 600], ['Scorebord', 625, 7, 750, 76],
+  ['Grijze kliko', 636, 108, 684, 146], ['Groene kliko', 684, 108, 736, 148], ['Wimpel', 866, 39, 930, 59],
+  ['Klembord', 793, 114, 824, 146], ['Barkruk', 896, 139, 926, 196, 952, 139, 982, 196], ['Bezem', 664, 203, 705, 281],
+  ['Pet', 715, 271, 749, 304], ['Sjaal', 444, 291, 541, 321], ['Sporttas', 611, 249, 644, 279, 1290, 520, 1346, 566],
+  ['Biertap', 932, 68, 958, 122], ['Koffieautomaat', 968, 63, 1012, 110], ['Krijtbord', 1022, 43, 1143, 113],
+  ['Wandklok', 1184, 34, 1234, 84], ['Oranje bierkratten', 989, 139, 1041, 196], ['Groene kratten', 1049, 127, 1096, 173],
+  ['Tactiekbord', 1071, 170, 1171, 289], ['Rugzak', 1082, 296, 1123, 335], ['Handschoen', 18, 418, 63, 452],
+  ['Stopwatch', 74, 483, 116, 536], ['Pion', 7, 487, 71, 573], ['Handdoek', 333, 698, 366, 753],
+  ['Thermoskan', 636, 610, 674, 701], ['Broodtrommel', 704, 688, 796, 744], ['Puzzelboekje', 757, 733, 816, 768],
+  ['Oranje trui', 638, 716, 709, 758], ['Papieren zak', 732, 548, 784, 622], ['Zak chips', 663, 550, 702, 587, 793, 338, 826, 356],
+  ['Koeltas', 816, 688, 888, 750], ['Sleutelbos', 858, 743, 892, 763], ['Slapende opa', 920, 598, 1086, 765],
+  ['Hond met bal', 1142, 613, 1320, 748], ['Schoenen', 1086, 715, 1156, 757], ['Schep', 1262, 570, 1371, 594],
+  ['Scheidsrechter', 638, 283, 724, 467], ['Duikende keeper', 168, 313, 386, 482], ['Gapende keeper', 1156, 343, 1260, 556],
+];
+const HERFST_BEELD = [
+  ['Windwijzer', 318, 8, 368, 62], ['Eekhoorn', 135, 64, 175, 99], ['Eikel', 97, 6, 111, 23, 24, 624, 39, 645, 372, 596, 393, 614],
+  ['Kastanje', 113, 28, 129, 44, 195, 692, 221, 712, 38, 84, 55, 101, 66, 83, 89, 101, 103, 71, 120, 90, 313, 75, 331, 95, 281, 44, 294, 56], ['Vogelhuisje', 421, 178, 456, 216], ['Pompoen', 207, 270, 244, 296],
+  ['Tuinkabouter', 157, 297, 186, 360, 42, 602, 90, 690], ['Bord Fietspad', 22, 328, 72, 370], ['Vlieger', 627, 15, 673, 63],
+  ['Strandbal', 599, 209, 632, 241, 341, 466, 381, 503], ['Paraplu', 833, 190, 920, 262], ['Ballon', 995, 22, 1030, 63],
+  ['Vogelnest', 1285, 122, 1330, 150], ['Bushaltebord', 1182, 172, 1213, 210], ['Bord Speeltuin', 900, 122, 973, 141],
+  ['Glijbaan', 1007, 192, 1070, 250], ['Emmer', 984, 252, 1005, 276], ['Hoge hoed', 1030, 260, 1056, 286],
+  ['Frisbee', 925, 225, 942, 237, 319, 513, 356, 531], ['Pizzadoos', 1226, 404, 1279, 451, 1250, 262, 1298, 298], ['Trampoline', 1125, 330, 1268, 425],
+  ['Kliko', 946, 419, 1049, 493], ['Vuilniszak', 1056, 426, 1095, 469], ['Badeendje', 1148, 452, 1179, 476],
+  ['Pion', 1059, 501, 1108, 561], ['Krant', 904, 549, 986, 605, 1046, 344, 1081, 363], ['Slak', 1294, 718, 1327, 750],
+  ['Sneaker', 825, 695, 870, 735], ['Portemonnee', 662, 690, 700, 725], ['Hondje', 490, 567, 548, 625],
+  ['Plastic tas', 575, 497, 615, 569, 1210, 217, 1250, 260], ['Lantaarnpaal', 560, 494, 581, 675], ['Dakpan', 451, 664, 489, 694],
+  ['Pet', 409, 635, 446, 661], ['Fietshelm', 152, 431, 181, 452], ['Want', 202, 497, 231, 524],
+  ['Regenlaarzen', 264, 520, 302, 574], ['Spinnenweb', 145, 590, 215, 672], ['Egel', 107, 703, 160, 746],
+  ['Paddenstoel', 37, 713, 75, 750], ['Kettingzaag', 446, 425, 568, 487],
+];
+const SPREEKWOORDEN_BEELD = [
+  ['Kat de bel aanbinden', 188, 10, 262, 100], ['Rozen voor de varkens', 368, 130, 478, 225], ['Tussen twee stoelen', 476, 158, 548, 215],
+  ['Wereld op zijn kop', 364, 262, 432, 348, 200, 285, 345, 372], ['Tegen de maan plassen', 448, 280, 522, 452], ['Gat in de lucht springen', 768, 245, 852, 350],
+  ['Hoge bomen, veel wind', 755, 25, 945, 245], ['Achter het net vissen', 676, 140, 740, 218], ['Kat in de zak', 498, 378, 568, 478],
+  ['Twee honden, één been', 458, 488, 585, 585], ['Op hete kolen zitten', 342, 500, 458, 585], ['Gebakken peren', 282, 495, 345, 592],
+  ['Water naar de zee', 405, 585, 482, 712], ['Kat op het spek', 575, 598, 702, 725], ['Rad voor ogen draaien', 700, 578, 850, 725],
+  ['Neus in de boter', 852, 605, 955, 745], ['Over de schreef gaan', 840, 455, 942, 592], ['Het hek is van de dam', 940, 420, 1205, 545],
+  ['Zeven sloten tegelijk', 998, 558, 1085, 682], ['Mug een olifant maken', 1080, 555, 1255, 705], ['De broek aan hebben', 1035, 268, 1098, 362],
+  ['Eigen boontjes doppen', 1280, 415, 1350, 530], ['Appel valt niet ver', 1195, 482, 1240, 527], ['Appeltje te schillen', 1270, 645, 1365, 768],
+];
+const KINDERSPELEN_BEELD = [
+  ['Hoepelen', 130, 330, 240, 400, 80, 640, 170, 750, 890, 320, 975, 375], ['Tollen', 245, 290, 365, 365, 185, 655, 250, 755, 270, 655, 355, 755], ['Knikkeren', 205, 365, 410, 450, 975, 330, 1105, 430],
+  ['In de boom klimmen', 50, 415, 100, 505], ['Over het hek', 115, 445, 180, 525], ['Op het hek', 185, 480, 240, 570],
+  ['Schaatsen', 12, 520, 60, 610], ['Paardrijden', 88, 540, 170, 645, 775, 265, 865, 395], ['Tikkertje', 395, 290, 560, 385],
+  ['Op stelten', 570, 235, 615, 330], ['Oma springt touw', 675, 250, 765, 350], ['Rondje draaien', 735, 205, 815, 250],
+  ['Kruiwagen', 545, 345, 615, 430], ['Touwtrekken', 650, 390, 945, 475, 915, 235, 1060, 310], ['Wip', 870, 440, 1010, 520],
+  ['Koningsstoel', 660, 490, 795, 630], ['Windmolentje', 815, 485, 860, 575, 500, 710, 540, 752], ['Trommelen', 478, 555, 555, 665],
+  ['Bikkelen', 540, 570, 630, 690], ['Balletje gooien', 575, 440, 670, 520], ['Poppenkast', 1110, 245, 1190, 360],
+  ['Schommelen', 1245, 255, 1310, 335], ['Vliegeren', 1255, 5, 1315, 65], ['Bootjes', 1148, 445, 1182, 487, 1198, 428, 1232, 466, 1110, 490, 1150, 532, 1035, 510, 1078, 562, 798, 640, 858, 702],
+  ['Vissen', 925, 635, 982, 750, 1072, 578, 1180, 675], ['Kikkers vangen', 1008, 628, 1108, 720], ['Hut bouwen', 1165, 560, 1290, 690],
+  ['Jojo', 1293, 650, 1347, 742], ['Koprol', 1118, 665, 1205, 748], ['Plassend jongetje', 1195, 478, 1235, 575],
+];
+const JAGERS_BEELD = [
+  ['Kraai met frietje', 75, 100, 215, 195, 388, 40, 512, 100], ['Barbecue', 332, 372, 372, 422], ['Selfie-telefoon', 392, 418, 416, 462],
+  ['Pizzadoos', 410, 455, 505, 522], ['Poedel met strikje', 338, 588, 416, 682], ['Thermoskan', 574, 513, 601, 570],
+  ['Elektrische step', 616, 492, 684, 586], ['Koptelefoon', 640, 440, 673, 484, 700, 583, 740, 622], ['Plastic slee', 678, 645, 773, 712, 723, 470, 782, 516],
+  ['Tuinkabouter', 828, 497, 852, 547], ['Pakketbezorger', 843, 527, 935, 722], ['Snowboarder', 726, 318, 782, 386],
+  ['Sneeuwscooter', 748, 376, 843, 462], ['Brandweerauto', 682, 255, 773, 310], ['Bushokje', 595, 264, 677, 324],
+  ['Verkeersbord 30', 817, 331, 844, 392], ['Stoplicht', 851, 298, 877, 392], ['Wegwijzer', 816, 311, 854, 331],
+  ['Parkeermeter', 687, 309, 711, 346], ['Vuilniszak', 908, 352, 946, 394], ['Skilift', 1157, 196, 1195, 248, 1235, 132, 1252, 198],
+  ['Windmolen', 1155, 32, 1218, 162, 1240, 12, 1306, 162], ['Zonnepaneel', 1053, 270, 1112, 310], ['Strooiwagen', 1168, 276, 1247, 327],
+  ['Iglo met schotel', 1262, 340, 1354, 452], ['Sneeuwkanon', 1236, 392, 1277, 444], ['Sneeuwpop met zonnebril', 1088, 433, 1139, 506],
+  ['Drone', 993, 450, 1077, 492], ['Fiets', 1138, 468, 1238, 542], ['Wc-hokje', 1271, 458, 1349, 572],
+  ['Hondje in jasje', 1001, 500, 1049, 554], ['Robotstofzuiger', 1085, 652, 1142, 694], ['Vuurwerkpijl', 1214, 674, 1239, 752],
+  ['Skibril', 998, 576, 1037, 602], ['Babyfoon', 1248, 518, 1270, 548],
+];
 const OW = 2000, OH = 1300;
 function rng(zaad) { return () => { zaad |= 0; zaad = zaad + 0x6D2B79F5 | 0; let t = Math.imul(zaad ^ zaad >>> 15, 1 | zaad); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const HUID = ['#f2c8a0', '#e8b088', '#c8905a', '#8a5a3a', '#f4d4b8', '#a86a42'], HAAR = ['#2a1a10', '#6a3a1a', '#d8b060', '#a8a8a8', '#e8e8e8', '#8a3a1a', '#1a1a1a', '#c86a2a'];
@@ -1253,6 +1323,11 @@ const LEVELS = [
   { id: 'supermarkt', naam: 'De supermarkt', uitleg: 'Zaterdagmiddag, kassa 3 gesloten', beeld: 'zoek/supermarkt.jpg', items: SUPERMARKT_BEELD, auto: [700, 60, 775, 96, 700, 108, 790, 146], sjaak: [715, 325, 832, 445] },
   { id: 'cafe', naam: 'Het bruine café', uitleg: 'Biljart, darts en een biertje met veel schuim', beeld: 'zoek/cafe.jpg', items: CAFE_BEELD, auto: [198, 262, 262, 288], sjaak: [98, 470, 245, 735] },
   { id: 'ruimte', naam: 'Het ruimtestation', uitleg: 'Alles draait en je zuurstof raakt op!', beeld: 'zoek/ruimte.jpg', items: RUIMTE_BEELD, auto: [688, 155, 775, 195], sjaak: [690, 550, 770, 718], ruimte: 1 },
+  { id: 'hockey', naam: 'De hockeywedstrijd', uitleg: 'Hup de meiden! En wie heeft de bal gepikt?', beeld: 'zoek/hockey.jpg', items: HOCKEY_BEELD, auto: [13, 13, 173, 73], sjaak: [1094, 116, 1134, 168, 1266, 216, 1354, 334] },
+  { id: 'herfst', naam: 'De herfststorm', uitleg: 'Boom om, paraplu weg, kastanjes overal', beeld: 'zoek/herfst.jpg', items: HERFST_BEELD, auto: [713, 162, 794, 196], sjaak: [698, 555, 765, 735, 827, 592, 866, 662] },
+  { id: 'spreekwoorden', pad: 'B', na: ['ruimte'], naam: 'De spreekwoorden', uitleg: 'Bruegel: zoek de spreekwoorden', wat: 'spreekwoorden', beeld: 'zoek/spreekwoorden.jpg', items: SPREEKWOORDEN_BEELD, auto: [1258, 133, 1354, 182], sjaak: [45, 380, 122, 492, 130, 415, 192, 522] },
+  { id: 'kinderspelen', pad: 'B', naam: 'De kinderspelen', uitleg: 'Bruegel: zoek de spelletjes', wat: 'spelletjes', beeld: 'zoek/kinderspelen.jpg', items: KINDERSPELEN_BEELD, auto: [1080, 195, 1190, 240], sjaak: [165, 268, 225, 330, 1183, 285, 1218, 352] },
+  { id: 'jagers', pad: 'B', naam: 'Jagers in de sneeuw', uitleg: 'Bruegel: wat hoort er niet bij?', wat: 'dingen die er niet horen', beeld: 'zoek/jagers.jpg', items: JAGERS_BEELD, auto: [1305, 170, 1362, 202], sjaak: [276, 308, 307, 393, 316, 260, 365, 322] },
 ];
 // voortgang per level-id: zoek_tijd_<id> (snelste tijd in seconden, een hint telt als 20 s) en zoek_auto_<id> (oldtimer gevonden)
 for (const [n, id] of [[1, 'kamer'], [3, 'orkest']]) for (const k of ['zoek_tijd', 'zoek_auto']) { const v = opslag.get(k + n); if (v && !opslag.get(k + '_' + id)) opslag.set(k + '_' + id, v); } // oude sleutels met levelnummers
@@ -1513,7 +1588,7 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 function toonMenu() {
   level = null; $('boven').hidden = true; $('klaar').hidden = true; $('bord').hidden = true; $('menu').hidden = false; BW = KW; BH = KH; maat.klaar = false; maat();
   const tegel = (l, i) => { const open = isOpen(i), best = +(opslag.get('zoek_tijd_' + l.id) || 0);
-    return `<div class="level ${open ? '' : 'dicht'}" data-l="${i + 1}"><div class="nr ${l.pad ? 'b' : ''}">${open ? (best ? '⭐' : l.label) : '🔒'}</div><div><b>Level ${l.label}: ${l.naam}${opslag.get('zoek_auto_' + l.id) ? ' 🚗' : ''}${opslag.get('zoek_sjaak_' + l.id) ? ' 🦹' : ''}</b><span>${open ? l.uitleg + (best ? ' · snelste tijd ' + tijd(best) : '') : 'Maak eerst level ' + l.voor.map((id) => LEVELS[LEVEL_ID[id]].label).join(' of ') + ' af'}</span></div></div>`; };
+    return `<div class="level ${open ? '' : 'dicht'}" data-l="${i + 1}"><div class="nr ${l.pad && open && !best ? 'b' : ''}">${open ? (best ? '⭐' : l.label) : '🔒'}</div><div><b>Level ${l.label}: ${l.naam}${opslag.get('zoek_auto_' + l.id) ? ' 🚗' : ''}${opslag.get('zoek_sjaak_' + l.id) ? ' 🦹' : ''}</b><span>${open ? l.uitleg + (best ? ' · snelste tijd ' + tijd(best) : '') : 'Maak eerst level ' + l.voor.map((id) => LEVELS[LEVEL_ID[id]].label).join(' of ') + ' af'}</span></div></div>`; };
   const lijst = (f) => LEVELS.map((l, i) => f(l) ? tegel(l, i) : '').join('');
   const gewoon = (l) => !l.pad;
   $('levels').innerHTML = lijst((l) => gewoon(l) && l.nrInPad <= 20)
