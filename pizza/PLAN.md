@@ -106,6 +106,7 @@ terracotta bakken, een olijfboompje en pepers tegen een houten rek; schuin en re
 **Keuken** (zonder opdracht van Marcel): `pizza/keuken-gemini.jpg` (stoelen, tafels, bank, 2 ovens, werkbank met ingrediënten, kassa,
 taartenvitrine, pizzadozen, OPEN-bord, bar), `pizza/ovens-gemini.jpg` (stenen ovens, ook met pizza op de schep; moderne
 ovens = later als duurdere oven), `pizza/toonbanken-gemini.jpg` (toonbanken, kassa's, menubord, werkbanken, aanrecht, bar).
+`pizza/kasten-gemini.jpg`: buffetkasten, servieskast met borden/glazen/flessen, koffiebuffet, wandrekjes met flessen.
 Ovens zijn ingebouwd. Idee: werkbank naast de oven, toonbank en kassa uit deze vellen.
 **D3 planten** gedaan: `pizza/planten-gemini.jpg` (bovenste rij: plantje, palm, citroenboompje, cactus).
 Stoelen zonder opdracht: `pizza/stoelen-gemini.jpg` (4 zittingen: marmer, groen geruit, blauw motief, rood motief; rij 1 en 4
