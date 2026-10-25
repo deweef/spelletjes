@@ -43,8 +43,9 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 
 ## Sfeer: meer oude pizzeria, minder McDonald's (Marcel, 25 okt; zie `pizza/voorbeeld/origineel-1-zaak.jpg`,
 `origineel-4-zaak-steen.jpg` en ons eigen `ons-25okt.jpg`)
-- **Gedaan (25 okt):** tafels en stoelen los. Nog te doen: lange tafel voor 6 en klein tafeltje voor 2 (Gemini-opdracht staat in
-  het gesprek: lange tafel liggend en staand, met en zonder rood-wit kleed, klein tafeltje).
+- **Gedaan (25 okt):** tafels en stoelen los, lange tafel (staand/liggend, 6-8 stoelen) en tafeltje voor 2.
+  `pizza/houten-tafels-gemini.jpg` (houten tafels, bar met krukken) heeft een nep-doorzichtige geblokte achtergrond: niet uit te knippen,
+  opnieuw vragen met groene achtergrond als we hem willen.
 - Tafels en stoelen **los neerzetten** zoals in het origineel (stoel draait naar de tafel ernaast), dan kan je ook een hoekje
   met 3 stoelen maken; stoelen tegen de tafel aan, niet met een gat ertussen.
   Meerdere tafels: klein (2), vierkant (4), lang (6 stoelen eromheen), zoals in het origineel. De fontein moest je in het
