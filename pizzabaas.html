@@ -126,6 +126,7 @@ const schrijf = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } 
 const W = 15, H = 15, T = 48;         // 15 x 15 vloertegels (zoals in het oude spel), pixels per tegel
 const KEUKEN = 3;                     // rijen 0 t/m 2 zijn de keuken
 const DEUR = { x: 7, y: 15 };         // de deur zit in de onderste muur
+const MAT = { x: 6, y: 14, w: 3 };    // deurmat voor de deur: daar kan je niets neerzetten
 const DAG = 120;                      // seconden per werkdag
 const HUUR = 60, LOON = 15, PRIJS = 9, BAKTIJD = 5, ETEN = 8, GEDULD = 25;
 
@@ -246,7 +247,7 @@ const vrij = (x, y, w, h, behalve) => {
   for (let i = 0; i < w; i++) for (let j = 0; j < h; j++) {
     const a = x + i, b = y + j;
     if (a < 0 || a >= W || b < KEUKEN || b >= H) return false;
-    if (a == DEUR.x && b == DEUR.y - 1) return false; // voor de deur vrijhouden
+    if (b == MAT.y && a >= MAT.x && a < MAT.x + MAT.w) return false; // de deurmat vrijhouden
     for (const s of S.spullen) if (s != behalve && a >= s.x && a < s.x + SPUL[s.t].w && b >= s.y && b < s.y + SPUL[s.t].h) return false;
   }
   return true;
@@ -267,12 +268,15 @@ function gezellig(s) { // 1 tot 6 sterretjes
   if (S.spullen.some((p) => p.t == 'jukebox')) g += 1;
   return g;
 }
-// de jukebox is 2 x 2 geworden: staat hij in oude opslag ergens waar dat niet past, dan een vrije plek zoeken (of terugbetalen)
-for (const j of S.spullen.filter((s) => s.t == 'jukebox')) if (!vrij(j.x, j.y, 2, 2, j)) {
-  let plek = null;
-  for (let y = H - 2; y >= KEUKEN && !plek; y--) for (let x = W - 2; x >= 0 && !plek; x--) if (vrij(x, y, 2, 2, j)) plek = { x, y };
-  if (plek) Object.assign(j, plek); else { S.spullen.splice(S.spullen.indexOf(j), 1); S.geld += SPUL.jukebox.prijs; }
+// staat iets in oude opslag ergens waar het niet (meer) past (jukebox werd 2 x 2, deurmat erbij), dan een vrije plek zoeken (of terugbetalen)
+function repareer() {
+  for (const j of [...S.spullen]) { const d = SPUL[j.t]; if (vrij(j.x, j.y, d.w, d.h, j)) continue;
+    let plek = null;
+    for (let y = H - d.h; y >= KEUKEN && !plek; y--) for (let x = W - d.w; x >= 0 && !plek; x--) if (vrij(x, y, d.w, d.h, j)) plek = { x, y };
+    if (plek) Object.assign(j, plek); else { S.spullen.splice(S.spullen.indexOf(j), 1); S.geld += d.prijs; }
+  }
 }
+repareer();
 const gemGezellig = () => { const t = S.spullen.filter(isTafel); return t.length ? t.reduce((a, s) => a + gezellig(s), 0) / t.length : 0; };
 
 // ---------- de dag ----------
@@ -550,16 +554,30 @@ const achter = document.createElement('canvas'); achter.width = WW; achter.heigh
 (function tekenAchter() {
   const a = achter.getContext('2d');
   let zaad = 7; const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
-  // vloer: tegeltjes van een half vakje, om en om wit met rood of geel
-  const t = T;
-  for (let y = KEUKEN; y < H; y++) for (let x = 0; x < W; x++) {
-    a.fillStyle = (x + y) % 2 ? '#f3e6c9' : (Math.floor(x / 2) + Math.floor(y / 2)) % 2 ? '#e2492f' : '#f2c230';
-    a.fillRect(x * t, y * t, t, t);
-    for (let k = 0; k < 30; k++) { a.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '255,255,255'},${0.05 + rnd() * 0.08})`; a.fillRect(x * t + rnd() * t, y * t + rnd() * t, 2, 2); }
-    a.fillStyle = 'rgba(0,0,0,.08)'; a.fillRect(x * t, y * t + t - 1, t, 1); a.fillRect(x * t + t - 1, y * t, 1, t);
+  // vloer zoals het origineel: tegels van een vakje, om en om crème met rood of geel, doffe kleuren vol spikkels
+  const t = T, h = T;
+  const TEGELS = [['#ecdcbe', '#d6c09a', '#f6ead2'], ['#cf5338', '#a83a24', '#e2765a'], ['#dcb848', '#b8952a', '#ecd06e']]; // [kleur, donker, licht]
+  for (let j = KEUKEN; j < H; j++) for (let i = 0; i < W; i++) {
+    const [kl, dk, lc] = TEGELS[(i + j) % 2 ? 0 : (Math.floor(i / 2) + Math.floor(j / 2)) % 2 ? 1 : 2];
+    const x = i * h, y = j * h;
+    a.fillStyle = kl; a.fillRect(x, y, h, h);
+    a.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '255,255,255'},${rnd() * 0.06})`; a.fillRect(x, y, h, h); // elke tegel net iets anders
+    for (let k = 0; k < 110; k++) { a.fillStyle = rnd() < 0.6 ? dk : lc; a.fillRect(x + Math.floor(rnd() * (h - 2)), y + Math.floor(rnd() * (h - 2)), 2, 2); }
+    a.fillStyle = 'rgba(70,35,15,.22)'; a.fillRect(x, y + h - 1, h, 1); a.fillRect(x + h - 1, y, 1, h); // voegen
   }
-  // keuken: grijs-witte tegels
-  for (let y = 0; y < KEUKEN; y++) for (let x = 0; x < W; x++) { a.fillStyle = (x + y) % 2 ? '#e8e8e8' : '#9aa0a6'; a.fillRect(x * t, y * t, t, t); }
+  // deurmat voor de deur (daar mag niets staan: MAT)
+  a.fillStyle = 'rgba(0,0,0,.25)'; a.fillRect(MAT.x * T + 6, MAT.y * T + 10, MAT.w * T - 6, T - 12);
+  a.fillStyle = '#5a3f22'; a.fillRect(MAT.x * T + 3, MAT.y * T + 6, MAT.w * T - 6, T - 10);
+  a.fillStyle = '#8f6a3c'; a.fillRect(MAT.x * T + 7, MAT.y * T + 10, MAT.w * T - 14, T - 18);
+  for (let k = 0; k < 500; k++) { a.fillStyle = rnd() < 0.5 ? '#7a5730' : '#a37d4a'; a.fillRect(MAT.x * T + 7 + rnd() * (MAT.w * T - 16), MAT.y * T + 10 + rnd() * (T - 20), 2, 1); }
+  a.fillStyle = '#f2d27a'; a.font = 'bold 13px Georgia, serif'; a.textAlign = 'center'; a.fillText('BENVENUTI', (MAT.x + MAT.w / 2) * T, MAT.y * T + T / 2 + 3);
+  // keuken: kleine terracotta tegeltjes
+  for (let j = 0; j < KEUKEN * 2; j++) for (let i = 0; i < W * 2; i++) {
+    const x = i * T / 2, y = j * T / 2, d = T / 2; a.fillStyle = (i + j) % 2 ? '#b8683c' : '#c97a48'; a.fillRect(x, y, d, d);
+    a.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '255,255,255'},${rnd() * 0.08})`; a.fillRect(x, y, d, d);
+    for (let k = 0; k < 14; k++) { a.fillStyle = rnd() < 0.6 ? '#9c5530' : '#d8925f'; a.fillRect(x + Math.floor(rnd() * (d - 2)), y + Math.floor(rnd() * (d - 2)), 2, 2); }
+    a.fillStyle = 'rgba(60,25,10,.35)'; a.fillRect(x, y + d - 1, d, 1); a.fillRect(x + d - 1, y, 1, d);
+  }
   // werkbanken met deeg en meel
   for (let i = 0; i < 3; i++) { const [bx, by] = BANK(i); a.fillStyle = '#b07a45'; a.fillRect((bx - 0.45) * T, (by - 1.3) * T, 0.9 * T, 0.75 * T); a.fillStyle = 'rgba(255,255,255,.6)'; a.beginPath(); a.arc(bx * T, (by - 0.95) * T, 10, 0, 7); a.fill(); }
   // toonbank: houten blad op bakstenen
@@ -647,6 +665,7 @@ function figuur(img, p, bijzonder, rug, achter) {
     }
   }
   const h = 1.85 * T, w = h * sw / SH;
+  g.fillStyle = 'rgba(40,15,5,.28)'; g.beginPath(); g.ellipse(7, 5, w * 0.3, 7, 0, 0, 7); g.fill(); // schaduw onder de voeten
   g.save(); if (spiegel) g.scale(-1, 1);
   if (achter) { g.save(); g.translate(0, 6); g.scale(h / SH, h / SH); achter(); g.restore(); } // iets achter het figuurtje (in vakjes-pixels, voeten op y = 0)
   g.drawImage(img, f * sw, 0, sw, SH, -w / 2, -h + 6, w, h);
@@ -691,13 +710,19 @@ function teken(nu) {
   g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = 1; for (let i = 0; i < 6; i++) { g.beginPath(); g.moveTo(-RAND, -RAND + 3 + i * 2.5); g.lineTo(WW + RAND, -RAND + 3 + i * 2.5); g.stroke(); }
   g.fillStyle = '#4a2810'; g.fillRect(-4, -4, WW + 8, WH + 8);
   g.drawImage(achter, 0, 0);
+  // bakstenen muren links en rechts van de zaal (in de binnenrand van het kader)
+  for (const mx of [-13, WW]) {
+    g.fillStyle = '#9c3522'; g.fillRect(mx, KEUKEN * T - 22, 13, WH - KEUKEN * T + 22);
+    g.fillStyle = '#6e1f10'; for (let y = KEUKEN * T - 22, r = 0; y < WH; y += 8, r++) { g.fillRect(mx, y, 13, 1); g.fillRect(mx + (r % 2 ? 4 : 9), y, 1, 8); }
+    g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(mx == WW ? WW : -3, KEUKEN * T - 22, 3, WH - KEUKEN * T + 22); // schaduw langs de vloer
+  }
   // ovens: stenen koepels met vuur
   const ovs = modus == 'inrichten' ? Array.from({ length: S.ovens }, (_, i) => maakOven(i)) : ovens;
   for (const o of ovs) {
     if (OVENS.complete && OVENS.naturalWidth) { // Gemini-oven: 0 uit, 1 met vuur (bakken), 2 pizza op de schep (inschuiven)
       const w = 1.9 * T, x0 = o.x * T - w / 2, y0 = 1.95 * T - w, f = o.fase == 'bak' ? 1 : o.fase == 'inschuiven' ? 2 : 0;
       if (f == 1) { g.fillStyle = `rgba(255,150,40,${0.18 + Math.sin(nu / 90) * 0.06})`; g.beginPath(); g.arc(x0 + w * 0.6, y0 + w * 0.6, w * 0.42, 0, 7); g.fill(); }
-      g.drawImage(OVENS, f * 150, 0, 150, 150, x0, y0, w, w);
+      metSchaduw(OVENS, f * 150, 0, 150, 150, x0, y0, w, w);
       if (f == 1) {
         g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(x0 + 12, y0 + w + 1, w - 24, 5); g.fillStyle = '#ffd23f'; g.fillRect(x0 + 12, y0 + w + 1, (w - 24) * Math.min(1, o.t / (BAKTIJD - DEEG)), 5); // hoe lang nog
         for (let k = 0; k < 3; k++) { const fr = ((nu / 900 + k / 3) % 1); g.fillStyle = `rgba(200,200,200,${0.45 * (1 - fr)})`; g.beginPath(); g.arc(x0 + w * 0.52 + Math.sin(fr * 6 + k) * 4, y0 + w * 0.1 - fr * 22, 4 + fr * 6, 0, 7); g.fill(); }
@@ -771,8 +796,8 @@ function stoel(x, y, hoek) { // van bovenaf: houten stoeltje met gestreepte zitt
 function tekenKlein(s, nu) {
   const x = 0, y = 0;
   if (s.t == 'plant' && PLANTEN.complete && PLANTEN.naturalWidth) { // Gemini-planten: 0 plantje, 1 palm, 2 citroenboompje, 3 cactus (s.v)
-    const k = 0.77; g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(35, 60, 16, 5, 0, 0, 7); g.fill();
-    g.drawImage(PLANTEN, (s.v || 0) * 150, 0, 150, 160, 32 - 75 * k, 62 - 160 * k, 150 * k, 160 * k);
+    const k = 0.77;
+    metSchaduw(PLANTEN, (s.v || 0) * 150, 0, 150, 160, 32 - 75 * k, 62 - 160 * k, 150 * k, 160 * k, 8);
     return;
   }
   if (s.t == 'plant') {
@@ -784,9 +809,8 @@ function tekenKlein(s, nu) {
   }
   if (s.t == 'jukebox' && JUKEBOX.complete && JUKEBOX.naturalWidth) { // Gemini-jukebox recht van voren (pizza/jukebox-gemini.jpg), 96 x 165
     const h = 74, w = h * 96 / 165, x0 = 32 - w / 2, y0 = 62 - h; // in het vakje van 64 x 64 (= 2 x 2 tegels)
-    g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.ellipse(34, 61, w / 2 + 2, 4, 0, 0, 7); g.fill();
     if (modus != 'inrichten') { g.fillStyle = `rgba(255,${180 + Math.sin(nu / 200) * 60},80,.25)`; g.beginPath(); g.ellipse(32, y0 + h * 0.45, w * 0.7, h * 0.5, 0, 0, 7); g.fill(); }
-    g.drawImage(JUKEBOX, x0, y0, w, h);
+    metSchaduw(JUKEBOX, 0, 0, 96, 166, x0, y0, w, h, 4);
     if (modus != 'inrichten') { g.fillStyle = '#3a2414'; g.font = '12px system-ui'; g.textAlign = 'center'; g.fillText('♪', 32 + w / 2 + 6, y0 + 10 + Math.sin(nu / 200) * 4); }
     return;
   }
@@ -806,7 +830,20 @@ const OVENS = new Image(); OVENS.src = 'pizza/ovens.png'; // pizza/keuken-gemini
 const PLANTEN = new Image(); PLANTEN.src = 'pizza/planten.png'; // pizza/planten-gemini.jpg, bovenste rij, vakjes van 150 x 160
 const JUKEBOX = new Image(); JUKEBOX.src = 'pizza/jukebox.png';
 const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
-function gemStoel({ sx, sy, kant }) { const k = 0.5; g.drawImage(STOELEN, kant * 110, 0, 110, 170, sx * T - 55 * k, sy * T - 110 * k, 110 * k, 170 * k); }
+function gemStoel({ sx, sy, kant }) { const k = 0.5; metSchaduw(STOELEN, kant * 110, 0, 110, 170, sx * T - 55 * k, sy * T - 110 * k, 110 * k, 170 * k); }
+// schaduw zoals in het origineel: hetzelfde plaatje donker en doorzichtig, iets naar rechtsonder (licht van linksboven).
+// Van elk vel wordt één keer een schaduwversie gemaakt (img.schaduw).
+function schaduwVel(img) {
+  if (img.schaduw || !img.complete || !img.naturalWidth) return img.schaduw;
+  const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = 'rgba(45,18,6,.4)'; x.fillRect(0, 0, c.width, c.height);
+  return img.schaduw = c;
+}
+function metSchaduw(img, sx, sy, sw, sh, dx, dy, dw, dh, af = 8) { // af = hoe ver de schaduw valt (in de huidige eenheden)
+  const sch = schaduwVel(img); if (!sch) return;
+  g.drawImage(sch, sx, sy, sw, sh, dx + af, dy + af * 0.7, dw, dh);
+  g.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+}
 const TAFELS = new Image(); TAFELS.src = 'pizza/tafels.png';
 const KLEDEN = new Image(); KLEDEN.src = 'pizza/kleden.png'; // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
 function tekenSpul(s, nu, zitten) {
@@ -821,9 +858,8 @@ function tekenSpul(s, nu, zitten) {
   if (TAFELS.complete && TAFELS.naturalWidth) { // Gemini-tafel: 0 marmer, 1 rood-wit geruit kleed (2-3 wit kleed, voor later)
     const w = 2 * T, h = w * 156 / 192, x0 = cx - w / 2, y0 = cy - h / 2;
     const kl = kleedVan(s);
-    g.fillStyle = 'rgba(0,0,0,.22)'; if (kl && KLEED[kl].rond) { g.beginPath(); g.ellipse(cx + 4, cy + 8, w * 0.46, h * 0.5, 0, 0, 7); g.fill(); } else g.fillRect(x0 + 6, y0 + 8, w - 6, h - 6);
-    if (kl && KLEDEN.complete && KLEDEN.naturalWidth) g.drawImage(KLEDEN, KLEED[kl].i * 192, 0, 192, 192, x0, y0 + h - w, w, w); // kleed hangt wat verder naar beneden
-    else g.drawImage(TAFELS, (kl ? 1 : 0) * 192, 0, 192, 156, x0, y0, w, h);
+    if (kl && KLEDEN.complete && KLEDEN.naturalWidth) metSchaduw(KLEDEN, KLEED[kl].i * 192, 0, 192, 192, x0, y0 + h - w, w, w); // kleed hangt wat verder naar beneden
+    else metSchaduw(TAFELS, (kl ? 1 : 0) * 192, 0, 192, 156, x0, y0, w, h);
   } else {
   const tx = cx - T + 4, ty = cy - T + 4, tw = 2 * T - 8, th = 2 * T - 8;
   g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(tx + 4, ty + 5, tw, th);
@@ -1084,7 +1120,22 @@ function meld(t) { const m = $('melding'); m.textContent = t; m.style.opacity = 
 let ac = null;
 function wekGeluid() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state == 'suspended') ac.resume(); }
 function ding(f, d, type = 'sine', v = 0.08) { if (!ac) return; const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f; gn.gain.setValueAtTime(v, ac.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + d); o.connect(gn).connect(ac.destination); o.start(); o.stop(ac.currentTime + d); }
-const kassa = () => { ding(1318, 0.08, 'square', 0.04); setTimeout(() => ding(1760, 0.15, 'square', 0.04), 70); };
+// kassa: klak van de la, een belletje en rinkelende muntjes (allemaal zelf gemaakt met Web Audio)
+let ruis = null;
+function klak(t0, d, freq, v) { // kort stukje gefilterde ruis
+  if (!ruis) { ruis = ac.createBuffer(1, ac.sampleRate * 0.3, ac.sampleRate); const k = ruis.getChannelData(0); for (let i = 0; i < k.length; i++) k[i] = Math.random() * 2 - 1; }
+  const b = ac.createBufferSource(), f = ac.createBiquadFilter(), gn = ac.createGain();
+  b.buffer = ruis; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 1.2;
+  gn.gain.setValueAtTime(v, t0); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+  b.connect(f).connect(gn).connect(ac.destination); b.start(t0); b.stop(t0 + d);
+}
+function toon(t0, f, d, v, type = 'sine') { const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f; gn.gain.setValueAtTime(v, t0); gn.gain.exponentialRampToValueAtTime(0.0001, t0 + d); o.connect(gn).connect(ac.destination); o.start(t0); o.stop(t0 + d); }
+const kassa = () => {
+  if (!ac) return; const t = ac.currentTime;
+  klak(t, 0.06, 1800, 0.25); klak(t + 0.05, 0.12, 700, 0.18); // de la schiet open
+  for (const [f, v] of [[2093, 0.06], [2637, 0.035], [4186, 0.02]]) toon(t + 0.04, f, 0.9, v); // ting!
+  for (let i = 0; i < 4; i++) { const tt = t + 0.16 + i * 0.05 + Math.random() * 0.03; toon(tt, 3200 + Math.random() * 2400, 0.07, 0.025, 'triangle'); klak(tt, 0.03, 6000, 0.05); } // muntjes
+};
 const plof = () => ding(220, 0.12, 'triangle', 0.1);
 const boos = () => { ding(200, 0.2, 'sawtooth', 0.05); setTimeout(() => ding(150, 0.3, 'sawtooth', 0.05), 150); };
 

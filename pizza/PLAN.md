@@ -45,11 +45,15 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 `origineel-4-zaak-steen.jpg` en ons eigen `ons-25okt.jpg`)
 - Tafels en stoelen **los neerzetten** zoals in het origineel (stoel draait naar de tafel ernaast), dan kan je ook een hoekje
   met 3 stoelen maken; stoelen tegen de tafel aan, niet met een gat ertussen.
+  Meerdere tafels: klein (2), vierkant (4), lang (6 stoelen eromheen), zoals in het origineel. De fontein moest je in het
+  origineel kopen (als versiering).
 - Keuken: max. 2 pizzabakkers, die er **verschillend** uitzien; een oven links en een rechts (ander pand: rechtsboven/-onder).
 - Ingang: deurmat bij de deur waar je niets neer kunt zetten; iets meer bij de ingang (kapstok, lessenaar).
 - Warmer en voller: andere vloer (origineel: kleinere, gevlekte tegels of grijze kasseien), schaduwen, bakstenen muren,
   wijnrek en kasten tegen de muur, lampen.
 - Geluid van geld is te simpel: mooier kassageluid.
+- **Stap A gedaan** (25 okt): doffe gespikkelde vloer (zelfde tegelgrootte als het origineel; halve tegels was te druk),
+  terracotta keuken, bakstenen zijmuren, schaduwen, deurmat, kassageluid. Volgende: B (tafels en stoelen los), C (keuken), D (muren).
 
 ## Klanten als eigen figuren (stap 2 hieronder), afgesproken 25 okt
 - `pizza/kind-gemini.jpg` (zonder opdracht): peuter met feesthoedje en slab: staan, lopen, eten (pizzapunt), met eten gooien,
