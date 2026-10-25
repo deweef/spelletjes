@@ -96,6 +96,7 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
   zodat je ook met 2+2 soms tekortkomt.
 
 ## Overdag wat te doen (Marcel + Claude, 25 okt) — voorgestelde volgorde
+**1 en 2 gedaan (25 okt): 39 vragen.** Nog erbij verzinnen tot ~50; plaatjes nodig (Gemini): agent, belastinginspecteur, poepend hondje.
 1. Pizza's maken (📖) ook tijdens de werkdag (spel loopt door; nieuwe pizza meteen op de kaart).
 2. Vragen-pop-up (spel staat stil tot je kiest; 2-4 per dag, ~25-30 vragen met A/B/C en gevolgen). Voorbeelden: agent met boete voor
    geluidsoverlast (A betalen, B jukebox zachter, C "gratis pizza, agent?" = omkoping: nacht in de cel, morgen dicht); zieke hond

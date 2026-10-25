@@ -34,4 +34,10 @@ achterstand), Oma Truus (€200, 0%, 3 dagen, één tegelijk), Ome Sjaak (tot �
 "akkoord" en Ondertekenen. `S.leningen` = [{ van, rest, perDag, achter }]; elke avond `aflossen` (in het dagoverzicht); niet kunnen
 betalen = achterstand: neven van Sjaak meteen, deurwaarder van de bank na 2 dagen: nemen 2-3 dure spullen mee (nooit tafels/stoelen).
 Aflossen kan ook in één keer in het bankscherm. De jukebox zit nu bij de versiering-knop (Plant).
+Vragen tijdens de werkdag (`VRAGEN`, ~40 stuks, elk { id, ik, wie, vraag, als?, kans?, a: [[antwoord, () => uitleg]] }): 2-4 per dag
+op willekeurige momenten (`planVragen`, `vraagTijden`), dezelfde niet binnen 8 dagen (`S.gehad`); het spel staat stil (`pauze`) tot je
+kiest (`toonVraag`, `#vraag`). Gevolgen voor vandaag in `vandaag` (`VANDAAG`: fooi, gezellig, aankomst, oberSnel, ovenUit, op, smaakMin),
+voor morgen `S.morgen`, morgen dicht `S.dicht` (de dag erna toont het dagoverzicht "dicht"), hoe vies de zaak is `S.vuil` (keuring),
+korting op een ingrediënt `S.korting`, kok naar huis `ovens[1].ziek`/`traag`. "Hoe moet dat eigenlijk?" = `PIZZA_UITLEG` + knop naar de
+menukaart. 📖 Pizza's kan nu ook tijdens de werkdag.
 Plan en volgende stappen: `pizza/PLAN.md`.
