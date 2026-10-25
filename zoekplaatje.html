@@ -1552,6 +1552,7 @@ $('hint').onclick = () => {
   const kies = actief.filter(Boolean); if (!kies.length) return;
   const v = kies[Math.floor(Math.random() * kies.length)]; hints++; hintKlaar = performance.now() + 15000;
   hintPuls = { v, t: 0 }; kiesVak(actief.indexOf(v));
+  if (level.winter && ijs > 0.05) { ijs = 0; snd(2400, 0.3, 'triangle', 0.035, 3800); } // een hint krabt ook de hele ruit schoon
   // als hij buiten beeld is: er naartoe schuiven
   const top = $('boven').offsetHeight; lamp = null; const [hx, hy] = naarScherm(v.midden[0], v.midden[1]); ox += innerWidth / 2 - hx; oy += top + (innerHeight - top) / 2 - hy; begrens();
 };
