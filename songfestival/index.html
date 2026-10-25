@@ -77,7 +77,9 @@
   // ---------- Spotify ----------
   // De speler wordt pas gemaakt als we weten welk liedje het is, en een nieuw liedje laden we pas als de speler klaar is
   // (eerder laden laat hem vastlopen). Daarna proberen we meteen af te spelen; mag dat niet van de browser, dan knippert de ▶.
-  let api = null, ctl = null, klaar = false, speelt = false, wil = null, geladen = null, probeerT = 0;
+  // Automatisch starten: na het laden wachten we tot Spotify meldt dat het nieuwe liedje er is (een melding met een lengte), en
+  // proberen we het daarna nog een paar keer (na 1, 2,5 en 4,5 s). Lukt het niet, dan mag de browser het niet en knippert de ▶.
+  let api = null, ctl = null, klaar = false, speelt = false, wil = null, geladen = null, pogingen = [], wacht = false, zelfGestopt = false;
   function laad(uri) {
     wil = uri;
     if (!api) return;
@@ -85,19 +87,25 @@
       geladen = uri;
       api.createController($('speler'), { uri, width: '100%', height: 80 }, (c) => {
         ctl = c;
-        c.addListener('playback_update', (e) => { speelt = !e.data.isPaused; zetKnop(!e.data.isPaused); if (!e.data.isPaused) $('speel').classList.remove('tik'); });
+        c.addListener('playback_update', (e) => {
+          speelt = !e.data.isPaused; zetKnop(speelt);
+          if (speelt) { $('speel').classList.remove('tik'); stopPogingen(); }
+          else if (wacht && e.data.duration > 0) { wacht = false; speel(); } // het nieuwe liedje is geladen: nu starten
+        });
         c.addListener('ready', () => { if (klaar) return; klaar = true; if (wil != geladen) { geladen = wil; c.loadUri(wil); } probeer(); });
       });
     } else if (klaar && uri != geladen) { geladen = uri; ctl.loadUri(uri); probeer(); }
   }
-  function probeer() { // meteen afspelen, als de browser dat toestaat
-    clearTimeout(probeerT); speelt = false;
-    setTimeout(() => { try { ctl.play(); } catch (e) {} }, 400);
-    probeerT = setTimeout(() => { if (!speelt) $('speel').classList.add('tik'); }, 2500);
+  const speel = () => { if (ctl && !speelt && !zelfGestopt) try { ctl.play(); } catch (e) {} };
+  function stopPogingen() { pogingen.forEach(clearTimeout); pogingen = []; wacht = false; }
+  function probeer() {
+    stopPogingen(); speelt = false; zelfGestopt = false; wacht = true;
+    pogingen = [1000, 2500, 4500].map((t) => setTimeout(speel, t));
+    pogingen.push(setTimeout(() => { wacht = false; if (!speelt) $('speel').classList.add('tik'); }, 5500));
   }
   window.onSpotifyIframeApiReady = (a) => { api = a; if (wil) laad(wil); };
   const s = document.createElement('script'); s.src = 'https://open.spotify.com/embed/iframe-api/v1'; s.async = true; document.body.appendChild(s);
-  $('speel').onclick = () => { if (!ctl) return; $('speel').classList.remove('tik'); if ($('speel').classList.contains('speelt')) ctl.pause(); else ctl.play(); };
+  $('speel').onclick = () => { if (!ctl) return; $('speel').classList.remove('tik'); if ($('speel').classList.contains('speelt')) { zelfGestopt = true; stopPogingen(); ctl.pause(); } else { zelfGestopt = false; ctl.play(); } };
   $('toon').onclick = () => {
     const a = $('antwoord');
     a.querySelector('.jaar').textContent = L.jaar;
