@@ -43,6 +43,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:#fff;font:16px/1.3 "Tr
 #bordlijst tr.ik td{background:#fff1b8}
 .zacht{color:#7a6a8a;font-size:13px}
 .level .nr{font-size:26px;width:40px;text-align:center}
+.level .nr.b{font-size:20px}
+.splits{margin:18px 0 4px;padding:10px 12px;border-radius:14px;background:#f3ecff;font-size:14px;text-align:left}
+.pad{margin:14px 0 0;font-size:17px;text-align:left;color:var(--paars)}
 [hidden]{display:none!important}
 </style></head><body>
 <a class="terug" href="./" id="terug">‹</a>
@@ -1254,7 +1257,13 @@ const LEVELS = [
 // voortgang per level-id: zoek_tijd_<id> (snelste tijd in seconden, een hint telt als 20 s) en zoek_auto_<id> (oldtimer gevonden)
 for (const [n, id] of [[1, 'kamer'], [3, 'orkest']]) for (const k of ['zoek_tijd', 'zoek_auto']) { const v = opslag.get(k + n); if (v && !opslag.get(k + '_' + id)) opslag.set(k + '_' + id, v); } // oude sleutels met levelnummers
 const klaarMet = (i) => !!opslag.get('zoek_tijd_' + LEVELS[i].id);
-const isOpen = (i) => i == 0 || klaarMet(i) || klaarMet(i - 1); // een level gaat open als het vorige klaar is
+// twee paden: het gewone pad (1, 2, 3, ...) en na level 20 de Bruegel-lijn (pad: 'B', B1 t/m B10). Level 31 gaat open na 30 óf B10.
+// Een level gaat open als een level uit `na` (ids) klaar is; zonder `na` is dat het vorige level van hetzelfde pad.
+{ const tel = {}; LEVELS.forEach((l, i) => { const p = l.pad || ''; tel[p] = (tel[p] || 0) + 1; l.label = p + tel[p]; l.nrInPad = tel[p];
+  const vorige = LEVELS.slice(0, i).filter((m) => (m.pad || '') == p).pop(); l.voor = l.na || (vorige ? [vorige.id] : []); }); }
+const LEVEL_ID = Object.fromEntries(LEVELS.map((l, i) => [l.id, i]));
+const isOpen = (i) => i == 0 || klaarMet(i) || LEVELS[i].voor.some((id) => klaarMet(LEVEL_ID[id]));
+const volgendeVan = (i) => LEVELS.findIndex((l, j) => j != i && (l.pad || '') == (LEVELS[i].pad || '') && l.voor.includes(LEVELS[i].id)); // -1 = geen
 const HINT_STRAF = 20;
 const PER_POTJE = 25; // zoveel voorwerpen per potje, willekeurig gekozen uit alles wat in het plaatje staat
 // camera: wereld -> scherm
@@ -1332,7 +1341,7 @@ function startLevel(n) {
   rij = schud(voorwerpen()).slice(0, PER_POTJE); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
   lamp = null; zuurstof = 100; autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
-  $('titel').textContent = 'Level ' + n + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
+  $('titel').textContent = 'Level ' + level.label + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
   vulBalk(); maat.klaar = false; maat(); start = performance.now();
 }
 function vulBalk() {
@@ -1402,10 +1411,10 @@ function klaar() {
   const s = Math.round((performance.now() - start) / 1000), n = level.nr, stand = s + hints * HINT_STRAF;
   const best = +(opslag.get('zoek_tijd_' + level.id) || 0); if (!best || stand < best) opslag.set('zoek_tijd_' + level.id, stand);
   sKlaar(); for (let k = 0; k < 60; k++) effecten.push({ soort: 'confetti', x: Math.random() * innerWidth, y: -20 - Math.random() * 200, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3, k: ['#ffd34d', '#e8384f', '#3fae5a', '#3a8ae8', '#e84ad8'][k % 5], t: 0, scherm: true });
-  $('klaartekst').innerHTML = `Je vond alle ${totaal} spullen in <b>${tijd(s)}</b>` + (hints ? ` met ${hints} hint${hints > 1 ? 's' : ''} (+${hints * HINT_STRAF} s), dat wordt <b>${tijd(stand)}</b>` : '') + '.'
+  $('klaartekst').innerHTML = `Je vond alle ${totaal} ${level.wat || 'spullen'} in <b>${tijd(s)}</b>` + (hints ? ` met ${hints} hint${hints > 1 ? 's' : ''} (+${hints * HINT_STRAF} s), dat wordt <b>${tijd(stand)}</b>` : '') + '.'
     + (autoGevonden ? '<br>🚗 En de oldtimer had je ook gevonden!' : '<br>🚗 Maar de zilveren oldtimer heb je gemist…')
     + (!level.sjaak ? '' : sjaakGevonden ? '<br>🦹 En Sluipende Sjaak heb je betrapt!' : '<br>🦹 Sluipende Sjaak is ongezien weggeslopen…') + (best && stand >= best ? `<br>Je snelste tijd: ${tijd(best)}` : best ? '<br>Nieuw record!' : '');
-  $('volgende').hidden = n >= LEVELS.length; $('klaar').hidden = false;
+  $('volgende').hidden = volgendeVan(n - 1) < 0; $('klaar').hidden = false;
   insturen(level, stand);
 }
 const tijd = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
@@ -1503,8 +1512,15 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 
 function toonMenu() {
   level = null; $('boven').hidden = true; $('klaar').hidden = true; $('bord').hidden = true; $('menu').hidden = false; BW = KW; BH = KH; maat.klaar = false; maat();
-  $('levels').innerHTML = LEVELS.map((l, i) => { const open = isOpen(i), best = +(opslag.get('zoek_tijd_' + l.id) || 0);
-    return `<div class="level ${open ? '' : 'dicht'}" data-l="${i + 1}"><div class="nr">${open ? (best ? '⭐' : i + 1) : '🔒'}</div><div><b>Level ${i + 1}: ${l.naam}${opslag.get('zoek_auto_' + l.id) ? ' 🚗' : ''}${opslag.get('zoek_sjaak_' + l.id) ? ' 🦹' : ''}</b><span>${open ? l.uitleg + (best ? ' · snelste tijd ' + tijd(best) : '') : 'Maak eerst level ' + i + ' af'}</span></div></div>`; }).join('');
+  const tegel = (l, i) => { const open = isOpen(i), best = +(opslag.get('zoek_tijd_' + l.id) || 0);
+    return `<div class="level ${open ? '' : 'dicht'}" data-l="${i + 1}"><div class="nr ${l.pad ? 'b' : ''}">${open ? (best ? '⭐' : l.label) : '🔒'}</div><div><b>Level ${l.label}: ${l.naam}${opslag.get('zoek_auto_' + l.id) ? ' 🚗' : ''}${opslag.get('zoek_sjaak_' + l.id) ? ' 🦹' : ''}</b><span>${open ? l.uitleg + (best ? ' · snelste tijd ' + tijd(best) : '') : 'Maak eerst level ' + l.voor.map((id) => LEVELS[LEVEL_ID[id]].label).join(' of ') + ' af'}</span></div></div>`; };
+  const lijst = (f) => LEVELS.map((l, i) => f(l) ? tegel(l, i) : '').join('');
+  const gewoon = (l) => !l.pad;
+  $('levels').innerHTML = lijst((l) => gewoon(l) && l.nrInPad <= 20)
+    + (LEVELS.some((l) => l.pad || l.nrInPad > 20) ? '<div class="splits">🔀 Na level 20 splitst het pad. Ga gewoon door met level 21, of neem de zijweg langs de schilderijen van Pieter Bruegel (B1 t/m B10). Allebei mag, en ze komen weer samen bij level 31.</div>'
+      + '<div class="pad">➡️ Het gewone pad</div>' + lijst((l) => gewoon(l) && l.nrInPad > 20 && l.nrInPad <= 30)
+      + '<div class="pad">🎨 Het Bruegel-pad</div>' + lijst((l) => l.pad == 'B') : '')
+    + lijst((l) => gewoon(l) && l.nrInPad > 30);
   document.querySelectorAll('.level').forEach((el) => el.onclick = () => { const n = +el.dataset.l; if (isOpen(n - 1)) { unlock(); startLevel(n); } });
 }
 
@@ -1530,7 +1546,7 @@ function toonBord() {
   bordHalen().then((d) => tekenBord(d, '')).catch(() => tekenBord(bewaardBord(), 'Scorebord niet bereikbaar (internet?). Dit is de laatst bekende lijst.'));
 }
 function tekenBord(d, noot) {
-  $('bordtabs').innerHTML = LEVELS.map((l, i) => `<button class="${i == bordTab ? 'aan' : ''}" data-t="${i}">${i + 1}. ${l.naam}</button>`).join('');
+  $('bordtabs').innerHTML = LEVELS.map((l, i) => `<button class="${i == bordTab ? 'aan' : ''}" data-t="${i}">${l.label}. ${l.naam}</button>`).join('');
   document.querySelectorAll('#bordtabs button').forEach((b) => b.onclick = () => { bordTab = +b.dataset.t; tekenBord(d, noot); });
   const lijst = (d && d['zoek_tijd_' + LEVELS[bordTab].id + '_gewoon']) || [];
   $('bordlijst').innerHTML = lijst.length ? '<table>' + lijst.map((r, i) => `<tr class="${r.naam == speler ? 'ik' : ''}"><td style="width:30px">${['🥇', '🥈', '🥉'][i] || i + 1}</td><td>${String(r.naam).replace(/[<>&]/g, '')}</td><td class="n">${tijd(r.score)}</td></tr>`).join('') + '</table>' : '<p>Nog niemand heeft dit level gehaald.</p>';
@@ -1538,7 +1554,7 @@ function tekenBord(d, noot) {
 }
 $('bordknop').onclick = () => { unlock(); toonBord(); };
 $('bordterug').onclick = toonMenu;
-$('volgende').onclick = () => startLevel(level.nr + 1);
+$('volgende').onclick = () => startLevel(volgendeVan(level.nr - 1) + 1);
 $('naarmenu').onclick = toonMenu;
 // de terugknop gaat tijdens het spelen (en vanaf het scorebord) eerst naar de levels
 $('terug').onclick = (e) => { if (level || !$('bord').hidden) { e.preventDefault(); toonMenu(); } };
