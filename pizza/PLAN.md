@@ -56,6 +56,7 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 - Keuken: max. 2 pizzabakkers, die er **verschillend** uitzien; een oven links en een rechts (ander pand: rechtsboven/-onder).
   **Gedaan (25 okt)**: Mario links, Beppe (bebaarde bakker) rechts, marmeren werkbanken en uitgifte. Nieuwe vellen bewaard:
   `pizza/stoelen5-gemini.jpg` (stoel met rood kussen in 4 richtingen = houten stijl!), `pizza/houten-tafels3-gemini.jpg`.
+- **Houten stijl gedaan** (25 okt): per tafel en stoel wisselen in het menu.
 - Ingang: deurmat bij de deur waar je niets neer kunt zetten; iets meer bij de ingang (kapstok, lessenaar).
 - Warmer en voller: andere vloer (origineel: kleinere, gevlekte tegels of grijze kasseien), schaduwen, bakstenen muren,
   wijnrek en kasten tegen de muur, lampen.

@@ -904,7 +904,8 @@ const OVENS = new Image(); OVENS.src = 'pizza/ovens.png'; // pizza/keuken-gemini
 const PLANTEN = new Image(); PLANTEN.src = 'pizza/planten.png'; // pizza/planten-gemini.jpg, bovenste rij, vakjes van 150 x 160
 const JUKEBOX = new Image(); JUKEBOX.src = 'pizza/jukebox.png';
 const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
-function gemStoel({ sx, sy, kant }) { const k = 0.5; metSchaduw(STOELEN, kant * 110, 0, 110, 170, sx * T - 55 * k, sy * T - 110 * k, 110 * k, 170 * k); }
+// stijl: s.hout = houten caféstoel met rood kussen (tweede rij in pizza/stoelen.png, uit pizza/stoelen5-gemini.jpg)
+function gemStoel({ sx, sy, kant, hout }) { const k = 0.5; metSchaduw(STOELEN, kant * 110, hout ? 170 : 0, 110, 170, sx * T - 55 * k, sy * T - 110 * k, 110 * k, 170 * k); }
 // schaduw zoals in het origineel: hetzelfde plaatje donker en doorzichtig, iets naar rechtsonder (licht van linksboven).
 // Van elk vel wordt één keer een schaduwversie gemaakt (img.schaduw).
 function schaduwVel(img) {
@@ -922,17 +923,23 @@ const TAFELS = new Image(); TAFELS.src = 'pizza/tafels.png';
 const KLEDEN = new Image(); KLEDEN.src = 'pizza/kleden.png';
 // pizza/lange-tafels.png (uit pizza/lange-tafels-gemini.jpg): staand 192 x 512 (0 marmer, 1 rood-wit, 2 wit), daaronder liggend
 // 512 x 192 (een kwartslag gedraaid), daaronder het tafeltje 192 x 204
-const LANG = new Image(); LANG.src = 'pizza/lange-tafels.png'; // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
+const LANG = new Image(); LANG.src = 'pizza/lange-tafels.png';
+const HOUT = new Image(); HOUT.src = 'pizza/houten-tafels.png'; // uit pizza/houten-tafels3-gemini.jpg; de staande is het vierkante blad uitgerekt // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
 function tekenSpul(s, nu, zitten) {
   const x = s.x * T, y = s.y * T;
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
   if (s.t == 'stoel') { // losse stoel, met de leuning van zijn tafel af
     const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y).kant;
-    if (STOELEN.complete && STOELEN.naturalWidth) gemStoel({ sx: s.x + 0.5, sy: s.y + 0.5, kant });
+    if (STOELEN.complete && STOELEN.naturalWidth) gemStoel({ sx: s.x + 0.5, sy: s.y + 0.5, kant, hout: s.hout });
     else stoel(x + T / 2, y + T / 2, [0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
     return;
   }
   const cx = midden(s)[0] * T, cy = midden(s)[1] * T;
+  if (s.hout && !kleedVan(s) && HOUT.complete && HOUT.naturalWidth) { // houten tafel (pizza/houten-tafels.png): vierkant, lang liggend, lang staand
+    const [bx, bw, bh] = { tafel: [0, 120, 137], tafeltje: [0, 120, 137], langL: [120, 292, 137], lang: [412, 120, 241] }[s.t];
+    const w = SPUL[s.t].w * T + (s.t == 'tafeltje' ? 8 : 4), h = w * bh / bw;
+    metSchaduw(HOUT, bx, 0, bw, bh, cx - w / 2, s.y * T - (s.t == 'tafeltje' ? 2 : 4), w, h);
+  } else
   if (s.t != 'tafel' && LANG.complete && LANG.naturalWidth) { // lange tafel (staand of liggend) en tafeltje
     const kl = kleedVan(s), v = kl == 'rood' ? 1 : kl == 'wit' ? 2 : 0;
     if (s.t == 'lang') metSchaduw(LANG, v * 192, 0, 192, 512, s.x * T - 2, s.y * T - 4, 2 * T + 4, 4 * T + 8);
@@ -1011,7 +1018,7 @@ doek.addEventListener('pointerdown', (e) => {
     laatsteTik = null;
     if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
-    S.spullen.push({ t: kies, x, y, ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
+    S.spullen.push({ t: kies, x, y, ...((kies == 'stoel' ? S.houtStoel : isTafel({ t: kies }) && S.houtTafel) ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
     if (d.een) kies = null;
     tekenKnoppen(); return;
   }
@@ -1047,6 +1054,7 @@ function toonMenu(s, cx, cy) {
     h += s.kaars ? `<button data-a="kaars-">Kaarsje weg</button>` : `<button data-a="kaars" ${S.geld < EXTRA.kaars.prijs ? 'disabled' : ''}>🕯️ Kaarsje erop (€${EXTRA.kaars.prijs})</button>`;
   }
   if (s.t == 'plant') h += `<button data-a="plant">🔄 Andere plant</button>`;
+  if (s.t == 'stoel' || isTafel(s)) h += `<button data-a="hout">${s.hout ? (s.t == 'stoel' ? '🪑 Gestreepte stoel' : '⬜ Marmeren tafel') : (s.t == 'stoel' ? '🪵 Houten stoel met kussen' : '🪵 Houten tafel')}</button>`;
   h += `<button data-a="verkoop">💶 Verkopen (€${Math.floor(d.prijs / 2)})</button>`;
   h += `<small style="display:block;padding:6px 6px 0;opacity:.7">Verplaatsen: vasthouden en slepen.</small>`;
   m.innerHTML = h; m.style.display = 'block';
@@ -1058,6 +1066,7 @@ function toonMenu(s, cx, cy) {
     if (a == 'kaars') { S.geld -= EXTRA[a].prijs; s[a] = true; plof(); }
     if (a == 'kleed-' || a == 'kaars-') s[a.slice(0, -1)] = false;
     if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
+    if (a == 'hout') { s.hout = s.hout ? 0 : 1; if (s.t == 'stoel') S.houtStoel = s.hout; else S.houtTafel = s.hout; plof(); } // nieuwe stoelen/tafels krijgen dezelfde stijl
     if (a == 'draai') { const n = s.t == 'lang' ? 'langL' : 'lang', nx = s.x + (SPUL[s.t].w - SPUL[n].w) / 2, ny = s.y + (SPUL[s.t].h - SPUL[n].h) / 2; // om het midden draaien
       if (nx >= 0 && nx + SPUL[n].w <= W && ny >= KEUKEN && ny + SPUL[n].h <= H && vrij(nx, ny, SPUL[n].w, SPUL[n].h, s)) { s.t = n; s.x = nx; s.y = ny; plof(); } else meld('Daar is geen plek om te draaien.'); }
     if (a == 'verkoop') { S.geld += Math.floor(d.prijs / 2) + (kleedVan(s) ? Math.floor(KLEED[kleedVan(s)].prijs / 2) : 0) + (s.kaars ? 4 : 0); S.spullen.splice(S.spullen.indexOf(s), 1); kassa(); sluitMenu(); }
