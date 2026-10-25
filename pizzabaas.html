@@ -684,6 +684,11 @@ function stoel(x, y, hoek) { // van bovenaf: houten stoeltje met gestreepte zitt
 // plant en jukebox, getekend op een vakje van 64 x 64 (wordt geschaald naar 1 x 1 of 2 x 2 tegels)
 function tekenKlein(s, nu) {
   const x = 0, y = 0;
+  if (s.t == 'plant' && PLANTEN.complete && PLANTEN.naturalWidth) { // Gemini-planten: 0 plantje, 1 palm, 2 citroenboompje, 3 cactus (s.v)
+    const k = 0.77; g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(35, 60, 16, 5, 0, 0, 7); g.fill();
+    g.drawImage(PLANTEN, (s.v || 0) * 150, 0, 150, 160, 32 - 75 * k, 62 - 160 * k, 150 * k, 160 * k);
+    return;
+  }
   if (s.t == 'plant') {
     g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(x + 35, y + 36, 22, 20, 0, 0, 7); g.fill();
     g.fillStyle = '#c7782e'; g.beginPath(); g.arc(x + 32, y + 32, 15, 0, 7); g.fill();
@@ -711,6 +716,7 @@ function tekenKlein(s, nu) {
 }
 // stoelen (Gemini, pizza/stoelen2-gemini.jpg): vakjes van 110 x 170, 0 leuning boven (stoel boven de tafel), 1 van achteren
 // (stoel onder de tafel), 2 leuning links, 3 leuning rechts; de zitting zit ongeveer op (55, 110) in het vakje
+const PLANTEN = new Image(); PLANTEN.src = 'pizza/planten.png'; // pizza/planten-gemini.jpg, bovenste rij, vakjes van 150 x 160
 const JUKEBOX = new Image(); JUKEBOX.src = 'pizza/jukebox.png';
 const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
 function gemStoel({ sx, sy, kant }) { const k = 0.5; g.drawImage(STOELEN, kant * 110, 0, 110, 170, sx * T - 55 * k, sy * T - 110 * k, 110 * k, 170 * k); }
@@ -795,7 +801,7 @@ doek.addEventListener('pointerdown', (e) => {
     laatsteTik = null;
     if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
-    S.spullen.push({ t: kies, x, y }); S.geld -= d.prijs; plof(); bewaar();
+    S.spullen.push({ t: kies, x, y, ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; // planten om de beurt een andere soort plof(); bewaar();
     if (d.een) kies = null;
     tekenKnoppen(); return;
   }
@@ -825,6 +831,7 @@ function toonMenu(s, cx, cy) {
     h += s.kleed ? `<button data-a="kleed-">Kleedje eraf</button>` : `<button data-a="kleed" ${S.geld < EXTRA.kleed.prijs ? 'disabled' : ''}>🟥 Kleedje erop (€${EXTRA.kleed.prijs})</button>`;
     h += s.kaars ? `<button data-a="kaars-">Kaarsje weg</button>` : `<button data-a="kaars" ${S.geld < EXTRA.kaars.prijs ? 'disabled' : ''}>🕯️ Kaarsje erop (€${EXTRA.kaars.prijs})</button>`;
   }
+  if (s.t == 'plant') h += `<button data-a="plant">🔄 Andere plant</button>`;
   h += `<button data-a="verkoop">💶 Verkopen (€${Math.floor(d.prijs / 2)})</button>`;
   h += `<small style="display:block;padding:6px 6px 0;opacity:.7">Verplaatsen: vasthouden en slepen.</small>`;
   m.innerHTML = h; m.style.display = 'block';
@@ -834,6 +841,7 @@ function toonMenu(s, cx, cy) {
     const a = b.dataset.a;
     if (a == 'kleed' || a == 'kaars') { S.geld -= EXTRA[a].prijs; s[a] = true; plof(); }
     if (a == 'kleed-' || a == 'kaars-') s[a.slice(0, -1)] = false;
+    if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
     if (a == 'verkoop') { S.geld += Math.floor(d.prijs / 2) + (s.kleed ? 5 : 0) + (s.kaars ? 4 : 0); S.spullen.splice(S.spullen.indexOf(s), 1); kassa(); sluitMenu(); }
     bewaar(); tekenKnoppen(); if (a != 'verkoop') toonMenu(s, cx, cy);
   });
@@ -1012,7 +1020,7 @@ if (TEGEL) { // plaatje voor de startpagina
   $('welkom').classList.add('verborgen');
   S = { versie: 2, geld: 999, dag: 3, rep: 60, ovens: 2, obers: 2, menu: [MARGHERITA()], spullen: [
     { t: 'tafel2', x: 0, y: 4, kleed: 1, kaars: 1 }, { t: 'tafel4', x: 5, y: 3, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 4, kleed: 1 },
-    { t: 'tafel4', x: 0, y: 8, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 9, kaars: 1 }, { t: 'plant', x: 14, y: 3 }, { t: 'plant', x: 4, y: 3 }, { t: 'jukebox', x: 13, y: 13 }, { t: 'plant', x: 5, y: 12 }, { t: 'tafel2', x: 5, y: 9 } ] };
+    { t: 'tafel4', x: 0, y: 8, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 9, kaars: 1 }, { t: 'plant', x: 14, y: 3, v: 1 }, { t: 'plant', x: 4, y: 3, v: 2 }, { t: 'jukebox', x: 13, y: 13 }, { t: 'plant', x: 5, y: 12, v: 3 }, { t: 'tafel2', x: 5, y: 9 } ] };
   modus = 'open'; tel = NIEUWTEL(); maakPersoneel();
   for (const s of S.spullen.filter(isTafel)) stoelen(s).forEach((p, i) => { if (Math.random() < 0.8) { const m = maakMens(s, i); m.x = p[0]; m.y = p[1]; m.st = Math.random() < 0.6 ? 'eet' : 'wacht'; m.t = Math.random() * 3; mensen.push(m); } });
   klaar = [{}, {}, {}]; ovens[0].fase = 'bak'; ovens[0].t = 1; ovens[1].kok.x = BANK(1)[0]; ovens[1].kok.y = BANK(1)[1]; ovens[1].kok.gooi = 0.3; obers[0].x = 8.5; obers[0].y = 7.6; obers[0].draagt = 2; obers[1].x = 4.2; obers[1].y = 3.5;
