@@ -6,6 +6,17 @@ Idee: Pizza Tycoon / Pizza Connection (1994), maar met eigen naam, plaatjes en g
 - Stap 1: zaak van 15x15 tegels inrichten (tafels, kleedjes, kaarsjes, planten, jukebox), klanten, koks, obers, werkdag, dagoverzicht.
 - Uiterlijk zoals het origineel: geblokte vloer, houten kader, paneel met zwart schermpje en 3x3 knoppen.
 - Kok en ober zijn eigen ontwerpen, gemaakt met Gemini (zie hieronder).
+- Stap 2: pizza's samenstellen (knop 📖 Pizza's): menukaart met max. 6 pizza's (begint met een Margherita). Pizza maken = tik op
+  ingrediënten (20 stuks, max. 14 stukjes, max. 4 van één soort), smaakmeter vet / zoet / zout / pittig, inkoop, prijs (€ 4-25)
+  en winst, en per soort klant een gezichtje (🤢 tot 😍). Klanten komen per groepje van één soort (student 25%, villabewoner 10%,
+  toerist 15%, werker 30%, opa/oma 20%; werkers met gele helm, toeristen met zonnehoed), kiezen de pizza die ze het lekkerst vinden,
+  of lopen weg als er niks voor ze op de kaart staat. Lekker = meer fooi en populariteit. Ingrediënten worden betaald als de kok begint.
+  Dagoverzicht: meest bestelde pizza, hoe het per soort smaakte, ingrediëntkosten.
+
+## Ideeën voor later bij de pizza's
+- Pizza's ook echt met hun ingrediënten tekenen op de borden en de toonbank (nu nog een algemene pizza).
+- Andere buurten met een andere mix van klanten (zie stap 5), en per dag een "trend" (vandaag willen ze pittig!).
+- Ingrediënten slim inkopen (voorraad, bederf, aanbiedingen bij de groothandel).
 
 ## Eerst (afgesproken na het testen van het pizza-samenstellen, 25 oktober)
 1. Pizza's klaarzetten naast de ovens (één uitgiftepunt bij de ovens), niet helemaal rechts op de toonbank (`TOONBANK`).
@@ -23,10 +34,7 @@ Idee: Pizza Tycoon / Pizza Connection (1994), maar met eigen naam, plaatjes en g
 - Screenshots van het origineel komen in `pizza/voorbeeld/` (Marcel), zodat het uiterlijk er dichter bij kan.
 
 ## Volgende stappen (in deze volgorde)
-1. **Pizza's samenstellen** (gebouwd in commit c7df2f7 van de eerste Pizzabaas-sessie; staat online zodra die is overgezet) (knop 📖 Pizza's, nu "binnenkort"), zoals Pizza Connection: ingrediënten op een bodem leggen,
-   schermpje met vet / zoet / zout / pittig, elke soort klant (student, villabewoner, toerist, werker, opa/oma) vindt er wat
-   anders van. Ingrediëntplaatjes: Kenney food-kit `Previews/*.png` (64x64) uit `bronnen/kenney_food-kit.zip`
-   (tomato-slice, mushroom-half, paprika-slice, cheese-cut, sausage-half, onion-half, pineapple, fish, bacon, egg-half, ...).
+1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
 2. **Klanten als eigen figuren** (net als kok en ober), met Gemini; de zittende houdingen staan al op de vellen.
 3. **De achterkamer** (geen wapens, geen drugs):
    - Ingang: koop een schilderij voor aan de muur. Een man met gleufhoed: "Wat een mooi schilderij… wie is de schilder?"

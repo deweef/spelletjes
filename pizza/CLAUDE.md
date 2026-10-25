@@ -15,6 +15,9 @@ achtergrond vooraf getekend (`achter`: rood-geel-wit geblokte vloer, grijs-witte
 (`RAND`), stoelen met gestreepte zitting (`stoel`), grijze tafels, borden (`bord`), poppetjes van bovenaf met kijkrichting (`poppetje`, `kijk`).
 Paneel rechts (liggend) of onder (staand): zwart schermpje `#lcd` (`balk`) en een 3x3 knoppenraster `#raster` (`tekenKnoppen`).
 Per oven een kok (`maakOven`, `stapOven`): deeg opgooien aan de werkbank (`BANK`, `DEEG`), inschuiven, bakken, naar de toonbank brengen
-(`TOONBANK`), daar haalt een ober hem op. Kok en ober zijn eigen Gemini-ontwerpen: `pizza/kok.png` en `pizza/ober.png` (13 plaatjes van 113x192: 0-1 staan, 2-3 lopen naar links (gespiegeld = rechts), 4 schuin, 5 deeg opgooien / stolp optillen bij het opdienen (`serveer`), 6 op de rug, 7-12 lopen naar achteren; uitgeknipt uit `pizza/*-gemini.jpg` met groen als achtergrond, de rugrij geschaald naar dezelfde lengte; `figuur`). Kenney food-kit heeft plaatjes van ingrediënten (`Previews/*.png`, 64x64) voor stap 2. Opslag per speler in `pizzabaas:<naam>`. `#tegel` = plaatje.
-Plan: 2 pizza's verzinnen met smaken per buurt, 3 dubieuze klanten en pakketjes-ritjes (geen echte wapens of drugs), 4 sabotage door
-Luigi van de overkant, 5 meer buurten en filialen.
+(`TOONBANK`), daar haalt een ober hem op. Kok en ober zijn eigen Gemini-ontwerpen: `pizza/kok.png` en `pizza/ober.png` (13 plaatjes van 113x192: 0-1 staan, 2-3 lopen naar links (gespiegeld = rechts), 4 schuin, 5 deeg opgooien / stolp optillen bij het opdienen (`serveer`), 6 op de rug, 7-12 lopen naar achteren; uitgeknipt uit `pizza/*-gemini.jpg` met groen als achtergrond, de rugrij geschaald naar dezelfde lengte; `figuur`). Opslag per speler in `pizzabaas:<naam>`. `#tegel` = plaatje.
+Pizza's (📖, `toonKaart`, `toonMaak`): `S.menu` = lijst { naam, prijs, stukjes: [{ i, x, y, r }] } (max `MAXMENU`; oude opslag krijgt een
+Margherita). Ingrediënten in `ING` (smaak `f` = [vet, zoet, zout, pittig] per stukje, inkoop `k`, soort `s`: it/groen/vlees/vis/gek) met
+plaatjes uit `pizza/ingredienten.png` (20 x 64x64 uit de Kenney food-kit, volgorde van `ING`). Soorten klanten in `SOORT` (wil, budget,
+kans, uiterlijk); `oordeel(pizza, soort)` = 0-6 (`GEZICHT`), `kiesPizza` kiest per klant de lekkerste (onder 1 = weg, `ZEG.niks`).
+Plan en volgende stappen: `pizza/PLAN.md`.

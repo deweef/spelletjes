@@ -52,6 +52,38 @@
   .verborgen { display: none !important; }
   #melding { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: rgba(0,0,0,.7); padding: 8px 14px; border-radius: 12px; font-size: 14px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .3s; max-width: 90vw; text-align: center; }
   body.tegel #paneel, body.tegel .terug { display: none; }
+  /* pizza's samenstellen */
+  .kaart.breed { max-width: 760px; padding: 16px; }
+  .kaart .rij { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .kaart .knop { border: 0; border-radius: 10px; padding: 9px 13px; background: #f1e1c4; color: #3a2414; font: 700 14px system-ui, sans-serif; cursor: pointer; }
+  .kaart .knop.rood { background: #b5361f; color: #fff; }
+  .kaart .knop:disabled { opacity: .45; }
+  .menuregel { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px; margin: 6px 0; background: #f6e8cd; border-radius: 12px; cursor: pointer; }
+  .menuregel canvas { width: 54px; height: 54px; flex: 0 0 auto; }
+  .menuregel .naam { font-weight: 700; flex: 1; min-width: 0; }
+  .menuregel .naam small { display: block; font-weight: 400; opacity: .75; }
+  .oordeel { display: flex; gap: 3px; font-size: 15px; white-space: nowrap; }
+  .oordeel span { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.1; font-size: 11px; }
+  .oordeel span b { font-size: 17px; font-weight: 400; }
+  .buurt { font-size: 13px; opacity: .85; }
+  #maak { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  #maak canvas#bodem { width: 100%; max-width: 320px; aspect-ratio: 1; display: block; margin: 0 auto; touch-action: manipulation; cursor: pointer; }
+  .meter { background: #0d0d0d; border: 4px solid #999; outline: 3px solid #3a2414; border-radius: 6px; padding: 8px 10px; color: #f5f0d0; font: 700 12px/1.25 'Courier New', monospace; }
+  .meter .m { display: grid; grid-template-columns: 58px 1fr; align-items: center; gap: 6px; margin: 3px 0; }
+  .meter .m i { display: block; height: 10px; background: #333; border-radius: 2px; overflow: hidden; }
+  .meter .m i u { display: block; height: 100%; }
+  .meter .geel { color: #ffd23f; }
+  #bak { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; grid-column: 1 / -1; }
+  #bak button { border: 2px solid #c9a873; background: #fff; border-radius: 10px; padding: 3px 2px; font: 600 10.5px/1.1 system-ui, sans-serif; color: #3a2414; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+  #bak button:disabled { opacity: .4; }
+  #bak button small { opacity: .7; font-weight: 400; }
+  .ing { width: 40px; height: 40px; background: url(pizza/ingredienten.png) 0 0 / 800px 40px no-repeat; }
+  .kaart input[type=text] { font: 700 16px system-ui, sans-serif; padding: 7px 9px; border-radius: 9px; border: 2px solid #c9a873; background: #fff; color: #3a2414; min-width: 0; flex: 1; }
+  @media (max-width: 560px) {
+    #maak { grid-template-columns: minmax(0, 1fr); } #maak canvas#bodem { max-width: 210px; }
+    #bak { grid-template-columns: repeat(4, minmax(0, 1fr)); order: 2; } #maak > div:nth-child(2) { order: 3; }
+    .menuregel .oordeel { flex-basis: 100%; justify-content: space-around; }
+  }
 </style>
 </head>
 <body>
@@ -71,9 +103,10 @@
   </div>
 </div>
 <div class="scherm verborgen" id="einde"><div class="kaart" id="eindkaart"></div></div>
+<div class="scherm verborgen" id="pizzas"><div class="kaart breed" id="pizzakaart"></div></div>
 
 <script>
-// Pizzabaas: een eigen pizzeria inrichten en draaiende houden (stap 1: één zaak, klanten, kok, ober, inrichting).
+// Pizzabaas: een eigen pizzeria inrichten en draaiende houden (één zaak, klanten, kok, ober, inrichting, eigen pizza's).
 // Alles op een raster van 12 x 9 vakjes; rij 0-1 is de keuken, onderaan in het midden de deur.
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -102,13 +135,75 @@ const SPUL = {
 const EXTRA = { kleed: { n: 'Kleedje', ik: '🟥', prijs: 10 }, kaars: { n: 'Kaarsje', ik: '🕯️', prijs: 8 } };
 const PERSONEEL = { oven: { n: 'Extra oven', ik: '🔥', prijs: 250, max: 3 }, ober: { n: 'Extra ober', ik: '🤵', prijs: 200, max: 3, loon: true } };
 
+// ---------- pizza's: ingrediënten en wie wat lekker vindt ----------
+// plaatjes: pizza/ingredienten.png = 20 plaatjes van 64 x 64 naast elkaar (Kenney food-kit, CC0), in de volgorde van ING.
+// f = smaak per stukje: [vet, zoet, zout, pittig]; k = inkoop per stukje; soort: it = Italiaans, groen, vlees, vis, gek
+const ING = {
+  kaas: { n: 'Kaas', f: [1, 0, 0.5, 0], k: 0.2, s: 'it' },
+  tomaat: { n: 'Tomaat', f: [0, 0.5, 0, 0], k: 0.1, s: 'it groen' },
+  champignon: { n: 'Champignon', f: [0, 0, 0.2, 0], k: 0.15, s: 'it groen' },
+  paprika: { n: 'Paprika', f: [0, 0.5, 0, 0.5], k: 0.15, s: 'groen' },
+  salami: { n: 'Salami', f: [1, 0, 1, 0.5], k: 0.25, s: 'it vlees' },
+  ham: { n: 'Ham', f: [0.5, 0, 1, 0], k: 0.25, s: 'it vlees' },
+  spek: { n: 'Spek', f: [1.5, 0, 1, 0], k: 0.25, s: 'vlees' },
+  tonijn: { n: 'Tonijn', f: [0.5, 0, 1, 0], k: 0.35, s: 'vis' },
+  ui: { n: 'Ui', f: [0, 0.5, 0, 0.5], k: 0.05, s: 'groen' },
+  pepers: { n: 'Pepers', f: [0, 0, 0, 1.5], k: 0.1, s: 'groen' },
+  broccoli: { n: 'Broccoli', f: [0, 0, 0, 0], k: 0.15, s: 'groen' },
+  mais: { n: 'Maïs', f: [0, 1, 0, 0], k: 0.1, s: 'groen' },
+  ei: { n: 'Ei', f: [0.5, 0, 0.5, 0], k: 0.1, s: '' },
+  ananas: { n: 'Ananas', f: [0, 1.5, 0, 0], k: 0.15, s: '' },
+  honing: { n: 'Honing', f: [0, 2, 0, 0], k: 0.2, s: 'gek' },
+  aardbei: { n: 'Aardbei', f: [0, 1.5, 0, 0], k: 0.25, s: 'gek' },
+  banaan: { n: 'Banaan', f: [0, 1.5, 0, 0], k: 0.1, s: 'gek' },
+  chocola: { n: 'Chocola', f: [1, 2, 0, 0], k: 0.25, s: 'gek' },
+  frikandel: { n: 'Frikandel', f: [1.5, 0.5, 1, 0.5], k: 0.2, s: 'gek vlees' },
+  patat: { n: 'Patat', f: [1.5, 0, 1, 0], k: 0.15, s: 'gek' },
+};
+Object.keys(ING).forEach((k, i) => ING[k].i = i);
+const BODEM = { f: [0.5, 0.5, 0.5, 0], k: 0.5 }; // deeg met tomatensaus
+const SMAAK = ['VET', 'ZOET', 'ZOUT', 'PITTIG'], SMAAKKLEUR = ['#f4b942', '#ff6fa5', '#7fd3ff', '#ff4d2e'];
+const MAXSTUK = 14, MAXPER = 4, MAXMENU = 6;
+// soorten klanten: wil = de smaak die ze het lekkerst vinden, budget = wat ze ervoor over hebben, kans = hoe vaak ze in deze buurt komen
+const SOORT = {
+  student: { n: 'Student', ik: '🎓', kans: 0.25, wil: [6, 2, 5, 3], budget: 9, kleur: ['#3f88c5', '#6ab04c', '#34495e'], pet: true },
+  villa: { n: 'Villabewoner', ik: '🏡', kans: 0.1, wil: [2, 2, 2, 1], budget: 16, kleur: ['#4b2e83', '#1c2833', '#7b1e3a'] },
+  toerist: { n: 'Toerist', ik: '📸', kans: 0.15, wil: [3, 2, 3, 1], budget: 13, kleur: ['#ff6fa5', '#1abc9c', '#f4b942'], hoed: true },
+  werker: { n: 'Werker', ik: '👷', kans: 0.3, wil: [6, 1, 4, 5], budget: 11, kleur: ['#e67e22'], helm: true },
+  opa: { n: 'Opa en oma', ik: '👵', kans: 0.2, wil: [3, 4, 2, 0], budget: 10, kleur: ['#8e7f6f', '#a3a3c2', '#6d8b74'], haar: ['#ddd', '#bbb', '#eee'] },
+};
+const GEZICHT = ['🤢', '😖', '😕', '😐', '🙂', '😋', '😍'];
+function smaak(p) { // totale smaak van een pizza: [vet, zoet, zout, pittig], plus inkoopprijs
+  const f = [...BODEM.f]; let k = BODEM.k;
+  for (const st of p.stukjes) { const d = ING[st.i]; d.f.forEach((v, j) => f[j] += v); k += d.k; }
+  return { f, k: Math.round(k * 10) / 10 };
+}
+function oordeel(p, soort) { // 0 (vies) tot 6 (heerlijk)
+  const d = SOORT[soort], { f } = smaak(p), n = p.stukjes.length;
+  const heeft = (s) => new Set(p.stukjes.filter((st) => ING[st.i].s.includes(s)).map((st) => st.i)).size; // aantal verschillende
+  let o = 5 - 0.35 * f.reduce((a, v, j) => a + Math.abs(v - d.wil[j]), 0);
+  const gek = heeft('gek');
+  if (soort == 'student') o += Math.min(1, gek * 0.8);
+  if (soort == 'villa') o += Math.min(1.2, heeft('groen') * 0.4) + heeft('vis') - gek * 2;
+  if (soort == 'toerist') o += (p.stukjes.some((s) => s.i == 'kaas') && p.stukjes.some((s) => s.i == 'tomaat') ? 1 : 0) - gek * 1.5;
+  if (soort == 'werker') { o += Math.min(1.2, heeft('vlees') * 0.4); if (n < 6) o -= 1; }
+  if (soort == 'opa') o -= f[3] * 0.8 + gek;
+  if (n < 3) o -= 1.5; else if (n > 11 && soort != 'werker') o -= 0.5;
+  if (p.prijs > d.budget) o -= (p.prijs - d.budget) * 0.6; else if (p.prijs <= d.budget - 3) o += 0.5;
+  return Math.max(0, Math.min(6, o));
+}
+const MARGHERITA = () => ({ naam: 'Margherita', prijs: 8, stukjes: [
+  { i: 'tomaat', x: -0.4, y: -0.3, r: 0.3 }, { i: 'tomaat', x: 0.45, y: -0.2, r: 2 }, { i: 'tomaat', x: 0, y: 0.5, r: 4 },
+  { i: 'kaas', x: 0.05, y: -0.55, r: 1 }, { i: 'kaas', x: -0.45, y: 0.3, r: 3 }, { i: 'kaas', x: 0.45, y: 0.35, r: 5 }] });
+
 const BEGIN = () => [{ t: 'tafel2', x: 2, y: 6 }, { t: 'tafel2', x: 9, y: 6 }];
-const NIEUW = () => ({ versie: 2, geld: 300, dag: 1, rep: 20, ovens: 1, obers: 1, spullen: BEGIN(), best: 0 });
+const NIEUW = () => ({ versie: 2, geld: 300, dag: 1, rep: 20, ovens: 1, obers: 1, spullen: BEGIN(), best: 0, menu: [MARGHERITA()] });
 let S = lees(SLEUTEL) || (speler && lees('pizzabaas')) || NIEUW();
 if (S.versie != 2) { // de zaak is kleiner geworden met grotere tegels: oude spullen terugbetalen en opnieuw beginnen met twee tafeltjes
   S.geld += S.spullen.reduce((a, s) => a + (SPUL[s.t] ? SPUL[s.t].prijs : 0) + (s.kleed ? 10 : 0) + (s.kaars ? 8 : 0), 0) - 100;
   S.spullen = BEGIN(); S.versie = 2;
 }
+if (!S.menu || !S.menu.length) S.menu = [MARGHERITA()]; // opslag van voor de menukaart
 const bewaar = () => { if (!TEGEL) schrijf(SLEUTEL, S); };
 
 // ---------- teksten ----------
@@ -120,7 +215,16 @@ const ZEG = {
   vol: ['Vol?! Jammer.', 'Dan maar naar de snackbar.', 'Geen plek? Pff.'],
   gezellig: ['Wat een gezellig tentje!', 'Mooi kleedje!', 'Romantisch hoor, met dat kaarsje.'],
   kaal: ['Wat een kale boel hier…', 'Gezellig is anders.'],
+  niks: ['Hier staat niks voor mij op de kaart.', 'Hebben jullie niks anders?', 'Nee, dan ga ik wel naar Luigi.'],
 };
+const LEKKER = { // per soort klant: [vond het heerlijk, vond het niks]
+  student: [['Vet goed, man!', 'Beter dan mijn tentamen!', 'Hier kom ik na het feest terug!'], ['Saai, en dan ook nog zo duur.', 'Mijn tosti is lekkerder.']],
+  villa: [['Voortreffelijk.', 'Dit vertel ik op de tennisclub!', 'Bijna zo goed als in Toscane.'], ['Hmpf. Ordinair.', 'Wat is dít nu weer?!', 'Ik bel mijn advocaat.']],
+  toerist: [['Molto bene!', 'Just like in Italy!', 'Wunderbar, Pizza!'], ['This is no pizza…', 'Ik had beter een kroket genomen.']],
+  werker: [['Dat vult lekker!', 'Hier kan ik weer tegenaan!', 'Lekker pittig, top!'], ['Daar krijg ik geen honger van weg.', 'Is dat alles?', 'Waar is het vlees?']],
+  opa: [['Net als vroeger!', 'Lekker zacht, voor mijn kunstgebit.', 'Dat hadden wij vroeger niet!'], ['Veel te heet! Water!', 'Vroeger was alles beter.', 'Daar kan ik niet op kauwen.']],
+};
+function kiesSoort() { let r = Math.random(); for (const [k, d] of Object.entries(SOORT)) if ((r -= d.kans) < 0) return k; return 'werker'; }
 
 // ---------- spullen en stoelen ----------
 const vrij = (x, y, w, h, behalve) => {
@@ -168,7 +272,7 @@ function stapOven(o, dt) {
   const k = o.kok;
   if (o.fase == 'leeg') {
     beweeg(k, KOK_HUIS(o.i), 2.2, dt); k.poets = (k.poets || 0) + dt;
-    const b = wachtrij.shift(); if (b) { o.bezig = b; o.t = 0; o.fase = 'deeg'; }
+    const b = wachtrij.shift(); if (b) { o.bezig = b; o.t = 0; o.fase = 'deeg'; const k = smaak(b.m.pizza).k; S.geld -= k; tel.kosten += k; } // ingrediënten inkopen
   } else if (o.fase == 'deeg') { // naar de werkbank, deeg uitrollen en opgooien
     if (beweeg(k, BANK(o.i), 2.4, dt)) { o.t += dt; k.gooi = o.t; if (o.t >= DEEG) { o.fase = 'inschuiven'; k.gooi = 0; } }
   } else if (o.fase == 'inschuiven') {
@@ -181,30 +285,37 @@ function stapOven(o, dt) {
   }
   if (o.bezig && !mensen.includes(o.bezig.m)) { o.bezig = null; k.draagt = false; k.gooi = 0; o.fase = 'leeg'; } // klant al weg
 }
+const NIEUWTEL = () => ({ blij: 0, boos: 0, vol: 0, niks: 0, omzet: 0, fooi: 0, kosten: 0, wacht: 0, wachtN: 0, lekker: 0, verkocht: {}, soort: {} });
 function openDeuren() {
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; wolkjes = []; muntjes = [];
-  tel = { blij: 0, boos: 0, vol: 0, omzet: 0, fooi: 0, wacht: 0, wachtN: 0 };
+  tel = NIEUWTEL();
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen();
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
 function eindeDag() {
   modus = 'inrichten';
-  const lonen = (S.obers - 1) * LOON, totaal = tel.omzet + tel.fooi - HUUR - lonen;
-  S.geld += -HUUR - lonen; // omzet en fooi zijn al binnen
+  const lonen = (S.obers - 1) * LOON, totaal = tel.omzet + tel.fooi - tel.kosten - HUUR - lonen;
+  S.geld += -HUUR - lonen; // omzet, fooi en ingrediënten zijn al verrekend
+  const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
+  const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
   const oud = S.dag; S.dag++; bewaar();
   $('eindkaart').innerHTML = `<h1>Dag ${oud} zit erop!</h1>
     <table>
       <tr><td>😋 Tevreden klanten</td><td>${tel.blij}</td></tr>
       <tr><td>😡 Boos weggelopen</td><td>${tel.boos}</td></tr>
       <tr><td>🚪 Geen plek</td><td>${tel.vol}</td></tr>
+      ${tel.niks ? `<tr><td>🤷 Niks lekkers op de kaart</td><td>${tel.niks}</td></tr>` : ''}
+      ${top ? `<tr><td>🏆 Meest besteld</td><td>${esc(top[0])} (${top[1]}×)</td></tr>` : ''}
+      ${soorten ? `<tr><td>Hoe smaakte het?</td><td>${soorten}</td></tr>` : ''}
       <tr><td>🍕 Pizza's verkocht</td><td>€ ${tel.omzet}</td></tr>
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
+      <tr><td>🧀 Ingrediënten</td><td>− € ${Math.round(tel.kosten)}</td></tr>
       <tr><td>🏠 Huur</td><td>− € ${HUUR}</td></tr>
       ${lonen ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
     </table>
-    <p>${tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.boos > 2 ? 'Klanten moesten te lang wachten. Een extra oven of ober helpt!' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
+    <p>${tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : tel.boos > 2 ? 'Klanten moesten te lang wachten. Een extra oven of ober helpt!' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
     <button class="groot" id="verder">Verder met inrichten</button>`;
   laatsteDag = $('eindkaart').innerHTML.replace('Verder met inrichten', 'Sluiten').replace('zit erop!', 'zat erop');
   $('einde').classList.remove('verborgen');
@@ -225,14 +336,21 @@ function nieuweGroep() {
     tel.vol++; S.rep = Math.max(0, S.rep - 1);
     const m = maakMens(null, 0); m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; mensen.push(m); zeg(m, R(ZEG.vol)); return;
   }
-  const t = tafels[0];
-  for (let i = 0; i < n; i++) { const m = maakMens(t.s, t.vrij[i]); m.x += i * 0.25; m.y += i * 0.3; mensen.push(m); if (i == 0) zeg(m, R(ZEG.binnen)); }
+  const t = tafels[0], soort = kiesSoort(); // een groepje is van dezelfde soort (studenten samen, werkers samen)
+  for (let i = 0; i < n; i++) { const m = maakMens(t.s, t.vrij[i], soort); m.x += i * 0.25; m.y += i * 0.3; mensen.push(m); if (i == 0) zeg(m, R(ZEG.binnen)); }
 }
-function maakMens(tafel, stoel) {
-  const m = { x: DEUR.x + 0.5, y: H + 0.4, tafel, stoel, st: 'loop', t: 0, geduld: GEDULD,
-    kleur: R(KLEUR), huid: R(HUID), haar: R(HAAR), lang: Math.random() < 0.5, pet: Math.random() < 0.15 };
+function maakMens(tafel, stoel, soort = kiesSoort()) {
+  const d = SOORT[soort];
+  const m = { x: DEUR.x + 0.5, y: H + 0.4, tafel, stoel, st: 'loop', t: 0, geduld: GEDULD, soort,
+    kleur: R(d.kleur || KLEUR), huid: R(HUID), haar: R(d.haar || HAAR), lang: Math.random() < 0.5, pet: d.pet && Math.random() < 0.6, helm: d.helm, hoed: d.hoed };
   if (tafel) m.doel = stoelen(tafel)[stoel];
   return m;
+}
+// elke klant kiest de pizza van de kaart die hij het lekkerst vindt (met een beetje toeval); null = niks van zijn gading
+function kiesPizza(m) {
+  let best = null, bo = -1;
+  for (const p of S.menu) { const o = oordeel(p, m.soort), r = o + Math.random() * 0.8; if (r > bo) { bo = r; best = { p, o }; } }
+  return best && best.o >= 1 ? best : null;
 }
 function zeg(m, tekst) { wolkjes.push({ m, tekst, t: 3 }); }
 function beweeg(o, doel, snel, dt) {
@@ -255,18 +373,28 @@ function stap(dt) {
   for (const m of [...mensen]) {
     m.t += dt;
     if (m.st == 'loop' && beweeg(m, m.doel, 3, dt)) {
-      m.st = 'wacht'; m.t = 0; m.bestelling = { m, klaar: false };
+      const keus = kiesPizza(m);
+      if (!keus) { // niks lekkers op de kaart: weer weg
+        m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; zeg(m, R(ZEG.niks)); tel.niks++; S.rep = Math.max(0, S.rep - 1); continue;
+      }
+      m.st = 'wacht'; m.t = 0; m.pizza = keus.p; m.oordeel = keus.o; m.bestelling = { m, klaar: false };
       wachtrij.push(m.bestelling);
-      if (Math.random() < 0.25) { const g = gezellig(m.tafel); if (g >= 4) zeg(m, R(ZEG.gezellig)); else if (g <= 1) zeg(m, R(ZEG.kaal)); }
+      if (Math.random() < 0.3) zeg(m, R(['Een ' + keus.p.naam + ', graag!', 'Doe mij maar een ' + keus.p.naam + '.', keus.p.naam + '! Lekker!']));
+      else if (Math.random() < 0.25) { const g = gezellig(m.tafel); if (g >= 4) zeg(m, R(ZEG.gezellig)); else if (g <= 1) zeg(m, R(ZEG.kaal)); }
     } else if (m.st == 'wacht') {
       if (m.t > m.geduld && !m.onderweg) { // te lang gewacht: boos weg
         m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; zeg(m, R(ZEG.boos)); tel.boos++; S.rep = Math.max(0, S.rep - 3); boos();
         wachtrij = wachtrij.filter((b) => b.m != m); klaar = klaar.filter((b) => b.m != m);
       }
     } else if (m.st == 'eet' && m.t > ETEN) {
-      const fooi = gezellig(m.tafel) * 0.6 + (m.wacht < 12 ? 1 : 0);
-      S.geld += PRIJS + fooi; tel.omzet += PRIJS; tel.fooi += fooi; tel.blij++; S.rep = Math.min(100, S.rep + (m.wacht < 12 ? 0.8 : 0.3));
-      muntjes.push({ x: m.x, y: m.y, t: 1.2, tekst: '+€' + Math.round(PRIJS + fooi) }); kassa();
+      // hoe lekker (0-6) bepaalt de fooi en of ze het doorvertellen
+      const o = m.oordeel, prijs = m.pizza.prijs, fooi = Math.max(0, gezellig(m.tafel) * 0.4 + (o - 2) * 0.5 + (m.wacht < 12 ? 1 : 0));
+      S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o;
+      tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1;
+      const s = tel.soort[m.soort] = tel.soort[m.soort] || [0, 0]; s[0]++; s[1] += o; // aantal, totaal oordeel
+      S.rep = Math.max(0, Math.min(100, S.rep + (o - 2.5) * 0.4 + (m.wacht < 12 ? 0.4 : 0)));
+      muntjes.push({ x: m.x, y: m.y, t: 1.2, tekst: '+€' + Math.round(prijs + fooi) }); kassa();
+      if (Math.random() < 0.5 && (o >= 4.5 || o < 2.5)) zeg(m, R(LEKKER[m.soort][o >= 4.5 ? 0 : 1]));
       m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6];
     } else if (m.st == 'weg' && beweeg(m, m.doel, 3, dt)) mensen.splice(mensen.indexOf(m), 1);
   }
@@ -357,6 +485,8 @@ function poppetje(p, opties = {}) {
   // hoofd
   g.fillStyle = p.huid; g.beginPath(); g.arc(0, 1, 8.5, 0, 7); g.fill();
   if (p.muts) { g.fillStyle = '#fff'; g.beginPath(); g.arc(0, -1, 9.5, 0, 7); g.fill(); g.fillStyle = '#e6e6e6'; g.beginPath(); g.arc(0, -1, 5, 0, 7); g.fill(); }
+  else if (p.helm) { g.fillStyle = '#f7c400'; g.beginPath(); g.arc(0, 0, 10, 0, 7); g.fill(); g.fillStyle = '#d9a800'; g.fillRect(-1.5, -10, 3, 20); }
+  else if (p.hoed) { g.fillStyle = '#e8d29a'; g.beginPath(); g.arc(0, 0, 13, 0, 7); g.fill(); g.strokeStyle = '#c0392b'; g.lineWidth = 2.5; g.beginPath(); g.arc(0, 0, 7.5, 0, 7); g.stroke(); }
   else if (p.pet) { g.fillStyle = '#c0392b'; g.beginPath(); g.arc(0, 0, 9, 0, 7); g.fill(); g.fillRect(-6, 4, 12, 6); }
   else { g.fillStyle = p.haar; g.beginPath(); g.arc(0, -1, 9, Math.PI * 0.9, Math.PI * 2.1); g.fill(); if (p.lang) { g.beginPath(); g.ellipse(0, -7, 9, 6, 0, 0, 7); g.fill(); } }
   g.restore();
@@ -599,6 +729,112 @@ function toonMenu(s, cx, cy) {
 let verplaatsExtra = null;
 function sluitMenu() { $('menu').style.display = 'none'; gekozen = null; }
 
+// ---------- de menukaart: pizza's samenstellen (zoals in Pizza Connection) ----------
+const ING_IMG = new Image(); ING_IMG.src = 'pizza/ingredienten.png';
+ING_IMG.onload = () => { if (!$('pizzas').classList.contains('verborgen')) bewerk ? tekenMaak() : toonKaart(); };
+const NAMEN = ['Pizza Baas', 'Pizza Pittig', 'Pizza Bomba', 'Pizza Mamma Mia', 'Pizza Kapsalon', 'Pizza Hawaii', 'Pizza Vulcano', 'Pizza Bellissima',
+  'Pizza Zoetekauw', 'Pizza Rotterdam', 'Pizza Bouwvakker', 'Pizza Tentamen', 'Pizza Kunstgebit', 'Pizza Zondag', 'Pizza Rommelbak', 'Pizza Dikke Vette'];
+const geld = (v) => '€\u00a0' + v.toFixed(2).replace('.', ',');
+let bewerk = null, bewerkNr = -1; // de pizza die nu gemaakt wordt (een kopie) en zijn plek op de kaart (-1 = nieuw)
+function tekenPizzaOp(cv, p) {
+  const c = cv.getContext('2d'), r = cv.width / 2;
+  c.clearRect(0, 0, cv.width, cv.width); c.save(); c.translate(r, r);
+  c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.arc(r * 0.02, r * 0.04, r * 0.96, 0, 7); c.fill();
+  c.fillStyle = '#c98a45'; c.beginPath(); c.arc(0, 0, r * 0.96, 0, 7); c.fill();
+  c.fillStyle = '#e7b56f'; c.beginPath(); c.arc(0, 0, r * 0.9, 0, 7); c.fill();
+  c.fillStyle = '#c8371d'; c.beginPath(); for (let a = 0; a <= 64; a++) { const h = a / 64 * Math.PI * 2, q = r * (0.79 + Math.sin(h * 7) * 0.012 + Math.sin(h * 3) * 0.01); c.lineTo(Math.cos(h) * q, Math.sin(h) * q); } c.fill();
+  c.fillStyle = '#4f7d2a'; for (let k = 0; k < 40; k++) { const h = k * 2.4, q = r * 0.75 * Math.sqrt((k * 37 % 40) / 40); c.fillRect(Math.cos(h) * q, Math.sin(h) * q, r * 0.02, r * 0.02); } // oregano
+  const z = r * 0.42;
+  for (const st of p.stukjes) {
+    c.save(); c.translate(st.x * r * 0.78, st.y * r * 0.78); c.rotate(st.r);
+    if (ING_IMG.complete && ING_IMG.naturalWidth) c.drawImage(ING_IMG, ING[st.i].i * 64, 0, 64, 64, -z / 2, -z / 2, z, z);
+    else { c.fillStyle = '#ffe9a8'; c.beginPath(); c.arc(0, 0, z * 0.3, 0, 7); c.fill(); }
+    c.restore();
+  }
+  c.restore();
+}
+const oordeelHTML = (p) => `<div class="oordeel">${Object.entries(SOORT).map(([k, d]) => `<span title="${esc(d.n)}"><b>${d.ik}${GEZICHT[Math.round(oordeel(p, k))]}</b>${esc(d.n.split(' ')[0])}</span>`).join('')}</div>`;
+function sluitPizzas() { $('pizzas').classList.add('verborgen'); bewerk = null; tekenKnoppen(); }
+function toonKaart() {
+  bewerk = null;
+  const buurt = Object.values(SOORT).map((d) => `${d.ik} ${esc(d.n)} ${Math.round(d.kans * 100)}%`).join(' · ');
+  let h = `<h1>📖 De menukaart</h1><p class="buurt">Wie komen er in jouw buurt? ${buurt}</p>`;
+  S.menu.forEach((p, i) => {
+    const { k } = smaak(p);
+    h += `<div class="menuregel" data-nr="${i}"><canvas width="108" height="108"></canvas><div class="naam">${esc(p.naam)}<small>${geld(p.prijs)} · inkoop ${geld(k)}</small></div>${oordeelHTML(p)}</div>`;
+  });
+  h += `<p class="buurt">Tik op een pizza om hem te veranderen. 😍 = vinden ze heerlijk, 🤢 = bestellen ze nooit.</p>
+    <div class="rij"><button class="knop rood" id="nieuwePizza" ${S.menu.length >= MAXMENU ? 'disabled' : ''}>➕ Nieuwe pizza</button><button class="knop" id="kaartDicht">Klaar</button></div>`;
+  $('pizzakaart').innerHTML = h; $('pizzas').classList.remove('verborgen');
+  $('pizzakaart').querySelectorAll('.menuregel').forEach((el) => { tekenPizzaOp(el.querySelector('canvas'), S.menu[el.dataset.nr]); el.onclick = () => toonMaak(+el.dataset.nr); });
+  $('nieuwePizza').onclick = () => toonMaak(-1);
+  $('kaartDicht').onclick = sluitPizzas;
+}
+function vrijeNaam() { const vrij = NAMEN.filter((n) => !S.menu.some((p) => p.naam == n)); return R(vrij.length ? vrij : NAMEN) + (vrij.length ? '' : ' ' + (S.menu.length + 1)); }
+function toonMaak(nr) {
+  bewerkNr = nr; bewerk = nr < 0 ? { naam: vrijeNaam(), prijs: 9, stukjes: [] } : JSON.parse(JSON.stringify(S.menu[nr]));
+  $('pizzakaart').innerHTML = `<h1>🍕 Pizza maken</h1>
+    <div class="rij" style="margin-bottom:8px"><input type="text" id="pnaam" maxlength="20" value="${esc(bewerk.naam)}"><button class="knop" id="dobbel" title="Andere naam">🎲</button></div>
+    <div id="maak">
+      <div><canvas id="bodem" width="640" height="640"></canvas><p class="buurt" style="text-align:center;margin:4px 0 0">Tik op een ingrediënt om het erop te leggen, tik op de pizza om het laatste weer weg te halen.</p></div>
+      <div><div class="meter" id="meter"></div>
+        <div class="rij" style="margin:10px 0"><b>Prijs</b><button class="knop" id="goedkoper">−</button><b id="pprijs"></b><button class="knop" id="duurder">+</button></div>
+        <div id="oordelen"></div></div>
+      <div id="bak"></div>
+    </div>
+    <div class="rij" style="margin-top:12px"><button class="knop rood" id="pbewaar">✅ Op de kaart</button><button class="knop" id="pterug">Terug</button>
+      ${nr >= 0 && S.menu.length > 1 ? '<button class="knop" id="pweg">🗑️ Van de kaart</button>' : ''}</div>`;
+  $('bak').innerHTML = Object.entries(ING).map(([k, d]) => `<button data-i="${k}"><span class="ing" style="background-position:-${d.i * 40}px 0"></span>${esc(d.n)}<small>${geld(d.k)}</small></button>`).join('');
+  $('bak').querySelectorAll('button').forEach((b) => b.onclick = () => legOp(b.dataset.i));
+  $('bodem').onclick = (e) => { // tik op de pizza: het stukje dat daar ligt weghalen (of anders het laatste)
+    if (!bewerk.stukjes.length) return;
+    const r = $('bodem').getBoundingClientRect(), x = ((e.clientX - r.left) / r.width * 2 - 1) / 0.78, y = ((e.clientY - r.top) / r.height * 2 - 1) / 0.78;
+    let best = bewerk.stukjes.length - 1, bd = 0.3;
+    bewerk.stukjes.forEach((st, i) => { const d = Math.hypot(st.x - x, st.y - y); if (d < bd) { bd = d; best = i; } });
+    bewerk.stukjes.splice(best, 1); ding(400, 0.08, 'triangle', 0.06); tekenMaak();
+  };
+  $('pnaam').oninput = () => bewerk.naam = $('pnaam').value;
+  $('dobbel').onclick = () => { bewerk.naam = vrijeNaam(); $('pnaam').value = bewerk.naam; };
+  $('goedkoper').onclick = () => { bewerk.prijs = Math.max(4, bewerk.prijs - 1); tekenMaak(); };
+  $('duurder').onclick = () => { bewerk.prijs = Math.min(25, bewerk.prijs + 1); tekenMaak(); };
+  $('pterug').onclick = toonKaart;
+  $('pbewaar').onclick = bewaarPizza;
+  if ($('pweg')) $('pweg').onclick = () => { if (confirm(bewerk.naam + ' van de kaart halen?')) { S.menu.splice(nr, 1); bewaar(); toonKaart(); } };
+  tekenMaak();
+}
+function legOp(i) {
+  wekGeluid();
+  if (bewerk.stukjes.length >= MAXSTUK) { meld('De pizza is vol! Haal eerst iets weg.'); return; }
+  if (bewerk.stukjes.filter((s) => s.i == i).length >= MAXPER) { meld('Meer dan ' + MAXPER + ' keer ' + ING[i].n.toLowerCase() + ' past er niet op.'); return; }
+  let best = null, bd = -1; // de plek die het verst van de andere stukjes af ligt
+  for (let k = 0; k < 40; k++) {
+    const a = Math.random() * Math.PI * 2, q = Math.sqrt(Math.random()) * 0.72, x = Math.cos(a) * q, y = Math.sin(a) * q;
+    const d = Math.min(1, ...bewerk.stukjes.map((s) => Math.hypot(s.x - x, s.y - y)));
+    if (d > bd) { bd = d; best = { x, y }; }
+  }
+  bewerk.stukjes.push({ i, x: +best.x.toFixed(2), y: +best.y.toFixed(2), r: +(Math.random() * 6.28).toFixed(2) });
+  plof(); tekenMaak();
+}
+function tekenMaak() {
+  if (!bewerk) return;
+  tekenPizzaOp($('bodem'), bewerk);
+  const { f, k } = smaak(bewerk), winst = bewerk.prijs - k;
+  $('meter').innerHTML = `<div class="geel" style="text-align:center">SMAAKMETER</div>` +
+    f.map((v, j) => `<div class="m">${SMAAK[j]}<i><u style="width:${Math.min(100, v * 10)}%;background:${SMAAKKLEUR[j]}"></u></i></div>`).join('') +
+    `<div style="margin-top:6px">INKOOP  ${geld(k)}<br>PRIJS   ${geld(bewerk.prijs)}<br><span class="geel">WINST   ${geld(winst)}</span></div>`;
+  $('pprijs').textContent = geld(bewerk.prijs);
+  $('oordelen').innerHTML = oordeelHTML(bewerk);
+  $('bak').querySelectorAll('button').forEach((b) => b.disabled = bewerk.stukjes.length >= MAXSTUK || bewerk.stukjes.filter((s) => s.i == b.dataset.i).length >= MAXPER);
+}
+function bewaarPizza() {
+  let naam = (bewerk.naam || '').trim() || vrijeNaam();
+  if (!bewerk.stukjes.length) { meld('Er ligt nog niks op!'); return; }
+  while (S.menu.some((p, i) => p.naam == naam && i != bewerkNr)) naam += '!';
+  bewerk.naam = naam;
+  if (bewerkNr < 0) S.menu.push(bewerk); else S.menu[bewerkNr] = bewerk;
+  bewaar(); kassa(); toonKaart();
+}
+
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
   const k = $('raster'), open = modus != 'inrichten';
@@ -611,7 +847,7 @@ function tekenKnoppen() {
     const n = t == 'oven' ? S.ovens : S.obers, vol = n >= d.max;
     h += `<button data-p="${t}" class="${S.geld < d.prijs ? 'duur' : ''}" ${open || vol ? 'disabled' : ''}><span class="ik">${d.ik}</span>${t == 'oven' ? 'Oven + kok' : 'Ober'}<span class="pr">${vol ? 'maximaal' : '€' + d.prijs}</span></button>`;
   }
-  h += `<button data-pizza><span class="ik">📖</span>Pizza's<span class="pr">binnenkort</span></button>`;
+  h += `<button data-pizza ${open ? 'disabled' : ''}><span class="ik">📖</span>Pizza's<span class="pr">${S.menu.length} op de kaart</span></button>`;
   h += `<button data-dag><span class="ik">📊</span>Gisteren<span class="pr">overzicht</span></button>`;
   h += open ? `<button class="open" disabled><span class="ik">🔔</span>Open</button>` : `<button class="open" id="open"><span class="ik">🔔</span>Open de deuren</button>`;
   k.innerHTML = h;
@@ -621,7 +857,7 @@ function tekenKnoppen() {
     S.geld -= d.prijs; if (b.dataset.p == 'oven') S.ovens++; else S.obers++; kassa(); bewaar(); tekenKnoppen();
     meld(b.dataset.p == 'oven' ? 'Een extra oven met een kok erbij! Nu bakken er meer pizza\'s tegelijk.' : 'Een extra ober! Die kost wel ' + LOON + ' euro loon per dag.');
   });
-  k.querySelector('[data-pizza]').onclick = () => meld('Zelf pizza\'s verzinnen komt in de volgende stap!');
+  k.querySelector('[data-pizza]').onclick = () => { wekGeluid(); sluitMenu(); kies = null; toonKaart(); };
   k.querySelector('[data-dag]').onclick = () => { if (laatsteDag) { $('eindkaart').innerHTML = laatsteDag; $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); } else meld('Je hebt nog geen dag gedraaid.'); };
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
@@ -663,10 +899,10 @@ if (lees(SLEUTEL) && !TEGEL) { $('welkom').classList.add('verborgen'); tekenKnop
 
 if (TEGEL) { // plaatje voor de startpagina
   $('welkom').classList.add('verborgen');
-  S = { versie: 2, geld: 999, dag: 3, rep: 60, ovens: 2, obers: 2, spullen: [
+  S = { versie: 2, geld: 999, dag: 3, rep: 60, ovens: 2, obers: 2, menu: [MARGHERITA()], spullen: [
     { t: 'tafel2', x: 0, y: 4, kleed: 1, kaars: 1 }, { t: 'tafel4', x: 5, y: 3, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 4, kleed: 1 },
     { t: 'tafel4', x: 0, y: 8, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 10, y: 9, kaars: 1 }, { t: 'plant', x: 14, y: 3 }, { t: 'plant', x: 4, y: 3 }, { t: 'jukebox', x: 14, y: 13 }, { t: 'plant', x: 5, y: 12 }, { t: 'tafel2', x: 5, y: 9 } ] };
-  modus = 'open'; tel = { blij: 0, boos: 0, vol: 0, omzet: 0, fooi: 0, wacht: 0, wachtN: 0 }; maakPersoneel();
+  modus = 'open'; tel = NIEUWTEL(); maakPersoneel();
   for (const s of S.spullen.filter(isTafel)) stoelen(s).forEach((p, i) => { if (Math.random() < 0.8) { const m = maakMens(s, i); m.x = p[0]; m.y = p[1]; m.st = Math.random() < 0.6 ? 'eet' : 'wacht'; m.t = Math.random() * 3; m.geduld = 999; mensen.push(m); } });
   klaar = [{ plek: TOONBANK(0) }, { plek: TOONBANK(1) }]; ovens[0].fase = 'bak'; ovens[0].t = 1; ovens[1].kok.x = BANK(1)[0]; ovens[1].kok.y = BANK(1)[1]; ovens[1].kok.gooi = 0.3; obers[0].x = 8.5; obers[0].y = 7.6; obers[0].draagt = true; obers[1].x = 4.2; obers[1].y = 3.5;
   wolkjes.push({ m: mensen[2], tekst: 'Mamma mia!', t: 999 });
@@ -681,7 +917,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, stap, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; } };
+window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; } };
 </script>
 </body>
 </html>
