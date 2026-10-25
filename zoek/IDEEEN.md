@@ -21,5 +21,6 @@
     - B10 Afsluiter: één grote Bruegel-mix met figuren uit B1-B9 en alle spelvormen door elkaar.
 - **Sjaak-plaat**: één plaat met ±20 Sjaakjes, gaat open als je Sjaak in alle levels hebt betrapt; een Sjaak-teller in het menu.
 - Orkest en strand hebben nog geen Sjaak (nieuwe Gemini-plaat of Sjaak erin plakken zoals de oldtimer bij het strand).
+- **Level 21: dameshockeywedstrijd** (gekozen, okt 2026): eerste sportlevel; Gemini-opdracht staat in het gesprek, link komt in `LEESMIJ.md`.
 - Meer levels: winterkermis, Orkenstorm-dorp, plaats delict (iemand onder een laken met een been eruit).
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.
