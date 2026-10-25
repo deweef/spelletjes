@@ -7,7 +7,7 @@ van 15x15 vloertegels zoals in het oude spel (`W`, `H`, `T` = 48; rij 0-2 keuken
 tegels (stoel, tafel 2x2, stoel), tafel voor 4 = 4x4; poppetjes ongeveer een tegel groot (`MENS`). Oude opslag zonder `versie: 2` krijgt zijn
 spullen terugbetaald en begint opnieuw met twee tafeltjes. Twee standen (`modus`): inrichten (spullen uit `SPUL`
 kopen en neerzetten: tafeltje voor 2, tafel voor 4, plant, jukebox (2x2; oude opslag met een 1x1-jukebox krijgt een vrije plek of geld terug);
-vasthouden en slepen = verplaatsen (`sleep`), tikken = menu met kleedje/kaarsje (`EXTRA`) en verkopen; extra ovens en obers in `PERSONEEL`) en open (een werkdag van `DAG` = 120 s, 17:00-22:00). Klantengroepjes (`groep`) zoeken een vrije
+vasthouden en slepen = verplaatsen (`sleep`), tikken = menu met kleedje (`KLEED`: 11 kleedjes als kleurknopjes, `s.kleed` = naam, oud `true` = 'rood' via `kleedVan`; €10, chic ✨ €20 en +1 gezellig; ronde = ronde tafel; plaatjes `pizza/kleden.png` (`KLEDEN`, vakjes 192x192)), kaarsje (`EXTRA`) en verkopen; extra ovens en obers in `PERSONEEL`) en open (een werkdag van `DAG` = 120 s, 17:00-22:00). Klantengroepjes (`groep`) zoeken een vrije
 tafel (anders "vol", reputatie omlaag). Zit de hele tafel, dan bestellen ze samen (`bestel`) en bakt de keuken hun pizza's achter elkaar
 (`wachtrij`, `BAKTIJD`). Pas als alle pizza's van de tafel op het uitgiftepunt staan (`klaar`, `tafelKlaar`) komen er loopjes (`ritten`)
 van max. 2 borden, één per hand; bij 4 personen loopt een ober twee keer (of gaan er twee obers). Ze eten en betalen de pizzaprijs plus fooi

@@ -41,6 +41,9 @@
   #menu b { display: block; padding: 4px 6px 6px; }
   #menu button { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 9px; padding: 8px 10px; margin: 4px 0 0; font: 600 14px system-ui, sans-serif; cursor: pointer; }
   #menu button:disabled { opacity: .45; }
+  #menu .kleden { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 4px; }
+  #menu .kleden button { margin: 0; height: 28px; padding: 0; border-radius: 7px; border: 2px solid rgba(0,0,0,.25); text-align: center; font-size: 12px; }
+  #menu .kleden button.aan { border: 3px solid #2e9d52; box-shadow: 0 0 0 2px #fff inset; }
   .scherm { position: fixed; inset: 0; z-index: 8; background: rgba(20,10,4,.78); display: flex; overflow-y: auto; padding: 20px 14px; }
   .kaart { margin: auto; background: #fff7e8; color: #3a2414; border-radius: 18px; padding: 20px 22px; max-width: 440px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
   .kaart h1 { margin: 0 0 6px; font-size: 26px; color: #b5361f; }
@@ -133,6 +136,18 @@ const SPUL = {
   jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 2, h: 2, een: true },
 };
 const EXTRA = { kleed: { n: 'Kleedje', ik: '🟥', prijs: 10 }, kaars: { n: 'Kaarsje', ik: '🕯️', prijs: 8 } };
+// kleedjes (plaatjes in pizza/kleden.png, vakjes van 192 x 192, in deze volgorde; uit pizza/tafels-gemini.jpg en pizza/tafels2-gemini.jpg).
+// rond = een ronde tafel met kleed; chic = duurder en een sterretje extra gezellig
+const KLEED = {
+  rood: { n: 'Rood-wit geruit', kl: '#d63031', prijs: 10 }, groen: { n: 'Groen geruit', kl: '#3c6e3c', prijs: 10, rond: 1 },
+  geel: { n: 'Geel geruit', kl: '#f4c430', prijs: 10, rond: 1 }, turkoois: { n: 'Turkoois geruit', kl: '#1abc9c', prijs: 10, rond: 1 },
+  zwartwit: { n: 'Zwart-wit geruit', kl: '#333', prijs: 10, rond: 1 }, wit: { n: 'Wit', kl: '#f4f4f4', prijs: 10, rond: 1 },
+  paars: { n: 'Paars paisley', kl: '#6d1b4d', prijs: 20, rond: 1, chic: 1 }, blauw: { n: 'Blauw damast', kl: '#b9c6e6', prijs: 20, chic: 1 },
+  olijf: { n: 'Olijf damast', kl: '#7d7a2e', prijs: 20, chic: 1 }, nacht: { n: 'Nachtblauw damast', kl: '#24305e', prijs: 20, chic: 1 },
+  streep: { n: 'Rood gestreept', kl: '#a8402c', prijs: 20, chic: 1 },
+};
+Object.keys(KLEED).forEach((k, i) => KLEED[k].i = i);
+const kleedVan = (s) => (s.kleed === true || s.kleed === 1 ? 'rood' : KLEED[s.kleed] ? s.kleed : null); // oude opslag: kleed = true
 const PERSONEEL = { oven: { n: 'Extra oven', ik: '🔥', prijs: 250, max: 3 }, ober: { n: 'Extra ober', ik: '🤵', prijs: 200, max: 3, loon: true } };
 
 // ---------- pizza's: ingrediënten en wie wat lekker vindt ----------
@@ -245,7 +260,8 @@ function stoelen(s) { // plekken (in tegels, middelpunt) waar klanten zitten
 }
 const midden = (s) => [s.x + SPUL[s.t].w / 2, s.y + SPUL[s.t].h / 2];
 function gezellig(s) { // 1 tot 6 sterretjes
-  let g = 1 + (s.kleed ? 1 : 0) + (s.kaars ? 1 : 0);
+  const kl = kleedVan(s);
+  let g = 1 + (kl ? 1 + (KLEED[kl].chic ? 1 : 0) : 0) + (s.kaars ? 1 : 0);
   const [cx, cy] = midden(s);
   g += Math.min(2, S.spullen.filter((p) => p.t == 'plant' && Math.hypot(p.x + 0.5 - cx, p.y + 0.5 - cy) <= 3.6).length);
   if (S.spullen.some((p) => p.t == 'jukebox')) g += 1;
@@ -791,7 +807,8 @@ const PLANTEN = new Image(); PLANTEN.src = 'pizza/planten.png'; // pizza/planten
 const JUKEBOX = new Image(); JUKEBOX.src = 'pizza/jukebox.png';
 const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
 function gemStoel({ sx, sy, kant }) { const k = 0.5; g.drawImage(STOELEN, kant * 110, 0, 110, 170, sx * T - 55 * k, sy * T - 110 * k, 110 * k, 170 * k); }
-const TAFELS = new Image(); TAFELS.src = 'pizza/tafels.png'; // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
+const TAFELS = new Image(); TAFELS.src = 'pizza/tafels.png';
+const KLEDEN = new Image(); KLEDEN.src = 'pizza/kleden.png'; // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
 function tekenSpul(s, nu, zitten) {
   const x = s.x * T, y = s.y * T;
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
@@ -803,8 +820,10 @@ function tekenSpul(s, nu, zitten) {
   // tafelblad: lichtgrijs gemêleerd, of met een rood-wit kleed
   if (TAFELS.complete && TAFELS.naturalWidth) { // Gemini-tafel: 0 marmer, 1 rood-wit geruit kleed (2-3 wit kleed, voor later)
     const w = 2 * T, h = w * 156 / 192, x0 = cx - w / 2, y0 = cy - h / 2;
-    g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(x0 + 6, y0 + 8, w - 6, h - 6);
-    g.drawImage(TAFELS, (s.kleed ? 1 : 0) * 192, 0, 192, 156, x0, y0, w, h);
+    const kl = kleedVan(s);
+    g.fillStyle = 'rgba(0,0,0,.22)'; if (kl && KLEED[kl].rond) { g.beginPath(); g.ellipse(cx + 4, cy + 8, w * 0.46, h * 0.5, 0, 0, 7); g.fill(); } else g.fillRect(x0 + 6, y0 + 8, w - 6, h - 6);
+    if (kl && KLEDEN.complete && KLEDEN.naturalWidth) g.drawImage(KLEDEN, KLEED[kl].i * 192, 0, 192, 192, x0, y0 + h - w, w, w); // kleed hangt wat verder naar beneden
+    else g.drawImage(TAFELS, (kl ? 1 : 0) * 192, 0, 192, 156, x0, y0, w, h);
   } else {
   const tx = cx - T + 4, ty = cy - T + 4, tw = 2 * T - 8, th = 2 * T - 8;
   g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(tx + 4, ty + 5, tw, th);
@@ -899,7 +918,10 @@ function toonMenu(s, cx, cy) {
   const m = $('menu'), d = SPUL[s.t];
   let h = `<b>${d.ik} ${esc(d.n)}${isTafel(s) ? ' · ' + '⭐'.repeat(gezellig(s)) : ''}</b>`;
   if (isTafel(s)) {
-    h += s.kleed ? `<button data-a="kleed-">Kleedje eraf</button>` : `<button data-a="kleed" ${S.geld < EXTRA.kleed.prijs ? 'disabled' : ''}>🟥 Kleedje erop (€${EXTRA.kleed.prijs})</button>`;
+    const kl = kleedVan(s);
+    h += `<div class="kleden">${Object.entries(KLEED).map(([k, d]) => `<button data-a="kleed:${k}" title="${esc(d.n)} (€${d.prijs}${d.chic ? ', chic: extra gezellig' : ''})" class="${kl == k ? 'aan' : ''}" ${kl != k && S.geld < d.prijs ? 'disabled' : ''} style="background:${d.kl}">${d.chic ? '✨' : ''}</button>`).join('')}</div>`;
+    h += `<small style="display:block;padding:2px 6px 4px;opacity:.7">${kl ? esc(KLEED[kl].n) + (KLEED[kl].chic ? ' ✨' : '') : 'Kies een kleedje: €10, chic ✨ €20'}</small>`;
+    if (kl) h += `<button data-a="kleed-">Kleedje eraf</button>`;
     h += s.kaars ? `<button data-a="kaars-">Kaarsje weg</button>` : `<button data-a="kaars" ${S.geld < EXTRA.kaars.prijs ? 'disabled' : ''}>🕯️ Kaarsje erop (€${EXTRA.kaars.prijs})</button>`;
   }
   if (s.t == 'plant') h += `<button data-a="plant">🔄 Andere plant</button>`;
@@ -910,10 +932,11 @@ function toonMenu(s, cx, cy) {
   m.style.left = Math.min(innerWidth - bw - 8, Math.max(8, cx - bw / 2)) + 'px'; m.style.top = Math.min(innerHeight - bh - 80, Math.max(56, cy + 12)) + 'px';
   m.querySelectorAll('button').forEach((b) => b.onclick = () => {
     const a = b.dataset.a;
-    if (a == 'kleed' || a == 'kaars') { S.geld -= EXTRA[a].prijs; s[a] = true; plof(); }
+    if (a.startsWith('kleed:')) { const k = a.slice(6); if (kleedVan(s) != k) { S.geld -= KLEED[k].prijs; s.kleed = k; plof(); } }
+    if (a == 'kaars') { S.geld -= EXTRA[a].prijs; s[a] = true; plof(); }
     if (a == 'kleed-' || a == 'kaars-') s[a.slice(0, -1)] = false;
     if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
-    if (a == 'verkoop') { S.geld += Math.floor(d.prijs / 2) + (s.kleed ? 5 : 0) + (s.kaars ? 4 : 0); S.spullen.splice(S.spullen.indexOf(s), 1); kassa(); sluitMenu(); }
+    if (a == 'verkoop') { S.geld += Math.floor(d.prijs / 2) + (kleedVan(s) ? Math.floor(KLEED[kleedVan(s)].prijs / 2) : 0) + (s.kaars ? 4 : 0); S.spullen.splice(S.spullen.indexOf(s), 1); kassa(); sluitMenu(); }
     bewaar(); tekenKnoppen(); if (a != 'verkoop') toonMenu(s, cx, cy);
   });
 }

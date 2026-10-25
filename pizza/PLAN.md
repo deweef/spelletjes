@@ -107,7 +107,7 @@ op een tafel (voorovergebogen), en staan met de borden. Alle voeten op dezelfde 
 geen schaduwen, geen tekst."
 
 **D1. Tafels**: gedaan (25 okt), `pizza/tafels-gemini.jpg`; de onderste rij (bijna recht van boven) past het best.
-Extra vel `pizza/tafels2-gemini.jpg` (nog niet ingebouwd): ronde tafels (blauw/oranje marmer, geruit turquoise/geel/zwart/groen,
+Extra vel `pizza/tafels2-gemini.jpg` (kleedjes zijn ingebouwd, 25 okt: kiezen in het tafelmenu; zeshoekige tafels nog niet): ronde tafels (blauw/oranje marmer, geruit turquoise/geel/zwart/groen,
 wit, paars paisley), vierkante tafels met damast/motief-kleden (lichtblauw, olijf, donkerblauw, rood gestreept) en zeshoekige
 tafels (marmer, lappendeken, zwart-wit). Idee: kleedjes kiezen in het tafelmenu, en tafelstijlen per soort klant (punt 7).
 **D2 stoelen** gedaan: `pizza/stoelen2-gemini.jpg` (met opdracht, 4 richtingen). **Jukebox** gedaan: `pizza/jukebox-gemini.jpg`
