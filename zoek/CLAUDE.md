@@ -40,7 +40,7 @@ gewoon door met 21-30, of de Bruegel-lijn B1-B10 (B10 = afsluiter); level 31 gaa
 Bruegel-lijn, `na: [ids]` = welke levels dit level openen (zonder `na`: het vorige level van hetzelfde pad; B1 heeft `na: ['ruimte']`, 31 krijgt
 `na: [<id van 30>, <id van B10>]`). Daaruit volgen `label` (21, B1), `voor`, `isOpen` en `volgendeVan` (knop Volgende); het menu toont na 20 een
 splitsing met beide paden. `wat` = hoe de voorwerpen heten op het eindscherm (spreekwoorden, spelletjes). Gebouwd: 21 hockeywedstrijd (id `hockey`),
-22 herfststorm (`herfst`), B1 spreekwoorden, B2 kinderspelen, B3 jagers in de sneeuw (`jagers`, wat hoort er niet bij: de moderne dingen zijn de
+22 herfststorm (`herfst`, `storm: 1`: dwarrelende bladeren en om de 11-19 s een windvlaag met een wolk bladeren over het scherm, `storm`/`blad`/`windGeluid`, plaatje schudt even via `stormSchud`), B1 spreekwoorden, B2 kinderspelen, B3 jagers in de sneeuw (`jagers`, wat hoort er niet bij: de moderne dingen zijn de
 voorwerpen). Plan in `zoek/IDEEEN.md`; later ook een geheime Sjaak-plaat. De getekende versies van 1-5 staan als reserve in
 commentaarregels in `LEVELS` (de tekenfuncties zijn er nog; `#tegel` gebruikt nog de getekende rommelkamer). `orkest-gemini.jpg` is een eerdere versie.
 `auto` en `sjaak` mogen meer vakjes hebben (postkantoor: twee oldtimers), zie `inVak`. Een nieuw level = regel in `LEVELS` en naam in `ZOEK` in `scores/index.html`.
