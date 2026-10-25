@@ -103,6 +103,10 @@ tafels (marmer, lappendeken, zwart-wit). Idee: kleedjes kiezen in het tafelmenu,
 **D2 stoelen** gedaan: `pizza/stoelen2-gemini.jpg` (met opdracht, 4 richtingen). **Jukebox** gedaan: `pizza/jukebox-gemini.jpg`
 (ook schuin, van achteren, van opzij en een ronde; we gebruiken recht van voren). Nog te doen: D3 plant en palm. Kruidenbakken zonder opdracht: `pizza/kruiden-gemini.jpg` (basilicum, rozemarijn, oregano in
 terracotta bakken, een olijfboompje en pepers tegen een houten rek; schuin en recht van voren). Idee (Marcel: goed idee): eigen kruiden kweken, zodat ingrediënten goedkoper of lekkerder worden.
+**Keuken** (zonder opdracht van Marcel): `pizza/keuken-gemini.jpg` (stoelen, tafels, bank, 2 ovens, werkbank met ingrediënten, kassa,
+taartenvitrine, pizzadozen, OPEN-bord, bar), `pizza/ovens-gemini.jpg` (stenen ovens, ook met pizza op de schep; moderne
+ovens = later als duurdere oven), `pizza/toonbanken-gemini.jpg` (toonbanken, kassa's, menubord, werkbanken, aanrecht, bar).
+Ovens zijn ingebouwd. Idee: werkbank naast de oven, toonbank en kassa uit deze vellen.
 **D3 planten** gedaan: `pizza/planten-gemini.jpg` (bovenste rij: plantje, palm, citroenboompje, cactus).
 Stoelen zonder opdracht: `pizza/stoelen-gemini.jpg` (4 zittingen: marmer, groen geruit, blauw motief, rood motief; rij 1 en 4
 schuin, rij 2 recht van voren, rij 3 precies van opzij). Bruikbaar: van voren voor stoelen boven de tafel, van opzij voor links/rechts. Daarna D2 stoelen

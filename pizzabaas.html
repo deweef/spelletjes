@@ -618,6 +618,16 @@ function teken(nu) {
   // ovens: stenen koepels met vuur
   const ovs = modus == 'inrichten' ? Array.from({ length: S.ovens }, (_, i) => maakOven(i)) : ovens;
   for (const o of ovs) {
+    if (OVENS.complete && OVENS.naturalWidth) { // Gemini-oven: 0 uit, 1 met vuur (bakken), 2 pizza op de schep (inschuiven)
+      const w = 1.9 * T, x0 = o.x * T - w / 2, y0 = 1.95 * T - w, f = o.fase == 'bak' ? 1 : o.fase == 'inschuiven' ? 2 : 0;
+      if (f == 1) { g.fillStyle = `rgba(255,150,40,${0.18 + Math.sin(nu / 90) * 0.06})`; g.beginPath(); g.arc(x0 + w * 0.6, y0 + w * 0.6, w * 0.42, 0, 7); g.fill(); }
+      g.drawImage(OVENS, f * 150, 0, 150, 150, x0, y0, w, w);
+      if (f == 1) {
+        g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(x0 + 12, y0 + w + 1, w - 24, 5); g.fillStyle = '#ffd23f'; g.fillRect(x0 + 12, y0 + w + 1, (w - 24) * Math.min(1, o.t / (BAKTIJD - DEEG)), 5); // hoe lang nog
+        for (let k = 0; k < 3; k++) { const fr = ((nu / 900 + k / 3) % 1); g.fillStyle = `rgba(200,200,200,${0.45 * (1 - fr)})`; g.beginPath(); g.arc(x0 + w * 0.52 + Math.sin(fr * 6 + k) * 4, y0 + w * 0.1 - fr * 22, 4 + fr * 6, 0, 7); g.fill(); }
+      }
+      continue;
+    }
     const x = o.x * T, y = 0.15 * T;
     g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(x + 3, y + 36, 34, 30, 0, 0, 7); g.fill();
     g.fillStyle = '#a84a2c'; g.beginPath(); g.ellipse(x, y + 32, 33, 29, 0, 0, 7); g.fill();
@@ -716,6 +726,7 @@ function tekenKlein(s, nu) {
 }
 // stoelen (Gemini, pizza/stoelen2-gemini.jpg): vakjes van 110 x 170, 0 leuning boven (stoel boven de tafel), 1 van achteren
 // (stoel onder de tafel), 2 leuning links, 3 leuning rechts; de zitting zit ongeveer op (55, 110) in het vakje
+const OVENS = new Image(); OVENS.src = 'pizza/ovens.png'; // pizza/keuken-gemini.jpg + pizza/ovens-gemini.jpg, vakjes van 150 x 150
 const PLANTEN = new Image(); PLANTEN.src = 'pizza/planten.png'; // pizza/planten-gemini.jpg, bovenste rij, vakjes van 150 x 160
 const JUKEBOX = new Image(); JUKEBOX.src = 'pizza/jukebox.png';
 const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
