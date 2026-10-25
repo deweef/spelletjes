@@ -352,27 +352,37 @@ function maakPersoneel() {
 // van de toonbank, waar een ober hem ophaalt
 const OVEN_X = [1.5, 13.5];
 const KOK_HUIS = (i) => [OVEN_X[i], 2.1], BANK = (i) => [i ? 12.1 : 2.9, 2];
-const UITGIFTE = () => [6.2, 2.4]; // waar de kok de pizza neerzet; de pizza's staan daar in een rijtje naar rechts
-function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: OVEN_X[i], bezig: null, t: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2, i } }; }
-const DEEG = 1.6;
+const UITGIFTE = (i) => [i ? 9.4 : 4.1, 2.4]; // per oven een eigen uitgifteblad naast zijn werkbank; de pizza's staan daar in rijtjes van 4 naar rechts
+const DEEG = 1.6, BAKKEN = BAKTIJD - DEEG; // deeg maken, en zo lang zit een pizza in de oven
+function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: OVEN_X[i], bak: null, schep: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2, i, st: 'vrij', hand: null, t: 0 } }; }
+// De kok werkt door terwijl de oven bakt: deeg maken aan de werkbank, naar de oven; is daar een pizza klaar, dan haalt hij die
+// eruit en schuift de nieuwe er in één keer in, en brengt de klare pizza naar zijn uitgifte. o.bak = { b, t } = de pizza in de oven
 function stapOven(o, dt) {
-  const k = o.kok;
-  if (o.fase == 'leeg') {
-    beweeg(k, KOK_HUIS(o.i), 2.2, dt); k.poets = (k.poets || 0) + dt;
-    const b = wachtrij.shift(); if (b) { o.bezig = b; o.t = 0; o.fase = 'deeg'; const k = smaak(b.m.pizza).k; S.geld -= k; tel.kosten += k; } // ingrediënten inkopen
-  } else if (o.fase == 'deeg') { // naar de werkbank, deeg uitrollen en opgooien
-    if (beweeg(k, BANK(o.i), 2.4, dt)) { o.t += dt; k.gooi = o.t; if (o.t >= DEEG) { o.fase = 'inschuiven'; k.gooi = 0; } }
-  } else if (o.fase == 'inschuiven') {
-    if (beweeg(k, [o.x, 1.7], 2.4, dt)) { o.fase = 'bak'; o.t = 0; ding(300, 0.08, 'triangle', 0.05); }
-  } else if (o.fase == 'bak') {
-    o.t += dt; beweeg(k, KOK_HUIS(o.i), 1.8, dt);
-    if (o.t >= BAKTIJD - DEEG) { o.fase = 'breng'; k.draagt = true; ding(1200, 0.05); }
-  } else if (o.fase == 'breng') {
-    if (beweeg(k, UITGIFTE(), 2.8, dt)) { klaar.push(o.bezig); tafelKlaar(o.bezig.groep); o.bezig = null; k.draagt = false; o.fase = 'leeg'; }
+  const k = o.kok, weg = (b) => b && (!mensen.includes(b.m) || b.m.st != 'wacht'); // klant al weg
+  if (o.bak) { o.bak.t += dt; if (o.bak.t >= BAKKEN && !o.bak.ding) { o.bak.ding = true; ding(1200, 0.05); } if (weg(o.bak.b)) o.bak = null; }
+  if (weg(k.hand)) { k.hand = null; k.draagt = false; k.gooi = 0; k.st = 'vrij'; }
+  o.schep = Math.max(0, o.schep - dt);
+  o.fase = o.schep > 0 ? 'inschuiven' : o.bak && o.bak.t < BAKKEN ? 'bak' : 'leeg'; o.t = o.bak ? o.bak.t : 0; // voor het tekenen
+  const ovenKlaar = o.bak && o.bak.t >= BAKKEN;
+  if (k.st == 'vrij') {
+    if (ovenKlaar) { if (beweeg(k, [o.x, 1.7], 2.6, dt)) { k.hand = o.bak.b; o.bak = null; k.draagt = true; k.st = 'breng'; } }
+    else { const b = wachtrij.shift();
+      if (b) { k.hand = b; k.t = 0; k.st = 'deeg'; const kost = smaak(b.m.pizza).k; S.geld -= kost; tel.kosten += kost; } // ingrediënten inkopen
+      else { beweeg(k, KOK_HUIS(o.i), 2.2, dt); k.poets = (k.poets || 0) + dt; } }
+  } else if (k.st == 'deeg') { // naar de werkbank, deeg uitrollen en opgooien
+    if (beweeg(k, BANK(o.i), 2.6, dt)) { k.t += dt; k.gooi = k.t; if (k.t >= DEEG) { k.st = 'oven'; k.gooi = 0; } }
+  } else if (k.st == 'oven') { // met het deeg naar de oven; wacht daar als er nog een pizza in bakt
+    if (beweeg(k, [o.x, 1.7], 2.6, dt) && (!o.bak || ovenKlaar)) {
+      const eruit = o.bak && o.bak.b; o.bak = { b: k.hand, t: 0 }; o.schep = 0.4; ding(300, 0.08, 'triangle', 0.05);
+      if (eruit) { k.hand = eruit; k.draagt = true; k.st = 'breng'; } else { k.hand = null; k.st = 'vrij'; }
+    }
+  } else if (k.st == 'breng') {
+    const [ux, uy] = UITGIFTE(o.i);
+    if (beweeg(k, [ux + 0.9, uy], 2.8, dt)) { k.hand.oven = o.i; klaar.push(k.hand); tafelKlaar(k.hand.groep); k.hand = null; k.draagt = false; k.st = 'vrij'; }
   }
-  if (o.bezig && (!mensen.includes(o.bezig.m) || o.bezig.m.st != 'wacht')) { o.bezig = null; k.draagt = false; k.gooi = 0; o.fase = 'leeg'; } // klant al weg
 }
-const NIEUWTEL = () => ({ blij: 0, boos: 0, vol: 0, niks: 0, omzet: 0, fooi: 0, kosten: 0, wacht: 0, wachtN: 0, lekker: 0, verkocht: {}, soort: {} });
+
+const NIEUWTEL = () => ({ blij: 0, boos: 0, boosKeuken: 0, boosOber: 0, vol: 0, niks: 0, omzet: 0, fooi: 0, kosten: 0, wacht: 0, wachtN: 0, lekker: 0, verkocht: {}, soort: {} });
 function openDeuren() {
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
@@ -392,6 +402,7 @@ function eindeDag() {
     <table>
       <tr><td>😋 Tevreden klanten</td><td>${tel.blij}</td></tr>
       <tr><td>😡 Boos weggelopen</td><td>${tel.boos}</td></tr>
+      ${tel.boos ? `<tr><td style="padding-left:28px;font-size:.9em">waarvan: keuken te traag / ober te druk</td><td>${tel.boosKeuken} / ${tel.boosOber}</td></tr>` : ''}
       <tr><td>🚪 Geen plek</td><td>${tel.vol}</td></tr>
       ${tel.niks ? `<tr><td>🤷 Niks lekkers op de kaart</td><td>${tel.niks}</td></tr>` : ''}
       ${top ? `<tr><td>🏆 Meest besteld</td><td>${esc(top[0])} (${top[1]}×)</td></tr>` : ''}
@@ -404,7 +415,8 @@ function eindeDag() {
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
       ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
     </table>
-    <p>${tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : tel.boos > 2 ? 'Klanten moesten te lang wachten. Een extra oven of ober helpt!' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
+    <p>${tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
+      : tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
     <button class="groot" id="verder">Verder met inrichten</button>`;
   laatsteDag = $('eindkaart').innerHTML.replace('Verder met inrichten', 'Sluiten').replace('zit erop!', 'zat erop');
   $('einde').classList.remove('verborgen');
@@ -641,6 +653,7 @@ function stap(dt) {
     groep.t += dt;
     if (groep.t > groep.geduld) { // te lang gewacht: de hele tafel loopt boos weg
       const wie = groep.mensen.filter((m) => m.st == 'wacht');
+      if (ritten.some((r) => r.groep == groep)) tel.boosOber += wie.length; else tel.boosKeuken += wie.length; // waren de pizza's al klaar? dan lag het aan de bediening
       wie.forEach((m, i) => { m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; if (!i) zeg(m, R(ZEG.boos)); tel.boos++; S.rep = Math.max(0, S.rep - 3); });
       boos();
       wachtrij = wachtrij.filter((b) => b.groep != groep); klaar = klaar.filter((b) => b.groep != groep); ritten = ritten.filter((r) => r.groep != groep);
@@ -651,12 +664,15 @@ function stap(dt) {
   // obers brengen de pizza's rond
   for (const ob of obers) {
     if (ob.serveer > 0) { ob.serveer -= dt; continue; } // even de stolp optillen: "Prego!"
-    if (!ob.taak && ritten.length) { ob.taak = ritten.shift(); ob.fase = 'halen'; ob.taak.groep.opgehaald = true; }
+    if (!ob.taak && ritten.length) { ob.taak = ritten.shift(); ob.fase = 'halen'; ob.taak.groep.opgehaald = true; ob.draagt = 0; }
     if (!ob.taak) { loopNaar(ob, ob.thuis, 3.4, dt); continue; }
     const borden = ob.taak.borden = ob.taak.borden.filter((b) => mensen.includes(b.m) && b.m.st == 'wacht'); // wie er nog zit
     if (!borden.length) { ob.taak = null; ob.draagt = 0; continue; }
-    if (ob.fase == 'halen') { // naar het uitgiftepunt, de borden pakken (één in elke hand)
-      if (loopNaar(ob, [UITGIFTE()[0] + 0.4, KEUKEN + 0.4], 3.4, dt)) { ob.fase = 'brengen'; ob.draagt = borden.length; klaar = klaar.filter((b) => !borden.includes(b)); }
+    if (ob.fase == 'halen') { // langs de uitgifte(s) waar zijn borden staan, de borden pakken (één in elke hand)
+      const nog = borden.filter((b) => klaar.includes(b));
+      if (!nog.length) { ob.fase = 'brengen'; ob.draagt = borden.length; continue; }
+      const hier = nog[0].oven || 0, [ux] = UITGIFTE(hier);
+      if (loopNaar(ob, [ux + 0.9, KEUKEN + 0.4], 3.4, dt)) { klaar = klaar.filter((b) => !(nog.includes(b) && (b.oven || 0) == hier)); ob.draagt = borden.filter((b) => !klaar.includes(b)).length; }
       continue;
     }
     const m = borden[0].m;
@@ -893,8 +909,8 @@ function teken(nu) {
       if (o.i) { g.save(); g.translate(2 * o.x * T, 0); g.scale(-1, 1); } // de rechter oven gespiegeld (opening naar het midden)
       metSchaduw(OVENS, f * 150, 0, 150, 150, x0, y0, w, w, o.i ? -8 : 8);
       if (o.i) g.restore();
+      if (o.bak) { g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(x0 + 12, y0 + w + 1, w - 24, 5); g.fillStyle = o.bak.t >= BAKKEN ? '#2ecc71' : '#ffd23f'; g.fillRect(x0 + 12, y0 + w + 1, (w - 24) * Math.min(1, o.bak.t / BAKKEN), 5); } // hoe lang nog (groen = klaar)
       if (f == 1) {
-        g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(x0 + 12, y0 + w + 1, w - 24, 5); g.fillStyle = '#ffd23f'; g.fillRect(x0 + 12, y0 + w + 1, (w - 24) * Math.min(1, o.t / (BAKTIJD - DEEG)), 5); // hoe lang nog
         for (let k = 0; k < 3; k++) { const fr = ((nu / 900 + k / 3) % 1); g.fillStyle = `rgba(200,200,200,${0.45 * (1 - fr)})`; g.beginPath(); g.arc(x0 + w * 0.52 + Math.sin(fr * 6 + k) * 4, y0 + w * 0.1 - fr * 22, 4 + fr * 6, 0, 7); g.fill(); }
       }
       continue;
@@ -909,15 +925,18 @@ function teken(nu) {
     g.fillStyle = '#555'; g.fillRect(x - 6, y - 2, 12, 8); // schoorsteen
     if (vuur) for (let k = 0; k < 3; k++) { const f = ((nu / 900 + k / 3) % 1); g.fillStyle = `rgba(200,200,200,${0.4 * (1 - f)})`; g.beginPath(); g.arc(x + Math.sin(f * 6 + k) * 4, y - 4 - f * 18, 4 + f * 6, 0, 7); g.fill(); }
   }
-  // het uitgiftepunt naast de ovens: een belletje, en de pizza's die klaarstaan in een rijtje op de toonbank
-  const [ux] = UITGIFTE(), ty = KEUKEN * T - 13;
-  g.fillStyle = 'rgba(40,15,5,.35)'; g.fillRect(ux * T - 22, ty - 12, 4 * T + 34, 31); // marmeren uitgifteblad met houten rand
-  g.fillStyle = '#5a3216'; g.fillRect(ux * T - 30, ty - 19, 4 * T + 38, 34);
-  g.fillStyle = '#e4ded4'; g.fillRect(ux * T - 27, ty - 16, 4 * T + 32, 28); g.fillStyle = 'rgba(160,150,140,.35)'; for (let k = 0; k < 9; k++) g.fillRect(ux * T - 20 + k * 22, ty - 12 + (k * 7) % 20, 14, 1);
+  // per oven een uitgifte naast de werkbank: een belletje, en de pizza's die klaarstaan in rijtjes op de toonbank
+  for (let i = 0; i < ovs.length; i++) {
+  const [ux] = UITGIFTE(i), ty = KEUKEN * T - 13;
+  const bw = 2 * T + 30;
+  g.fillStyle = 'rgba(40,15,5,.35)'; g.fillRect(ux * T - 22, ty - 12, bw + 4, 31); // marmeren uitgifteblad met houten rand
+  g.fillStyle = '#5a3216'; g.fillRect(ux * T - 30, ty - 19, bw + 8, 34);
+  g.fillStyle = '#e4ded4'; g.fillRect(ux * T - 27, ty - 16, bw + 2, 28); g.fillStyle = 'rgba(160,150,140,.35)'; for (let k = 0; k < 5; k++) g.fillRect(ux * T - 20 + k * 22, ty - 12 + (k * 7) % 20, 14, 1);
   g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(ux * T - 12, ty + 4, 11, 5, 0, 0, 7); g.fill(); // belletje
   g.fillStyle = '#d4a017'; g.beginPath(); g.arc(ux * T - 14, ty + 2, 10, Math.PI, 0); g.fill(); g.fillStyle = '#a77d0c'; g.fillRect(ux * T - 26, ty + 1, 24, 4);
   g.fillStyle = '#fff3b0'; g.beginPath(); g.arc(ux * T - 17, ty - 3, 3, 0, 7); g.fill(); g.fillStyle = '#a77d0c'; g.beginPath(); g.arc(ux * T - 14, ty - 9, 2.5, 0, 7); g.fill();
-  klaar.forEach((b, j) => { const x = (ux + 0.1 + (j % 8) * 0.48) * T, y = ty - Math.floor(j / 8) * 6; g.fillStyle = '#eee'; g.beginPath(); g.arc(x, y, 12, 0, 7); g.fill(); pizza(x, y, 9.5); });
+  klaar.filter((b) => (b.oven || 0) == i).forEach((b, j) => { const x = (ux + 0.1 + (j % 4) * 0.48) * T, y = ty - Math.floor(j / 4) * 6; g.fillStyle = '#eee'; g.beginPath(); g.arc(x, y, 12, 0, 7); g.fill(); pizza(x, y, 9.5); });
+  }
   g.fillStyle = '#fff'; g.font = 'bold 15px system-ui'; g.textAlign = 'center';
   g.fillText('PIZZERIA' + (speler ? ' ' + speler.toUpperCase() : ''), WW / 2 - 170, H * T + 20); g.fillText('🍕', WW / 2 + 170, H * T + 21);
 
@@ -1395,7 +1414,7 @@ if (TEGEL) { // plaatje voor de startpagina
   S.spullen = zetOm(S.spullen); S.versie = 3;
   modus = 'open'; tel = NIEUWTEL(); maakPersoneel();
   for (const s of S.spullen.filter(isTafel)) stoelen(s).forEach((p, i) => { if (Math.random() < 0.8) { const m = maakMens(s, i); m.x = p[0]; m.y = p[1]; m.st = Math.random() < 0.6 ? 'eet' : 'wacht'; m.t = Math.random() * 3; mensen.push(m); } });
-  klaar = [{}, {}, {}]; ovens[0].fase = 'bak'; ovens[0].t = 1; ovens[1].kok.x = BANK(1)[0]; ovens[1].kok.y = BANK(1)[1]; ovens[1].kok.gooi = 0.3; obers[0].x = 8.5; obers[0].y = 7.6; obers[0].draagt = 2; obers[1].x = 4.2; obers[1].y = 3.5;
+  klaar = [{}, {}, { oven: 1 }]; ovens[0].bak = { b: null, t: 1 }; ovens[0].fase = 'bak'; ovens[1].kok.x = BANK(1)[0]; ovens[1].kok.y = BANK(1)[1]; ovens[1].kok.gooi = 0.3; obers[0].x = 8.5; obers[0].y = 7.6; obers[0].draagt = 2; obers[1].x = 4.2; obers[1].y = 3.5;
   wolkjes.push({ m: mensen[2], tekst: 'Mamma mia!', t: 999 });
 }
 
@@ -1408,7 +1427,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>
