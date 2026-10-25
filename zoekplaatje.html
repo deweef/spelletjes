@@ -1317,6 +1317,35 @@ function storm() {
   blad = blad.filter((b) => !b.wild || b.x < innerWidth + 60);
 }
 const stormSchud = () => (level && level.storm && blad.some((b) => b.wild && b.x > 0) ? Math.sin(performance.now() / 35) * 3 : 0);
+// winter (winter: 1, jagers in de sneeuw): sneeuw die altijd valt, om de 14-22 s een sneeuwbui, en ijsbloemen die vanaf de randen
+// over het scherm groeien (ijs 0..1, vol in ~50 s); elk gevonden voorwerp ontdooit een stuk
+let sneeuw = [], bui = 0, buiTot = 0, ijs = 0, ijsDoek = null, ijsMasker = null, ijsTijd = 0;
+function maakIjs(w, h) { // bevroren ruit met ijsvarens, één keer per schermmaat
+  const k = document.createElement('canvas'); k.width = w; k.height = h; const g = k.getContext('2d');
+  g.fillStyle = 'rgba(215,235,255,.62)'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineCap = 'round';
+  const tak = (x, y, a, l, d) => { if (d > 4 || l < 4) return; const x2 = x + Math.cos(a) * l, y2 = y + Math.sin(a) * l; g.lineWidth = Math.max(0.6, 2.4 - d * 0.5); g.beginPath(); g.moveTo(x, y); g.lineTo(x2, y2); g.stroke();
+    for (let i = 1; i <= 3; i++) { const t = i / 4, px = x + (x2 - x) * t, py = y + (y2 - y) * t; tak(px, py, a + 0.9, l * 0.38, d + 1); tak(px, py, a - 0.9, l * 0.38, d + 1); } tak(x2, y2, a + (Math.random() - 0.5) * 0.6, l * 0.6, d + 1); };
+  for (let i = 0; i < Math.round(w * h / 9000); i++) tak(Math.random() * w, Math.random() * h, Math.random() * 7, 20 + Math.random() * 45, 0);
+  return k;
+}
+function winter() {
+  const nu = performance.now(), top = $('boven').offsetHeight, H = innerHeight - top, dt = ijsTijd ? Math.min(1, (nu - ijsTijd) / 1000) : 0; ijsTijd = nu;
+  // ijsbloemen
+  ijs = Math.min(1, ijs + dt / 50);
+  if (!ijsDoek || ijsDoek.width != innerWidth || ijsDoek.height != H) { ijsDoek = maakIjs(innerWidth, H); ijsMasker = document.createElement('canvas'); ijsMasker.width = innerWidth; ijsMasker.height = H; }
+  if (ijs > 0.01) { const m = ijsMasker.getContext('2d'), rs = 1.5 - ijs * 0.95; m.globalCompositeOperation = 'source-over'; m.clearRect(0, 0, innerWidth, H); m.drawImage(ijsDoek, 0, 0);
+    m.globalCompositeOperation = 'destination-in'; m.save(); m.translate(innerWidth / 2, H / 2); m.scale(innerWidth / 2, H / 2);
+    const gr = m.createRadialGradient(0, 0, 0, 0, 0, 1.5); gr.addColorStop(Math.max(0, rs / 1.5), 'rgba(0,0,0,0)'); gr.addColorStop(Math.min(1, (rs + 0.3) / 1.5), 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
+    m.fillStyle = gr; m.fillRect(-1.5, -1.5, 3, 3); m.restore(); ctx.drawImage(ijsMasker, 0, top); }
+  // sneeuw
+  if (!bui) bui = nu + 9000;
+  if (nu > bui) { buiTot = nu + 5000; bui = nu + 14000 + Math.random() * 8000; }
+  const inBui = nu < buiTot, doel = inBui ? Math.max(150, Math.min(400, Math.round(innerWidth * H / 3500))) : 50;
+  while (sneeuw.length < doel) sneeuw.push({ x: Math.random() * (innerWidth + 200) - 100, y: top - Math.random() * H * (sneeuw.length < 50 && !ijsTijd ? 1 : 0.3), r: 1.5 + Math.random() * 3, v: 0.8 + Math.random() * 1.2, d: Math.random() * 7 });
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  for (const f of sneeuw) { f.d += 0.03; f.y += f.v * (inBui ? 2.2 : 1); f.x += Math.sin(f.d) * 0.6 + (inBui ? 2.5 : 0.2); ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 7); ctx.fill(); }
+  sneeuw = sneeuw.filter((f, i) => f.y < innerHeight + 10 && f.x < innerWidth + 20 && (inBui || i < 50 || f.y > top));
+}
 let lamp = null; // spookslot: waar de zaklamp schijnt (schermpixels); volgt de muis of je vinger
 let autoGevonden = false, autoMelding = 0, sjaakGevonden = false, sjaakMelding = 0, gekozen = -1, melding = null; // gekozen: welk vakje bovenin je hebt aangetikt
 let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, totaal = 25, start = 0, hints = 0, hintKlaar = 0, hintPuls = null, effecten = [];
@@ -1351,7 +1380,7 @@ const LEVELS = [
   { id: 'herfst', naam: 'De herfststorm', uitleg: 'Boom om, paraplu weg, en pas op voor de windvlagen!', beeld: 'zoek/herfst.jpg', storm: 1, items: HERFST_BEELD, auto: [713, 162, 794, 196], sjaak: [698, 555, 765, 735, 827, 592, 866, 662] },
   { id: 'spreekwoorden', pad: 'B', na: ['ruimte'], naam: 'De spreekwoorden', uitleg: 'Bruegel: zoek de spreekwoorden', wat: 'spreekwoorden', beeld: 'zoek/spreekwoorden.jpg', items: SPREEKWOORDEN_BEELD, auto: [1258, 133, 1354, 182], sjaak: [45, 380, 122, 492, 130, 415, 192, 522] },
   { id: 'kinderspelen', pad: 'B', naam: 'De kinderspelen', uitleg: 'Bruegel: zoek de spelletjes', wat: 'spelletjes', beeld: 'zoek/kinderspelen.jpg', items: KINDERSPELEN_BEELD, auto: [1080, 195, 1190, 240], sjaak: [165, 268, 225, 330, 1183, 285, 1218, 352] },
-  { id: 'jagers', pad: 'B', naam: 'Jagers in de sneeuw', uitleg: 'Bruegel: wat hoort er niet bij?', wat: 'dingen die er niet horen', beeld: 'zoek/jagers.jpg', items: JAGERS_BEELD, auto: [1305, 170, 1362, 202], sjaak: [276, 308, 307, 393, 316, 260, 365, 322] },
+  { id: 'jagers', pad: 'B', naam: 'Jagers in de sneeuw', uitleg: 'Bruegel: wat hoort er niet bij? Brrr, de ruit bevriest!', winter: 1, wat: 'dingen die er niet horen', beeld: 'zoek/jagers.jpg', items: JAGERS_BEELD, auto: [1305, 170, 1362, 202], sjaak: [276, 308, 307, 393, 316, 260, 365, 322] },
 ];
 // voortgang per level-id: zoek_tijd_<id> (snelste tijd in seconden, een hint telt als 20 s) en zoek_auto_<id> (oldtimer gevonden)
 for (const [n, id] of [[1, 'kamer'], [3, 'orkest']]) for (const k of ['zoek_tijd', 'zoek_auto']) { const v = opslag.get(k + n); if (v && !opslag.get(k + '_' + id)) opslag.set(k + '_' + id, v); } // oude sleutels met levelnummers
@@ -1439,7 +1468,7 @@ function startLevel(n) {
   // heeft een plaatje meer voorwerpen dan PER_POTJE, dan is elk potje anders
   rij = schud(voorwerpen()).slice(0, PER_POTJE); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
-  lamp = null; blad = []; vlaag = 0; zuurstof = 100; autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
+  lamp = null; blad = []; vlaag = 0; sneeuw = []; bui = 0; buiTot = 0; ijs = 0; ijsTijd = 0; zuurstof = 100; autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
   $('titel').textContent = 'Level ' + level.label + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
   vulBalk(); maat.klaar = false; maat(); start = performance.now();
 }
@@ -1490,6 +1519,7 @@ function vind(i) {
   kiesVak(-1);
   const v = actief[i]; actief[i] = null; v.gevonden = true; gevondenLijst.push(v); gevonden++; sGevonden();
   if (level.ruimte) zuurstof = Math.min(100, zuurstof + 14);
+  if (level.winter && ijs > 0.05) { ijs = Math.max(0, ijs - 0.3); snd(2400, 0.2, 'triangle', 0.03, 3400); } // ontdooien
   effecten.push({ soort: 'goed', x: v.midden[0], y: v.midden[1], t: 0 });
   zetTeller();
   const d = $('balk').children[i], doel = d.getBoundingClientRect();
@@ -1562,6 +1592,7 @@ function teken() {
     ctx.fillStyle = 'rgba(255,240,180,.06)'; ctx.beginPath(); ctx.arc(l.x, l.y, R * 0.6, 0, 7); ctx.fill(); // warm lichtje
   }
   if (level && level.storm && $('klaar').hidden) storm();
+  if (level && level.winter && $('klaar').hidden) winter();
   for (const e of effecten) if (e.scherm) { e.t++; e.x += e.vx; e.y += e.vy; ctx.fillStyle = e.k; ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.t * 0.1); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); }
   if (autoMelding && performance.now() - autoMelding < 2600) { const tx = innerWidth / 2, ty = innerHeight * 0.55; ctx.font = 'bold 22px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(42,31,58,.9)'; ctx.fillRect(tx - 170, ty - 34, 340, 62); ctx.fillStyle = '#ffd34d'; ctx.fillText('🚗 Oh jee, daar is hij weer!', tx, ty); ctx.font = 'bold 13px "Trebuchet MS",sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('Je vond de zilveren oldtimer', tx, ty + 20); }

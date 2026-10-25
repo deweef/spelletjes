@@ -20,7 +20,6 @@
     - B9 De val van Icarus: piepkleine details, ver inzoomen (alleen een paar beentjes in het water).
     - B10 Afsluiter: één grote Bruegel-mix met figuren uit B1-B9 en alle spelvormen door elkaar.
   - Extra effecten per level (zoals de windvlagen bij de herfststorm), voorstel okt 2026:
-    - B3 Jagers in de sneeuw (al gebouwd): sneeuwbuien, en ijsbloemen die langzaam vanaf de randen over het scherm groeien; elk gevonden ding ontdooit een stuk.
     - B4 Boerenbruiloft: proost! Na elk biertje (gevonden kan) wiebelt het beeld wat meer; vind de koffiepot voor een nuchtere blik.
     - B5 Carnaval en Vasten: confettikanon en een trommel die het beeld op de maat laat stuiteren.
     - B6 Luilekkerland: slaapmeter, het beeld wordt langzaam wazig en donker (je dommelt in); elk gevonden hapje maakt je weer wakker.
