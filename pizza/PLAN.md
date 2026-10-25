@@ -47,6 +47,7 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   die je moet opruimen, andere tafels vinden het minder gezellig, maar ze bestellen veel).
 - Aanpak per soort klant (werker, student, toerist, villa, opa/oma), één rij per Gemini-opdracht, met het ober-vel als
   stijlvoorbeeld: 1) lopen opzij (7), 2) zitten: van voren, van achteren, van opzij, eten. Beginnen met de werker (komt het vaakst).
+- K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
