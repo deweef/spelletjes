@@ -43,7 +43,7 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 
 ## Klanten als eigen figuren (stap 2 hieronder), afgesproken 25 okt
 - `pizza/kind-gemini.jpg` (zonder opdracht): peuter met feesthoedje en slab: staan, lopen, eten (pizzapunt), met eten gooien,
-  driftbui op de grond, plus losse hoedjes/slabben/kruimels. Idee: **kinderfeestje** als soort klant (lawaai, rommel op de vloer
+  driftbui op de grond, plus losse hoedjes/slabben/kruimels. `pizza/kind2-gemini.jpg`: zelfde vel met een meisje met staartjes (lila shirt), eet zittend op de grond; plus pizzapunten, hele pizza, kruimels. Idee: **kinderfeestje** als soort klant (lawaai, rommel op de vloer
   die je moet opruimen, andere tafels vinden het minder gezellig, maar ze bestellen veel).
 - Aanpak per soort klant (werker, student, toerist, villa, opa/oma), één rij per Gemini-opdracht, met het ober-vel als
   stijlvoorbeeld: 1) lopen opzij (7), 2) zitten: van voren, van achteren, van opzij, eten. Beginnen met de werker (komt het vaakst).
