@@ -35,8 +35,8 @@ Gemini-plaatjes staan in `zoek/` (allemaal 1376x768, links en vaste prompt in `z
 gaat het licht aan), 11 ziekenhuis, 12 dierentuin (id `dieren`), 13 school, 14 vliegveld (id `vlieg`), 15 fotoshoot (id `foto`),
 16 Nachtwacht (Rembrandt op onze manier, mag: publiek domein), 17 onderwaterstadje (id `onderwater`), 18 supermarkt, 19 bruin café (id `cafe`),
 20 ruimtestation (id `ruimte`, `ruimte: 1`: het plaatje draait langzaam rond zijn midden, `draaiHoek`/`naarScherm`/`naarWereld`, en een
-zuurstofmeter linksboven `zuurstof` loopt in ~1 min leeg, elk gevonden voorwerp +14; leeg = level opnieuw). Na level 20 komt de aftakking
-naar Bruegel (spreekwoorden, wat hoort er niet bij, tellen, op volgorde) en later een Sjaak-plaat; nog te bouwen. De getekende versies van 1-5 staan als reserve in
+zuurstofmeter linksboven `zuurstof` loopt in ~1 min leeg, elk gevonden voorwerp +14; leeg = level opnieuw). Na level 20 splitst het pad:
+gewoon door met 21-30, of de Bruegel-lijn B1-B10 (B10 = afsluiter); level 31 gaat open na 30 óf B10. Plan in `zoek/IDEEEN.md`; later ook een Sjaak-plaat. Nog te bouwen. De getekende versies van 1-5 staan als reserve in
 commentaarregels in `LEVELS` (de tekenfuncties zijn er nog; `#tegel` gebruikt nog de getekende rommelkamer). `orkest-gemini.jpg` is een eerdere versie.
 `auto` en `sjaak` mogen meer vakjes hebben (postkantoor: twee oldtimers), zie `inVak`. Een nieuw level = regel in `LEVELS` en naam in `ZOEK` in `scores/index.html`.
 Sluipende Sjaak (inbreker met streepjestrui, oogmasker, platte pet en geldzak met $; staat in de Gemini-prompt): `sjaak: [x1, y1, x2, y2]`, niet op het
