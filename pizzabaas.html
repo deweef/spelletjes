@@ -533,8 +533,9 @@ function ober(o) {
   const [x, y] = naarScherm(o.x, o.y);
   if (OBER.complete && OBER.naturalWidth) {
     g.save(); g.translate(x, y); g.scale(schaal, schaal);
-    const h = figuur(OBER, o, o.serveer > 0, false);
-    for (let i = 0; i < (o.draagt || 0); i++) { const bx = i ? -16 : 16; g.fillStyle = '#ddd'; g.beginPath(); g.arc(bx, -h * 0.45, 13, 0, 7); g.fill(); pizza(bx, -h * 0.45, 10); } // één bord per hand
+    if (o.draagt > 0 && !(o.serveer > 0) && OBER_BORD.complete && OBER_BORD.naturalWidth) // bord in de hand; bij twee ook een in de andere hand
+      figuur(OBER_BORD, o, false, false, o.draagt > 1 ? () => tweedeBord(-40, -100) : null);
+    else figuur(OBER, o, o.serveer > 0, false);
     g.restore(); return;
   }
   g.save(); g.translate(x, y); g.scale(schaal * MENS, schaal * MENS);
@@ -548,9 +549,13 @@ const KOK = new Image(); KOK.src = 'pizza/kok.png';   // pizza/kok2-gemini.jpg (
 const OBER = new Image(); OBER.src = 'pizza/ober.png'; // pizza/ober2-gemini.jpg (lopen) + de stolp van pizza/ober-gemini.jpg
 KOK.vel = { staan: 0, opzij: [2, 3, 4, 5, 6, 7, 8], rechts: true, bijzonder: 9, rug: 10, rugLoop: [11, 12, 13, 14], fps: 10 };
 OBER.vel = { ...KOK.vel, bijzonder: 9 }; // zelfde indeling; 9 = stolp optillen
+// de ober met een bord in de hand (pizza/ober-borden-gemini.jpg), vakjes van 180 breed zodat het bord erin past:
+// 0 staan van voren, 1-7 lopen opzij (neus naar rechts), 8-11 lopen naar achteren; het bord zit rechts (x +55, 104 boven de voeten)
+const OBER_BORD = new Image(); OBER_BORD.src = 'pizza/ober-borden.png';
+OBER_BORD.vel = { staan: 0, opzij: [1, 2, 3, 4, 5, 6, 7], rechts: true, rug: 8, rugLoop: [8, 9, 10, 11], fps: 10, sw: 180 };
 const SW = 113, SH = 192;
-function figuur(img, p, bijzonder, rug) {
-  const v = img.vel;
+function figuur(img, p, bijzonder, rug, achter) {
+  const v = img.vel, sw = v.sw || SW;
   let f = rug ? v.rug : v.staan, spiegel = false;
   if (bijzonder) f = v.bijzonder;
   else if (p.loopT > 0) {
@@ -561,11 +566,20 @@ function figuur(img, p, bijzonder, rug) {
       f = v.opzij[stap % v.opzij.length]; spiegel = (p.opzij || 1) > 0 != v.rechts;
     }
   }
-  const h = 1.85 * T, w = h * SW / SH;
+  const h = 1.85 * T, w = h * sw / SH;
   g.save(); if (spiegel) g.scale(-1, 1);
-  g.drawImage(img, f * SW, 0, SW, SH, -w / 2, -h + 6, w, h);
+  if (achter) { g.save(); g.translate(0, 6); g.scale(h / SH, h / SH); achter(); g.restore(); } // iets achter het figuurtje (in vakjes-pixels, voeten op y = 0)
+  g.drawImage(img, f * sw, 0, sw, SH, -w / 2, -h + 6, w, h);
   g.restore();
   return h;
+}
+function tweedeBord(x, y) { // wit bord met pizza, iets schuin van opzij gezien (zoals het bord op het Gemini-plaatje)
+  g.fillStyle = '#8a8a8a'; g.beginPath(); g.ellipse(x, y + 3, 33, 11, 0, 0, 7); g.fill();
+  g.fillStyle = '#f4f4f4'; g.beginPath(); g.ellipse(x, y, 33, 10, 0, 0, 7); g.fill();
+  g.fillStyle = '#d9a24a'; g.beginPath(); g.ellipse(x, y - 2, 25, 7, 0, 0, 7); g.fill();
+  g.fillStyle = '#e9c46a'; g.beginPath(); g.ellipse(x, y - 3, 21, 5, 0, 0, 7); g.fill();
+  g.fillStyle = '#c0392b'; for (const [a, b] of [[-10, -3], [6, -4], [12, -2], [-2, -2]]) { g.beginPath(); g.arc(x + a, y + b, 2.5, 0, 7); g.fill(); }
+  g.fillStyle = '#3c8d2f'; g.fillRect(x - 6, y - 5, 3, 2); g.fillRect(x + 2, y - 2, 3, 2);
 }
 function kokPlaatje(k, nu) {
   const h = figuur(KOK, k, k.gooi > 0, !k.loopT && (k.y < 1.9));

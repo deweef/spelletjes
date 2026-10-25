@@ -88,7 +88,8 @@ naar voren, benen naast elkaar. Niet van achteren, niet stilstaan.
 Geen stoelen, geen zittende figuren, geen grote losse figuur. Alle voeten op dezelfde hoogte. Effen felgroene achtergrond
 (#00FF00), geen schaduwen, geen vloer, geen tekst."
 
-**C. Ober met twee borden**:
+**C. Ober met twee borden**: gedaan (25 okt) met één rij per opdracht; Gemini gaf hem één bord (`pizza/ober-borden-gemini.jpg`),
+het tweede tekent het spel. Les: **één rij per opdracht**, en het nieuwste vel meesturen. Oude tekst:
 "Maak een vel met precies deze ober (zelfde stijl en grootte). Hij draagt in elke hand een wit bord met een pizza, armen
 gebogen naar voren. 3 rijen in een net raster, niets overlapt: rij 1: 6 plaatjes lopen van opzij (neus naar rechts);
 rij 2: 4 plaatjes lopen naar de kijker toe; rij 3: 4 plaatjes van achteren. Daarna nog 2 losse plaatjes: één bord neerzetten
