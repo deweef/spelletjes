@@ -9,18 +9,34 @@
   html, body { margin: 0; height: 100%; overflow: hidden; background: #2b1a10; font-family: system-ui, sans-serif; color: #fff; user-select: none; }
   #doek { position: absolute; left: 0; top: 0; touch-action: none; }
   .terug { position: fixed; top: 10px; left: 10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.45); color: #fff; text-decoration: none; font-size: 26px; line-height: 38px; text-align: center; z-index: 5; }
-  #balk { position: fixed; top: 10px; left: 60px; right: 10px; display: flex; gap: 8px; flex-wrap: wrap; z-index: 4; pointer-events: none; }
-  .tel { background: rgba(0,0,0,.5); border-radius: 18px; padding: 7px 12px; font-weight: 700; font-size: 15px; }
-  #klok { flex: 1; min-width: 120px; max-width: 260px; position: relative; overflow: hidden; }
-  #klok i { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255,200,60,.35); }
-  #klok span { position: relative; }
-  #knoppen { position: fixed; left: 0; right: 0; bottom: 0; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: rgba(30,16,8,.92); display: flex; gap: 6px; overflow-x: auto; z-index: 4; align-items: stretch; }
-  #knoppen button { flex: 0 0 auto; border: 0; border-radius: 12px; padding: 7px 10px; background: #5a3a22; color: #fff; font: 600 13px system-ui, sans-serif; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 74px; }
-  #knoppen button .ik { font-size: 22px; line-height: 1; }
-  #knoppen button.actief { background: #e8a33a; color: #2b1a10; }
-  #knoppen button.duur { opacity: .45; }
-  #knoppen button.open { background: #2e9d52; font-size: 15px; min-width: 130px; }
-  #knoppen .info { align-self: center; font-size: 14px; opacity: .85; padding: 0 6px; white-space: nowrap; }
+  body { display: flex; flex-direction: column; }
+  #veld { position: relative; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }
+  #paneel { flex: 0 0 auto; background: linear-gradient(90deg, #6b3d1c, #8a5228 50%, #6b3d1c); padding: 10px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 8px; border-top: 4px solid #4a2810; padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  #lcd { background: #0d0d0d; border: 4px solid #999; outline: 3px solid #3a2414; border-radius: 6px; padding: 8px 10px; font: 700 11px/1.3 'Courier New', monospace; min-width: 0; color: #f5f0d0; white-space: pre; overflow: hidden; box-shadow: inset 0 0 12px rgba(255,255,255,.08); }
+  #lcd .kop { color: #ffd23f; text-align: center; display: block; }
+  #lcd .geld { color: #ffd23f; text-align: center; display: block; margin-top: 3px; font-size: 15px; }
+  #raster { background: #d9a520; border: 4px solid #8a6410; border-radius: 6px; padding: 7px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; align-content: start; min-width: 0; }
+  #raster button { aspect-ratio: 1 / .82; border: 3px solid #555; border-radius: 6px; background: linear-gradient(#e6e6e6, #a9a9a9); color: #2b1a10; font: 700 11px/1.1 system-ui, sans-serif; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 2px; box-shadow: inset -2px -2px 0 rgba(0,0,0,.25), inset 2px 2px 0 rgba(255,255,255,.7); }
+  #raster button .ik { font-size: 22px; line-height: 1; }
+  #raster button .pr { font-size: 10px; opacity: .8; }
+  #raster button.actief { background: linear-gradient(#ffe08a, #e8a33a); border-color: #7a4a00; }
+  #raster button.duur, #raster button:disabled { opacity: .45; }
+  #raster button.open { background: linear-gradient(#7fdc95, #2e9d52); color: #fff; border-color: #1d5e31; }
+  @media (orientation: landscape) {
+    body { flex-direction: row; }
+    #paneel { width: clamp(200px, 25vw, 290px); grid-template-columns: minmax(0, 1fr); padding-bottom: 10px; align-content: start; border-top: 0; border-left: 4px solid #4a2810; overflow-y: auto; }
+  }
+  @media (orientation: landscape) { #lcd { font-size: 13px; } }
+  @media (orientation: portrait) { #raster button { aspect-ratio: 1 / .7; } #raster button .pr { display: none; } }
+  @media (orientation: landscape) and (max-height: 500px) {
+    #paneel { padding: 6px; gap: 6px; }
+    #lcd { font-size: 10.5px; padding: 5px 7px; }
+    #lcd .geld { font-size: 12px; }
+    #raster { padding: 5px; gap: 4px; }
+    #raster button { aspect-ratio: 1 / .62; font-size: 9.5px; }
+    #raster button .ik { font-size: 16px; }
+    #raster button .pr { display: none; }
+  }
   #menu { position: fixed; z-index: 6; background: #fff7e8; color: #3a2414; border-radius: 14px; padding: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.4); display: none; min-width: 190px; }
   #menu b { display: block; padding: 4px 6px 6px; }
   #menu button { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 9px; padding: 8px 10px; margin: 4px 0 0; font: 600 14px system-ui, sans-serif; cursor: pointer; }
@@ -34,28 +50,15 @@
   .kaart td:last-child { text-align: right; font-weight: 700; }
   .kaart .groot { display: block; width: 100%; margin-top: 12px; border: 0; border-radius: 14px; padding: 13px; background: #b5361f; color: #fff; font: 700 17px system-ui, sans-serif; cursor: pointer; }
   .verborgen { display: none !important; }
-  #melding { position: fixed; left: 50%; top: 58px; transform: translateX(-50%); background: rgba(0,0,0,.7); padding: 8px 14px; border-radius: 12px; font-size: 14px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .3s; max-width: 90vw; text-align: center; }
-  @media (max-height: 500px) {
-    #knoppen { padding: 4px 8px calc(4px + env(safe-area-inset-bottom)); gap: 4px; }
-    #knoppen button { flex-direction: row; min-width: 0; padding: 5px 8px; font-size: 11px; gap: 5px; }
-    #knoppen button .ik { font-size: 17px; }
-    #knoppen button.open { min-width: 0; font-size: 13px; }
-    .tel { padding: 5px 10px; font-size: 13px; }
-  }
-  body.tegel #balk, body.tegel #knoppen, body.tegel .terug { display: none; }
+  #melding { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: rgba(0,0,0,.7); padding: 8px 14px; border-radius: 12px; font-size: 14px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .3s; max-width: 90vw; text-align: center; }
+  body.tegel #paneel, body.tegel .terug { display: none; }
 </style>
 </head>
 <body>
 <a class="terug" href="./" id="terug">‹</a>
-<canvas id="doek"></canvas>
-<div id="balk">
-  <div class="tel" id="geld">💶 0</div>
-  <div class="tel" id="rep">⭐ 0</div>
-  <div class="tel" id="klok"><i></i><span>Dag 1</span></div>
-</div>
-<div id="knoppen"></div>
+<div id="veld"><canvas id="doek"></canvas><div id="melding"></div></div>
+<div id="paneel"><div id="lcd"></div><div id="raster"></div></div>
 <div id="menu"></div>
-<div id="melding"></div>
 
 <div class="scherm" id="welkom">
   <div class="kaart">
@@ -148,12 +151,34 @@ let kies = null; // wat er gekocht en neergezet wordt
 
 function maakPersoneel() {
   obers = []; for (let i = 0; i < S.obers; i++) obers.push({ x: 6 + i * 0.7, y: 2.4, thuis: [6 + i * 0.7, 2.4], taak: null, draagt: null });
-  ovens = []; for (let i = 0; i < S.ovens; i++) ovens.push({ x: 1.5 + i * 1.3, y: 1.2, bezig: null, t: 0 });
+  ovens = []; for (let i = 0; i < S.ovens; i++) ovens.push(maakOven(i));
+}
+// per oven een kok: die rolt het deeg uit en gooit het op (aan de werkbank naast de oven), schuift de pizza in de oven
+// en brengt hem als hij klaar is naar de toonbank, waar een ober hem ophaalt
+const KOK_HUIS = (i) => [1.3 + i * 1.9, 1.2], BANK = (i) => [2.05 + i * 1.9, 1.15], TOONBANK = (i) => [7.6 + i * 1.1, 1.6];
+function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: 1.3 + i * 1.9, bezig: null, t: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2 } }; }
+const DEEG = 1.6;
+function stapOven(o, dt) {
+  const k = o.kok;
+  if (o.fase == 'leeg') {
+    beweeg(k, KOK_HUIS(o.i), 1.6, dt); k.poets = (k.poets || 0) + dt;
+    const b = wachtrij.shift(); if (b) { o.bezig = b; o.t = 0; o.fase = 'deeg'; }
+  } else if (o.fase == 'deeg') { // naar de werkbank, deeg uitrollen en opgooien
+    if (beweeg(k, BANK(o.i), 1.8, dt)) { o.t += dt; k.gooi = o.t; if (o.t >= DEEG) { o.fase = 'inschuiven'; k.gooi = 0; } }
+  } else if (o.fase == 'inschuiven') {
+    if (beweeg(k, [o.x, 1.05], 1.8, dt)) { o.fase = 'bak'; o.t = 0; ding(300, 0.08, 'triangle', 0.05); }
+  } else if (o.fase == 'bak') {
+    o.t += dt; beweeg(k, KOK_HUIS(o.i), 1.2, dt);
+    if (o.t >= BAKTIJD - DEEG) { o.fase = 'breng'; k.draagt = true; ding(1200, 0.05); }
+  } else if (o.fase == 'breng') {
+    if (beweeg(k, TOONBANK(o.i), 2, dt)) { o.bezig.plek = TOONBANK(o.i); klaar.push(o.bezig); o.bezig = null; k.draagt = false; o.fase = 'leeg'; }
+  }
+  if (o.bezig && !mensen.includes(o.bezig.m)) { o.bezig = null; k.draagt = false; k.gooi = 0; o.fase = 'leeg'; } // klant al weg
 }
 function openDeuren() {
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; wolkjes = []; muntjes = [];
-  tel = { blij: 0, boos: 0, vol: 0, omzet: 0, fooi: 0 };
+  tel = { blij: 0, boos: 0, vol: 0, omzet: 0, fooi: 0, wacht: 0, wachtN: 0 };
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen();
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
@@ -175,6 +200,7 @@ function eindeDag() {
     </table>
     <p>${tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.boos > 2 ? 'Klanten moesten te lang wachten. Een extra oven of ober helpt!' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
     <button class="groot" id="verder">Verder met inrichten</button>`;
+  laatsteDag = $('eindkaart').innerHTML.replace('Verder met inrichten', 'Sluiten').replace('zit erop!', 'zat erop');
   $('einde').classList.remove('verborgen');
   $('verder').onclick = () => { $('einde').classList.add('verborgen'); tekenKnoppen(); };
   if (S.geld < 0) meld('Je staat rood! Verkoop iets of verdien het morgen terug.');
@@ -205,8 +231,8 @@ function maakMens(tafel, stoel) {
 function zeg(m, tekst) { wolkjes.push({ m, tekst, t: 3 }); }
 function beweeg(o, doel, snel, dt) {
   const dx = doel[0] - o.x, dy = doel[1] - o.y, d = Math.hypot(dx, dy);
-  if (d < 0.05) { o.x = doel[0]; o.y = doel[1]; return true; }
-  const s = Math.min(d, snel * dt); o.x += dx / d * s; o.y += dy / d * s; o.loopT = (o.loopT || 0) + dt; return false;
+  if (d < 0.05) { o.x = doel[0]; o.y = doel[1]; o.loopT = 0; return true; }
+  const s = Math.min(d, snel * dt); o.x += dx / d * s; o.y += dy / d * s; o.loopT = (o.loopT || 0) + dt; o.kijk = Math.atan2(dy, dx); return false;
 }
 
 // ---------- elke stap ----------
@@ -229,7 +255,7 @@ function stap(dt) {
     } else if (m.st == 'wacht') {
       if (m.t > m.geduld && !m.onderweg) { // te lang gewacht: boos weg
         m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; zeg(m, R(ZEG.boos)); tel.boos++; S.rep = Math.max(0, S.rep - 3); boos();
-        wachtrij = wachtrij.filter((b) => b.m != m); for (const o of ovens) if (o.bezig && o.bezig.m == m) o.bezig = null; klaar = klaar.filter((b) => b.m != m);
+        wachtrij = wachtrij.filter((b) => b.m != m); klaar = klaar.filter((b) => b.m != m);
       }
     } else if (m.st == 'eet' && m.t > ETEN) {
       const fooi = gezellig(m.tafel) * 0.6 + (m.wacht < 12 ? 1 : 0);
@@ -239,19 +265,16 @@ function stap(dt) {
     } else if (m.st == 'weg' && beweeg(m, m.doel, 2.2, dt)) mensen.splice(mensen.indexOf(m), 1);
   }
   // ovens bakken wat er besteld is
-  for (const o of ovens) {
-    if (!o.bezig) { const b = wachtrij.shift(); if (b) { o.bezig = b; o.t = 0; } }
-    else if ((o.t += dt) >= BAKTIJD) { klaar.push(o.bezig); o.bezig = null; ding(1200, 0.05); }
-  }
+  for (const o of ovens) stapOven(o, dt);
   // obers brengen de pizza's rond
   for (const ob of obers) {
     if (!ob.taak && klaar.length) { ob.taak = klaar.shift(); ob.fase = 'halen'; ob.taak.m.onderweg = true; }
     if (!ob.taak) { beweeg(ob, ob.thuis, 2.6, dt); continue; }
     const m = ob.taak.m;
     if (!mensen.includes(m) || m.st != 'wacht') { ob.taak = null; ob.draagt = null; continue; }
-    if (ob.fase == 'halen') { if (beweeg(ob, [ovens[0].x + 0.4 + Math.random() * 0.01, 2.25], 2.6, dt)) { ob.fase = 'brengen'; ob.draagt = true; } }
+    if (ob.fase == 'halen') { if (beweeg(ob, [ob.taak.plek[0], 2.3], 2.6, dt)) { ob.fase = 'brengen'; ob.draagt = true; } }
     else if (beweeg(ob, [m.x + (m.x < m.tafel.x + SPUL[m.tafel.t].w / 2 ? 0.35 : -0.35), m.y], 2.6, dt)) {
-      m.st = 'eet'; m.wacht = m.t; m.t = 0; m.onderweg = false; ob.taak = null; ob.draagt = null;
+      m.st = 'eet'; m.wacht = m.t; tel.wacht += m.t; tel.wachtN++; m.t = 0; m.onderweg = false; ob.taak = null; ob.draagt = null;
       if (Math.random() < 0.35) zeg(m, R(ZEG.eten));
     }
   }
@@ -261,16 +284,48 @@ function stap(dt) {
 let wachtrij = [];
 
 // ---------- tekenen ----------
+// In de stijl van het oude spel: van bovenaf, geblokte rood-geel-witte vloer, bakstenen muur, houten kader eromheen.
 const doek = $('doek'), g = doek.getContext('2d');
+const RAND = 18, WW = W * T, WH = H * T + 30; // houten rand, wereld in pixels (onderaan 30 voor de muur met de deur)
 let schaal = 1, ox = 0, oy = 0;
 function maat() {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const laag = innerHeight <= 500, bw = innerWidth, bh = innerHeight - (TEGEL ? 0 : laag ? 40 : 70);
-  doek.width = innerWidth * dpr; doek.height = innerHeight * dpr; doek.style.width = innerWidth + 'px'; doek.style.height = innerHeight + 'px';
-  schaal = Math.min(bw / (W * T), (bh - (TEGEL ? 0 : laag ? 44 : 50)) / (H * T + 30)) * dpr;
-  ox = (doek.width - W * T * schaal) / 2; oy = TEGEL ? (doek.height - (H * T + 30) * schaal) / 2 : (laag ? 44 : 56) * dpr;
+  const dpr = Math.min(2, window.devicePixelRatio || 1), v = $('veld');
+  const bw = v.clientWidth, bh = v.clientHeight;
+  doek.width = bw * dpr; doek.height = bh * dpr; doek.style.width = bw + 'px'; doek.style.height = bh + 'px';
+  const boven = TEGEL ? 0 : 48; // ruimte voor de terugknop
+  schaal = Math.min(bw / (WW + RAND * 2), (bh - boven) / (WH + RAND * 2)) * dpr;
+  ox = (doek.width - WW * schaal) / 2; oy = boven * dpr + (doek.height - boven * dpr - WH * schaal) / 2;
 }
 addEventListener('resize', maat);
+if (window.ResizeObserver) new ResizeObserver(() => maat()).observe($('veld')); // het paneel kan van hoogte veranderen
+
+// de vaste achtergrond (vloer, keuken, muren) één keer vooraf tekenen
+const achter = document.createElement('canvas'); achter.width = WW; achter.height = WH;
+(function tekenAchter() {
+  const a = achter.getContext('2d');
+  let zaad = 7; const rnd = () => (zaad = (zaad * 16807) % 2147483647) / 2147483647;
+  // vloer: tegeltjes van een half vakje, om en om wit met rood of geel
+  const t = T / 2;
+  for (let y = KEUKEN * 2; y < H * 2; y++) for (let x = 0; x < W * 2; x++) {
+    a.fillStyle = (x + y) % 2 ? '#f3e6c9' : (Math.floor(x / 2) + Math.floor(y / 2)) % 2 ? '#e2492f' : '#f2c230';
+    a.fillRect(x * t, y * t, t, t);
+    for (let k = 0; k < 14; k++) { a.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '255,255,255'},${0.05 + rnd() * 0.08})`; a.fillRect(x * t + rnd() * t, y * t + rnd() * t, 2, 2); }
+    a.fillStyle = 'rgba(0,0,0,.08)'; a.fillRect(x * t, y * t + t - 1, t, 1); a.fillRect(x * t + t - 1, y * t, 1, t);
+  }
+  // keuken: grijs-witte tegels
+  for (let y = 0; y < KEUKEN * 2; y++) for (let x = 0; x < W * 2; x++) { a.fillStyle = (x + y) % 2 ? '#e8e8e8' : '#9aa0a6'; a.fillRect(x * t, y * t, t, t); }
+  // werkbanken met deeg en meel
+  for (let i = 0; i < 3; i++) { const [bx, by] = BANK(i); a.fillStyle = '#b07a45'; a.fillRect((bx - 0.32) * T, (by - 0.95) * T, 0.64 * T, 0.5 * T); a.fillStyle = 'rgba(255,255,255,.6)'; a.beginPath(); a.arc(bx * T, (by - 0.7) * T, 9, 0, 7); a.fill(); }
+  // toonbank: houten blad op bakstenen
+  a.fillStyle = '#8b3a22'; a.fillRect(0, KEUKEN * T - 20, WW, 20);
+  a.fillStyle = 'rgba(0,0,0,.25)'; for (let x = 0; x < WW; x += 16) a.fillRect(x + ((x / 16) % 2) * 8, KEUKEN * T - 10, 1, 10);
+  a.fillStyle = '#c08a52'; a.fillRect(0, KEUKEN * T - 22, WW, 8); a.fillStyle = '#d9a46a'; a.fillRect(0, KEUKEN * T - 22, WW, 2);
+  // muur onderaan: rode bakstenen, met de deur
+  a.fillStyle = '#b8402a'; a.fillRect(0, H * T, WW, 30);
+  a.fillStyle = '#7a2414'; for (let r = 0; r < 3; r++) { a.fillRect(0, H * T + r * 10, WW, 1); for (let x = (r % 2) * 10; x < WW; x += 20) a.fillRect(x, H * T + r * 10, 1, 10); }
+  a.fillStyle = '#5a4a3a'; a.fillRect(DEUR.x * T + 4, H * T, T - 8, 30); a.fillStyle = '#8a7a6a'; a.fillRect(DEUR.x * T + 8, H * T + 4, T - 16, 22);
+  a.fillStyle = '#3a2a1a'; a.fillRect(DEUR.x * T + 8, H * T + 4, T - 16, 3);
+})();
 
 function rondRect(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 function pizza(x, y, r, half) {
@@ -280,21 +335,45 @@ function pizza(x, y, r, half) {
   g.fillStyle = '#3c8d2f'; for (let i = 0; i < 3; i++) { const a = i * 2.1 + 1; g.beginPath(); g.arc(x + Math.cos(a) * r * 0.25, y + Math.sin(a) * r * 0.25, r * 0.1, 0, 7); g.fill(); }
   if (half) { g.fillStyle = '#fff'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, r + 1, -0.3, 2.2); g.fill(); }
 }
-function poppetje(x, y, p, zit) { // van bovenaf: schouders, hoofd, haar
-  const wieg = p.loopT && !zit ? Math.sin(p.loopT * 12) * 2 : 0;
-  g.fillStyle = 'rgba(0,0,0,.18)'; g.beginPath(); g.ellipse(x, y + 10, 16, 7, 0, 0, 7); g.fill();
-  g.fillStyle = p.kleur; g.beginPath(); g.ellipse(x, y + 2 + wieg * 0.3, 15, 10, 0, 0, 7); g.fill();
-  g.fillStyle = p.huid; g.beginPath(); g.arc(x, y - 8, 9, 0, 7); g.fill();
-  g.fillStyle = p.haar;
-  if (p.pet) { g.fillStyle = '#c0392b'; g.beginPath(); g.arc(x, y - 10, 9.5, Math.PI, 0); g.fill(); g.fillRect(x - 3, y - 12, 14, 3); }
-  else { g.beginPath(); g.arc(x, y - 10, 9, Math.PI * 1.05, -0.05); g.fill(); if (p.lang) { g.fillRect(x - 9, y - 10, 4, 10); g.fillRect(x + 5, y - 10, 4, 10); } }
+function bord(x, y, vol, half) { g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.arc(x + 1, y + 2, 10, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 10, 0, 7); g.fill(); g.strokeStyle = '#d8d8d8'; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 7.5, 0, 7); g.stroke(); if (vol) pizza(x, y, 7, half); }
+// een poppetje van bovenaf dat de kant van `kijk` op kijkt: schouders, armpjes, hoofd met haar aan de achterkant
+function poppetje(p, opties = {}) {
+  const kijk = p.kijk ?? Math.PI / 2, loop = p.loopT ? Math.sin(p.loopT * 12) : 0;
+  g.save(); g.rotate(kijk - Math.PI / 2); // nu kijkt hij naar beneden (+y)
+  g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(2, 4, 17, 11, 0, 0, 7); g.fill();
+  // armpjes (zwaaien bij lopen, naar voren bij eten of werken)
+  const voor = opties.armen || 0;
+  g.fillStyle = p.kleur;
+  for (const k of [-1, 1]) { g.save(); g.translate(k * 13, 0); g.rotate(k * (0.2 + voor) + loop * 0.5 * k); g.beginPath(); g.ellipse(0, 6, 4.5, 8, 0, 0, 7); g.fill(); g.fillStyle = p.huid; g.beginPath(); g.arc(0, 13, 3.5, 0, 7); g.fill(); g.restore(); }
+  g.fillStyle = p.kleur; g.beginPath(); g.ellipse(0, 0, 15, 9, 0, 0, 7); g.fill();
+  g.fillStyle = 'rgba(0,0,0,.12)'; g.beginPath(); g.ellipse(0, -2, 15, 6, 0, Math.PI, 0); g.fill();
+  // hoofd
+  g.fillStyle = p.huid; g.beginPath(); g.arc(0, 1, 8.5, 0, 7); g.fill();
+  if (p.muts) { g.fillStyle = '#fff'; g.beginPath(); g.arc(0, -1, 9.5, 0, 7); g.fill(); g.fillStyle = '#e6e6e6'; g.beginPath(); g.arc(0, -1, 5, 0, 7); g.fill(); }
+  else if (p.pet) { g.fillStyle = '#c0392b'; g.beginPath(); g.arc(0, 0, 9, 0, 7); g.fill(); g.fillRect(-6, 4, 12, 6); }
+  else { g.fillStyle = p.haar; g.beginPath(); g.arc(0, -1, 9, Math.PI * 0.9, Math.PI * 2.1); g.fill(); if (p.lang) { g.beginPath(); g.ellipse(0, -7, 9, 6, 0, 0, 7); g.fill(); } }
+  g.restore();
+  if (opties.draagt) { g.fillStyle = '#ddd'; g.beginPath(); g.arc(Math.cos(kijk) * 16, Math.sin(kijk) * 16 - 4, 12, 0, 7); g.fill(); pizza(Math.cos(kijk) * 16, Math.sin(kijk) * 16 - 4, 9); }
 }
+const naarScherm = (x, y) => [ox + x * T * schaal, oy + y * T * schaal];
 function ober(o) {
-  const x = ox + o.x * T * schaal, y = oy + o.y * T * schaal;
+  const [x, y] = naarScherm(o.x, o.y);
   g.save(); g.translate(x, y); g.scale(schaal, schaal);
-  poppetje(0, 0, { kleur: '#222', huid: '#f0c7a2', haar: '#3b2414', loopT: o.loopT });
-  g.fillStyle = '#fff'; g.fillRect(-3, -2, 6, 10); g.fillStyle = '#c0392b'; g.beginPath(); g.moveTo(-5, 0); g.lineTo(5, 0); g.lineTo(0, 4); g.fill();
-  if (o.draagt) { g.fillStyle = '#ddd'; g.beginPath(); g.arc(14, -4, 12, 0, 7); g.fill(); pizza(14, -4, 9); }
+  poppetje({ kleur: '#222', huid: '#f0c7a2', haar: '#3b2414', loopT: o.loopT, kijk: o.kijk }, { draagt: o.draagt, armen: o.draagt ? 0.8 : 0 });
+  g.restore();
+}
+function kok(k, nu) {
+  const [x, y] = naarScherm(k.x, k.y);
+  g.save(); g.translate(x, y); g.scale(schaal, schaal);
+  const werkt = k.gooi > 0;
+  if (werkt) k.kijk = -Math.PI / 2; // naar de werkbank
+  poppetje({ kleur: '#fafafa', huid: '#f0c7a2', haar: '#3b2414', muts: true, loopT: k.loopT, kijk: k.kijk }, { draagt: k.draagt, armen: werkt ? 0.9 + Math.sin(nu / 60) * 0.3 : 0 });
+  if (werkt) { // pizzadeeg opgooien
+    const h = Math.abs(Math.sin(k.gooi * 4)) * 22;
+    g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.ellipse(0, -20, 10, 4, 0, 0, 7); g.fill();
+    g.fillStyle = '#f2dcae'; g.beginPath(); g.ellipse(0, -22 - h, 11, 11 * (0.4 + 0.6 * Math.abs(Math.cos(k.gooi * 9))), 0, 0, 7); g.fill();
+    g.strokeStyle = '#d9b67a'; g.lineWidth = 2; g.stroke();
+  }
   g.restore();
 }
 
@@ -302,46 +381,44 @@ function teken(nu) {
   g.setTransform(1, 0, 0, 1, 0, 0);
   g.fillStyle = '#2b1a10'; g.fillRect(0, 0, doek.width, doek.height);
   g.save(); g.translate(ox, oy); g.scale(schaal, schaal);
-  // vloer: geblokt
-  for (let y = KEUKEN; y < H; y++) for (let x = 0; x < W; x++) { g.fillStyle = (x + y) % 2 ? '#ecdcb9' : '#dcc497'; g.fillRect(x * T, y * T, T, T); }
-  // keuken
-  for (let y = 0; y < KEUKEN; y++) for (let x = 0; x < W; x++) { g.fillStyle = (x + y) % 2 ? '#cfd8dc' : '#b0bec5'; g.fillRect(x * T, y * T, T, T); }
-  g.fillStyle = '#8b5a2b'; g.fillRect(0, KEUKEN * T - 18, W * T, 18); g.fillStyle = '#a8713d'; g.fillRect(0, KEUKEN * T - 18, W * T, 5); // toonbank
-  // ovens
-  const ovs = modus == 'inrichten' ? Array.from({ length: S.ovens }, (_, i) => ({ x: 1.5 + i * 1.3, y: 1.2, bezig: null })) : ovens;
+  // houten kader
+  g.fillStyle = '#7a4520'; g.fillRect(-RAND, -RAND, WW + RAND * 2, WH + RAND * 2);
+  g.fillStyle = '#9c5e2e'; g.fillRect(-RAND + 3, -RAND + 3, WW + RAND * 2 - 6, WH + RAND * 2 - 6);
+  g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = 1; for (let i = 0; i < 6; i++) { g.beginPath(); g.moveTo(-RAND, -RAND + 3 + i * 2.5); g.lineTo(WW + RAND, -RAND + 3 + i * 2.5); g.stroke(); }
+  g.fillStyle = '#4a2810'; g.fillRect(-4, -4, WW + 8, WH + 8);
+  g.drawImage(achter, 0, 0);
+  // ovens: stenen koepels met vuur
+  const ovs = modus == 'inrichten' ? Array.from({ length: S.ovens }, (_, i) => maakOven(i)) : ovens;
   for (const o of ovs) {
-    const x = o.x * T, y = 0.3 * T;
-    g.fillStyle = '#9c4a2e'; rondRect(x - 32, y, 64, 62, 26); g.fill();
-    g.fillStyle = '#7a3520'; for (let i = 0; i < 4; i++) g.fillRect(x - 28, y + 12 + i * 12, 56, 2);
-    g.fillStyle = o.bezig ? `rgba(255,${120 + Math.sin(nu / 90) * 40},30,1)` : '#3a1a10'; rondRect(x - 16, y + 34, 32, 20, 10); g.fill();
-    if (o.bezig) { g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(x - 20, y - 6, 40 * Math.min(1, o.t / BAKTIJD), 4); }
+    const x = o.x * T, y = 0.08 * T;
+    g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(x + 3, y + 36, 34, 30, 0, 0, 7); g.fill();
+    g.fillStyle = '#a84a2c'; g.beginPath(); g.ellipse(x, y + 32, 33, 29, 0, 0, 7); g.fill();
+    g.strokeStyle = '#7a3520'; g.lineWidth = 2; for (let r = 10; r < 30; r += 7) { g.beginPath(); g.ellipse(x, y + 32, r * 1.1, r, 0, 0, 7); g.stroke(); }
+    const vuur = o.fase == 'bak' || o.fase == 'inschuiven';
+    g.fillStyle = vuur ? `rgb(255,${130 + Math.sin(nu / 80) * 50},40)` : '#2a120a'; g.beginPath(); g.ellipse(x, y + 52, 15, 9, 0, 0, 7); g.fill();
+    if (vuur) { g.fillStyle = 'rgba(255,160,40,.25)'; g.beginPath(); g.arc(x, y + 55, 26 + Math.sin(nu / 60) * 3, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.85)'; g.fillRect(x - 20, y - 2, 40 * Math.min(1, o.t / (BAKTIJD - DEEG)), 4); }
+    g.fillStyle = '#555'; g.fillRect(x - 6, y - 2, 12, 8); // schoorsteen
+    if (vuur) for (let k = 0; k < 3; k++) { const f = ((nu / 900 + k / 3) % 1); g.fillStyle = `rgba(200,200,200,${0.4 * (1 - f)})`; g.beginPath(); g.arc(x + Math.sin(f * 6 + k) * 4, y - 4 - f * 18, 4 + f * 6, 0, 7); g.fill(); }
   }
-  // kok achter de toonbank
-  g.save(); g.translate(5 * T, 0.75 * T);
-  poppetje(0, 0, { kleur: '#fff', huid: '#f0c7a2', haar: '#3b2414' });
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(0, -16, 10, 0, 7); g.fill(); g.fillRect(-8, -16, 16, 8); g.fillStyle = '#2b1b10'; g.fillRect(-7, -4, 14, 2); // koksmuts en snor
-  g.restore();
-  // klaarstaande pizza's op de toonbank
-  klaar.forEach((b, i) => pizza(7.3 * T + i * 26, KEUKEN * T - 10, 10));
-  // muren en deur
-  g.fillStyle = '#7b3f2a'; g.fillRect(0, H * T, W * T, 30);
-  g.fillStyle = '#5a2c1c'; g.fillRect(DEUR.x * T + 6, H * T - 2, T - 12, 32); g.fillStyle = '#e8c070'; g.fillRect(DEUR.x * T + 10, H * T + 4, T - 20, 4);
-  g.fillStyle = '#fff'; g.font = 'bold 15px system-ui'; g.textAlign = 'center'; g.fillText('🍕 PIZZERIA', W * T / 2 - 150, H * T + 21); g.fillText(speler ? 'van ' + speler : '', W * T / 2 + 150, H * T + 21);
+  // pizza's die klaarstaan op de toonbank
+  for (const b of klaar) if (b.plek) pizza(b.plek[0] * T, KEUKEN * T - 13, 10);
+  g.fillStyle = '#fff'; g.font = 'bold 15px system-ui'; g.textAlign = 'center';
+  g.fillText('PIZZERIA' + (speler ? ' ' + speler.toUpperCase() : ''), WW / 2 - 170, H * T + 20); g.fillText('🍕', WW / 2 + 170, H * T + 21);
 
   // spullen
   const zitten = mensen.filter((m) => m.st == 'wacht' || m.st == 'eet');
   for (const s of S.spullen) tekenSpul(s, nu, zitten);
-  // inrichten: raster en schaduw van wat je wilt neerzetten
   if (modus == 'inrichten' && kies && hover) {
     const d = SPUL[kies], ok = vrij(hover.x, hover.y, d.w, d.h) && S.geld >= d.prijs;
     g.globalAlpha = 0.55; tekenSpul({ t: kies, x: hover.x, y: hover.y }, nu, []); g.globalAlpha = 1;
     g.strokeStyle = ok ? '#2e9d52' : '#d63031'; g.lineWidth = 4; g.strokeRect(hover.x * T + 2, hover.y * T + 2, d.w * T - 4, d.h * T - 4);
   }
-  if (gekozen) { g.strokeStyle = '#e8a33a'; g.lineWidth = 4; g.setLineDash([8, 6]); g.strokeRect(gekozen.x * T + 2, gekozen.y * T + 2, SPUL[gekozen.t].w * T - 4, SPUL[gekozen.t].h * T - 4); g.setLineDash([]); }
+  if (gekozen) { g.strokeStyle = '#fff'; g.lineWidth = 4; g.setLineDash([8, 6]); g.strokeRect(gekozen.x * T + 2, gekozen.y * T + 2, SPUL[gekozen.t].w * T - 4, SPUL[gekozen.t].h * T - 4); g.setLineDash([]); }
   g.restore();
 
-  // mensen en obers (tekenen in schermpixels zodat ze over alles heen gaan, gesorteerd op y)
-  const alles = [...mensen.map((m) => ({ y: m.y, f: () => tekenMens(m) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) }))].sort((a, b) => a.y - b.y);
+  // koks, mensen en obers (in schermpixels, gesorteerd op y)
+  const koks = ovs.map((o) => ({ y: o.kok.y, f: () => kok(o.kok, nu) }));
+  const alles = [...koks, ...mensen.map((m) => ({ y: m.y, f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) }))].sort((a, b) => a.y - b.y);
   for (const a of alles) a.f();
   // muntjes en tekstwolkjes
   g.textAlign = 'center';
@@ -356,55 +433,72 @@ function teken(nu) {
     g.fillStyle = '#3a2414'; g.fillText(w.tekst, bx + bw / 2, y - 7 * schaal); g.globalAlpha = 1;
   }
 }
+function stoel(x, y, hoek) { // van bovenaf: houten stoeltje met gestreepte zitting, leuning aan de kant van `hoek`
+  g.save(); g.translate(x, y); g.rotate(hoek);
+  g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(-11, -9, 24, 22);
+  g.fillStyle = '#7a4a22'; g.fillRect(-12, -12, 24, 22);
+  g.fillStyle = '#eef3f8'; g.fillRect(-9, -6, 18, 14);
+  g.fillStyle = '#3f6fb5'; for (let i = -9; i < 9; i += 4) g.fillRect(i, -6, 2, 14);
+  g.fillStyle = '#5a3416'; g.fillRect(-12, -14, 24, 6); // leuning
+  g.restore();
+}
 function tekenSpul(s, nu, zitten) {
   const x = s.x * T, y = s.y * T;
   if (s.t == 'plant') {
-    g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.ellipse(x + 32, y + 52, 20, 7, 0, 0, 7); g.fill();
-    g.fillStyle = '#b5651d'; rondRect(x + 20, y + 34, 24, 20, 4); g.fill();
-    g.fillStyle = '#2e8b3e'; for (const [a, b, r] of [[32, 24, 14], [22, 30, 10], [42, 30, 10], [32, 12, 9], [24, 16, 8], [40, 16, 8]]) { g.beginPath(); g.arc(x + a, y + b, r, 0, 7); g.fill(); }
-    g.fillStyle = '#4caf50'; g.beginPath(); g.arc(x + 28, y + 20, 5, 0, 7); g.fill();
+    g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(x + 35, y + 36, 22, 20, 0, 0, 7); g.fill();
+    g.fillStyle = '#c7782e'; g.beginPath(); g.arc(x + 32, y + 32, 15, 0, 7); g.fill();
+    for (let k = 0; k < 9; k++) { const a = k * 0.7, r = 20 + (k % 3) * 3; g.fillStyle = k % 2 ? '#2e8b3e' : '#49b14f'; g.beginPath(); g.ellipse(x + 32 + Math.cos(a) * r * 0.6, y + 32 + Math.sin(a) * r * 0.6, 10, 5, a, 0, 7); g.fill(); }
+    g.fillStyle = '#f2c230'; g.beginPath(); g.arc(x + 32, y + 32, 4, 0, 7); g.fill();
     return;
   }
-  if (s.t == 'jukebox') {
-    g.fillStyle = '#6d2b8f'; rondRect(x + 10, y + 6, 44, 52, 18); g.fill();
-    const k = ['#ff4d6d', '#ffd23f', '#3fd2ff', '#7dff6b'];
-    for (let i = 0; i < 4; i++) { g.fillStyle = k[(i + Math.floor(nu / 300)) % 4]; g.fillRect(x + 16 + i * 9, y + 16, 6, 18); }
-    g.fillStyle = '#222'; g.fillRect(x + 16, y + 40, 32, 10);
-    if (modus != 'inrichten') { g.fillStyle = '#3a2414'; g.font = '16px system-ui'; g.textAlign = 'center'; g.fillText('♪', x + 54, y + 10 + Math.sin(nu / 200) * 4); }
+  if (s.t == 'jukebox') { // gestreepte, lichtgevende jukebox
+    g.fillStyle = 'rgba(0,0,0,.25)'; rondRect(x + 16, y + 6, 38, 56, 16); g.fill();
+    const k = ['#ff4d6d', '#ffd23f', '#3fd2ff', '#7dff6b', '#c77dff'];
+    g.save(); rondRect(x + 12, y + 2, 38, 56, 16); g.clip();
+    for (let i = 0; i < 8; i++) { g.fillStyle = k[(i + Math.floor(nu / 250)) % k.length]; g.fillRect(x + 12, y + 2 + i * 7, 38, 7); }
+    g.restore(); g.strokeStyle = '#ccc'; g.lineWidth = 3; rondRect(x + 12, y + 2, 38, 56, 16); g.stroke();
+    if (modus != 'inrichten') { g.fillStyle = '#3a2414'; g.font = '16px system-ui'; g.textAlign = 'center'; g.fillText('♪', x + 58, y + 14 + Math.sin(nu / 200) * 4); }
     return;
   }
-  const w = SPUL[s.t].w * T, h = T;
-  // stoelen
-  for (const [sx, sy] of stoelen(s)) { g.fillStyle = '#8b5a2b'; rondRect(sx * T - 10, sy * T - 10, 20, 20, 5); g.fill(); g.fillStyle = '#a8713d'; rondRect(sx * T - 7, sy * T - 7, 14, 14, 4); g.fill(); }
-  // tafelblad
-  const tx = s.t == 'tafel2' ? x + 16 : x + 12, ty = s.t == 'tafel2' ? y + 12 : y + 16, tw = s.t == 'tafel2' ? 32 : w - 24, th = s.t == 'tafel2' ? 40 : h - 32;
-  g.fillStyle = 'rgba(0,0,0,.15)'; rondRect(tx + 3, ty + 4, tw, th, 6); g.fill();
-  g.fillStyle = '#c08a52'; rondRect(tx, ty, tw, th, 6); g.fill();
-  if (s.kleed) { // rood-wit geblokt
-    g.save(); rondRect(tx - 2, ty - 2, tw + 4, th + 4, 6); g.clip();
-    g.fillStyle = '#fff'; g.fillRect(tx - 2, ty - 2, tw + 4, th + 4);
-    g.fillStyle = 'rgba(214,48,49,.85)'; for (let i = 0; i < tw + 4; i += 8) for (let j = 0; j < th + 4; j += 8) if (((i + j) / 8) % 2 == 0) g.fillRect(tx - 2 + i, ty - 2 + j, 8, 8);
+  // stoelen (leuning van de tafel af)
+  const cx = x + SPUL[s.t].w * T / 2, cy = y + T / 2;
+  for (const [sx, sy] of stoelen(s)) stoel(sx * T, sy * T, Math.atan2(sy * T - cy, sx * T - cx) - Math.PI / 2 + Math.PI);
+  // tafelblad: lichtgrijs gemêleerd, of met een rood-wit kleed
+  const w = SPUL[s.t].w * T;
+  const tx = s.t == 'tafel2' ? x + 14 : x + 10, ty = s.t == 'tafel2' ? y + 12 : y + 15, tw = s.t == 'tafel2' ? 36 : w - 20, th = s.t == 'tafel2' ? 40 : T - 30;
+  g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(tx + 4, ty + 5, tw, th);
+  g.fillStyle = '#d6d2cc'; g.fillRect(tx, ty, tw, th);
+  g.fillStyle = 'rgba(255,255,255,.35)'; for (let i = 0; i < tw; i += 5) for (let j = (i % 2) * 2; j < th; j += 5) g.fillRect(tx + i, ty + j, 1.5, 1.5);
+  g.strokeStyle = '#a9a39a'; g.lineWidth = 2; g.strokeRect(tx, ty, tw, th);
+  if (s.kleed) {
+    g.save(); g.beginPath(); g.rect(tx - 3, ty - 3, tw + 6, th + 6); g.clip();
+    g.fillStyle = '#fff'; g.fillRect(tx - 3, ty - 3, tw + 6, th + 6);
+    g.fillStyle = 'rgba(214,48,49,.85)'; for (let i = 0; i < tw + 6; i += 7) for (let j = 0; j < th + 6; j += 7) if (((i + j) / 7) % 2 == 0) g.fillRect(tx - 3 + i, ty - 3 + j, 7, 7);
     g.restore();
   }
-  // pizza's op tafel
-  for (const m of zitten) if (m.tafel == s && m.st == 'eet') { const px = m.x + (m.x < s.x + SPUL[s.t].w / 2 ? 0.22 : -0.22) * (s.t == 'tafel2' ? 1 : 0), py = m.y + (s.t == 'tafel4' ? (m.y < s.y + 0.5 ? 0.25 : -0.25) : 0); g.fillStyle = '#eee'; g.beginPath(); g.arc(px * T, py * T, 9, 0, 7); g.fill(); pizza(px * T, py * T, 7, m.t > ETEN / 2); }
+  // borden: leeg (wachten) of met pizza (eten)
+  for (const m of zitten) if (m.tafel == s) {
+    const [sx, sy] = stoelen(s)[m.stoel], px = sx + (cx / T - sx) * 0.45, py = sy + (cy / T - sy) * 0.45;
+    bord(px * T, py * T, m.st == 'eet', m.st == 'eet' && m.t > ETEN / 2);
+  }
   if (s.kaars) {
-    const kx = s.t == 'tafel2' ? x + 32 : x + w / 2, ky = s.t == 'tafel2' ? y + 32 : y + 32;
-    g.fillStyle = '#fff3d6'; g.beginPath(); g.arc(kx, ky, 4, 0, 7); g.fill();
+    const kx = cx, ky = cy;
     const fl = 1 + Math.sin(nu / 70 + s.x) * 0.25;
-    g.fillStyle = 'rgba(255,190,60,.35)'; g.beginPath(); g.arc(kx, ky, 12 * fl, 0, 7); g.fill();
-    g.fillStyle = '#ffb627'; g.beginPath(); g.arc(kx, ky, 3 * fl, 0, 7); g.fill();
+    g.fillStyle = 'rgba(255,190,60,.3)'; g.beginPath(); g.arc(kx, ky, 13 * fl, 0, 7); g.fill();
+    g.fillStyle = '#fff3d6'; g.beginPath(); g.arc(kx, ky, 4, 0, 7); g.fill();
+    g.fillStyle = '#ffb627'; g.beginPath(); g.arc(kx, ky, 2.5 * fl, 0, 7); g.fill();
   }
 }
-function tekenMens(m) {
-  const x = ox + m.x * T * schaal, y = oy + m.y * T * schaal;
+function tekenMens(m, nu) {
+  const [x, y] = naarScherm(m.x, m.y);
+  const zit = m.st == 'wacht' || m.st == 'eet';
+  if (zit) { const t = m.tafel, cx = t.x + SPUL[t.t].w / 2, cy = t.y + 0.5; m.kijk = Math.atan2(cy - m.y, cx - m.x); m.loopT = 0; }
   g.save(); g.translate(x, y); g.scale(schaal, schaal);
-  poppetje(0, 0, m, m.st == 'wacht' || m.st == 'eet');
-  if (m.st == 'wacht') { // geduldbalkje met een pizzaatje
+  poppetje(m, { armen: m.st == 'eet' ? 0.7 + Math.sin(nu / 150 + m.x * 5) * 0.25 : 0 });
+  if (m.st == 'wacht') { // geduldbalkje
     const f = Math.max(0, 1 - m.t / m.geduld);
-    g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(-16, -34, 32, 5);
-    g.fillStyle = f > 0.5 ? '#2ecc71' : f > 0.25 ? '#f1c40f' : '#e74c3c'; g.fillRect(-16, -34, 32 * f, 5);
-    if (!m.onderweg) { g.font = '14px system-ui'; g.textAlign = 'center'; g.fillText('🍕', 0, -38); }
+    g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(-16, -26, 32, 5);
+    g.fillStyle = f > 0.5 ? '#2ecc71' : f > 0.25 ? '#f1c40f' : '#e74c3c'; g.fillRect(-16, -26, 32 * f, 5);
   }
   g.restore();
 }
@@ -461,31 +555,33 @@ function toonMenu(s, cx, cy) {
 let verplaatsExtra = null;
 function sluitMenu() { $('menu').style.display = 'none'; gekozen = null; }
 
+// het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
-  const k = $('knoppen');
-  if (modus != 'inrichten') {
-    k.innerHTML = `<span class="info">${modus == 'open' ? '🔔 Open! Klanten komen binnen…' : '🚪 Dicht, de laatste klanten eten nog'}</span><span class="info">${S.ovens} oven${S.ovens > 1 ? 's' : ''} · ${S.obers} ober${S.obers > 1 ? 's' : ''}</span>`;
-    return;
-  }
-  let h = `<button class="open" id="open"><span class="ik">🔔</span>Open de deuren</button>`;
+  const k = $('raster'), open = modus != 'inrichten';
+  let h = '';
   for (const [t, d] of Object.entries(SPUL)) {
-    if (d.een && S.spullen.some((s) => s.t == t)) continue;
-    h += `<button data-k="${t}" class="${kies == t ? 'actief' : ''} ${S.geld < d.prijs ? 'duur' : ''}"><span class="ik">${d.ik}</span>${esc(d.n)}<span>€${d.prijs}</span></button>`;
+    const op = d.een && S.spullen.some((s) => s.t == t);
+    h += `<button data-k="${t}" class="${kies == t ? 'actief' : ''} ${S.geld < d.prijs ? 'duur' : ''}" ${open || op ? 'disabled' : ''} title="${esc(d.n)}"><span class="ik">${d.ik}</span>${esc(d.n.replace('Tafeltje voor 2', 'Tafel 2').replace('Tafel voor 4', 'Tafel 4'))}<span class="pr">${op ? 'staat er al' : '€' + d.prijs}</span></button>`;
   }
   for (const [t, d] of Object.entries(PERSONEEL)) {
-    const n = t == 'oven' ? S.ovens : S.obers;
-    if (n >= d.max) continue;
-    h += `<button data-p="${t}" class="${S.geld < d.prijs ? 'duur' : ''}"><span class="ik">${d.ik}</span>${esc(d.n)}<span>€${d.prijs}${d.loon ? ' +€' + LOON + '/dag' : ''}</span></button>`;
+    const n = t == 'oven' ? S.ovens : S.obers, vol = n >= d.max;
+    h += `<button data-p="${t}" class="${S.geld < d.prijs ? 'duur' : ''}" ${open || vol ? 'disabled' : ''}><span class="ik">${d.ik}</span>${t == 'oven' ? 'Oven + kok' : 'Ober'}<span class="pr">${vol ? 'maximaal' : '€' + d.prijs}</span></button>`;
   }
+  h += `<button data-pizza><span class="ik">📖</span>Pizza's<span class="pr">binnenkort</span></button>`;
+  h += `<button data-dag><span class="ik">📊</span>Gisteren<span class="pr">overzicht</span></button>`;
+  h += open ? `<button class="open" disabled><span class="ik">🔔</span>Open</button>` : `<button class="open" id="open"><span class="ik">🔔</span>Open de deuren</button>`;
   k.innerHTML = h;
   k.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { wekGeluid(); sluitMenu(); kies = kies == b.dataset.k ? null : b.dataset.k; verplaatsExtra = null; laatsteTik = null; hover = null; if (kies) meld(isAanraak ? 'Tik op een plek: je ziet hem eerst staan, tik nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten. Klik nog eens op de knop om te stoppen.'); tekenKnoppen(); });
   k.querySelectorAll('[data-p]').forEach((b) => b.onclick = () => {
     const d = PERSONEEL[b.dataset.p]; if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     S.geld -= d.prijs; if (b.dataset.p == 'oven') S.ovens++; else S.obers++; kassa(); bewaar(); tekenKnoppen();
-    meld(b.dataset.p == 'oven' ? 'Een extra oven! Nu bakken er meer pizza\'s tegelijk.' : 'Een extra ober! Die kost wel ' + LOON + ' euro loon per dag.');
+    meld(b.dataset.p == 'oven' ? 'Een extra oven met een kok erbij! Nu bakken er meer pizza\'s tegelijk.' : 'Een extra ober! Die kost wel ' + LOON + ' euro loon per dag.');
   });
-  $('open').onclick = () => { wekGeluid(); openDeuren(); };
+  k.querySelector('[data-pizza]').onclick = () => meld('Zelf pizza\'s verzinnen komt in de volgende stap!');
+  k.querySelector('[data-dag]').onclick = () => { if (laatsteDag) { $('eindkaart').innerHTML = laatsteDag; $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); } else meld('Je hebt nog geen dag gedraaid.'); };
+  if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
+let laatsteDag = '';
 const isAanraak = matchMedia('(pointer: coarse)').matches;
 
 let meldT = 0;
@@ -499,13 +595,16 @@ const kassa = () => { ding(1318, 0.08, 'square', 0.04); setTimeout(() => ding(17
 const plof = () => ding(220, 0.12, 'triangle', 0.1);
 const boos = () => { ding(200, 0.2, 'sawtooth', 0.05); setTimeout(() => ding(150, 0.3, 'sawtooth', 0.05), 150); };
 
-// ---------- balk bovenin ----------
-function balk() {
-  $('geld').textContent = '💶 ' + Math.floor(S.geld);
-  $('rep').textContent = '⭐ ' + Math.round(S.rep);
+// ---------- het zwarte schermpje in het paneel ----------
+let lcdT = 0;
+function balk(nu) {
+  if (nu - lcdT < 250) return; lcdT = nu;
   const f = modus == 'inrichten' ? 0 : Math.min(1, klok / DAG);
-  $('klok').querySelector('i').style.width = f * 100 + '%';
-  $('klok').querySelector('span').textContent = `Dag ${S.dag} · ${modus == 'inrichten' ? 'inrichten' : uur(f)}`;
+  const wacht = tel.wachtN ? Math.round(tel.wacht / tel.wachtN) : 0;
+  const rij = (a, b) => a.padEnd(13, ' ') + String(b).padStart(5, ' ');
+  $('lcd').innerHTML = `<span class="kop">DAG ${S.dag}  ${modus == 'inrichten' ? 'INRICHTEN' : uur(f)}</span><span class="kop">PIZZERIA ${esc((speler || 'DE BAAS').toUpperCase().slice(0, 10))}</span>` +
+    [rij('POPULARITEIT', Math.round(S.rep)), rij('KOKS', S.ovens), rij('OBERS', S.obers), rij('TAFELS', S.spullen.filter(isTafel).length), rij('GEZELLIG', gemGezellig().toFixed(1)),
+     rij("PIZZA'S", tel.blij || 0), rij('WACHTTIJD', wacht + ' s')].join('\n') + `<span class="geld">€ ${Math.floor(S.geld)}</span>`;
 }
 const uur = (f) => { const m = Math.floor(17 * 60 + f * 5 * 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }; // van 17:00 tot 22:00
 
@@ -523,9 +622,9 @@ if (TEGEL) { // plaatje voor de startpagina
   S = { geld: 999, dag: 3, rep: 60, ovens: 2, obers: 2, spullen: [
     { t: 'tafel2', x: 1, y: 3, kleed: 1, kaars: 1 }, { t: 'tafel4', x: 4, y: 3, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 9, y: 3, kleed: 1 },
     { t: 'tafel4', x: 1, y: 6, kleed: 1, kaars: 1 }, { t: 'tafel2', x: 8, y: 6, kaars: 1 }, { t: 'plant', x: 11, y: 2 }, { t: 'plant', x: 0, y: 2 }, { t: 'jukebox', x: 11, y: 7 }, { t: 'plant', x: 4, y: 7 } ] };
-  modus = 'open'; tel = { blij: 0, boos: 0, vol: 0, omzet: 0, fooi: 0 }; maakPersoneel();
+  modus = 'open'; tel = { blij: 0, boos: 0, vol: 0, omzet: 0, fooi: 0, wacht: 0, wachtN: 0 }; maakPersoneel();
   for (const s of S.spullen.filter(isTafel)) stoelen(s).forEach((p, i) => { if (Math.random() < 0.8) { const m = maakMens(s, i); m.x = p[0]; m.y = p[1]; m.st = Math.random() < 0.6 ? 'eet' : 'wacht'; m.t = Math.random() * 3; m.geduld = 999; mensen.push(m); } });
-  klaar = [{}, {}]; ovens[0].bezig = {}; obers[0].x = 6.5; obers[0].y = 5.2; obers[0].draagt = true; obers[1].x = 3.2; obers[1].y = 2.4;
+  klaar = [{ plek: TOONBANK(0) }, { plek: TOONBANK(1) }]; ovens[0].fase = 'bak'; ovens[0].t = 1; ovens[1].kok.x = BANK(1)[0]; ovens[1].kok.y = BANK(1)[1]; ovens[1].kok.gooi = 0.3; obers[0].x = 6.5; obers[0].y = 5.2; obers[0].draagt = true; obers[1].x = 3.2; obers[1].y = 2.4;
   wolkjes.push({ m: mensen[2], tekst: 'Mamma mia!', t: 999 });
 }
 
@@ -534,7 +633,7 @@ let vorig = performance.now();
 function lus(nu) {
   const dt = Math.min(0.1, (nu - vorig) / 1000); vorig = nu;
   if (!TEGEL && $('einde').classList.contains('verborgen')) stap(dt);
-  teken(nu); balk();
+  teken(nu); balk(nu);
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);

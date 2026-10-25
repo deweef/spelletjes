@@ -135,7 +135,12 @@ bedenk dat de site openbaar is.
   verkopen; extra ovens en obers in `PERSONEEL`) en open (een werkdag van `DAG` = 120 s, 17:00-22:00). Klantengroepjes zoeken een vrije
   tafel (anders "vol", reputatie omlaag), bestellen, de oven bakt (`BAKTIJD`), een ober brengt de pizza, ze eten en betalen `PRIJS` plus fooi
   (`gezellig`: kleedje, kaarsje, planten dichtbij, jukebox); te lang wachten (`GEDULD`) = boos weg. Reputatie `S.rep` bepaalt hoe vaak er
-  klanten komen. Aan het eind huur (`HUUR`) en loon, en een dagoverzicht. Opslag per speler in `pizzabaas:<naam>`. `#tegel` = plaatje.
+  klanten komen. Aan het eind huur (`HUUR`) en loon, en een dagoverzicht (📊 Gisteren = `laatsteDag`). Uiterlijk zoals het origineel:
+  achtergrond vooraf getekend (`achter`: rood-geel-wit geblokte vloer, grijs-witte keuken, toonbank, bakstenen muur met deur), houten kader
+  (`RAND`), stoelen met gestreepte zitting (`stoel`), grijze tafels, borden (`bord`), poppetjes van bovenaf met kijkrichting (`poppetje`, `kijk`).
+  Paneel rechts (liggend) of onder (staand): zwart schermpje `#lcd` (`balk`) en een 3x3 knoppenraster `#raster` (`tekenKnoppen`).
+  Per oven een kok (`maakOven`, `stapOven`): deeg opgooien aan de werkbank (`BANK`, `DEEG`), inschuiven, bakken, naar de toonbank brengen
+  (`TOONBANK`), daar haalt een ober hem op. Kenney food-kit heeft plaatjes van ingrediënten (`Previews/*.png`, 64x64) voor stap 2. Opslag per speler in `pizzabaas:<naam>`. `#tegel` = plaatje.
   Plan: 2 pizza's verzinnen met smaken per buurt, 3 dubieuze klanten en pakketjes-ritjes (geen echte wapens of drugs), 4 sabotage door
   Luigi van de overkant, 5 meer buurten en filialen.
 - Songfestival-hits (`songfestival/`, test, nog niet op de startpagina): zelfgeprinte kaartjes in Hitster-stijl (die naam niet op de site
