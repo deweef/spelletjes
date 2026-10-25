@@ -19,11 +19,13 @@ Idee: Pizza Tycoon / Pizza Connection (1994), maar met eigen naam, plaatjes en g
 - Ingrediënten slim inkopen (voorraad, bederf, aanbiedingen bij de groothandel).
 
 ## Eerst (afgesproken na het testen van het pizza-samenstellen, 25 oktober)
-1. Pizza's klaarzetten naast de ovens (één uitgiftepunt bij de ovens), niet helemaal rechts op de toonbank (`TOONBANK`).
-2. Een tafel bestelt samen; de keuken bakt de pizza's voor die tafel achter elkaar; geduld telt per tafel.
-3. De ober wacht tot de bestelling voor de hele tafel klaar is en draagt er twee tegelijk (één per hand); bij vier personen loopt hij twee keer.
-4. Tafels verplaatsen door te slepen (vasthouden en schuiven); het menuutje blijft voor kleedje, kaarsje en verkopen.
-5. Jukebox 2x2 tegels in plaats van 1x1.
+Punten 1 t/m 5 zijn klaar (25 oktober): uitgiftepunt naast de ovens, tafel bestelt en wacht samen, ober draagt twee borden,
+tafels slepen, jukebox 2x2. Punten 6 en 7 wachten op nieuwe Gemini-vellen van Marcel.
+1. ~~Pizza's klaarzetten naast de ovens (één uitgiftepunt bij de ovens), niet helemaal rechts op de toonbank (`TOONBANK`).~~
+2. ~~Een tafel bestelt samen; de keuken bakt de pizza's voor die tafel achter elkaar; geduld telt per tafel.~~
+3. ~~De ober wacht tot de bestelling voor de hele tafel klaar is en draagt er twee tegelijk (één per hand); bij vier personen loopt hij twee keer.~~
+4. ~~Tafels verplaatsen door te slepen (vasthouden en schuiven); het menuutje blijft voor kleedje, kaarsje en verkopen.~~
+5. ~~Jukebox 2x2 tegels in plaats van 1x1.~~
 6. De kok "moonwalkt": de loopplaatjes zijn schuin van voren en bijna gelijk. Nieuw Gemini-vel nodig (ook voor de ober):
    "Een vel met spelfiguurtjes voor een computerspel in pixelart, één en hetzelfde figuurtje (deze kok), steeds precies dezelfde
    kleren en grootte. Rij 1: loopcyclus precies van opzij (profiel, neus naar rechts), 6 plaatjes: hak neer, doorzakken, been
@@ -31,7 +33,9 @@ Idee: Pizza Tycoon / Pizza Connection (1994), maar met eigen naam, plaatjes en g
    van achteren, 4 plaatjes. Alle voeten op dezelfde hoogte. Effen felgroene achtergrond, geen schaduwen, geen tekst."
 7. Meubelstijlen (later, met Gemini-meubelvellen van bovenaf op groen): plastic klapstoeltjes (studenten), houten bistrotafel met
    geruit kleed (toeristen), wit damast met kroonluchter (villabewoners), fijne stoelen met kussens (opa en oma).
-- Screenshots van het origineel komen in `pizza/voorbeeld/` (Marcel), zodat het uiterlijk er dichter bij kan.
+- **Nog open: plaatjes van het origineel.** Screenshots van Pizza Tycoon komen in `pizza/voorbeeld/` (Marcel plakt ze in de chat,
+  als ze niet ergens uit een algemene games-map te halen zijn), zodat het uiterlijk er dichter bij kan en we kunnen nakijken welke
+  tafels, stoelen en kleedjes het origineel had (ook als voorbeeld voor de Gemini-meubelvellen van punt 7).
 
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
