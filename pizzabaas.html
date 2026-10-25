@@ -691,7 +691,15 @@ function tekenKlein(s, nu) {
     g.fillStyle = '#f2c230'; g.beginPath(); g.arc(x + 32, y + 32, 4, 0, 7); g.fill();
     return;
   }
-  if (s.t == 'jukebox') { // gestreepte, lichtgevende jukebox
+  if (s.t == 'jukebox' && JUKEBOX.complete && JUKEBOX.naturalWidth) { // Gemini-jukebox recht van voren (pizza/jukebox-gemini.jpg), 96 x 165
+    const h = 74, w = h * 96 / 165, x0 = 32 - w / 2, y0 = 62 - h; // in het vakje van 64 x 64 (= 2 x 2 tegels)
+    g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.ellipse(34, 61, w / 2 + 2, 4, 0, 0, 7); g.fill();
+    if (modus != 'inrichten') { g.fillStyle = `rgba(255,${180 + Math.sin(nu / 200) * 60},80,.25)`; g.beginPath(); g.ellipse(32, y0 + h * 0.45, w * 0.7, h * 0.5, 0, 0, 7); g.fill(); }
+    g.drawImage(JUKEBOX, x0, y0, w, h);
+    if (modus != 'inrichten') { g.fillStyle = '#3a2414'; g.font = '12px system-ui'; g.textAlign = 'center'; g.fillText('♪', 32 + w / 2 + 6, y0 + 10 + Math.sin(nu / 200) * 4); }
+    return;
+  }
+  if (s.t == 'jukebox') { // gestreepte, lichtgevende jukebox (als het plaatje er nog niet is)
     g.fillStyle = 'rgba(0,0,0,.25)'; rondRect(x + 16, y + 6, 38, 56, 16); g.fill();
     const k = ['#ff4d6d', '#ffd23f', '#3fd2ff', '#7dff6b', '#c77dff'];
     g.save(); rondRect(x + 12, y + 2, 38, 56, 16); g.clip();
@@ -701,13 +709,20 @@ function tekenKlein(s, nu) {
     return;
   }
 }
+// stoelen (Gemini, pizza/stoelen2-gemini.jpg): vakjes van 110 x 170, 0 leuning boven (stoel boven de tafel), 1 van achteren
+// (stoel onder de tafel), 2 leuning links, 3 leuning rechts; de zitting zit ongeveer op (55, 110) in het vakje
+const JUKEBOX = new Image(); JUKEBOX.src = 'pizza/jukebox.png';
+const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
+function gemStoel({ sx, sy, kant }) { const k = 0.5; g.drawImage(STOELEN, kant * 110, 0, 110, 170, sx * T - 55 * k, sy * T - 110 * k, 110 * k, 170 * k); }
 const TAFELS = new Image(); TAFELS.src = 'pizza/tafels.png'; // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
 function tekenSpul(s, nu, zitten) {
   const x = s.x * T, y = s.y * T;
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
   // stoelen (leuning van de tafel af)
   const cx = midden(s)[0] * T, cy = midden(s)[1] * T;
-  for (const [sx, sy] of stoelen(s)) stoel(sx * T, sy * T, Math.atan2(sy * T - cy, sx * T - cx) - Math.PI / 2 + Math.PI);
+  const plekken = stoelen(s).map(([sx, sy]) => ({ sx, sy, kant: sy * T < cy - 1 ? 0 : sy * T > cy + 1 ? 1 : sx * T < cx ? 2 : 3 }));
+  if (STOELEN.complete && STOELEN.naturalWidth) { for (const p of plekken) if (p.kant != 1) gemStoel(p); } // de stoel onder de tafel komt na de tafel
+  else for (const { sx, sy } of plekken) stoel(sx * T, sy * T, Math.atan2(sy * T - cy, sx * T - cx) - Math.PI / 2 + Math.PI);
   // tafelblad: lichtgrijs gemêleerd, of met een rood-wit kleed
   if (TAFELS.complete && TAFELS.naturalWidth) { // Gemini-tafel: 0 marmer, 1 rood-wit geruit kleed (2-3 wit kleed, voor later)
     const w = 2 * T, h = w * 156 / 192, x0 = cx - w / 2, y0 = cy - h / 2;
@@ -726,6 +741,7 @@ function tekenSpul(s, nu, zitten) {
     g.restore();
   }
   }
+  if (STOELEN.complete && STOELEN.naturalWidth) for (const p of plekken) if (p.kant == 1) gemStoel(p);
   // borden: leeg (wachten) of met pizza (eten)
   for (const m of zitten) if (m.tafel == s) {
     const [sx, sy] = stoelen(s)[m.stoel], px = sx + (cx / T - sx) * 0.45, py = sy + (cy / T - sy) * 0.45;
