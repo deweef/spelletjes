@@ -142,7 +142,7 @@ bedenk dat de site openbaar is.
   (`RAND`), stoelen met gestreepte zitting (`stoel`), grijze tafels, borden (`bord`), poppetjes van bovenaf met kijkrichting (`poppetje`, `kijk`).
   Paneel rechts (liggend) of onder (staand): zwart schermpje `#lcd` (`balk`) en een 3x3 knoppenraster `#raster` (`tekenKnoppen`).
   Per oven een kok (`maakOven`, `stapOven`): deeg opgooien aan de werkbank (`BANK`, `DEEG`), inschuiven, bakken, naar de toonbank brengen
-  (`TOONBANK`), daar haalt een ober hem op. De kok is een eigen Gemini-ontwerp: `pizza/kok.png` (6 plaatjes van 100x192: staan, 2x lopen naar voren, links, rechts, deeg opgooien; uitgeknipt uit `pizza/kok-gemini.jpg` met groen als achtergrond, `KOK`, `kokPlaatje`). Kenney food-kit heeft plaatjes van ingrediënten (`Previews/*.png`, 64x64) voor stap 2. Opslag per speler in `pizzabaas:<naam>`. `#tegel` = plaatje.
+  (`TOONBANK`), daar haalt een ober hem op. Kok en ober zijn eigen Gemini-ontwerpen: `pizza/kok.png` en `pizza/ober.png` (13 plaatjes van 113x192: 0-1 staan, 2-3 lopen naar links (gespiegeld = rechts), 4 schuin, 5 deeg opgooien / stolp optillen bij het opdienen (`serveer`), 6 op de rug, 7-12 lopen naar achteren; uitgeknipt uit `pizza/*-gemini.jpg` met groen als achtergrond, de rugrij geschaald naar dezelfde lengte; `figuur`). Kenney food-kit heeft plaatjes van ingrediënten (`Previews/*.png`, 64x64) voor stap 2. Opslag per speler in `pizzabaas:<naam>`. `#tegel` = plaatje.
   Plan: 2 pizza's verzinnen met smaken per buurt, 3 dubieuze klanten en pakketjes-ritjes (geen echte wapens of drugs), 4 sabotage door
   Luigi van de overkant, 5 meer buurten en filialen.
 - Songfestival-hits (`songfestival/`, test, nog niet op de startpagina): zelfgeprinte kaartjes in Hitster-stijl (die naam niet op de site

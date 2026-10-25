@@ -274,13 +274,14 @@ function stap(dt) {
   for (const o of ovens) stapOven(o, dt);
   // obers brengen de pizza's rond
   for (const ob of obers) {
+    if (ob.serveer > 0) { ob.serveer -= dt; continue; } // even de stolp optillen: "Prego!"
     if (!ob.taak && klaar.length) { ob.taak = klaar.shift(); ob.fase = 'halen'; ob.taak.m.onderweg = true; }
     if (!ob.taak) { beweeg(ob, ob.thuis, 3.4, dt); continue; }
     const m = ob.taak.m;
     if (!mensen.includes(m) || m.st != 'wacht') { ob.taak = null; ob.draagt = null; continue; }
     if (ob.fase == 'halen') { if (beweeg(ob, [ob.taak.plek[0], KEUKEN + 0.4], 3.4, dt)) { ob.fase = 'brengen'; ob.draagt = true; } }
     else if (beweeg(ob, [m.x + (m.x < midden(m.tafel)[0] ? -0.6 : 0.6) * (m.tafel.t == 'tafel2' ? 1 : 0), m.y + (m.tafel.t == 'tafel4' ? (m.y < midden(m.tafel)[1] ? -0.6 : 0.6) : 0.7)], 3.4, dt)) {
-      m.st = 'eet'; m.wacht = m.t; tel.wacht += m.t; tel.wachtN++; m.t = 0; m.onderweg = false; ob.taak = null; ob.draagt = null;
+      m.st = 'eet'; m.wacht = m.t; tel.wacht += m.t; tel.wachtN++; m.t = 0; m.onderweg = false; ob.taak = null; ob.draagt = null; ob.serveer = 0.6;
       if (Math.random() < 0.35) zeg(m, R(ZEG.eten));
     }
   }
@@ -365,19 +366,39 @@ const MENS = 1.4; // poppetjes zijn ongeveer een tegel groot, net als in het oud
 const naarScherm = (x, y) => [ox + x * T * schaal, oy + y * T * schaal];
 function ober(o) {
   const [x, y] = naarScherm(o.x, o.y);
+  if (OBER.complete && OBER.naturalWidth) {
+    g.save(); g.translate(x, y); g.scale(schaal, schaal);
+    const h = figuur(OBER, o, o.serveer > 0, false);
+    if (o.draagt) { g.fillStyle = '#ddd'; g.beginPath(); g.arc(14, -h * 0.45, 13, 0, 7); g.fill(); pizza(14, -h * 0.45, 10); }
+    g.restore(); return;
+  }
   g.save(); g.translate(x, y); g.scale(schaal * MENS, schaal * MENS);
   poppetje({ kleur: '#222', huid: '#f0c7a2', haar: '#3b2414', loopT: o.loopT, kijk: o.kijk }, { draagt: o.draagt, armen: o.draagt ? 0.8 : 0 });
   g.restore();
 }
-// de kok is een eigen ontwerp (Gemini, uitgeknipt): pizza/kok.png = 6 plaatjes van 100 x 192 naast elkaar:
-// 0 staan, 1-2 lopen naar voren, 3 naar links, 4 naar rechts, 5 deeg opgooien
+// kok en ober zijn eigen ontwerpen (Gemini, uitgeknipt): pizza/kok.png en pizza/ober.png = 13 plaatjes van 113 x 192 naast elkaar:
+// 0-1 staan, 2-3 lopen (naar links, gespiegeld = naar rechts), 4 schuin rechts, 5 iets bijzonders (deeg opgooien / stolp optillen),
+// 6 staan op de rug, 7-12 lopen naar achteren
 const KOK = new Image(); KOK.src = 'pizza/kok.png';
+const OBER = new Image(); OBER.src = 'pizza/ober.png';
+const SW = 113, SH = 192;
+function figuur(img, p, bijzonder, rug) {
+  let f = rug ? 6 : 0, spiegel = false;
+  if (bijzonder) f = 5;
+  else if (p.loopT > 0) {
+    const c = Math.cos(p.kijk ?? 0), s = Math.sin(p.kijk ?? 0), stap = Math.floor(p.loopT * 7);
+    if (Math.abs(c) > Math.abs(s)) { f = 2 + stap % 2; spiegel = c > 0; }
+    else if (s < 0) f = 7 + stap % 6;
+    else f = 2 + stap % 2;
+  }
+  const h = 1.85 * T, w = h * SW / SH;
+  g.save(); if (spiegel) g.scale(-1, 1);
+  g.drawImage(img, f * SW, 0, SW, SH, -w / 2, -h + 6, w, h);
+  g.restore();
+  return h;
+}
 function kokPlaatje(k, nu) {
-  let f = 0;
-  if (k.gooi > 0) f = 5;
-  else if (k.loopT > 0) { const c = Math.cos(k.kijk ?? 0), s = Math.sin(k.kijk ?? 0); f = Math.abs(c) > Math.abs(s) ? (c < 0 ? 3 : 4) : (Math.floor(k.loopT * 6) % 2 ? 1 : 2); }
-  const h = 1.9 * T, w = h * 100 / 192;
-  g.drawImage(KOK, f * 100, 0, 100, 192, -w / 2, -h + 6, w, h);
+  const h = figuur(KOK, k, k.gooi > 0, !k.loopT && (k.y < 1.9));
   if (k.draagt) { g.fillStyle = '#ddd'; g.beginPath(); g.arc(0, -h * 0.42, 13, 0, 7); g.fill(); pizza(0, -h * 0.42, 10); }
 }
 function kok(k, nu) {
