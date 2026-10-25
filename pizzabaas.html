@@ -153,7 +153,7 @@ const KLEED = {
 };
 Object.keys(KLEED).forEach((k, i) => KLEED[k].i = i);
 const kleedVan = (s) => (s.kleed === true || s.kleed === 1 ? 'rood' : KLEED[s.kleed] ? s.kleed : null); // oude opslag: kleed = true
-const PERSONEEL = { oven: { n: 'Extra oven', ik: '🔥', prijs: 250, max: 3 }, ober: { n: 'Extra ober', ik: '🤵', prijs: 200, max: 3, loon: true } };
+const PERSONEEL = { oven: { n: 'Extra oven', ik: '🔥', prijs: 250, max: 2 }, ober: { n: 'Extra ober', ik: '🤵', prijs: 200, max: 3, loon: true } };
 
 // ---------- pizza's: ingrediënten en wie wat lekker vindt ----------
 // plaatjes: pizza/ingredienten.png = 20 plaatjes van 64 x 64 naast elkaar (Kenney food-kit, CC0), in de volgorde van ING.
@@ -235,6 +235,7 @@ if (S.versie != 3) { // de zaak is kleiner geworden met grotere tegels: oude spu
   S.geld += S.spullen.reduce((a, s) => a + ({ tafel2: 50, tafel4: 90, plant: 20, jukebox: 150 }[s.t] || 0) + (s.kleed ? 10 : 0) + (s.kaars ? 8 : 0), 0) - 100;
   S.spullen = BEGIN(); S.versie = 3;
 }
+if (S.ovens > 2) { S.geld += (S.ovens - 2) * 250; S.ovens = 2; } // nog maar twee ovens: een links en een rechts (de derde terugbetaald)
 if (!S.menu || !S.menu.length) S.menu = [MARGHERITA()]; // opslag van voor de menukaart
 const bewaar = () => { if (!TEGEL) schrijf(SLEUTEL, S); };
 
@@ -325,11 +326,13 @@ function maakPersoneel() {
   obers = []; for (let i = 0; i < S.obers; i++) obers.push({ x: 7 + i, y: KEUKEN + 0.5, thuis: [7 + i, KEUKEN + 0.5], taak: null, draagt: null });
   ovens = []; for (let i = 0; i < S.ovens; i++) ovens.push(maakOven(i));
 }
-// per oven een kok: die rolt het deeg uit en gooit het op (aan de werkbank naast de oven), schuift de pizza in de oven
-// en zet hem als hij klaar is op het uitgiftepunt (op de toonbank, direct naast de laatste oven), waar een ober hem ophaalt
-const KOK_HUIS = (i) => [1.5 + i * 2.6, 2.1], BANK = (i) => [2.6 + i * 2.6, 2];
-const UITGIFTE = () => [BANK(S.ovens - 1)[0] + 1.4, 2.4]; // waar de kok de pizza neerzet; de pizza's staan daar in een rijtje naar rechts
-function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: 1.5 + i * 2.6, bezig: null, t: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2 } }; }
+// max. twee ovens, elk met een eigen kok: oven 0 links (Mario, de kok), oven 1 rechts (Beppe, de bebaarde bakker). De kok maakt het
+// deeg aan de werkbank naast zijn oven, schuift de pizza in de oven en zet hem als hij klaar is op het uitgiftepunt in het midden
+// van de toonbank, waar een ober hem ophaalt
+const OVEN_X = [1.5, 13.5];
+const KOK_HUIS = (i) => [OVEN_X[i], 2.1], BANK = (i) => [i ? 12.1 : 2.9, 2];
+const UITGIFTE = () => [6.2, 2.4]; // waar de kok de pizza neerzet; de pizza's staan daar in een rijtje naar rechts
+function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: OVEN_X[i], bezig: null, t: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2, i } }; }
 const DEEG = 1.6;
 function stapOven(o, dt) {
   const k = o.kok;
@@ -618,8 +621,16 @@ function tekenAchter() {
     for (let k = 0; k < 14; k++) { a.fillStyle = rnd() < 0.6 ? '#9c5530' : '#d8925f'; a.fillRect(x + Math.floor(rnd() * (d - 2)), y + Math.floor(rnd() * (d - 2)), 2, 2); }
     a.fillStyle = 'rgba(60,25,10,.35)'; a.fillRect(x, y + d - 1, d, 1); a.fillRect(x + d - 1, y, 1, d);
   }
-  // werkbanken met deeg en meel
-  for (let i = 0; i < 3; i++) { const [bx, by] = BANK(i); a.fillStyle = '#b07a45'; a.fillRect((bx - 0.45) * T, (by - 1.3) * T, 0.9 * T, 0.75 * T); a.fillStyle = 'rgba(255,255,255,.6)'; a.beginPath(); a.arc(bx * T, (by - 0.95) * T, 10, 0, 7); a.fill(); }
+  // werkbanken naast de ovens: houten kast met marmeren blad, meel, een deegbal en een kommetje tomatensaus
+  for (let i = 0; i < 2; i++) {
+    const [bx, by] = BANK(i), x0 = (bx - 0.5) * T, y0 = (by - 1.45) * T, w = T, h = 0.85 * T;
+    a.fillStyle = 'rgba(40,15,5,.35)'; a.fillRect(x0 + 5, y0 + 6, w, h + 8);
+    a.fillStyle = '#6b3d1e'; a.fillRect(x0, y0 + h - 4, w, 14); a.fillStyle = '#4e2a12'; a.fillRect(x0 + 4, y0 + h, w - 8, 8); // kastje (voorkant)
+    a.fillStyle = '#ddd8d0'; a.fillRect(x0, y0, w, h); a.fillStyle = '#c6c0b6'; for (let k = 0; k < 6; k++) a.fillRect(x0 + rnd() * w * 0.8, y0 + rnd() * h * 0.9, 8 + rnd() * 10, 1); // marmer
+    a.fillStyle = 'rgba(255,255,255,.75)'; for (let k = 0; k < 40; k++) a.fillRect(x0 + 6 + rnd() * 24, y0 + 8 + rnd() * 20, 2, 2); // meel
+    a.fillStyle = '#f0d9a8'; a.beginPath(); a.arc(x0 + 18, y0 + 18, 8, 0, 7); a.fill(); a.fillStyle = '#e2c48a'; a.beginPath(); a.arc(x0 + 20, y0 + 20, 4, 0, 7); a.fill(); // deegbal
+    a.fillStyle = '#f4f4f4'; a.beginPath(); a.arc(x0 + w - 12, y0 + h - 12, 7, 0, 7); a.fill(); a.fillStyle = '#b8321c'; a.beginPath(); a.arc(x0 + w - 12, y0 + h - 12, 5, 0, 7); a.fill(); // tomatensaus
+  }
   // toonbank: houten blad op bakstenen
   a.fillStyle = '#8b3a22'; a.fillRect(0, KEUKEN * T - 20, WW, 20);
   a.fillStyle = 'rgba(0,0,0,.25)'; for (let x = 0; x < WW; x += 16) a.fillRect(x + ((x / 16) % 2) * 8, KEUKEN * T - 10, 1, 10);
@@ -706,7 +717,7 @@ const SW = 113, SH = 192;
 function figuur(img, p, bijzonder, rug, achter) {
   const v = img.vel, sw = v.sw || SW;
   let f = rug ? v.rug : v.staan, spiegel = false;
-  if (bijzonder) f = v.bijzonder;
+  if (bijzonder) f = Array.isArray(v.bijzonder) ? v.bijzonder[Math.floor((p.gooi || 0) * v.fps) % v.bijzonder.length] : v.bijzonder;
   else if (p.loopT > 0) {
     const c = Math.cos(p.kijk ?? 0), s = Math.sin(p.kijk ?? 0), stap = Math.floor(p.loopT * v.fps);
     if (s < 0 && -s > Math.abs(c)) f = v.rugLoop[stap % v.rugLoop.length]; // weg van de kijker
@@ -731,8 +742,13 @@ function tweedeBord(x, y) { // wit bord met pizza, iets schuin van opzij gezien 
   g.fillStyle = '#c0392b'; for (const [a, b] of [[-10, -3], [6, -4], [12, -2], [-2, -2]]) { g.beginPath(); g.arc(x + a, y + b, 2.5, 0, 7); g.fill(); }
   g.fillStyle = '#3c8d2f'; g.fillRect(x - 6, y - 5, 3, 2); g.fillRect(x + 2, y - 2, 3, 2);
 }
+// de tweede kok: Beppe, de bebaarde bakker (pizza/bakker2.png uit pizza/bakkers2-gemini.jpg): 0 staan, 1-5 lopen (schuin naar rechts),
+// 6-10 deeg kneden (een animatie). Plaatjes van achteren zijn er niet: dan staat hij gewoon van voren
+const BAKKER2 = new Image(); BAKKER2.src = 'pizza/bakker2.png';
+BAKKER2.vel = { staan: 0, opzij: [1, 2, 3, 4, 5], rechts: true, bijzonder: [6, 7, 8, 9, 10], rug: 0, rugLoop: [1, 2, 3, 4, 5], fps: 8 };
 function kokPlaatje(k, nu) {
-  const h = figuur(KOK, k, k.gooi > 0, !k.loopT && (k.y < 1.9));
+  const img = k.i && BAKKER2.complete && BAKKER2.naturalWidth ? BAKKER2 : KOK;
+  const h = figuur(img, k, k.gooi > 0, !k.loopT && (k.y < 1.9));
   if (k.draagt) { g.fillStyle = '#ddd'; g.beginPath(); g.arc(0, -h * 0.42, 13, 0, 7); g.fill(); pizza(0, -h * 0.42, 10); }
 }
 function kok(k, nu) {
@@ -773,7 +789,9 @@ function teken(nu) {
     if (OVENS.complete && OVENS.naturalWidth) { // Gemini-oven: 0 uit, 1 met vuur (bakken), 2 pizza op de schep (inschuiven)
       const w = 1.9 * T, x0 = o.x * T - w / 2, y0 = 1.95 * T - w, f = o.fase == 'bak' ? 1 : o.fase == 'inschuiven' ? 2 : 0;
       if (f == 1) { g.fillStyle = `rgba(255,150,40,${0.18 + Math.sin(nu / 90) * 0.06})`; g.beginPath(); g.arc(x0 + w * 0.6, y0 + w * 0.6, w * 0.42, 0, 7); g.fill(); }
-      metSchaduw(OVENS, f * 150, 0, 150, 150, x0, y0, w, w);
+      if (o.i) { g.save(); g.translate(2 * o.x * T, 0); g.scale(-1, 1); } // de rechter oven gespiegeld (opening naar het midden)
+      metSchaduw(OVENS, f * 150, 0, 150, 150, x0, y0, w, w, o.i ? -8 : 8);
+      if (o.i) g.restore();
       if (f == 1) {
         g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(x0 + 12, y0 + w + 1, w - 24, 5); g.fillStyle = '#ffd23f'; g.fillRect(x0 + 12, y0 + w + 1, (w - 24) * Math.min(1, o.t / (BAKTIJD - DEEG)), 5); // hoe lang nog
         for (let k = 0; k < 3; k++) { const fr = ((nu / 900 + k / 3) % 1); g.fillStyle = `rgba(200,200,200,${0.45 * (1 - fr)})`; g.beginPath(); g.arc(x0 + w * 0.52 + Math.sin(fr * 6 + k) * 4, y0 + w * 0.1 - fr * 22, 4 + fr * 6, 0, 7); g.fill(); }
@@ -792,8 +810,9 @@ function teken(nu) {
   }
   // het uitgiftepunt naast de ovens: een belletje, en de pizza's die klaarstaan in een rijtje op de toonbank
   const [ux] = UITGIFTE(), ty = KEUKEN * T - 13;
-  g.fillStyle = 'rgba(0,0,0,.3)'; g.fillRect(ux * T - 26, ty - 14, 4 * T + 34, 31); // stalen uitgifteplaat
-  g.fillStyle = '#c9ced4'; g.fillRect(ux * T - 28, ty - 17, 4 * T + 34, 30); g.fillStyle = '#e9edf1'; g.fillRect(ux * T - 28, ty - 17, 4 * T + 34, 3);
+  g.fillStyle = 'rgba(40,15,5,.35)'; g.fillRect(ux * T - 22, ty - 12, 4 * T + 34, 31); // marmeren uitgifteblad met houten rand
+  g.fillStyle = '#5a3216'; g.fillRect(ux * T - 30, ty - 19, 4 * T + 38, 34);
+  g.fillStyle = '#e4ded4'; g.fillRect(ux * T - 27, ty - 16, 4 * T + 32, 28); g.fillStyle = 'rgba(160,150,140,.35)'; for (let k = 0; k < 9; k++) g.fillRect(ux * T - 20 + k * 22, ty - 12 + (k * 7) % 20, 14, 1);
   g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(ux * T - 12, ty + 4, 11, 5, 0, 0, 7); g.fill(); // belletje
   g.fillStyle = '#d4a017'; g.beginPath(); g.arc(ux * T - 14, ty + 2, 10, Math.PI, 0); g.fill(); g.fillStyle = '#a77d0c'; g.fillRect(ux * T - 26, ty + 1, 24, 4);
   g.fillStyle = '#fff3b0'; g.beginPath(); g.arc(ux * T - 17, ty - 3, 3, 0, 7); g.fill(); g.fillStyle = '#a77d0c'; g.beginPath(); g.arc(ux * T - 14, ty - 9, 2.5, 0, 7); g.fill();
@@ -896,7 +915,7 @@ function schaduwVel(img) {
 }
 function metSchaduw(img, sx, sy, sw, sh, dx, dy, dw, dh, af = 8) { // af = hoe ver de schaduw valt (in de huidige eenheden)
   const sch = schaduwVel(img); if (!sch) return;
-  g.drawImage(sch, sx, sy, sw, sh, dx + af, dy + af * 0.7, dw, dh);
+  g.drawImage(sch, sx, sy, sw, sh, dx + af, dy + Math.abs(af) * 0.7, dw, dh); // af < 0 in een gespiegeld stuk
   g.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 const TAFELS = new Image(); TAFELS.src = 'pizza/tafels.png';
