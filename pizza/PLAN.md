@@ -101,7 +101,8 @@ Extra vel `pizza/tafels2-gemini.jpg` (nog niet ingebouwd): ronde tafels (blauw/o
 wit, paars paisley), vierkante tafels met damast/motief-kleden (lichtblauw, olijf, donkerblauw, rood gestreept) en zeshoekige
 tafels (marmer, lappendeken, zwart-wit). Idee: kleedjes kiezen in het tafelmenu, en tafelstijlen per soort klant (punt 7).
 **D2 stoelen** gedaan: `pizza/stoelen2-gemini.jpg` (met opdracht, 4 richtingen). **Jukebox** gedaan: `pizza/jukebox-gemini.jpg`
-(ook schuin, van achteren, van opzij en een ronde; we gebruiken recht van voren). Nog te doen: D3 plant en palm.
+(ook schuin, van achteren, van opzij en een ronde; we gebruiken recht van voren). Nog te doen: D3 plant en palm. Kruidenbakken zonder opdracht: `pizza/kruiden-gemini.jpg` (basilicum, rozemarijn, oregano in
+terracotta bakken, een olijfboompje en pepers tegen een houten rek; schuin en recht van voren). Idee: eigen kruiden kweken.
 Stoelen zonder opdracht: `pizza/stoelen-gemini.jpg` (4 zittingen: marmer, groen geruit, blauw motief, rood motief; rij 1 en 4
 schuin, rij 2 recht van voren, rij 3 precies van opzij). Bruikbaar: van voren voor stoelen boven de tafel, van opzij voor links/rechts. Daarna D2 stoelen
 (dezelfde stoel in 4 richtingen) en D3 plant/palm/jukebox, steeds één rij per opdracht.
