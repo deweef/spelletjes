@@ -129,6 +129,12 @@ bedenk dat de site openbaar is.
   Vakjes nalopen: geen twee voorwerpen mogen elkaars midden raken, en voorwerpen die vaker voorkomen (koffiemok, tamboerijn, pizza) krijgen meer vakjes.
   In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
   `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!" en een 🚗 bij het level.
+- Songfestival-hits (`songfestival/`, test, nog niet op de startpagina): zelfgeprinte kaartjes in Hitster-stijl (die naam niet op de site
+  gebruiken, is een merk). `liedjes.js` = `LIEDJES` (id, jaar, land, vlag, artiest, titel, spotify-track-id, won); id's nooit hergebruiken.
+  `index.html?k=<id>` = speler: grote ▶ (Spotify Embed IFrame API, `togglePlay`), de Spotify-speler zit onder een afdekking behalve zijn
+  play-knopje, "Laat zien" toont het antwoord. `kaartjes.html` = A4 printvellen (6,5 cm, 12 per vel; QR met `lib/qrcode.js`, MIT,
+  qrcode-generator; achterkanten per rij gespiegeld voor dubbelzijdig printen). Spotify-id's zoeken met de Spotify-tool; YouTube en
+  Wikipedia zijn vanuit de cloud niet bereikbaar.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
 - Een spel dat nog niet af is krijgt `"concept": true` in `spellen.json`; de startpagina zet er dan een
