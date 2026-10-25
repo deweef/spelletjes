@@ -26,6 +26,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Ruimtestation: https://share.gemini.google/h1q1antouN3x
 - Hockeywedstrijd (level 21, plaatje nog niet in de repo): https://share.gemini.google/SZNoUlD491HF
 - Spreekwoorden (B1, Bruegel-lijn, plaatje nog niet in de repo): https://share.gemini.google/dLRILwRK1UZC
+- Kinderspelen (B2, Bruegel-lijn, plaatje nog niet in de repo): https://share.gemini.google/OaDav9QRH8uq
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
