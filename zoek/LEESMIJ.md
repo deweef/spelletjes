@@ -27,6 +27,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Hockeywedstrijd (level 21, plaatje nog niet in de repo): https://share.gemini.google/SZNoUlD491HF
 - Spreekwoorden (B1, Bruegel-lijn, plaatje nog niet in de repo): https://share.gemini.google/dLRILwRK1UZC
 - Kinderspelen (B2, Bruegel-lijn, plaatje nog niet in de repo): https://share.gemini.google/OaDav9QRH8uq
+- Jagers in de sneeuw / winterspelen (B3, wat hoort er niet bij, plaatje nog niet in de repo): https://share.gemini.google/EQltclTI4uSA
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 

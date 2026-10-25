@@ -23,5 +23,7 @@
   Afgesproken: een geheim level, los van 21-30 en B1-B10, dat pas in het menu verschijnt als Sjaak overal betrapt is.
 - Orkest en strand hebben nog geen Sjaak (nieuwe Gemini-plaat of Sjaak erin plakken zoals de oldtimer bij het strand).
 - **Level 21: dameshockeywedstrijd** (gekozen, okt 2026): eerste sportlevel; link staat in `LEESMIJ.md`; Marcel zet straks 5 platen tegelijk in de repo.
+- **Level 22: herfststorm** (idee Marcel, okt 2026): omgewaaide boom op een veldje, eikels, kastanjes (vaker = meer vakjes),
+  paddenstoelen. Spelvorm-idee: af en toe waait er een vlaag bladeren over het scherm die even dingen afdekt.
 - Meer levels: winterkermis, Orkenstorm-dorp, plaats delict (iemand onder een laken met een been eruit).
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.
