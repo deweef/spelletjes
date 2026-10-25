@@ -95,6 +95,20 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
   er komen niet genoeg klanten om 2 ovens vol te krijgen. Idee: **drukke dagen** (vrijdag/zaterdag veel meer klanten, maandag rustig),
   zodat je ook met 2+2 soms tekortkomt.
 
+## Overdag wat te doen (Marcel + Claude, 25 okt) — voorgestelde volgorde
+1. Pizza's maken (📖) ook tijdens de werkdag (spel loopt door; nieuwe pizza meteen op de kaart).
+2. Vragen-pop-up (spel staat stil tot je kiest; 2-4 per dag, ~25-30 vragen met A/B/C en gevolgen). Voorbeelden: agent met boete voor
+   geluidsoverlast (A betalen, B jukebox zachter, C "gratis pizza, agent?" = omkoping: nacht in de cel, morgen dicht); zieke hond
+   (dierenarts geven = fooi, "stukje pizza" = hond spuugt); bruidspaar wil zaterdag de zaak afhuren; recensent van de krant; zieke ober
+   (naar huis / doorwerken / uitzendkracht); leverancier met mozzarella-aanbieding (kopen/nee/afdingen); straatmuzikant; kind wil in de
+   keuken kijken; en de geheime vraag over het schilderij.
+3. Kalender ("Za 14 nov" i.p.v. "DAG 9"): vrijdag/zaterdag druk, maandag rustig, zondag gezinnen; feestdagen (Sinterklaas, Valentijn,
+   carnaval). **Belasting** stil bijhouden (~15% van de winst, niet uitleggen, verstopt in een schriftje); laatste dag van de maand komt
+   de belastinginspecteur; niet genoeg = 1 dag uitstel met 10% boete, daarna beslag of een dag dicht. (Lenen bij Sjaak gaat een keer mis.)
+4. Tegenvallers, niet te vaak: personeel ziek → uitzendkracht (duurder, langzamer), leverancier te laat (ingrediënt op), stroomstoring
+   (oven even uit), keuringsdienst, vlekken/scherven op de vloer om weg te klikken.
+5. Schilderij + geheime vraag → achterkamer.
+
 ## Klanten stellen vragen (Marcel, 25 okt), opstap naar de achterkamer
 - Af en toe vraagt een klant iets en moet je kiezen uit een paar antwoorden (pop-up, spel gaat even op pauze), bv. "Kan het zonder ui?",
   "Is dit glutenvrij?", "Mag de hond mee naar binnen?", "Waar is de wc?". Goed antwoord = blijere klant/fooi, fout = boos of minder fooi.
