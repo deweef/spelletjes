@@ -24,6 +24,7 @@ bedenk dat de site openbaar is.
   | Songfestival-hits | `songfestival/CLAUDE.md` | `songfestival/PLAN.md` |
   | Koekjesschuiver 3D | `koekjesschuiver3d/CLAUDE.md` | |
   | Orkenstorm 3D | `orkenstorm3d/CLAUDE.md` | `orkenstorm3d/PLAN.md` |
+  Plaatjes maken met Gemini (opdrachten, uitknippen met `extra/knip_figuren.py`, bewaren): `uitleg/gemini-en-plaatjes.md`.
   De oude 2D-spellen (kasteelsprong, koekjesschuiver, kikkersprong, skirun, piratenbluf, orkenstorm) hebben geen uitlegbestand.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
   bestand, plaatje, stand) + een plaatje van 640x400 (jpg).
@@ -68,6 +69,8 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   meld het meteen aan Marcel en werk niet stilletjes op een kopie verder.
 - Er kunnen meerdere sessies tegelijk werken (één per spel). Altijd `git pull --rebase origin main` vóór het pushen, en
   alleen de bestanden van je eigen spel aanpassen (plus `spellen.json`/`index.html` als dat echt moet).
+- Andere gesprekken van Marcel kun je inzien met `list_sessions`/`list_events` (claude-code-remote), bijvoorbeeld om een
+  plaatje of afspraak terug te vinden; zet wat je vindt daarna in de repo.
 - Afspraken die in een gesprek gemaakt worden, horen in het uitleg- of planbestand van dat spel (zie de tabel hierboven):
   een volgend gesprek kan oude gesprekken niet teruglezen.
 - De familie mag meespelen met concept-versies. Zet wijzigingen daarom direct op `main` (dan publiceert
