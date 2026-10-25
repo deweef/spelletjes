@@ -89,6 +89,19 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 Geld lenen bij de bank: rente per dag en aflossen. Niet oneindig: hoeveel je mag lenen hangt af van je omzet/populariteit; betaal
 je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag op spullen, of failliet).
 
+## Balans en drukte (Marcel, 25 okt)
+- Er kan nu 1 pizza tegelijk in een oven. Idee: grotere oven kopen (2 pizza's tegelijk) als upgrade.
+- Getest: zaak vol tafeltjes voor 2 (40 stoelen, 2 ovens, 2 obers) loopt niet vast, want groepjes van 3+ passen niet ("geen plek") en
+  er komen niet genoeg klanten om 2 ovens vol te krijgen. Idee: **drukke dagen** (vrijdag/zaterdag veel meer klanten, maandag rustig),
+  zodat je ook met 2+2 soms tekortkomt.
+
+## Klanten stellen vragen (Marcel, 25 okt), opstap naar de achterkamer
+- Af en toe vraagt een klant iets en moet je kiezen uit een paar antwoorden (pop-up, spel gaat even op pauze), bv. "Kan het zonder ui?",
+  "Is dit glutenvrij?", "Mag de hond mee naar binnen?", "Waar is de wc?". Goed antwoord = blijere klant/fooi, fout = boos of minder fooi.
+- Daartussen, onopvallend, de **geheime vraag**: de man met de gleufhoed kijkt naar het schilderij: "Wat een mooi schilderij… wie is de
+  schilder?" Normaal kies je iets gewoons (een kunstenaar uit de buurt, de kringloop), maar het geheime antwoord "een échte Van Gogh"
+  opent de achterkamer (zie stap 3 hieronder). Daarvoor moet er eerst **een schilderij aan de muur** te koop zijn (versiering).
+
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
 2. **Klanten als eigen figuren** (net als kok en ober), met Gemini; de zittende houdingen staan al op de vellen.
