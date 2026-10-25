@@ -541,20 +541,25 @@ function ober(o) {
   poppetje({ kleur: '#222', huid: '#f0c7a2', haar: '#3b2414', loopT: o.loopT, kijk: o.kijk }, { draagt: o.draagt, armen: o.draagt ? 0.8 : 0 });
   g.restore();
 }
-// kok en ober zijn eigen ontwerpen (Gemini, uitgeknipt): pizza/kok.png en pizza/ober.png = 13 plaatjes van 113 x 192 naast elkaar:
-// 0-1 staan, 2-3 lopen (naar links, gespiegeld = naar rechts), 4 schuin rechts, 5 iets bijzonders (deeg opgooien / stolp optillen),
-// 6 staan op de rug, 7-12 lopen naar achteren
-const KOK = new Image(); KOK.src = 'pizza/kok.png';
-const OBER = new Image(); OBER.src = 'pizza/ober.png';
+// kok en ober zijn eigen ontwerpen (Gemini, uitgeknipt): plaatjes van 113 x 192 naast elkaar. Per vel staat hieronder welk
+// plaatje wat is: staan (van voren), opzij (loopcyclus; `rechts` = de neus wijst naar rechts, anders naar links, gespiegeld = de
+// andere kant op), bijzonder (deeg opgooien / stolp optillen), rug (staan op de rug) en rugLoop (lopen naar achteren)
+const KOK = new Image(); KOK.src = 'pizza/kok.png';   // pizza/kok2-gemini.jpg (lopen) + het deeg van pizza/kok-gemini.jpg
+const OBER = new Image(); OBER.src = 'pizza/ober.png'; // pizza/ober-gemini.jpg
+KOK.vel = { staan: 0, opzij: [2, 3, 4, 5, 6, 7, 8], rechts: true, bijzonder: 9, rug: 10, rugLoop: [11, 12, 13, 14], fps: 10 };
+OBER.vel = { staan: 0, opzij: [2, 3], rechts: false, bijzonder: 5, rug: 6, rugLoop: [7, 8, 9, 10, 11, 12], fps: 7 };
 const SW = 113, SH = 192;
 function figuur(img, p, bijzonder, rug) {
-  let f = rug ? 6 : 0, spiegel = false;
-  if (bijzonder) f = 5;
+  const v = img.vel;
+  let f = rug ? v.rug : v.staan, spiegel = false;
+  if (bijzonder) f = v.bijzonder;
   else if (p.loopT > 0) {
-    const c = Math.cos(p.kijk ?? 0), s = Math.sin(p.kijk ?? 0), stap = Math.floor(p.loopT * 7);
-    if (Math.abs(c) > Math.abs(s)) { f = 2 + stap % 2; spiegel = c > 0; }
-    else if (s < 0) f = 7 + stap % 6;
-    else f = 2 + stap % 2;
+    const c = Math.cos(p.kijk ?? 0), s = Math.sin(p.kijk ?? 0), stap = Math.floor(p.loopT * v.fps);
+    if (s < 0 && -s > Math.abs(c)) f = v.rugLoop[stap % v.rugLoop.length]; // weg van de kijker
+    else { // opzij, en ook naar voren (een loopcyclus naar de kijker toe is er nog niet): opzij in de richting waar hij heen gaat
+      if (Math.abs(c) > 0.15) p.opzij = c > 0 ? 1 : -1;
+      f = v.opzij[stap % v.opzij.length]; spiegel = (p.opzij || 1) > 0 != v.rechts;
+    }
   }
   const h = 1.85 * T, w = h * SW / SH;
   g.save(); if (spiegel) g.scale(-1, 1);

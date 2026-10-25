@@ -66,7 +66,8 @@ tafels slepen, jukebox 2x2. Punten 6 en 7 wachten op nieuwe Gemini-vellen van Ma
 Algemene regels: `uitleg/gemini-en-plaatjes.md`. Eén opdracht per keer, in deze volgorde: A, B, C, D.
 Altijd het oude vel (`pizza/kok-gemini.jpg` / `pizza/ober-gemini.jpg`) meesturen, zodat het hetzelfde figuurtje blijft.
 
-**A. Kok, loopvel** (tegen het moonwalken):
+**A. Kok, loopvel** (tegen het moonwalken). Gedaan (25 okt): `pizza/kok2-gemini.jpg`. Gemini maakte rij 1 (7 stappen opzij) goed,
+maar geen lopen naar de kijker toe, en gaf hem een witte broek. Zie de les bij B.
 "Maak een nieuw vel met spelfiguurtjes van precies deze kok (zelfde pixelart-stijl, kleren, snor, muts en grootte als op het
 plaatje). Zet ze in een net raster: 3 rijen, elk figuurtje even groot en met ruimte ertussen, niets overlapt.
 Rij 1: 6 plaatjes, lopen precies van opzij (profiel, neus naar rechts): hak neer, doorzakken, been passeert, omhoog, andere hak
