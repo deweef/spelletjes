@@ -98,6 +98,11 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   `toerist2` = bijna hetzelfde (plus Chinese gast in bloemetjeshemd, dames in qipao, Afrikaanse gasten).
 - Chinese dame in rode qipao: `pizza/dame-china-gemini.jpg` (voor, achter, zitten in alle richtingen, eten met stokjes, thee) en
   `pizza/dame-china2-gemini.jpg` (onderste rij: echte profiel-loopcyclus van 7 plaatjes).
+- Afrikaanse man in groen dashiki: `pizza/afrikaan-gemini.jpg` (voor, achter, zitten alle richtingen, eten, duim omhoog, onderste rij
+  echte profiel-loopcyclus).
+- **Overzicht klantfiguren (26 okt).** Compleet (lopen opzij/voor/achter + zitten in alle richtingen): Chinese toerist, Chinese dame,
+  Afrikaanse man. Bijna compleet: opa, oma (zitten alleen schuin met tafel). Nog met de vaste opdracht maken: werker (zitten), student,
+  villabewoner/zakenmensen, Afrikaanse vrouw, gezin (ouder + kind). Kinderen (peuter, meisje) hebben alleen losse poses.
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
 ## Bank (idee Marcel, 25 okt) — gedaan: Banca Fortuna, Oma Truus en Ome Sjaak (woekeraar), zie CLAUDE.md.
