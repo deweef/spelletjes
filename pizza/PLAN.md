@@ -88,6 +88,11 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   studenten (jongen met T-shirt, meisje met groen-paars haar en rugzak, jongen in hoodie en pyjamabroek, op de bank met pizza).
 - `pizza/inspecteur-gemini.jpg` (de eerste, gladgeschoren man en de vrouw met koffertje) wordt niet meer als inspecteur gebruikt:
   bruikbaar als klanten, bv. zakenman en zakenvrouw (nieuwe klantsoort, of bij de villabewoners).
+- `pizza/gasten-gemini.jpg`, `pizza/gasten2-gemini.jpg`: veel gasten (gezinnen, chique/zakelijke gasten, Italiaanse stamgasten,
+  wachtrij bij de toonbank, kapstok, rommel); `gasten2` heeft een Chinese dame in qipao (lopen voor/opzij/achter, zitten).
+- **Vaste opdracht per klant** (één figuur per keer, steeds 4 rijen; het ober-vel meesturen als voorbeeld voor stijl en grootte):
+  rij 1 lopen opzij (7), rij 2 lopen naar voren (4), rij 3 lopen van achteren (4), rij 4 zitten op een onzichtbare stoel: van voren,
+  van achteren, van opzij, eten van voren, eten van achteren, eten van opzij. Zie de opdracht voor de Chinese gast in het gesprek van 26 okt.
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
 ## Bank (idee Marcel, 25 okt) — gedaan: Banca Fortuna, Oma Truus en Ome Sjaak (woekeraar), zie CLAUDE.md.
