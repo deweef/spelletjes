@@ -39,7 +39,7 @@ op willekeurige momenten (`planVragen`, `vraagTijden`), dezelfde niet binnen 8 d
 kiest (`toonVraag`, `#vraag`). Gevolgen voor vandaag in `vandaag` (`VANDAAG`: fooi, gezellig, aankomst, oberSnel, ovenUit, op, smaakMin),
 voor morgen `S.morgen`, morgen dicht `S.dicht` (de dag erna toont het dagoverzicht "dicht"), hoe vies de zaak is `S.vuil` (keuring),
 korting op een ingrediënt `S.korting`, kok naar huis `ovens[1].ziek`/`traag`. "Hoe moet dat eigenlijk?" = `PIZZA_UITLEG` + knop naar de
-menukaart. 📖 Pizza's kan nu ook tijdens de werkdag. Een vraag kan een getekend portret hebben (`portret`: vak in `pizza/portretten.png`, 170x310 per vak: 0 agent, 1 belastinginspecteur; vellen `pizza/agent-gemini.jpg`, `pizza/inspecteur-gemini.jpg` hebben ook lopen en zitten voor later).
+menukaart. 📖 Pizza's kan nu ook tijdens de werkdag. Een vraag kan een getekend portret hebben (`portret`: vak in `pizza/portretten.png`, 170x310 per vak: 0 agent, 1 belastinginspecteur; vellen `pizza/agent-gemini.jpg`, `pizza/inspecteur-gemini.jpg`). Een vraag met portret komt echt binnen (`laatBinnen`, `bezoeker`, `stapBezoeker`, `tekenBezoeker`): loopt van de deur naar het midden, dan de pop-up, na Verder weer naar buiten; plaatjes `pizza/bezoekers.png` (rij 0 agent, 1 inspecteur; 0-1 van achteren, 2-3 van voren). Kan iemand niet betalen, dan tipt de agent/inspecteur de bank.
 Kalender: `S.dag` 1 = maandag 2 november 2026 (`datum`, `weekdag`, `datumKort` op het schermpje, `datumLang` in het dagoverzicht).
 Drukte per weekdag `DRUKTE` (ma 0,7 … za 1,5) × `feestdag()` (Pakjesavond, Kerst, Oud en Nieuw, Nieuwjaar, Valentijn: kaarsjes
 tellen dubbel) via `vandaag.aankomst`; zondag meer opa/oma, vrijdag meer werkers/studenten (`kiesSoort`). Belasting: niet uitgelegd;

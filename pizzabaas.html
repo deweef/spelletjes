@@ -422,9 +422,9 @@ function feestdag(d = S.dag) { // { n, aankomst, tekst, kaars? }
 const BELASTING = 0.15; // deel van de winst
 const INSPECTEUR = { id: 'inspecteur', ik: '🕴️', portret: 1, wie: 'Belastinginspecteur', vraag: () => `Goedendag. Ik kom de belasting van deze maand innen: € ${S.belasting}.`,
   a: [['Betalen.', () => { if (S.geld >= S.belasting) { ge(-S.belasting); const b = S.belasting; S.belasting = 0; return `Je betaalt € ${b}. "Tot volgende maand."`; }
-      S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Je hebt niet genoeg geld! Je krijgt een dag uitstel, met 10% boete: morgenavond € ${S.aanslag}.`; }],
-    ['Kan ik het morgen betalen?', () => { S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Vooruit. Morgenavond € ${S.aanslag}, met 10% boete.`; }],
-    ['Belasting? Ik ben maar een kleine zaak…', () => { S.aanslag = Math.round(S.belasting * 1.25); S.aanslagDag = S.dag + 1; S.belasting = 0; rep(-1); return `"Dat zeggen ze allemaal." Morgenavond € ${S.aanslag}, met 25% boete.`; }] ] };
+      S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Je hebt niet genoeg geld! Je krijgt een dag uitstel, met 10% boete: morgenavond € ${S.aanslag}. Tip van de inspecteur: "Misschien moet u even naar de bank om geld te lenen."`; }],
+    ['Kan ik het morgen betalen?', () => { S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Vooruit. Morgenavond € ${S.aanslag}, met 10% boete.${S.geld < S.aanslag ? ' "En als u het niet heeft: de bank leent het u vast wel."' : ''}`; }],
+    ['Belasting? Ik ben maar een kleine zaak…', () => { S.aanslag = Math.round(S.belasting * 1.25); S.aanslagDag = S.dag + 1; S.belasting = 0; rep(-1); return `"Dat zeggen ze allemaal." Morgenavond € ${S.aanslag}, met 25% boete. "Ga anders even langs de bank."`; }] ] };
 function belastingAvond(winst) { // 's avonds: belasting opzij, en de aanslag betalen als die vandaag moet
   const regels = [];
   if (winst > 0) S.belasting = (S.belasting || 0) + Math.round(winst * BELASTING);
@@ -448,7 +448,7 @@ function openDeuren() {
   if (S.dicht) { tel = NIEUWTEL(); tel.dicht = S.dicht; S.dicht = null; mensen = []; eindeDag(); return; } // vandaag blijft de zaak dicht
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
   tel = NIEUWTEL(); bezet = null; // de inrichting kan veranderd zijn: looproutes opnieuw
-  vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
+  bezoeker = null; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
   const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (laatsteVanDeMaand() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
@@ -586,7 +586,7 @@ const VRAGEN = [
       ['Goed idee, morgen staat er wat nieuws op!', () => { rep(1); return 'De klant knikt tevreden. Denk eraan: knop 📖 Pizza\'s!'; }],
       ['Hoe moet dat eigenlijk?', () => 'UITLEG'] ] },
   { id: 'agent', ik: '👮', portret: 0, wie: 'Agent', als: () => S.spullen.some((s) => s.t == 'jukebox'), vraag: 'Goedenavond. Er zijn klachten over geluidsoverlast van uw jukebox. Dat wordt een boete van € 80.',
-    a: [['Betalen.', () => { ge(-80); return 'Je betaalt € 80. De agent tikt tegen zijn pet.'; }],
+    a: [['Betalen.', () => { if (S.geld < 80) { S.geld -= 80; return 'Je hebt het geld niet eens! Je staat nu rood. De agent: "Misschien moet u even naar de bank om geld te lenen."'; } ge(-80); return 'Je betaalt € 80. De agent tikt tegen zijn pet.'; }],
       ['Ik zet de jukebox wel uit.', () => { vandaag.gezellig -= 1; return 'Geen boete, maar het is vanavond wel een stuk stiller (minder gezellig).'; }],
       ['Wilt u geen gratis pizza, agent?', () => { S.dicht = 'Je zat een nacht in de cel voor poging tot omkoping.'; rep(-5); return '"Omkoping?!" Je gaat mee naar het bureau. Morgen blijft de zaak dicht.'; }] ] },
   { id: 'hond', ik: '🐕', wie: 'Klant met hond', vraag: 'Mijn hondje is een beetje ziek. Weet u toevallig een goede dierenarts?',
@@ -756,6 +756,22 @@ function kiesVraag() {
   for (const v of lijst) if ((r -= typeof v.kans == 'function' ? v.kans() : v.kans || 1) < 0) return v;
   return lijst[0];
 }
+// agent en inspecteur komen echt binnen: ze lopen van de deur naar het midden, stellen daar hun vraag en lopen weer weg.
+// pizza/bezoekers.png: rij 0 agent, rij 1 inspecteur; per rij 0-1 lopen van achteren (naar binnen), 2-3 van voren (staan, naar buiten)
+const BEZOEK = new Image(); BEZOEK.src = 'pizza/bezoekers.png';
+let bezoeker = null; // { rij, x, y, st: 'in' | 'praat' | 'uit', v, loopT }
+function laatBinnen(v) { bezoeker = { rij: v.portret, x: DEUR.x + 0.5, y: H + 0.4, st: 'in', v, loopT: 0 }; }
+function stapBezoeker(dt) {
+  const b = bezoeker; if (!b) return;
+  if (b.st == 'in' && loopNaar(b, [7.5, 8.5], 2.6, dt)) { b.st = 'praat'; b.loopT = 0; toonVraag(b.v); }
+  else if (b.st == 'uit' && loopNaar(b, [DEUR.x + 0.5, H + 0.6], 2.6, dt)) bezoeker = null;
+}
+function tekenBezoeker() {
+  const b = bezoeker; if (!b || !BEZOEK.complete || !BEZOEK.naturalWidth) return;
+  const [x, y] = naarScherm(b.x, b.y), f = (b.st == 'in' ? 0 : 2) + (b.loopT > 0 ? Math.floor(b.loopT * 4) % 2 : 0), h = 1.85 * T * schaal, w = h * 113 / 192;
+  g.fillStyle = 'rgba(40,15,5,.28)'; g.beginPath(); g.ellipse(x + 7 * schaal, y + 5 * schaal, w * 0.3, 7 * schaal, 0, 0, 7); g.fill();
+  g.drawImage(BEZOEK, f * 113, b.rij * 192, 113, 192, x - w / 2, y - h + 6 * schaal, w, h);
+}
 function toonVraag(v) {
   pauze = true; S.gehad = S.gehad || {}; S.gehad[v.id] = S.dag; ding(880, 0.1); setTimeout(() => ding(1100, 0.12), 120);
   const k = $('vraagkaart');
@@ -766,8 +782,8 @@ function toonVraag(v) {
     const uit = v.a[+b.dataset.i][1](); bewaar(); tekenKnoppen();
     k.innerHTML = `<div class="vraagik">${ik}</div>${uit == 'UITLEG' ? `<p class="vraagtekst"><b>Zo maak je een nieuwe pizza:</b></p>${PIZZA_UITLEG}<button class="groot" id="laatzien">📖 Laat zien</button>` : `<p class="vraagtekst">${esc(uit)}</p>`}
       <button class="groot" id="vraagverder" style="margin-top:8px">Verder</button>`;
-    $('vraagverder').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; };
-    if ($('laatzien')) $('laatzien').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; toonKaart(); };
+    $('vraagverder').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; if (bezoeker) bezoeker.st = 'uit'; };
+    if ($('laatzien')) $('laatzien').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; if (bezoeker) bezoeker.st = 'uit'; toonKaart(); };
   });
   $('vraag').classList.remove('verborgen');
 }
@@ -891,8 +907,10 @@ function stap(dt) {
   if (modus == 'open') {
     volgendeKlant -= dt;
     if (volgendeKlant <= 0) { nieuweGroep(); volgendeKlant = Math.max(2.2, 7.5 - S.rep * 0.05) * (0.6 + Math.random() * 0.8) / vandaag.aankomst; }
-    if (vraagTijden.includes(-1) && klok > DAG * 0.3) { vraagTijden = vraagTijden.filter((t) => t != -1); toonVraag(INSPECTEUR); }
-    else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { vraagTijden.shift(); toonVraag(kiesVraag()); }
+    const stel = (v) => v.portret != null ? laatBinnen(v) : toonVraag(v); // met een figuur: eerst binnenlopen
+    if (bezoeker) {} // wacht tot de vorige bezoeker weg is
+    else if (vraagTijden.includes(-1) && klok > DAG * 0.3) { vraagTijden = vraagTijden.filter((t) => t != -1); stel(INSPECTEUR); }
+    else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { vraagTijden.shift(); stel(kiesVraag()); }
     if (klok >= DAG) { modus = 'sluiten'; meld('De deur gaat dicht. Nog even de laatste klanten helpen…'); tekenKnoppen(); }
   }
   if (modus == 'sluiten' && (!mensen.length || klok > DAG + 40)) { mensen = []; eindeDag(); return; }
@@ -934,6 +952,7 @@ function stap(dt) {
   }
   // ovens bakken wat er besteld is
   for (const o of ovens) stapOven(o, dt);
+  stapBezoeker(dt);
   if (vandaag.ovenUit > 0) vandaag.ovenUit -= dt;
   S.vuil = (S.vuil || 0) + mensen.filter((m) => m.st == 'eet').length * dt * 0.0006; // hoe meer er gegeten wordt, hoe viezer
   // obers brengen de pizza's rond
@@ -1237,7 +1256,7 @@ function teken(nu) {
 
   // koks, mensen en obers (in schermpixels, gesorteerd op y)
   const koks = ovs.map((o) => ({ y: o.kok.y, f: () => kok(o.kok, nu) }));
-  const alles = [...koks, ...mensen.map((m) => ({ y: m.y, f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) }))].sort((a, b) => a.y - b.y);
+  const alles = [...koks, ...mensen.map((m) => ({ y: m.y, f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : [])].sort((a, b) => a.y - b.y);
   for (const a of alles) a.f();
   // muntjes en tekstwolkjes
   g.textAlign = 'center';
@@ -1702,7 +1721,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, laatBinnen, get bezoeker() { return bezoeker; }, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>
