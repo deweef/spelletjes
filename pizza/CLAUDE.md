@@ -59,4 +59,8 @@ Vlekken en scherven (`vlekken`, `VLEK`: saus, scherven, kruimels, cola, poep; `n
 tijdens het eten valt er soms wat; tik erop tijdens het werk om op te ruimen (`vlekBij`); in de buurt van een tafel kost elke vlek een
 sterretje gezellig (max. 2); over scherven lopen = "Au!" en populariteit omlaag; wat 's avonds blijft liggen maakt de zaak viezer
 (`S.vuil` +0,5 per vlek, keuringsdienst). Dagoverzicht: opgeruimd / blijven liggen. Vragen 'glas' en 'poep' leggen er ook een neer.
+Grote oven (knop 🧱 als er 2 ovens zijn, `GROTE_PRIJS`, `S.groot[i]`, `ruimte(i)` = 2): plaatjes `pizza/grote-oven.png` (`GROTE`, uit
+`pizza/grote-oven-gemini.jpg`: 0 dicht, 1 gloeiend, 2 met pizza's). Een oven heeft `o.in` = [{ b, t }]; de kok heeft `k.hand` = lijst: bij een
+grote oven maakt hij 2 deegjes, schuift ze samen in en brengt er 2 tegelijk weg (anders is hij zelf de bottleneck; getest: 1 grote oven
+= bijna niemand boos, 1 gewone oven = 4-18 boos per dag in een zaak van 25 stoelen).
 Plan en volgende stappen: `pizza/PLAN.md`.
