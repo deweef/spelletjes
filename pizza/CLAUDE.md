@@ -54,7 +54,12 @@ zitten voor/eten/achter/eten, onder rechts zitten opzij). Zittend (`tekenKlantFi
 gespiegeld; wie boven of naast de tafel zit wordt vóór het tafelblad getekend (in `tekenSpul`, `voorTafel`), zodat de benen eronder verdwijnen.
 Schilderij (`SPUL.schilderij`, bij de versiering-knop; `muur: true` = alleen tegen de linker- of rechtermuur, `aanDeMuur`): 6 schilderijen uit
 `pizza/schilderijen.png` (`SCHILD`, `SCHILDERIJEN`, vakjes van 160, uit `pizza/schilderijen-gemini.jpg`; `s.v`, wisselen met 🔄). Hangt er een schilderij, dan kan de geheime vraag komen
-(`VRAGEN` id 'gleufhoed'): antwoord C "Een échte Van Gogh" zet `S.achterkamer` (dag); de achterkamer zelf moet nog gebouwd worden.
+(`VRAGEN` id 'gleufhoed'): antwoord C "Een échte Van Gogh" zet `S.achterkamer` (dag). Dan staat linksboven een sleuteltje (`#sleutel`) naar de
+achterkamer (`toonAchterkamer`, `#achter`): bestelling van de man met de gleufhoed (`S.opdracht` = { v, prijs, tot }, `nieuweOpdracht`), schilderen
+voor €40 (`DOEK`) = minispel `toonAtelier`: het origineel naast een doek van 6x7 (liggend 7x5) vakjes, 5 verfkleuren (k-means op het schilderij),
+45 s; kwaliteit q = deel goede vakjes. Vervalsing droogt een nacht (`S.vervalsingen` = [{ v, q, dag }], `droog`); vraag 'koper' haalt hem op
+(prijs × (0,25 + 0,75q), niet besteld = minder; C = dubbel vragen, gok); vraag 'rechercheur' (vaker als er vervalsingen liggen): laten kijken =
+betrapt (`rechercheurVindt`: in beslag, €300 boete, morgen dicht, populariteit −10), pizza aanbieden = gok, Mr. Gladjanus (€150) = veilig.
 Vlekken en scherven (`vlekken`, `VLEK`: saus, scherven, kruimels, cola, poep; `nieuweVlek`, `tekenVlekken` op de vloer onder alles):
 tijdens het eten valt er soms wat; tik erop tijdens het werk om op te ruimen (`vlekBij`); in de buurt van een tafel kost elke vlek een
 sterretje gezellig (max. 2); over scherven lopen = "Au!" en populariteit omlaag; wat 's avonds blijft liggen maakt de zaak viezer

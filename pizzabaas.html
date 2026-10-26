@@ -68,6 +68,16 @@
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
   .antwoord b { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #b5381c; color: #fff; text-align: center; line-height: 22px; margin-right: 6px; font-size: 13px; }
   .antwoord:hover { background: #ead2a8; }
+  #sleutel { position: fixed; z-index: 5; top: 8px; left: 60px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
+  #sleutel.verborgen { display: none; }
+  .mini { display: inline-block; background-image: url(pizza/schilderijen.png); background-repeat: no-repeat; image-rendering: pixelated; vertical-align: middle; }
+  .opdracht { display: flex; gap: 12px; align-items: center; background: #f1e1c4; border-radius: 12px; padding: 10px; margin: 8px 0; }
+  .atelier { display: flex; gap: 14px; justify-content: center; align-items: flex-start; text-align: center; flex-wrap: wrap; }
+  #doek2 { display: grid; gap: 2px; width: 150px; background: #c9b48a; padding: 3px; border-radius: 4px; touch-action: none; }
+  #doek2 button { aspect-ratio: 1; border: 0; background: #fffdf5; padding: 0; cursor: crosshair; }
+  #palet { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+  #palet button { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px #3a2414; cursor: pointer; }
+  #palet button.aan { transform: scale(1.2); box-shadow: 0 0 0 3px #2e9d52; }
   .kaart { margin: auto; background: #fff7e8; color: #3a2414; border-radius: 18px; padding: 20px 22px; max-width: 440px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
   .kaart h1 { margin: 0 0 6px; font-size: 26px; color: #b5361f; }
   .kaart p { line-height: 1.45; margin: 8px 0; }
@@ -130,6 +140,8 @@
 </div>
 <div class="scherm verborgen" id="einde"><div class="kaart" id="eindkaart"></div></div>
 <div class="scherm verborgen" id="vraag"><div class="kaart" id="vraagkaart"></div></div>
+<div class="scherm verborgen" id="achter"><div class="kaart breed" id="achterkaart"></div></div>
+<button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
 <div class="scherm verborgen" id="bank"><div class="kaart" id="bankkaart"></div></div>
 <div class="scherm verborgen" id="pizzas"><div class="kaart breed" id="pizzakaart"></div></div>
 
@@ -779,7 +791,21 @@ const VRAGEN = [
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
       ['Van de kringloop, vijf euro.', () => '"Jammer," mompelt hij. "Jammer."'],
-      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); return 'Hij kijkt om zich heen en fluistert: "Dan bent u de man die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken is toch nog een kamertje?" Hij legt een sleutel op tafel en verdwijnt. 🗝️ (De achterkamer wordt nog gebouwd…)'; }] ] },
+      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); return 'Hij kijkt om zich heen en fluistert: "Dan bent u de man die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken is toch nog een kamertje?" Hij legt een sleutel op tafel en verdwijnt. 🗝️ Linksboven zit nu een sleuteltje: de achterkamer!'; }] ] },
+  { id: 'koper', ik: '🎩', wie: 'Man met gleufhoed', kans: 10, als: () => (S.vervalsingen || []).some((f) => f.dag < S.dag),
+    vraag: () => { const f = droog(); return `Hij buigt zich naar je toe en fluistert: "Is mijn… bestelling klaar? De ${SCHILDERIJEN[f.v]}?"`; },
+    a: [['Ja, hier is hij.', () => { const f = droog(); S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f);
+        const besteld = S.opdracht && S.opdracht.v == f.v, prijs = Math.round((besteld ? S.opdracht.prijs : 150) * (0.25 + 0.75 * f.q)); ge(prijs); if (besteld) nieuweOpdracht();
+        return f.q < 0.5 ? `Hij trekt een vies gezicht. "Dit is rommel." Hij geeft je maar € ${prijs}.` : `Hij bekijkt het met een vergrootglas, knikt en schuift een envelop met € ${prijs} over tafel.${besteld ? '' : ' (Dit had hij niet besteld, dus minder geld.)'}`; }],
+      ['Nog niet, hij is nog niet goed genoeg.', () => '"Ik heb geduld," zegt hij. "Maar niet eeuwig."'],
+      ['Hij kost het dubbele, anders geen deal.', () => { const f = droog();
+        if (kans(0.4)) { S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f); const prijs = Math.round((S.opdracht ? S.opdracht.prijs : 150) * 1.5 * (0.25 + 0.75 * f.q)); ge(prijs); nieuweOpdracht(); return `Hij zucht diep… en betaalt € ${prijs}. Wat een onderhandelaar ben jij!`; }
+        S.opdracht = null; return '"Dan zoek ik wel een andere schilder." Hij is weg. Je zit met een vervalsing die niemand wil…'; }] ] },
+  { id: 'rechercheur', ik: '🕵️‍♀️', wie: 'Kunstrechercheur', kans: () => (S.vervalsingen || []).length ? 3 : 0.5, als: () => S.achterkamer && S.dag > S.achterkamer,
+    vraag: 'Inspecteur Van Dijk, kunstrecherche. Er gaan geruchten over vervalste schilderijen in deze buurt. Mag ik even achter rondkijken?',
+    a: [['Natuurlijk, kijkt u gerust.', () => (S.vervalsingen || []).length ? rechercheurVindt() : (rep(1), 'Ze vindt alleen een oude bezem en drie spinnen. "Excuses voor het storen."')],
+      ['Hier is niets te zien. Wilt u een pizza?', () => (S.vervalsingen || []).length && kans(0.5) ? '"Omkoping? Nu wil ik juist kijken." ' + rechercheurVindt() : 'Ze eet een Margherita en vergeet waarom ze kwam.'],
+      ['Ik bel mijn advocaat, Mr. Gladjanus (€ 150).', () => { ge(-150); return 'Mr. Gladjanus komt binnen in een glimmend pak. "Zonder bevel komt u er niet in." De rechercheur druipt af.'; }] ] },
   { id: 'menuraad', ik: '🧑‍🍳', wie: 'Mario, de kok', als: () => S.menu.length < 4, kans: 2, vraag: 'Baas, mag ik een nieuwe pizza verzinnen voor de kaart?',
     a: [['Ja, verras me!', () => { const nieuw = { naam: vrijeNaam(), prijs: 10, stukjes: [{ i: 'kaas', x: -0.3, y: -0.3, r: 1 }, { i: 'salami', x: 0.4, y: -0.1, r: 2 }, { i: 'champignon', x: -0.2, y: 0.4, r: 3 }, { i: 'tomaat', x: 0.3, y: 0.4, r: 4 }, { i: 'kaas', x: 0.1, y: 0.05, r: 5 }, { i: 'paprika', x: -0.5, y: 0.1, r: 0 }] }; if (S.menu.length < MAXMENU) S.menu.push(nieuw); return `Mario zet de "${nieuw.naam}" op de kaart (salami, champignons, paprika).`; }],
       ['Nee, ik maak de kaart zelf.', () => 'Mario haalt zijn schouders op. Knop 📖 Pizza\'s!'],
@@ -833,6 +859,73 @@ function toonVraag(v) {
     if ($('laatzien')) $('laatzien').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; if (bezoeker) bezoeker.st = 'uit'; toonKaart(); };
   });
   $('vraag').classList.remove('verborgen');
+}
+
+// ---------- de achterkamer (open na de geheime vraag over het schilderij: S.achterkamer) ----------
+// De man met de gleufhoed bestelt een namaakschilderij (S.opdracht = { v, prijs, tot }); in het atelier schilder je hem na (minispel:
+// vakjes in de goede kleur tikken, `toonAtelier`); de vervalsing moet een nacht drogen (S.vervalsingen = [{ v, q, dag }]) en dan komt hij
+// hem ophalen (vraag 'koper'). Gevaar: de kunstrechercheur (vraag 'rechercheur') zoekt naar vervalsingen; advocaat Mr. Gladjanus helpt, voor geld.
+const DOEK = 40; // verf en doek
+function nieuweOpdracht() { const v = Math.floor(Math.random() * 6); S.opdracht = { v, prijs: 250 + Math.round(Math.random() * 7) * 50, tot: S.dag + 5 }; }
+const schilderijPlaatje = (v, w) => `<span class="mini" style="width:${w}px;height:${w}px;background-size:${w * 6}px ${w}px;background-position:${-v * w}px 0"></span>`;
+function toonAchterkamer() {
+  if (!S.opdracht || S.opdracht.tot < S.dag) nieuweOpdracht();
+  const o = S.opdracht, klaar = (S.vervalsingen || []);
+  $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1>
+    <p class="buurt">Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert. Niemand weet ervan… hopelijk.</p>
+    <div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van de man met de gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
+      Hij betaalt tot <b>€ ${o.prijs}</b> (hoe echter, hoe meer).<br><small>Uiterlijk ${esc(datumLang(o.tot))}.</small></div></div>
+    ${klaar.length ? `<p><b>Staan te drogen of klaar om op te halen:</b> ${klaar.map((f) => `${esc(SCHILDERIJEN[f.v])} (${Math.round(f.q * 100)}% echt${f.dag >= S.dag ? ', nog nat' : ''})`).join(', ')}</p>` : ''}
+    <div class="rij"><button class="knop rood" id="schilder" ${S.geld < DOEK ? 'disabled' : ''}>🎨 Schilderen (€ ${DOEK} verf en doek)</button><button class="knop" id="achterdicht">Deur dicht</button></div>
+    <p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>`;
+  $('achter').classList.remove('verborgen');
+  $('achterdicht').onclick = () => $('achter').classList.add('verborgen');
+  $('schilder').onclick = () => { S.geld -= DOEK; tel.kosten = (tel.kosten || 0) + DOEK; bewaar(); tekenKnoppen(); toonAtelier(o.v); };
+}
+// het minispel: het origineel links, rechts een doek van 6 x 7 vakjes; kies een kleur en tik op de vakjes. 45 seconden.
+function toonAtelier(v) {
+  const B = 160, vol = document.createElement('canvas'); vol.width = vol.height = B; const vx = vol.getContext('2d'); vx.drawImage(SCHILD, v * B, 0, B, B, 0, 0, B, B);
+  const al = vx.getImageData(0, 0, B, B).data; let x0 = B, y0 = B, x1 = 0, y1 = 0; // waar staat het schilderij in zijn vakje?
+  for (let j = 0; j < B; j++) for (let i = 0; i < B; i++) if (al[(j * B + i) * 4 + 3] > 0) { x0 = Math.min(x0, i); x1 = Math.max(x1, i); y0 = Math.min(y0, j); y1 = Math.max(y1, j); }
+  const mx = (x1 - x0) * 0.17, my = (y1 - y0) * 0.17, liggend = x1 - x0 > y1 - y0; // de lijst eraf
+  const K = liggend ? 7 : 6, R = liggend ? 5 : 7, c = document.createElement('canvas'); c.width = K; c.height = R; const x = c.getContext('2d');
+  x.drawImage(vol, x0 + mx, y0 + my, x1 - x0 - 2 * mx, y1 - y0 - 2 * my, 0, 0, K, R); // binnen de lijst, verkleind tot één pixel per vakje
+  const px = x.getImageData(0, 0, K, R).data, kl = [];
+  for (let i = 0; i < K * R; i++) kl.push([px[i * 4], px[i * 4 + 1], px[i * 4 + 2]]);
+  // 5 verfkleuren: k-means op de vakjes
+  const afst0 = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+  let pal = [[...kl[0]]]; // begin met kleuren die zo ver mogelijk van elkaar af liggen
+  while (pal.length < 5) pal.push([...kl.reduce((best, k) => Math.min(...pal.map((p) => afst0(k, p))) > Math.min(...pal.map((p) => afst0(best, p))) ? k : best, kl[0])]);
+  const afst = (a, b) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2, dichtst = (k) => pal.reduce((bi, p, i) => afst(k, p) < afst(k, pal[bi]) ? i : bi, 0);
+  for (let it = 0; it < 8; it++) { const som = pal.map(() => [0, 0, 0, 0]); kl.forEach((k) => { const s = som[dichtst(k)]; s[0] += k[0]; s[1] += k[1]; s[2] += k[2]; s[3]++; }); pal = pal.map((p, i) => som[i][3] ? som[i].slice(0, 3).map((v) => v / som[i][3]) : p); }
+  pal = pal.filter((p, i) => pal.findIndex((q) => afst(p, q) < 300) == i); // (bijna) dubbele kleuren weg
+  const doel = kl.map(dichtst), doek = Array(K * R).fill(-1), css = (p) => `rgb(${p.map(Math.round).join(',')})`;
+  let kwast = 0, tijd = 45;
+  $('achterkaart').innerHTML = `<h1>🎨 ${esc(SCHILDERIJEN[v])}</h1><p class="buurt">Kies een kleur en tik op de vakjes. Zorg dat het zoveel mogelijk lijkt op het origineel!</p>
+    <div class="atelier"><div>${schilderijPlaatje(v, 150)}<br><small>Origineel</small></div><div><div id="doek2" style="grid-template-columns:repeat(${K},1fr);width:${liggend ? 190 : 150}px">${doek.map((_, i) => `<button data-i="${i}"></button>`).join('')}</div><small>Jouw doek · <b id="ateliertijd">45</b> s</small></div></div>
+    <div id="palet">${pal.map((p, i) => `<button data-k="${i}" style="background:${css(p)}" class="${i ? '' : 'aan'}"></button>`).join('')}</div>
+    <div class="rij"><button class="knop rood" id="ateliereklaar">✅ Klaar</button></div>`;
+  const vak = $('doek2'), klok = setInterval(() => { tijd--; $('ateliertijd').textContent = tijd; if (tijd <= 0) klaar(); }, 1000);
+  $('palet').querySelectorAll('button').forEach((b) => b.onclick = () => { kwast = +b.dataset.k; $('palet').querySelectorAll('button').forEach((x) => x.classList.toggle('aan', x == b)); });
+  const verf = (b) => { if (!b || b.dataset.i == null) return; doek[+b.dataset.i] = kwast; b.style.background = css(pal[kwast]); };
+  vak.onpointerdown = (e) => { verf(e.target); vak.onpointermove = (e2) => verf(document.elementFromPoint(e2.clientX, e2.clientY)); };
+  onpointerup = () => { vak.onpointermove = null; };
+  let gedaan = false;
+  function klaar() {
+    if (gedaan) return; gedaan = true; clearInterval(klok);
+    const q = doel.filter((d, i) => doek[i] == d).length / doel.length;
+    S.vervalsingen = S.vervalsingen || []; S.vervalsingen.push({ v, q, dag: S.dag }); bewaar();
+    $('achterkaart').innerHTML = `<h1>${q > 0.8 ? '🤩 Meesterlijk!' : q > 0.55 ? '🙂 Niet slecht' : '😬 Hmm…'}</h1><p>Je namaak lijkt voor <b>${Math.round(q * 100)}%</b> op het echte schilderij.
+      ${q > 0.8 ? 'Zelfs Vincent zou twijfelen.' : q > 0.55 ? 'Van een afstandje gaat het wel.' : 'Ziet eruit alsof een kleuter het heeft gedaan. Met wanten aan.'}</p>
+      <p class="buurt">Het doek moet een nacht drogen. Daarna komt de man met de gleufhoed het ophalen.</p><div class="rij"><button class="knop" id="achterterug">Terug</button></div>`;
+    $('achterterug').onclick = toonAchterkamer;
+  }
+  $('ateliereklaar').onclick = klaar;
+}
+const droog = () => (S.vervalsingen || []).find((f) => f.dag < S.dag) || { v: (S.opdracht || { v: 0 }).v, q: 0.5 }; // de vervalsing die opgehaald kan worden
+function rechercheurVindt() { // betrapt: vervalsingen in beslag, boete, morgen dicht, populariteit omlaag
+  const n = (S.vervalsingen || []).length; S.vervalsingen = []; ge(-300); S.dicht = 'De kunstrecherche heeft je zaak een dag gesloten.'; rep(-10);
+  return `Ze vindt ${n} ${n == 1 ? 'vervalsing' : 'vervalsingen'}! In beslag genomen, € 300 boete, en morgen blijft de zaak dicht.`;
 }
 
 // ---------- klanten ----------
@@ -1723,6 +1816,7 @@ function bewaarPizza() {
 
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
+  $('sleutel').classList.toggle('verborgen', !S.achterkamer);
   const k = $('raster'), open = modus != 'inrichten';
   let h = '';
   for (const [t0, d0] of Object.entries(SPUL)) {
@@ -1761,6 +1855,7 @@ function tekenKnoppen() {
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
 let laatsteDag = '';
+$('sleutel').onclick = () => { wekGeluid(); sluitMenu(); toonAchterkamer(); };
 const isAanraak = matchMedia('(pointer: coarse)').matches;
 
 let meldT = 0;
@@ -1832,7 +1927,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>

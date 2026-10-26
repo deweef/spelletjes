@@ -160,7 +160,8 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
 2. **Klanten als eigen figuren** (net als kok en ober), met Gemini; de zittende houdingen staan al op de vellen.
-3. **De achterkamer** (geen wapens, geen drugs):
+3. **De achterkamer** (geen wapens, geen drugs): **eerste versie gedaan (26 okt)**: sleutel, bestelling, atelier-minispel, koper,
+   rechercheur en Mr. Gladjanus. Nog: valsmunterij, crypto.
    - Ingang: koop een schilderij voor aan de muur. Een man met gleufhoed: "Wat een mooi schilderij… wie is de schilder?"
      Antwoord "een échte Van Gogh" opent de achterkamer.
    - Atelier: beroemde schilderijen namaken (Mona Lisa, Meisje met de parel, De Schreeuw, Zonnebloemen: publiek domein) als
