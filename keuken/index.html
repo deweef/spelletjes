@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Keukenplanner</title>
+<style>
+:root{--bg:#f4f1ea;--kaart:#fff;--tekst:#2b2a28;--zacht:#77736b;--lijn:#d8d2c6;--muur:#4a4640;--accent:#2f6fb0;--fout:#d23c3c}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--tekst);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+button{font:inherit;cursor:pointer;background:var(--kaart);color:var(--tekst);border:1px solid var(--lijn);border-radius:9px;padding:6px 10px}
+button:hover{border-color:var(--accent)}
+input,select{font:inherit;border:1px solid var(--lijn);border-radius:7px;padding:4px 6px;background:#fff;color:var(--tekst)}
+.terug{position:fixed;z-index:60;top:calc(8px + env(safe-area-inset-top));left:calc(8px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font:bold 20px/32px Georgia,serif;text-align:center;text-decoration:none}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px 6px 52px}
+header h1{font-size:19px;margin:0 auto 0 0}
+header .knoppen{display:flex;gap:6px;flex-wrap:wrap}
+#palet{display:flex;gap:6px;overflow-x:auto;padding:4px 12px 8px;touch-action:pan-x;scrollbar-width:thin}
+#palet .groep{font-size:11px;font-weight:700;color:var(--zacht);text-transform:uppercase;writing-mode:vertical-rl;transform:rotate(180deg);align-self:center;padding:0 2px}
+#palet button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;min-width:76px;user-select:none;-webkit-user-select:none;touch-action:pan-x}
+#palet button b{font-size:13px;font-weight:600;white-space:nowrap}
+#palet button small{font-size:11px;color:var(--zacht)}
+#palet .kleur{width:26px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.25)}
+main{flex:1;min-height:0;position:relative}
+#plan{width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
+#onder{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:var(--kaart);border-top:1px solid var(--lijn);min-height:52px}
+#onder .tip{color:var(--zacht);font-size:13px}
+#sel{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#sel input[type=number]{width:62px}
+#sel #sNaam{width:150px}
+#sel label{font-size:13px;color:var(--zacht);display:flex;gap:4px;align-items:center}
+.weg{color:var(--fout)}
+dialog{border:none;border-radius:14px;padding:16px 18px;max-width:min(560px,94vw);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+dialog h2{margin:0 0 4px;font-size:18px}
+dialog p{margin:4px 0 10px;color:var(--zacht);font-size:13px}
+dialog fieldset{border:1px solid var(--lijn);border-radius:10px;margin:0 0 10px;padding:6px 10px 8px;display:flex;flex-wrap:wrap;gap:6px 12px}
+dialog legend{font-weight:700;font-size:13px}
+dialog label{font-size:13px;display:flex;flex-direction:column;gap:2px}
+dialog input[type=number]{width:76px}
+dialog .rij{display:flex;gap:8px;justify-content:flex-end}
+#melding{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#2b2a28;color:#fff;padding:8px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:80}
+#melding.aan{opacity:.95}
+#lijst{display:none}
+@media (max-width:600px){header .knoppen button{padding:4px 7px;font-size:13px}#palet button{min-width:64px;padding:3px 6px}#palet button b{font-size:12px}}
+/* plattegrond */
+.raster{stroke:#e7e2d8;stroke-width:.4}
+.raster50{stroke:#d9d2c3;stroke-width:.7}
+.vloer{fill:#fbfaf6}
+.muur{fill:var(--muur)}
+.kolf{fill:var(--muur)}
+.maat{font-size:9px;fill:var(--zacht);text-anchor:middle}
+.maatlijn{stroke:var(--zacht);stroke-width:.5}
+.ding rect.vorm{stroke:rgba(0,0,0,.45);stroke-width:.8}
+.ding .front{stroke:rgba(0,0,0,.6);stroke-width:2.2;stroke-linecap:round}
+.ding text{font-size:8px;fill:#222;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.ding text.klein{font-size:6.5px;fill:#444}
+.ding.boven rect.vorm{fill-opacity:.35!important;stroke-dasharray:3 2}
+.ding.gekozen rect.vorm{stroke:var(--accent);stroke-width:2}
+.ding.botst rect.vorm{stroke:var(--fout);stroke-width:2}
+.afstand line{stroke:var(--accent);stroke-width:.7}
+.afstand text{font-size:8.5px;fill:var(--accent);font-weight:700;text-anchor:middle;dominant-baseline:middle;paint-order:stroke;stroke:#fbfaf6;stroke-width:3px}
+@media print{
+  .terug,header .knoppen,#palet,#onder,#melding{display:none!important}
+  body{background:#fff;display:block;height:auto}
+  header{padding:0 0 6px}
+  main{height:60vh}
+  #lijst{display:table;border-collapse:collapse;margin:12px auto;font-size:12px}
+  #lijst td,#lijst th{border:1px solid #bbb;padding:3px 8px;text-align:left}
+}
+</style>
+</head>
+<body>
+<a class="terug" href="../">‹</a>
+<header>
+  <h1>Keukenplanner</h1>
+  <div class="knoppen">
+    <button id="bKamer">📐 Afmetingen</button>
+    <button id="bDeel">🔗 Delen</button>
+    <button id="bPrint">🖨️ Afdrukken</button>
+    <button id="bLeeg">🧹 Leegmaken</button>
+  </div>
+</header>
+<div id="palet"></div>
+<main><svg id="plan" xmlns="http://www.w3.org/2000/svg"></svg></main>
+<div id="onder">
+  <span class="tip" id="tip">Tik op een apparaat in de balk (of sleep het naar de keuken). Kastjes tegen de muur draaien vanzelf met de voorkant naar binnen. Alle maten in cm.</span>
+  <div id="sel" hidden>
+    <input id="sNaam" aria-label="Naam">
+    <label>breed <input id="sB" type="number" min="5" max="400"></label>
+    <label>diep <input id="sD" type="number" min="5" max="400"></label>
+    <button id="sDraai" title="Draai een kwartslag">⟳ Draai</button>
+    <button id="sKopie" title="Nog een">⧉ Kopie</button>
+    <button id="sWeg" class="weg">🗑️ Weg</button>
+  </div>
+</div>
+<table id="lijst"></table>
+<div id="melding"></div>
+
+<dialog id="kamerDlg">
+  <form method="dialog">
+    <h2>Afmetingen keuken</h2>
+    <p>Binnenmaten in cm. Bovenaan de plattegrond is de raamkant. "Vanaf" is de afstand vanaf de linkerhoek (boven/onder) of de bovenhoek (links/rechts).</p>
+    <fieldset><legend>Keuken</legend>
+      <label>breed (links–rechts)<input id="kB" type="number"></label>
+      <label>diep (raam–deur)<input id="kD" type="number"></label>
+    </fieldset>
+    <fieldset><legend>Doorgang (boog)</legend>
+      <label>muur<select id="dW"></select></label>
+      <label>vanaf<input id="dV" type="number"></label>
+      <label>breed<input id="dB" type="number"></label>
+    </fieldset>
+    <fieldset><legend>Raam / buitendeur</legend>
+      <label>muur<select id="rW"></select></label>
+      <label>vanaf<input id="rV" type="number"></label>
+      <label>breed<input id="rB" type="number"></label>
+    </fieldset>
+    <fieldset><legend>Kolf (uitstekend stuk muur)</legend>
+      <label>muur<select id="oW"></select></label>
+      <label>vanaf<input id="oV" type="number"></label>
+      <label>breed<input id="oB" type="number"></label>
+      <label>steekt uit<input id="oD" type="number"></label>
+    </fieldset>
+    <div class="rij"><button value="terug" id="kStandaard" type="button">Beginmaten</button><button value="ok">Klaar</button></div>
+  </form>
+</dialog>
+
+<script>
+'use strict';
+// ---- standaardmaten (cm). laag: onder = op de vloer, tot werkbladhoogte; hoog = tot boven; boven = hangt aan de muur; vrij = los in de ruimte
+const DINGEN = [
+  ['Onderkasten', [
+    ['Onderkast 30', 30, 60, 'onder', '#e9d8b4'],
+    ['Onderkast 40', 40, 60, 'onder', '#e9d8b4'],
+    ['Onderkast 45', 45, 60, 'onder', '#e9d8b4'],
+    ['Onderkast 50', 50, 60, 'onder', '#e9d8b4'],
+    ['Onderkast 60', 60, 60, 'onder', '#e9d8b4'],
+    ['Onderkast 80', 80, 60, 'onder', '#e9d8b4'],
+    ['Spoelbak', 80, 60, 'onder', '#bcd9ea'],
+    ['Kookplaat', 60, 60, 'onder', '#c9c9c9'],
+    ['Fornuis', 60, 60, 'onder', '#a9a9a9'],
+    ['Oven onder', 60, 60, 'onder', '#9e9e9e'],
+    ['Werkblad', 100, 62, 'onder', '#d9c7a3'],
+  ]],
+  ['Apparaten', [
+    ['Vaatwasser', 60, 60, 'onder', '#cfe3d6'],
+    ['Vaatwasser smal', 45, 60, 'onder', '#cfe3d6'],
+    ['Koelkast onderbouw', 60, 60, 'onder', '#dff0f7'],
+    ['Wasmachine', 60, 60, 'onder', '#e3e3f3'],
+    ['Droger', 60, 60, 'onder', '#e3e3f3'],
+    ['Koelkast hoog', 60, 65, 'hoog', '#dff0f7'],
+    ['Amerikaanse koelkast', 91, 72, 'hoog', '#dff0f7'],
+    ['Vriezer', 60, 65, 'hoog', '#e8f5fb'],
+  ]],
+  ['Hoge kasten', [
+    ['Hoge kast 60', 60, 60, 'hoog', '#e0c99a'],
+    ['Ovenkast', 60, 60, 'hoog', '#c8b48a'],
+    ['Hoge kast 40', 40, 60, 'hoog', '#e0c99a'],
+  ]],
+  ['Boven', [
+    ['Bovenkast 40', 40, 35, 'boven', '#f0e2c2'],
+    ['Bovenkast 60', 60, 35, 'boven', '#f0e2c2'],
+    ['Bovenkast 80', 80, 35, 'boven', '#f0e2c2'],
+    ['Afzuigkap', 60, 50, 'boven', '#bdbdbd'],
+  ]],
+  ['Overig', [
+    ['Tafel', 120, 80, 'vrij', '#caa77a'],
+    ['Bistrotafel', 70, 70, 'vrij', '#caa77a'],
+    ['Stoel', 45, 50, 'vrij', '#b98a5e'],
+    ['Kruk', 35, 35, 'vrij', '#b98a5e'],
+    ['Vuilnisbak', 35, 30, 'vrij', '#9bb08a'],
+    ['Magnetron', 50, 40, 'boven', '#bdbdbd'],
+    ['Eigen ding…', 50, 50, 'vrij', '#f2b8a0'],
+  ]],
+];
+const WANDEN = { boven: 'boven (raam)', rechts: 'rechts', onder: 'onder', links: 'links' };
+// Beginmaten uit de schets van Marcel (zie keuken/LEESMIJ.md)
+const KAMER0 = {
+  b: 303, d: 255,
+  deur: { wand: 'onder', van: 25, breed: 89 },
+  raam: { wand: 'boven', van: 40, breed: 120 },
+  kolf: { wand: 'boven', van: 10, breed: 15, diep: 15 },
+};
+const SLEUTEL = 'keuken_plan';
+const NS = 'http://www.w3.org/2000/svg';
+const $ = id => document.getElementById(id);
+const svg = $('plan');
+let S = { kamer: structuredClone(KAMER0), items: [] };
+let gekozen = null, sleep = null, wacht = null;
+
+// ---- opslaan, laden, delen
+function bewaar() {
+  try { localStorage.setItem(SLEUTEL, JSON.stringify(S)); } catch (e) {}
+  if (location.hash) history.replaceState(null, '', location.pathname);
+}
+function laad() {
+  const h = location.hash.slice(1);
+  if (h) {
+    try { S = JSON.parse(decodeURIComponent(escape(atob(h.replace(/-/g, '+').replace(/_/g, '/'))))); melding('Gedeeld ontwerp geladen'); return; } catch (e) {}
+  }
+  try { const s = JSON.parse(localStorage.getItem(SLEUTEL)); if (s && s.kamer && s.items) S = s; } catch (e) {}
+}
+function deelLink() {
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return location.origin + location.pathname + '#' + code;
+}
+function melding(t) { const m = $('melding'); m.textContent = t; m.classList.add('aan'); clearTimeout(m._t); m._t = setTimeout(() => m.classList.remove('aan'), 2200); }
+
+// ---- meetkunde
+const wh = it => it.rot % 2 ? [it.d, it.b] : [it.b, it.d];
+function rechthoek(it) { const [w, h] = wh(it); return { x: it.x, y: it.y, w, h }; }
+function kolfRect() {
+  const k = S.kamer.kolf, K = S.kamer;
+  if (!k || !k.breed || !k.diep) return null;
+  if (k.wand === 'boven') return { x: k.van, y: 0, w: k.breed, h: k.diep };
+  if (k.wand === 'onder') return { x: k.van, y: K.d - k.diep, w: k.breed, h: k.diep };
+  if (k.wand === 'links') return { x: 0, y: k.van, w: k.diep, h: k.breed };
+  return { x: K.b - k.diep, y: k.van, w: k.diep, h: k.breed };
+}
+const overlap = (a, b) => a.x < b.x + b.w - .01 && b.x < a.x + a.w - .01 && a.y < b.y + b.h - .01 && b.y < a.y + a.h - .01;
+// welke lagen elkaar in de weg zitten
+function raakt(l1, l2) {
+  if (l1 === 'boven' || l2 === 'boven') return (l1 === 'boven' || l1 === 'hoog') && (l2 === 'boven' || l2 === 'hoog');
+  return true;
+}
+function obstakels(it) {
+  const lijst = S.items.filter(o => o !== it && raakt(o.laag, it.laag)).map(rechthoek);
+  const k = kolfRect(); if (k) lijst.push(k);
+  return lijst;
+}
+function botst(it) {
+  const r = rechthoek(it);
+  return obstakels(it).some(o => overlap(r, o));
+}
+
+// ---- tekenen
+function el(naam, attr, ouder) {
+  const e = document.createElementNS(NS, naam);
+  for (const k in attr) e.setAttribute(k, attr[k]);
+  if (ouder) ouder.appendChild(e);
+  return e;
+}
+function teken() {
+  const K = S.kamer, M = 14, R = 44;
+  svg.setAttribute('viewBox', `${-R} ${-R} ${K.b + 2 * R} ${K.d + 2 * R}`);
+  svg.innerHTML = '';
+  // vloer en raster
+  el('rect', { x: 0, y: 0, width: K.b, height: K.d, class: 'vloer' }, svg);
+  for (let x = 10; x < K.b; x += 10) el('line', { x1: x, y1: 0, x2: x, y2: K.d, class: x % 50 ? 'raster' : 'raster50' }, svg);
+  for (let y = 10; y < K.d; y += 10) el('line', { x1: 0, y1: y, x2: K.b, y2: y, class: y % 50 ? 'raster' : 'raster50' }, svg);
+  // muren
+  const muren = el('g', {}, svg);
+  el('rect', { x: -M, y: -M, width: K.b + 2 * M, height: M, class: 'muur' }, muren);
+  el('rect', { x: -M, y: K.d, width: K.b + 2 * M, height: M, class: 'muur' }, muren);
+  el('rect', { x: -M, y: 0, width: M, height: K.d, class: 'muur' }, muren);
+  el('rect', { x: K.b, y: 0, width: M, height: K.d, class: 'muur' }, muren);
+  const k = kolfRect(); if (k) el('rect', { x: k.x, y: k.y, width: k.w, height: k.h, class: 'kolf' }, svg);
+  // openingen
+  opening(K.deur, 'deur'); opening(K.raam, 'raam');
+  // buitenmaten
+  maat(0, -R + 10, K.b, -R + 10, K.b + ' breed');
+  maatV(-R + 8, 0, K.d, K.d + ' diep');
+  // dingen: eerst vloer, dan boven
+  const volgorde = [...S.items].sort((a, b) => (a.laag === 'boven') - (b.laag === 'boven'));
+  for (const it of volgorde) tekenDing(it);
+  if (gekozen && S.items.includes(gekozen)) afstanden(gekozen);
+  lijst();
+}
+function wandRect(o, dik) {
+  const K = S.kamer, M = 14;
+  if (o.wand === 'boven') return { x: o.van, y: -M, w: o.breed, h: M };
+  if (o.wand === 'onder') return { x: o.van, y: K.d, w: o.breed, h: M };
+  if (o.wand === 'links') return { x: -M, y: o.van, w: M, h: o.breed };
+  return { x: K.b, y: o.van, w: M, h: o.breed };
+}
+function opening(o, soort) {
+  if (!o || !o.breed) return;
+  const r = wandRect(o), lig = o.wand === 'boven' || o.wand === 'onder';
+  el('rect', { x: r.x, y: r.y, width: r.w, height: r.h, fill: soort === 'raam' ? '#dcecf7' : '#fbfaf6' }, svg);
+  if (soort === 'raam') {
+    if (lig) for (const f of [.2, .5, .8]) el('line', { x1: r.x, y1: r.y + r.h * f, x2: r.x + r.w, y2: r.y + r.h * f, stroke: '#4a7aa3', 'stroke-width': .6 }, svg);
+    else for (const f of [.2, .5, .8]) el('line', { x1: r.x + r.w * f, y1: r.y, x2: r.x + r.w * f, y2: r.y + r.h, stroke: '#4a7aa3', 'stroke-width': .6 }, svg);
+  }
+  const tekst = (soort === 'raam' ? 'raam ' : 'doorgang ') + o.breed;
+  const buiten = { boven: [0, -21], onder: [0, 25], links: [-24, 0], rechts: [24, 0] }[o.wand];
+  const t = el('text', { x: r.x + r.w / 2 + buiten[0], y: r.y + r.h / 2 + buiten[1] * (lig ? .55 : 0), class: 'maat' }, svg);
+  if (!lig) t.setAttribute('transform', `rotate(-90 ${r.x + r.w / 2 + buiten[0] * .55} ${r.y + r.h / 2})`), t.setAttribute('x', r.x + r.w / 2 + buiten[0] * .55);
+  t.textContent = tekst;
+}
+function maat(x1, y, x2, _y, tekst) {
+  el('line', { x1, y1: y, x2, y2: y, class: 'maatlijn' }, svg);
+  el('line', { x1, y1: y - 3, x2: x1, y2: y + 3, class: 'maatlijn' }, svg);
+  el('line', { x1: x2, y1: y - 3, x2, y2: y + 3, class: 'maatlijn' }, svg);
+  el('text', { x: (x1 + x2) / 2, y: y - 3, class: 'maat' }, svg).textContent = tekst;
+}
+function maatV(x, y1, y2, tekst) {
+  el('line', { x1: x, y1, x2: x, y2, class: 'maatlijn' }, svg);
+  el('line', { x1: x - 3, y1, x2: x + 3, y2: y1, class: 'maatlijn' }, svg);
+  el('line', { x1: x - 3, y1: y2, x2: x + 3, y2, class: 'maatlijn' }, svg);
+  const cy = (y1 + y2) / 2;
+  el('text', { x: x - 3, y: cy, class: 'maat', transform: `rotate(-90 ${x - 3} ${cy})` }, svg).textContent = tekst;
+}
+function tekenDing(it) {
+  const r = rechthoek(it);
+  const g = el('g', { class: 'ding ' + it.laag + (it === gekozen ? ' gekozen' : '') + (botst(it) ? ' botst' : '') }, svg);
+  g.dataset.id = it.id;
+  el('rect', { x: r.x, y: r.y, width: r.w, height: r.h, rx: it.laag === 'vrij' ? 3 : 1, fill: it.kleur, class: 'vorm' }, g);
+  // voorkant: dikke streep
+  if (it.laag !== 'vrij') {
+    const i = 1.5, f = [[r.x + i, r.y + r.h - i, r.x + r.w - i, r.y + r.h - i], [r.x + i, r.y + i, r.x + i, r.y + r.h - i], [r.x + i, r.y + i, r.x + r.w - i, r.y + i], [r.x + r.w - i, r.y + i, r.x + r.w - i, r.y + r.h - i]][it.rot];
+    el('line', { x1: f[0], y1: f[1], x2: f[2], y2: f[3], class: 'front' }, g);
+  }
+  const cx = r.x + r.w / 2, cy = r.y + r.h / 2, staand = r.h > r.w * 1.3 && r.w < 50;
+  const tg = el('g', staand ? { transform: `rotate(-90 ${cx} ${cy})` } : {}, g);
+  const plek = it.laag === 'boven' && !staand ? cy - 5 : cy - 4;
+  el('text', { x: cx, y: plek }, tg).textContent = it.naam;
+  el('text', { x: cx, y: plek + 9, class: 'klein' }, tg).textContent = it.b + '×' + it.d + (it.laag === 'boven' ? ' (hangt)' : '');
+}
+// afstanden van het gekozen ding tot muur of het eerstvolgende obstakel, in 4 richtingen
+function afstanden(it) {
+  const K = S.kamer, r = rechthoek(it), obs = obstakels(it);
+  const g = el('g', { class: 'afstand' }, svg);
+  const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+  const lijn = (x1, y1, x2, y2, d) => {
+    if (d < .5) return;
+    el('line', { x1, y1, x2, y2 }, g);
+    el('text', { x: (x1 + x2) / 2 + (x1 === x2 ? 0 : 0), y: (y1 + y2) / 2 }, g).textContent = Math.round(d);
+  };
+  const tussenX = o => o.y < r.y + r.h && r.y < o.y + o.h, tussenY = o => o.x < r.x + r.w && r.x < o.x + o.w;
+  let l = 0, re = K.b, bo = 0, on = K.d;
+  for (const o of obs) {
+    if (tussenX(o)) { if (o.x + o.w <= r.x + .01) l = Math.max(l, o.x + o.w); if (o.x >= r.x + r.w - .01) re = Math.min(re, o.x); }
+    if (tussenY(o)) { if (o.y + o.h <= r.y + .01) bo = Math.max(bo, o.y + o.h); if (o.y >= r.y + r.h - .01) on = Math.min(on, o.y); }
+  }
+  lijn(l, cy, r.x, cy, r.x - l);
+  lijn(r.x + r.w, cy, re, cy, re - r.x - r.w);
+  lijn(cx, bo, cx, r.y, r.y - bo);
+  lijn(cx, r.y + r.h, cx, on, on - r.y - r.h);
+}
+function lijst() {
+  const t = $('lijst');
+  const rij = S.items.map(it => `<tr><td>${esc(it.naam)}</td><td>${it.b} × ${it.d}</td><td>${{ onder: 'onderkast/apparaat', hoog: 'hoog', boven: 'hangt boven', vrij: 'los' }[it.laag]}</td></tr>`).join('');
+  t.innerHTML = '<tr><th>Wat</th><th>breed × diep (cm)</th><th>soort</th></tr>' + rij;
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---- keuzepaneel
+function kies(it) {
+  gekozen = it;
+  $('sel').hidden = !it; $('tip').hidden = !!it;
+  if (it) { $('sNaam').value = it.naam; $('sB').value = it.b; $('sD').value = it.d; }
+  teken();
+}
+$('sNaam').oninput = e => { if (gekozen) { gekozen.naam = e.target.value; teken(); bewaar(); } };
+for (const [id, k] of [['sB', 'b'], ['sD', 'd']]) $(id).onchange = e => {
+  const v = Math.round(+e.target.value);
+  if (gekozen && v >= 5) { gekozen[k] = v; binnen(gekozen); teken(); bewaar(); }
+};
+$('sDraai').onclick = () => { if (gekozen) { draai(gekozen, (gekozen.rot + 1) % 4); binnen(gekozen); teken(); bewaar(); } };
+$('sKopie').onclick = () => {
+  if (!gekozen) return;
+  const n = { ...gekozen, id: nieuwId() };
+  const [w] = wh(n); n.x = Math.min(n.x + w, S.kamer.b - w);
+  S.items.push(n); kies(n); bewaar();
+};
+$('sWeg').onclick = () => { if (gekozen) { S.items = S.items.filter(o => o !== gekozen); kies(null); bewaar(); } };
+document.addEventListener('keydown', e => {
+  if (!gekozen || e.target.tagName === 'INPUT') return;
+  if (e.key === 'Delete' || e.key === 'Backspace') $('sWeg').onclick();
+  else if (e.key === 'r' || e.key === 'R') $('sDraai').onclick();
+  else if (e.key.startsWith('Arrow')) {
+    const s = e.shiftKey ? 10 : 1;
+    gekozen.x += { ArrowLeft: -s, ArrowRight: s }[e.key] || 0;
+    gekozen.y += { ArrowUp: -s, ArrowDown: s }[e.key] || 0;
+    binnen(gekozen); teken(); bewaar(); e.preventDefault();
+  }
+});
+function draai(it, rot) {
+  const [w, h] = wh(it), cx = it.x + w / 2, cy = it.y + h / 2;
+  it.rot = rot;
+  const [w2, h2] = wh(it); it.x = Math.round(cx - w2 / 2); it.y = Math.round(cy - h2 / 2);
+}
+function binnen(it) {
+  const [w, h] = wh(it), K = S.kamer;
+  it.x = Math.max(0, Math.min(K.b - w, it.x)); it.y = Math.max(0, Math.min(K.d - h, it.y));
+}
+let teller = 0;
+const nieuwId = () => Date.now().toString(36) + (teller++);
+
+// ---- palet
+const palet = $('palet');
+for (const [groep, lijst] of DINGEN) {
+  const kop = document.createElement('span'); kop.className = 'groep'; kop.textContent = groep; palet.appendChild(kop);
+  for (const [naam, b, d, laag, kleur] of lijst) {
+    const knop = document.createElement('button');
+    knop.innerHTML = `<span class="kleur" style="background:${kleur}${laag === 'boven' ? ';opacity:.5' : ''}"></span><b>${naam}</b><small>${b}×${d}</small>`;
+    knop.addEventListener('pointerdown', e => { wacht = { sjabloon: { naam, b, d, laag, kleur }, x: e.clientX, y: e.clientY }; });
+    palet.appendChild(knop);
+  }
+}
+function maakDing(sj) {
+  let naam = sj.naam;
+  if (naam.endsWith('…')) {
+    naam = prompt('Hoe heet het?', 'Kast') || 'Ding';
+    const maten = (prompt('Breed × diep in cm (bijv. 60x40)', '60x40') || '60x40').split(/[x×* ]+/).map(Number);
+    return { id: nieuwId(), naam, b: maten[0] || 60, d: maten[1] || 40, laag: 'vrij', kleur: sj.kleur, x: 0, y: 0, rot: 0 };
+  }
+  return { id: nieuwId(), naam, b: sj.b, d: sj.d, laag: sj.laag, kleur: sj.kleur, x: 0, y: 0, rot: 0 };
+}
+// een tik op het palet zet het ding op een vrije plek
+function zetNeer(it) {
+  const K = S.kamer, [w, h] = wh(it);
+  for (let y = 0; y <= K.d - h; y += 5) for (let x = 0; x <= K.b - w; x += 5) {
+    it.x = x; it.y = y;
+    if (!botst(it)) { snapWand(it); return; }
+  }
+  it.x = Math.round((K.b - w) / 2); it.y = Math.round((K.d - h) / 2);
+}
+
+// ---- slepen
+function punt(e) {
+  const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
+  return p.matrixTransform(svg.getScreenCTM().inverse());
+}
+const schaal = () => svg.getScreenCTM().a; // schermpixels per cm
+svg.addEventListener('pointerdown', e => {
+  const g = e.target.closest('.ding');
+  if (!g) { kies(null); return; }
+  const it = S.items.find(o => o.id === g.dataset.id);
+  const p = punt(e);
+  sleep = { it, dx: p.x - it.x, dy: p.y - it.y, bewogen: false };
+  svg.setPointerCapture(e.pointerId);
+  if (gekozen !== it) kies(it);
+  e.preventDefault();
+});
+window.addEventListener('pointermove', e => {
+  if (wacht && !sleep) {
+    const r = svg.getBoundingClientRect();
+    const binnenSvg = e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom;
+    if (binnenSvg) {
+      const it = maakDing(wacht.sjabloon); wacht = null;
+      const [w, h] = wh(it);
+      S.items.push(it);
+      sleep = { it, dx: w / 2, dy: h / 2, bewogen: true };
+      kies(it);
+    } else return;
+  }
+  if (!sleep) return;
+  const p = punt(e), it = sleep.it;
+  it.x = Math.round(p.x - sleep.dx); it.y = Math.round(p.y - sleep.dy);
+  sleep.bewogen = true;
+  binnen(it); snap(it, 8 / schaal());
+  teken();
+});
+window.addEventListener('pointerup', e => {
+  if (wacht) { const it = maakDing(wacht.sjabloon); wacht = null; S.items.push(it); zetNeer(it); kies(it); bewaar(); return; }
+  if (!sleep) return;
+  const it = sleep.it; sleep = null;
+  snapWand(it); teken(); bewaar();
+});
+window.addEventListener('pointercancel', () => { wacht = null; if (sleep) { sleep = null; bewaar(); } });
+
+// trek de randen naar muren, kolf en randen van andere dingen
+function snap(it, grens) {
+  const [w, h] = wh(it), K = S.kamer, obs = obstakels(it).concat(S.items.filter(o => o !== it).map(rechthoek));
+  const xs = [0, K.b], ys = [0, K.d];
+  for (const o of obs) { xs.push(o.x, o.x + o.w); ys.push(o.y, o.y + o.h); }
+  const beste = (pos, maat, lijst) => {
+    let b = null, bd = grens;
+    for (const v of lijst) for (const kant of [0, maat]) { const d = Math.abs(pos + kant - v); if (d < bd) { bd = d; b = v - kant; } }
+    return b;
+  };
+  const nx = beste(it.x, w, xs), ny = beste(it.y, h, ys);
+  if (nx !== null) it.x = nx; if (ny !== null) it.y = ny;
+  binnen(it);
+}
+// tegen een muur: achterkant naar de muur draaien
+function snapWand(it) {
+  if (it.laag === 'vrij') return;
+  const K = S.kamer, [w, h] = wh(it);
+  const raak = { boven: it.y <= 1, onder: it.y + h >= K.d - 1, links: it.x <= 1, rechts: it.x + w >= K.b - 1 };
+  const rotVoor = { boven: 0, rechts: 1, onder: 2, links: 3 };
+  const muren = Object.keys(raak).filter(m => raak[m]);
+  if (!muren.length || muren.some(m => rotVoor[m] === it.rot)) return;
+  const m = muren[0];
+  draai(it, rotVoor[m]);
+  const [w2, h2] = wh(it);
+  if (m === 'boven') it.y = 0; if (m === 'onder') it.y = K.d - h2;
+  if (m === 'links') it.x = 0; if (m === 'rechts') it.x = K.b - w2;
+  for (const n of muren.slice(1)) { if (n === 'links') it.x = 0; if (n === 'rechts') it.x = K.b - w2; if (n === 'boven') it.y = 0; if (n === 'onder') it.y = K.d - h2; }
+  binnen(it);
+}
+
+// ---- knoppen bovenaan
+$('bDeel').onclick = async () => {
+  const link = deelLink();
+  try {
+    if (navigator.share) await navigator.share({ title: 'Keukenplan', url: link });
+    else { await navigator.clipboard.writeText(link); melding('Link gekopieerd'); }
+  } catch (e) { try { await navigator.clipboard.writeText(link); melding('Link gekopieerd'); } catch (e2) { prompt('Kopieer deze link:', link); } }
+};
+$('bPrint').onclick = () => { kies(null); setTimeout(() => print(), 50); };
+$('bLeeg').onclick = () => { if (S.items.length && confirm('Alle kastjes en apparaten weghalen?')) { S.items = []; kies(null); bewaar(); } };
+
+// ---- afmetingen
+const velden = { kB: ['b'], kD: ['d'], dW: ['deur', 'wand'], dV: ['deur', 'van'], dB: ['deur', 'breed'], rW: ['raam', 'wand'], rV: ['raam', 'van'], rB: ['raam', 'breed'], oW: ['kolf', 'wand'], oV: ['kolf', 'van'], oB: ['kolf', 'breed'], oD: ['kolf', 'diep'] };
+for (const id of ['dW', 'rW', 'oW']) $(id).innerHTML = Object.entries(WANDEN).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+function vulDlg() {
+  for (const [id, pad] of Object.entries(velden)) $(id).value = pad.length === 1 ? S.kamer[pad[0]] : S.kamer[pad[0]][pad[1]];
+}
+for (const [id, pad] of Object.entries(velden)) $(id).addEventListener('input', e => {
+  const v = e.target.tagName === 'SELECT' ? e.target.value : +e.target.value;
+  if (e.target.tagName !== 'SELECT' && !(v >= 0)) return;
+  if (pad.length === 1) { if (v < 50) return; S.kamer[pad[0]] = v; } else S.kamer[pad[0]][pad[1]] = v;
+  S.items.forEach(binnen); teken(); bewaar();
+});
+$('bKamer').onclick = () => { vulDlg(); $('kamerDlg').showModal(); };
+$('kStandaard').onclick = () => { S.kamer = structuredClone(KAMER0); vulDlg(); S.items.forEach(binnen); teken(); bewaar(); };
+
+laad();
+teken();
+addEventListener('resize', teken);
+</script>
+</body>
+</html>

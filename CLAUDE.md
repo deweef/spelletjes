@@ -24,6 +24,7 @@ bedenk dat de site openbaar is.
   | Songfestival-hits | `songfestival/CLAUDE.md` | `songfestival/PLAN.md` |
   | Koekjesschuiver 3D | `koekjesschuiver3d/CLAUDE.md` | |
   | Orkenstorm 3D | `orkenstorm3d/CLAUDE.md` | `orkenstorm3d/PLAN.md` |
+  | Keukenplanner (geen spel, niet op de startpagina) | `keuken/LEESMIJ.md` | |
   Plaatjes maken met Gemini (opdrachten, uitknippen met `extra/knip_figuren.py`, bewaren): `uitleg/gemini-en-plaatjes.md`.
   De oude 2D-spellen (kasteelsprong, koekjesschuiver, kikkersprong, skirun, piratenbluf, orkenstorm) hebben geen uitlegbestand.
 - Een nieuw spel toevoegen = bestand(en) neerzetten + een regel in `spellen.json` (naam, omschrijving,
