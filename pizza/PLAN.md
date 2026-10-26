@@ -146,6 +146,18 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
 `pizza/luigi-gemini.jpg` (Luigi in groen pak: lopen, rug, armen over elkaar, lachen, wijzen, stampvoeten, met rat);
 `pizza/drukpers-gemini.jpg` (drukpers, kortingsbon, vervalste bon met vlekken, stapel bonnen, inkt, kwast, vergrootglas) voor de valsmunterij.
 
+## Afspraken stad en manager (Marcel + Claude, 26 okt)
+- Manager pas aannemen bij populariteit ≥ 40, ≥ 3 pizza's op de kaart en vanaf dag 7 (eerst zelf je zaak opbouwen).
+- Drie managers: Kevin (€20/dag, beantwoordt vragen vaak verkeerd, gaapt, vergeet vlekken, belt je om onzin), Sandra (€45, verstandig,
+  ruimt op, regelt uitzendkracht), Signor Bruno (€90, alles van Sandra plus extra fooi; wil soms opslag of een vrije dag, anders ontslag).
+  Tevredenheid per manager; loon niet betaald = ontslag; zelf ontslaan kan.
+- Pizza's verzinnen, inrichten en lenen doe je altijd zelf. De manager beantwoordt vragen van klanten als jij weg bent.
+- Stad (knop 🗺️ Naar buiten, stadskaart `pizza/stad-gemini.jpg`): bank (1% minder rente als je langsgaat), markt (goedkoper inkopen),
+  politiebureau, kunstuitleen, Luigi, panden te huur. Zonder manager alleen naar buiten tijdens het inrichten; met manager ook overdag.
+- Tweede pizzeria pas met een manager die ≥ 7 dagen bij je werkt en € 2000 (borg + verbouwing). Panden: klein in de studentenbuurt
+  (goedkoop), aan het plein (toeristen), groot in de villawijk (duur, villabewoners).
+- Bouwvolgorde: 1 stad (bank, markt, politie), 2 manager, 3 overdag naar buiten, 4 tweede pizzeria.
+
 ## Later: manager en de stad (Marcel, 26 okt) — manager pas samen met de stad bouwen (anders heeft hij geen nut)
 - Stadskaart: `pizza/stad-gemini.jpg` (16:9, plein met fontein en markt, bank, politiebureau, galerie, studentenhuis, bouwplaats,
   3x TE HUUR, gracht met bruggetjes, villawijk). Gebruiken als achtergrond met klikbare plekken eroverheen; is groot genoeg.
