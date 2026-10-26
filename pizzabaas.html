@@ -825,6 +825,7 @@ function maakMens(tafel, stoel, soort = kiesSoort()) {
   const m = { x: DEUR.x + 0.5, y: H + 0.4, tafel, stoel, st: 'loop', t: 0, soort,
     kleur: R(d.kleur || KLEUR), huid: R(HUID), haar: R(d.haar || HAAR), lang: Math.random() < 0.5, pet: d.pet && Math.random() < 0.6, helm: d.helm, hoed: d.hoed };
   if (tafel) m.doel = stoelen(tafel)[stoel];
+  if (FIGUREN[soort]) m.fig = R(FIGUREN[soort]); // getekend figuur (pizza/klanten.png)
   return m;
 }
 // elke klant kiest de pizza van de kaart die hij het lekkerst vindt (met een beetje toeval); null = niks van zijn gading
@@ -1125,8 +1126,8 @@ const OBER_BORD = new Image(); OBER_BORD.src = 'pizza/ober-borden.png';
 OBER_BORD.vel = { staan: 0, opzij: [1, 2, 3, 4, 5, 6, 7], rechts: true, rug: 8, rugLoop: [8, 9, 10, 11], fps: 10, sw: 180 };
 const OBER_TWEE = Object.assign(new Image(), { src: 'pizza/ober-borden.png', vel: { ...OBER_BORD.vel, staan: 12, opzij: [13, 15, 18, 19], fps: 6 } });
 const SW = 113, SH = 192;
-function figuur(img, p, bijzonder, rug, achter) {
-  const v = img.vel, sw = v.sw || SW;
+function figuur(img, p, bijzonder, rug, achter, vel) {
+  const v = vel || img.vel, sw = v.sw || SW;
   let f = rug ? v.rug : v.staan, spiegel = false;
   if (bijzonder) f = Array.isArray(v.bijzonder) ? v.bijzonder[Math.floor((p.gooi || 0) * v.fps) % v.bijzonder.length] : v.bijzonder;
   else if (p.loopT > 0) {
@@ -1141,10 +1142,37 @@ function figuur(img, p, bijzonder, rug, achter) {
   g.fillStyle = 'rgba(40,15,5,.28)'; g.beginPath(); g.ellipse(7, 5, w * 0.3, 7, 0, 0, 7); g.fill(); // schaduw onder de voeten
   g.save(); if (spiegel) g.scale(-1, 1);
   if (achter) { g.save(); g.translate(0, 6); g.scale(h / SH, h / SH); achter(); g.restore(); } // iets achter het figuurtje (in vakjes-pixels, voeten op y = 0)
-  g.drawImage(img, f * sw, 0, sw, SH, -w / 2, -h + 6, w, h);
+  g.drawImage(img, f * sw, (v.rij || 0) * SH, sw, SH, -w / 2, -h + 6, w, h);
   g.restore();
   return h;
 }
+// ---------- klanten als getekende figuren (Gemini) ----------
+// pizza/klanten.png: per figuur een rij van 18 plaatjes van 113 x 192: 0-6 lopen opzij (neus naar rechts), 7-10 lopen van achteren, 11 staan,
+// 12 zitten voor, 13 eten voor, 14 zitten achter, 15 eten achter, 16 zitten opzij, 17 eten opzij (zittend: op een onzichtbare stoel)
+// rijen: 0 werker (pizza/werker2-gemini.jpg), 1 student (student2), 2 villadame, 3 Afrikaanse man (afrikaan), 4 Chinese dame (dame-china2), 5 Chinese toerist (toerist)
+const KLANTEN = new Image(); KLANTEN.src = 'pizza/klanten.png';
+const KLANTVEL = (rij) => ({ rij, staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], fps: 9 });
+const FIGUREN = { werker: [0, 0, 3], student: [1], villa: [2], toerist: [5, 4, 3] }; // opa en oma volgen nog: die blijven de getekende poppetjes
+function tekenKlantFig(m, nu) { // in wereldcoördinaten (pixels van de zaak); zittend op zijn stoel, of lopend
+  const zit = m.st == 'wacht' || m.st == 'eet', v = KLANTVEL(m.fig);
+  g.save(); g.translate(m.x * T, m.y * T);
+  if (!zit) figuur(KLANTEN, m, false, false, null, v);
+  else {
+    const p = stoelPlekken(m.tafel)[m.stoel], kant = p ? p.kant : 0, eet = m.st == 'eet' && Math.floor(nu / 500 + m.x * 3) % 2;
+    const f = kant == 0 ? (eet ? 13 : 12) : kant == 1 ? (eet ? 15 : 14) : (eet ? 17 : 16), h = 1.85 * T, w = h * SW / SH;
+    g.translate(0, 14); if (kant == 3) g.scale(-1, 1); // rechts van de tafel: gespiegeld, zodat hij naar links (de tafel) kijkt
+    g.drawImage(KLANTEN, f * SW, m.fig * SH, SW, SH, -w / 2, -h + 6, w, h);
+    if (kant == 3) g.scale(-1, 1);
+    if (m.st == 'wacht') { // geduldbalkje boven het hoofd
+      const fr = m.groep && m.groep.besteld && !m.groep.opgehaald ? Math.max(0, 1 - m.groep.t / m.groep.geduld) : 1;
+      g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(-18, -h * 0.68, 36, 6);
+      g.fillStyle = fr > 0.5 ? '#2ecc71' : fr > 0.25 ? '#f1c40f' : '#e74c3c'; g.fillRect(-18, -h * 0.68, 36 * fr, 6);
+    }
+  }
+  g.restore();
+}
+const alsFiguur = (m) => m.fig != null && KLANTEN.complete && KLANTEN.naturalWidth;
+const voorTafel = (m) => { const p = (m.st == 'wacht' || m.st == 'eet') && m.tafel && stoelPlekken(m.tafel)[m.stoel]; return p && p.kant != 1; }; // zit boven/naast de tafel: achter het tafelblad tekenen
 function tweedeBord(x, y) { // wit bord met pizza, iets schuin van opzij gezien (zoals het bord op het Gemini-plaatje)
   g.fillStyle = '#8a8a8a'; g.beginPath(); g.ellipse(x, y + 3, 33, 11, 0, 0, 7); g.fill();
   g.fillStyle = '#f4f4f4'; g.beginPath(); g.ellipse(x, y, 33, 10, 0, 0, 7); g.fill();
@@ -1263,7 +1291,7 @@ function teken(nu) {
   for (const c of muntjes) { g.globalAlpha = Math.min(1, c.t * 2); g.fillStyle = '#ffd23f'; g.strokeStyle = '#5a3a00'; g.lineWidth = 3 * schaal; g.font = `bold ${16 * schaal}px system-ui`; const x = ox + c.x * T * schaal, y = oy + (c.y - 0.5 - (1.2 - c.t) * 0.6) * T * schaal; g.strokeText(c.tekst, x, y); g.fillText(c.tekst, x, y); }
   g.globalAlpha = 1;
   for (const w of wolkjes) {
-    const x = ox + w.m.x * T * schaal, y = oy + (w.m.y - 0.55) * T * schaal;
+    const x = ox + w.m.x * T * schaal, y = oy + (w.m.y - (w.m.fig != null ? (w.m.st == 'wacht' || w.m.st == 'eet' ? 1.45 : 1.85) : 0.55)) * T * schaal;
     g.font = `600 ${13 * schaal}px system-ui`; const bw = g.measureText(w.tekst).width + 16 * schaal, bh = 24 * schaal;
     const bx = Math.max(4, Math.min(doek.width - bw - 4, x - bw / 2));
     g.globalAlpha = Math.min(1, w.t * 3); g.fillStyle = '#fff'; rondRect(bx, y - bh, bw, bh, 10 * schaal); g.fill();
@@ -1355,6 +1383,7 @@ function tekenSpul(s, nu, zitten) {
     return;
   }
   const cx = midden(s)[0] * T, cy = midden(s)[1] * T;
+  for (const m of zitten) if (m.tafel == s && alsFiguur(m) && voorTafel(m)) tekenKlantFig(m, nu); // klanten boven en naast de tafel: hun benen verdwijnen onder het blad
   if (s.hout && !kleedVan(s) && HOUT.complete && HOUT.naturalWidth) { // houten tafel (pizza/houten-tafels.png): vierkant, lang liggend, lang staand
     const [bx, bw, bh] = { tafel: [0, 120, 137], tafeltje: [0, 120, 137], langL: [120, 292, 137], lang: [412, 120, 241] }[s.t];
     const w = SPUL[s.t].w * T + (s.t == 'tafeltje' ? 8 : 4), h = w * bh / bw;
@@ -1399,6 +1428,7 @@ function tekenSpul(s, nu, zitten) {
   }
 }
 function tekenMens(m, nu) {
+  if (alsFiguur(m)) { if (voorTafel(m)) return; g.save(); g.translate(ox, oy); g.scale(schaal, schaal); tekenKlantFig(m, nu); g.restore(); return; }
   const [x, y] = naarScherm(m.x, m.y);
   const zit = m.st == 'wacht' || m.st == 'eet';
   if (zit) { const p = stoelPlekken(m.tafel)[m.stoel]; const [rx, ry] = RICHTING[p ? p.kant : 0]; m.kijk = Math.atan2(ry, rx); m.loopT = 0; } // naar de tafel

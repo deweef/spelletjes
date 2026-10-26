@@ -100,6 +100,8 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   `pizza/dame-china2-gemini.jpg` (onderste rij: echte profiel-loopcyclus van 7 plaatjes).
 - Afrikaanse man in groen dashiki: `pizza/afrikaan-gemini.jpg` (voor, achter, zitten alle richtingen, eten, duim omhoog, onderste rij
   echte profiel-loopcyclus).
+- **Klanten als figuren ingebouwd (26 okt)**: werker, student, villadame, Afrikaanse man, Chinese dame, Chinese toerist. Nog: opa en oma
+  (zitten zonder tafel volgt), tweede helft villadame, studente, zakenman, Afrikaanse vrouw.
 - **Overzicht klantfiguren (26 okt).** Compleet (lopen opzij/voor/achter + zitten in alle richtingen): Chinese toerist, Chinese dame,
   Afrikaanse man. Bijna compleet: opa, oma (zitten alleen schuin met tafel). Nog met de vaste opdracht maken: werker (zitten), student,
   villabewoner/zakenmensen, Afrikaanse vrouw, gezin (ouder + kind). Kinderen (peuter, meisje) hebben alleen losse poses.

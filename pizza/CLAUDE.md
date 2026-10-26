@@ -46,4 +46,10 @@ tellen dubbel) via `vandaag.aankomst`; zondag meer opa/oma, vrijdag meer werkers
 elke avond 15% van de winst erbij in `S.belasting` (`belastingAvond`); op de laatste dag van de maand komt de inspecteur (`INSPECTEUR`,
 vraag met voorrang): betalen, of een dag uitstel met 10% (of 25%) boete in `S.aanslag`/`S.aanslagDag`; dan niet betaald = deurwaarder
 neemt max. 3 spullen mee (geen tafels/stoelen) en de zaak is een dag verzegeld (`S.dicht`).
+Klanten als Gemini-figuren (`KLANTEN` = `pizza/klanten.png`, per figuur een rij van 18 plaatjes van 113x192: 0-6 lopen opzij, 7-10 van
+achteren, 11 staan, 12/13 zitten/eten voor, 14/15 achter, 16/17 opzij; `KLANTVEL(rij)`): rij 0 werker, 1 student, 2 villadame, 3 Afrikaanse
+man, 4 Chinese dame, 5 Chinese toerist; welke soort welke figuren krijgt staat in `FIGUREN` (`m.fig`; opa/oma nog de oude poppetjes).
+Uitgeknipt per vak van de vaste Gemini-indeling (vellen `pizza/*-gemini.jpg` van 1408x768: onderste rij 7 profielstappen, midden: rug,
+zitten voor/eten/achter/eten, onder rechts zitten opzij). Zittend (`tekenKlantFig`): kant 0 = van voren, 1 = rug, 2 = opzij, 3 = opzij
+gespiegeld; wie boven of naast de tafel zit wordt vóór het tafelblad getekend (in `tekenSpul`, `voorTafel`), zodat de benen eronder verdwijnen.
 Plan en volgende stappen: `pizza/PLAN.md`.
