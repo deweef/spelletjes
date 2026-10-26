@@ -158,6 +158,13 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   (goedkoop), aan het plein (toeristen), groot in de villawijk (duur, villabewoners).
 - Bouwvolgorde: 1 stad (bank, markt, politie) **gedaan 26 okt**, 2 manager, 3 overdag naar buiten, 4 tweede pizzeria.
 
+## Feedback Marcel op de iPhone (26 okt)
+- Gedaan: Tafel/Plant/Obers openen een keuzelijstje met prijzen (schilderij was niet te vinden); ober staat er al vanaf het begin
+  (er was er altijd een, maar hij was 's ochtends onzichtbaar) en je kunt een ober ontslaan; stoelen recht van bovenaf zoals in het
+  origineel; borden voor de stoel op de tafel in plaats van op de rand; ingrediënten uit de voorraad, de groothandel rekent 's avonds af;
+  inzoomen (🔍, knijpen, schuiven) voor de telefoon. Stoelen draaien vanzelf naar de tafel waar ze tegenaan staan.
+- Nog: een tweede ober, een echte Italiaanse dame (Gemini-vel); de zaak meer op het origineel laten lijken (zie hieronder).
+
 ## Later: manager en de stad (Marcel, 26 okt) — manager pas samen met de stad bouwen (anders heeft hij geen nut)
 - Stadskaart: `pizza/stad-gemini.jpg` (16:9, plein met fontein en markt, bank, politiebureau, galerie, studentenhuis, bouwplaats,
   3x TE HUUR, gracht met bruggetjes, villawijk). Gebruiken als achtergrond met klikbare plekken eroverheen; is groot genoeg.

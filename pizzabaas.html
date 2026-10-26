@@ -41,6 +41,10 @@
   #menu b { display: block; padding: 4px 6px 6px; }
   #menu button { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 9px; padding: 8px 10px; margin: 4px 0 0; font: 600 14px system-ui, sans-serif; cursor: pointer; }
   #menu button:disabled { opacity: .45; }
+  #menu button.aan { background: #ffe08a; }
+  #menu button:has(.kik) { display: flex; align-items: center; gap: 10px; }
+  #menu .kik { font-size: 22px; width: 28px; text-align: center; }
+  #menu button small { display: block; font-weight: 400; font-size: 12px; opacity: .75; }
   #menu .kleden { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 4px; }
   #menu .kleden button { margin: 0; height: 28px; padding: 0; border-radius: 7px; border: 2px solid rgba(0,0,0,.25); text-align: center; font-size: 12px; }
   #menu .kleden button.aan { border: 3px solid #2e9d52; box-shadow: 0 0 0 2px #fff inset; }
@@ -72,6 +76,7 @@
   #sleutel.verborgen, #stadknop.verborgen { display: none; }
   #stadknop { position: fixed; z-index: 5; top: 8px; left: 108px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #stadknop:disabled { opacity: .35; }
+  #zoomknop { position: fixed; z-index: 5; top: 8px; left: 158px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #kaartvak { position: relative; width: min(100%, 1100px); margin: 0 auto; border: 6px solid #7a4520; border-radius: 10px; overflow: hidden; }
   #kaartvak img { display: block; width: 100%; image-rendering: pixelated; }
   .plek { position: absolute; border: 0; background: transparent; cursor: pointer; padding: 0; border-radius: 8px; }
@@ -98,7 +103,7 @@
   .kaart .groot { display: block; width: 100%; margin-top: 12px; border: 0; border-radius: 14px; padding: 13px; background: #b5361f; color: #fff; font: 700 17px system-ui, sans-serif; cursor: pointer; }
   .verborgen { display: none !important; }
   #melding { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: rgba(0,0,0,.7); padding: 8px 14px; border-radius: 12px; font-size: 14px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .3s; max-width: 90vw; text-align: center; }
-  body.tegel #paneel, body.tegel .terug { display: none; }
+  body.tegel #paneel, body.tegel .terug, body.tegel #stadknop, body.tegel #zoomknop, body.tegel #sleutel { display: none; }
   /* pizza's samenstellen */
   .kaart.breed { max-width: 760px; padding: 16px; }
   .kaart .rij { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -154,6 +159,7 @@
 <div class="scherm verborgen" id="achter"><div class="kaart breed" id="achterkaart"></div></div>
 <button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
 <button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
+<button id="zoomknop" title="Inzoomen (of knijp met twee vingers)">🔍</button>
 <div class="scherm verborgen" id="stad"><div id="stadkaart" style="margin:auto;width:100%"></div></div>
 <div class="scherm verborgen" id="bank"><div class="kaart" id="bankkaart"></div></div>
 <div class="scherm verborgen" id="pizzas"><div class="kaart breed" id="pizzakaart"></div></div>
@@ -443,7 +449,7 @@ function stapOven(o, dt) {
     if (klareP.length) { if (beweeg(k, [o.x, 1.7], 2.6, dt)) { o.in = o.in.filter((p) => !klareP.includes(p)); k.hand = klareP.map((p) => p.b); k.draagt = true; k.st = 'breng'; } }
     else { // nieuwe bestellingen: zoveel als er in de oven passen; ook als hij nog bakt: alvast deeg maken
       while (wachtrij.length && k.hand.length < ruimte(o.i)) { const b = wachtrij.shift(); k.hand.push(b);
-        const kost = smaak(b.m.pizza).k - (S.korting && S.korting.tot > S.dag ? b.m.pizza.stukjes.filter((s) => s.i == S.korting.i).length * ING[S.korting.i].k / 2 : 0); S.geld -= kost; tel.kosten += kost; } // ingrediënten inkopen
+        const kost = smaak(b.m.pizza).k - (S.korting && S.korting.tot > S.dag ? b.m.pizza.stukjes.filter((s) => s.i == S.korting.i).length * ING[S.korting.i].k / 2 : 0); tel.ing = (tel.ing || 0) + kost; tel.kosten += kost; } // ingrediënten uit de voorraad: de groothandel rekent 's avonds af (eindeDag)
       if (k.hand.length) { k.t = 0; k.st = 'deeg'; } else { beweeg(k, KOK_HUIS(o.i), 2.2, dt); k.poets = (k.poets || 0) + dt; } }
   } else if (k.st == 'deeg') { // naar de werkbank, deeg uitrollen en opgooien (per pizza)
     if (beweeg(k, BANK(o.i), 2.6, dt)) { k.t += dt; k.gooi = k.t; if (k.t >= DEEG * k.hand.length) { k.st = 'oven'; k.gooi = 0; } }
@@ -521,7 +527,7 @@ function openDeuren() {
 function eindeDag() {
   modus = 'inrichten';
   const lonen = (S.obers - 1) * LOON, totaal = tel.omzet + tel.fooi - tel.kosten - HUUR - lonen;
-  S.geld += -HUUR - lonen; // omzet, fooi en ingrediënten zijn al verrekend
+  S.geld += -HUUR - lonen - (tel.ing || 0); maakPersoneel(); // omzet en fooi zijn al verrekend; de inkoop (tel.ing) nu pas
   S.omzetGisteren = tel.omzet; const lening = [...aflossen(), ...belastingAvond(totaal)];
   const rommel = vlekken.length; S.vuil = (S.vuil || 0) + rommel * 0.5; vlekken = []; // wat er blijft liggen maakt de zaak viezer (keuringsdienst!)
   const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
@@ -540,7 +546,7 @@ function eindeDag() {
       ${soorten ? `<tr><td>Hoe smaakte het?</td><td>${soorten}</td></tr>` : ''}
       <tr><td>🍕 Pizza's verkocht</td><td>€ ${tel.omzet}</td></tr>
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
-      <tr><td>🧀 Ingrediënten</td><td>− € ${Math.round(tel.kosten)}</td></tr>
+      <tr><td>🧀 Ingrediënten (groothandel)</td><td>− € ${Math.round(tel.ing || 0)}</td></tr>${tel.kosten - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.ing || 0))}</td></tr>` : ''}
       <tr><td>🏠 Huur</td><td>− € ${HUUR}</td></tr>
       ${lonen ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
@@ -1271,9 +1277,30 @@ function maat() {
   const bw = v.clientWidth, bh = v.clientHeight;
   doek.width = bw * dpr; doek.height = bh * dpr; doek.style.width = bw + 'px'; doek.style.height = bh + 'px';
   const boven = TEGEL ? 0 : 48; // ruimte voor de terugknop
-  schaal = Math.min(bw / (WW + RAND * 2), (bh - boven) / (WH + RAND * 2)) * dpr;
-  ox = (doek.width - WW * schaal) / 2; oy = boven * dpr + (doek.height - boven * dpr - WH * schaal) / 2;
+  basis = Math.min(bw / (WW + RAND * 2), (bh - boven) / (WH + RAND * 2)) * dpr; bovenPx = boven * dpr;
+  zetZoom();
 }
+// inzoomen (vooral voor de telefoon): zoom 1 = alles past; schuiven met een vinger over de lege vloer, knijpen met twee vingers.
+// px/py = het wereldpunt (in tegels) dat in het midden van het scherm staat
+let zoom = 1, basis = 1, bovenPx = 0, zoomMidden = null;
+function zetZoom(px, py) {
+  schaal = basis * zoom; const vw = doek.width, vh = doek.height - bovenPx, ww = (WW + RAND * 2) * schaal, wh = (WH + RAND * 2) * schaal;
+  if (px == null) { px = zoomMidden ? zoomMidden[0] : W / 2; py = zoomMidden ? zoomMidden[1] : H / 2; }
+  ox = vw / 2 - px * T * schaal; oy = bovenPx + vh / 2 - py * T * schaal;
+  ox = ww <= vw ? (vw - WW * schaal) / 2 : Math.min(RAND * schaal, Math.max(vw - (WW + RAND) * schaal, ox));
+  oy = wh <= vh ? bovenPx + (vh - WH * schaal) / 2 : Math.min(bovenPx + RAND * schaal, Math.max(doek.height - (WH + RAND) * schaal, oy));
+  zoomMidden = [(vw / 2 - ox) / schaal / T, (bovenPx + vh / 2 - oy) / schaal / T];
+}
+const vingers = new Map(); let knijp = null, schuif = null;
+function knijpStap() { // twee vingers: zoom zo dat het wereldpunt onder het midden onder het midden blijft
+  const [a, b] = [...vingers.values()], d = Math.hypot(a.x - b.x, a.y - b.y), dpr = doek.width / doek.getBoundingClientRect().width;
+  const mx = (a.x + b.x) / 2 * dpr, my = (a.y + b.y) / 2 * dpr;
+  if (!knijp) { knijp = { d, z: zoom, wx: (mx - ox) / schaal, wy: (my - oy) / schaal }; return; }
+  zoom = Math.max(1, Math.min(3, knijp.z * d / knijp.d)); schaal = basis * zoom;
+  const vh = doek.height - bovenPx; zetZoom((doek.width / 2 - mx + knijp.wx * schaal) / schaal / T, (bovenPx + vh / 2 - my + knijp.wy * schaal) / schaal / T);
+}
+$('zoomknop').onclick = () => { wekGeluid(); zoom = zoom > 1.2 ? 1 : 1.8; zetZoom(); };
+doek.addEventListener('wheel', (e) => { e.preventDefault(); const v = naarVak(e); zoom = Math.max(1, Math.min(3, zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); zetZoom(v.fx, v.fy); }, { passive: false });
 addEventListener('resize', maat);
 if (window.ResizeObserver) new ResizeObserver(() => maat()).observe($('veld')); // het paneel kan van hoogte veranderen
 
@@ -1632,6 +1659,21 @@ const PLANTEN = new Image(); PLANTEN.src = 'pizza/planten.png'; // pizza/planten
 const JUKEBOX = new Image(); JUKEBOX.src = 'pizza/jukebox.png';
 const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
 // stijl: s.hout = houten caféstoel met rood kussen (tweede rij in pizza/stoelen.png, uit pizza/stoelen5-gemini.jpg)
+// stoel recht van bovenaf, zoals in het origineel: houten frame, zitting (blauw-wit gestreept, of rood kussen bij hout) en de leuning
+// als dikke houten balk aan de kant van de tafel af. De schaduw valt altijd naar rechtsonder.
+function rechteStoel({ sx, sy, kant, hout }) {
+  const x = sx * T, y = sy * T, r = 21;
+  g.fillStyle = 'rgba(45,18,6,.4)'; g.fillRect(x - r + 7, y - r + 6, 2 * r, 2 * r);
+  g.save(); g.translate(x, y); g.rotate([0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
+  g.fillStyle = '#4a2a12'; g.fillRect(-r, -r, 2 * r, 2 * r); // frame
+  g.fillStyle = hout ? '#8a5428' : '#9a6a3c'; g.fillRect(-r + 2, -r + 2, 2 * r - 4, 2 * r - 4);
+  if (hout) { g.fillStyle = '#b52a22'; g.fillRect(-13, -8, 26, 22); g.fillStyle = '#d94a3a'; g.fillRect(-11, -6, 15, 8); }
+  else { g.fillStyle = '#eef3f8'; g.fillRect(-14, -8, 28, 23); g.fillStyle = '#3f6fb5'; for (let i = -12; i < 14; i += 5) g.fillRect(i, -8, 2.5, 23); }
+  g.fillStyle = '#3a200c'; g.fillRect(-r - 1, -r - 2, 2 * r + 2, 10); // leuning
+  g.fillStyle = '#7a4a22'; g.fillRect(-r + 1, -r, 2 * r - 2, 6); g.fillStyle = 'rgba(255,230,190,.35)'; g.fillRect(-r + 2, -r, 2 * r - 4, 2);
+  g.fillStyle = '#3a200c'; for (const i of [-9, 0, 9]) g.fillRect(i - 1, -r + 8, 2.5, 3); // spijlen
+  g.restore();
+}
 function gemStoel({ sx, sy, kant, hout }) { const k = 0.5; metSchaduw(STOELEN, kant * 110, hout ? 170 : 0, 110, 170, sx * T - 55 * k, sy * T - 110 * k, 110 * k, 170 * k); }
 // schaduw zoals in het origineel: hetzelfde plaatje donker en doorzichtig, iets naar rechtsonder (licht van linksboven).
 // Van elk vel wordt één keer een schaduwversie gemaakt (img.schaduw).
@@ -1673,8 +1715,7 @@ function tekenSpul(s, nu, zitten) {
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
   if (s.t == 'stoel') { // losse stoel, met de leuning van zijn tafel af
     const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y).kant;
-    if (STOELEN.complete && STOELEN.naturalWidth) gemStoel({ sx: s.x + 0.5, sy: s.y + 0.5, kant, hout: s.hout });
-    else stoel(x + T / 2, y + T / 2, [0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
+    rechteStoel({ sx: s.x + 0.5, sy: s.y + 0.5, kant, hout: s.hout }); if (false) stoel(x + T / 2, y + T / 2, [0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
     return;
   }
   const cx = midden(s)[0] * T, cy = midden(s)[1] * T;
@@ -1711,7 +1752,7 @@ function tekenSpul(s, nu, zitten) {
   }
   // borden: leeg (wachten) of met pizza (eten), op de tafel voor de stoel
   for (const m of zitten) if (m.tafel == s) {
-    const p = stoelPlekken(s)[m.stoel]; if (!p) continue; const px = p.sx + RICHTING[p.kant][0] * 0.85, py = p.sy + RICHTING[p.kant][1] * 0.85;
+    const p = stoelPlekken(s)[m.stoel]; if (!p) continue; const px = p.sx + RICHTING[p.kant][0] * 1.15, py = p.sy + RICHTING[p.kant][1] * 1.15;
     bord(px * T, py * T, m.st == 'eet', m.st == 'eet' && m.t > ETEN / 2);
   }
   if (s.kaars) {
@@ -1745,6 +1786,11 @@ function naarVak(e) {
   return { x: Math.floor(px), y: Math.floor(py), fx: px, fy: py };
 }
 doek.addEventListener('pointermove', (e) => {
+  if (vingers.has(e.pointerId)) vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (vingers.size == 2) { knijpStap(); return; }
+  if (schuif) { const dpr = doek.width / doek.getBoundingClientRect().width, dx = (e.clientX - schuif.x) * dpr, dy = (e.clientY - schuif.y) * dpr;
+    if (Math.hypot(dx, dy) > 6) schuif.bewogen = true;
+    if (schuif.bewogen) { zetZoom(schuif.mx - dx / schaal / T, schuif.my - dy / schaal / T); } return; }
   if (sleep) { // spul verslepen (vasthouden en schuiven)
     const v = naarVak(e), d = SPUL[sleep.s.t];
     if (!sleep.bewogen && Math.hypot(v.fx - sleep.fx, v.fy - sleep.fy) > 0.35) { sleep.bewogen = true; sluitMenu(); }
@@ -1754,11 +1800,15 @@ doek.addEventListener('pointermove', (e) => {
   if (modus != 'inrichten' || !kies) return; const v = naarVak(e); const d = SPUL[kies]; hover = { x: Math.max(0, Math.min(W - d.w, v.x - Math.floor(d.w / 2))), y: Math.max(KEUKEN, Math.min(H - d.h, v.y - Math.floor(d.h / 2))) }; });
 doek.addEventListener('pointerdown', (e) => {
   wekGeluid();
+  if (e.pointerType != 'mouse') vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (vingers.size == 2) { sleep = null; hover = null; laatsteTik = null; schuif = null; knijp = null; knijpStap(); return; } // knijpen = zoomen
+  const begin = () => ({ x: e.clientX, y: e.clientY, mx: zoomMidden[0], my: zoomMidden[1], bewogen: false });
   if (modus != 'inrichten') { // tijdens het werk: tik op een vlek om hem op te ruimen
     const v = naarVak(e), vl = vlekBij(v.fx, v.fy);
     if (rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) { muntjes.push({ x: rat.x, y: rat.y, t: 1.2, tekst: '🐀 Gevangen!' }); rat = null; vandaag.gezellig += 1; kassa(); return; }
     if (vl) { vlekken.splice(vlekken.indexOf(vl), 1); tel.opgeruimd = (tel.opgeruimd || 0) + 1; ding(1500, 0.05, 'sine', 0.05); setTimeout(() => ding(1900, 0.06, 'sine', 0.05), 50);
       muntjes.push({ x: vl.x, y: vl.y, t: 1, tekst: vl.soort == 'poep' ? '🧻 Bah!' : '🧽 Schoon!' }); }
+    else if (zoom > 1) schuif = begin(); // ingezoomd: schuiven
     return;
   }
   const v = naarVak(e);
@@ -1776,12 +1826,14 @@ doek.addEventListener('pointerdown', (e) => {
     tekenKnoppen(); return;
   }
   const s = op(v.x, v.y);
-  if (!s) { if (v.y >= KEUKEN && v.y < H) toonVloer(e.clientX, e.clientY); else sluitMenu(); return; }
+  if (!s) { schuif = { ...begin(), vloer: v.y >= KEUKEN && v.y < H }; return; } // lege vloer: schuiven (ingezoomd), of tikken = vloer kiezen
   // vasthouden en schuiven = verplaatsen; alleen tikken = het menuutje (kleedje, kaarsje, verkopen)
   sleep = { s, fx: v.fx, fy: v.fy, dx: v.fx - s.x, dy: v.fy - s.y, x: s.x, y: s.y, bewogen: false };
   try { doek.setPointerCapture(e.pointerId); } catch (err) {}
 });
 doek.addEventListener('pointerup', (e) => {
+  vingers.delete(e.pointerId); if (vingers.size < 2) knijp = null;
+  if (schuif) { const sc = schuif; schuif = null; if (!sc.bewogen && modus == 'inrichten') { if (sc.vloer) toonVloer(e.clientX, e.clientY); else sluitMenu(); } return; }
   if (!sleep) return;
   const { s, x, y, bewogen } = sleep; sleep = null;
   if (!bewogen) { toonMenu(s, e.clientX, e.clientY); return; }
@@ -1790,7 +1842,7 @@ doek.addEventListener('pointerup', (e) => {
   if (!aanDeMuur(SPUL[s.t], x)) { meld('Een schilderij hangt aan de muur.'); return; }
   s.x = x; s.y = y; plof(); bewaar();
 });
-doek.addEventListener('pointercancel', () => { sleep = null; });
+doek.addEventListener('pointercancel', (e) => { sleep = null; schuif = null; knijp = null; vingers.delete(e.pointerId); });
 let sleep = null; // het spul dat nu versleept wordt
 let laatsteTik = null;
 
@@ -1841,7 +1893,16 @@ function toonVloer(cx, cy) { // menuutje: de vloer van de zaak kiezen
     S.geld -= VLOER[k].prijs; S.vloer = k; tekenAchter(); kassa(); bewaar(); tekenKnoppen(); sluitMenu(); meld('Nieuwe vloer: ' + VLOER[k].n + '!');
   });
 }
-function sluitMenu() { $('menu').style.display = 'none'; gekozen = null; }
+function sluitMenu() { $('menu').style.display = 'none'; $('menu').dataset.knop = ''; gekozen = null; }
+// keuzelijstje bij een knop in het paneel: lijst = [{ ik, n, pr, uit, aan, doe }]; staat boven of naast de knop
+function toonKeuze(titel, lijst, r, knop) {
+  sluitMenu(); const m = $('menu'); m.dataset.knop = knop;
+  m.innerHTML = `<b>${titel}</b>` + lijst.map((o, i) => `<button data-i="${i}" ${o.uit ? 'disabled' : ''} class="${o.aan ? 'aan' : ''}"><span class="kik">${o.ik}</span><span>${esc(o.n)}<small>${esc(o.pr)}</small></span></button>`).join('');
+  m.style.display = 'block'; const bw = m.offsetWidth, bh = m.offsetHeight, staand = innerHeight > innerWidth;
+  m.style.left = Math.min(innerWidth - bw - 8, Math.max(8, staand ? r.left + r.width / 2 - bw / 2 : r.left - bw - 8)) + 'px';
+  m.style.top = Math.min(innerHeight - bh - 8, Math.max(8, staand ? r.top - bh - 8 : r.top)) + 'px';
+  m.querySelectorAll('button').forEach((b) => b.onclick = () => { const o = lijst[b.dataset.i]; sluitMenu(); wekGeluid(); o.doe(); });
+}
 
 // ---------- de menukaart: pizza's samenstellen (zoals in Pizza Connection) ----------
 const ING_IMG = new Image(); ING_IMG.src = 'pizza/ingredienten.png';
@@ -1964,6 +2025,7 @@ function tekenKnoppen() {
   for (const [t, d] of Object.entries(PERSONEEL)) {
     const n = t == 'oven' ? S.ovens : S.obers, vol = n >= d.max, groot = t == 'oven' && vol && (S.groot || []).filter(Boolean).length < S.ovens; // daarna: ovens groot maken
     if (groot) h += `<button data-p="groot" class="${S.geld < GROTE_PRIJS ? 'duur' : ''}" ${open ? 'disabled' : ''}><span class="ik">🧱</span>Grote oven<span class="pr">€${GROTE_PRIJS}</span></button>`;
+    else if (t == 'ober') h += `<button data-p="ober" ${open ? 'disabled' : ''}><span class="ik">${d.ik}</span>Obers<span class="pr">${S.obers} in dienst</span></button>`;
     else h += `<button data-p="${t}" class="${S.geld < d.prijs ? 'duur' : ''}" ${open || vol ? 'disabled' : ''}><span class="ik">${d.ik}</span>${t == 'oven' ? 'Oven + kok' : 'Ober'}<span class="pr">${vol ? 'maximaal' : '€' + d.prijs}</span></button>`;
   }
   h += `<button data-pizza><span class="ik">📖</span>Pizza's<span class="pr">${S.menu.length} op de kaart</span></button>`;
@@ -1972,17 +2034,30 @@ function tekenKnoppen() {
   h += `<button data-dag><span class="ik">📊</span>Gisteren<span class="pr">overzicht</span></button>`;
   h += open ? `<button class="open" disabled><span class="ik">🔔</span>Open</button>` : `<button class="open" id="open"><span class="ik">🔔</span>Open de deuren</button>`;
   k.innerHTML = h;
-  k.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { wekGeluid(); sluitMenu(); const k = b.dataset.k, gr = GROEP[k];
-    kies = gr ? (kies == gr[gr.length - 1] ? null : gr.includes(kies) ? gr[gr.indexOf(kies) + 1] : k) : kies == k ? null : k;
+  k.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { wekGeluid(); const k = b.dataset.k, gr = GROEP[k];
+    if (gr) { if ($('menu').style.display == 'block' && $('menu').dataset.knop == k) { sluitMenu(); return; } // nog eens = dicht
+      const r = b.getBoundingClientRect(); // keuzelijstje met alle soorten en hun prijs
+      toonKeuze(k == 'tafel' ? '🍽️ Welke tafel?' : '🪴 Welke versiering?', gr.map((t) => {
+        const d = SPUL[t], op = d.een && S.spullen.some((s) => s.t == t);
+        return { ik: d.ik, n: d.n, pr: op ? 'staat er al' : '€' + d.prijs, uit: op || S.geld < d.prijs, aan: kies == t, doe: () => { kies = t; laatsteTik = null; hover = null;
+          meld(d.n + ' (€' + d.prijs + '). ' + (d.muur ? 'Hangt alleen aan de linker- of rechtermuur. ' : '') + (isAanraak ? 'Tik op een plek: je ziet hem eerst staan, tik nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten.')); tekenKnoppen(); } };
+      }), r, k); return; }
+    sluitMenu(); kies = kies == k ? null : k;
     laatsteTik = null; hover = null;
-    if (gr && kies) meld(SPUL[kies].n + ' (€' + SPUL[kies].prijs + '). Klik nog eens op de knop voor ' + (k == 'tafel' ? 'een andere tafel.' : 'andere versiering.'));
-    else if (kies) meld(isAanraak ? 'Tik op een plek: je ziet hem eerst staan, tik nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten. Klik nog eens op de knop om te stoppen.'); tekenKnoppen(); });
+    if (kies) meld(isAanraak ? 'Tik op een plek: je ziet hem eerst staan, tik nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten. Klik nog eens op de knop om te stoppen.'); tekenKnoppen(); });
   k.querySelectorAll('[data-p]').forEach((b) => b.onclick = () => {
     if (b.dataset.p == 'groot') { if (S.geld < GROTE_PRIJS) { meld('Daar heb je niet genoeg geld voor.'); return; }
       S.groot = S.groot || []; const i = S.groot[0] ? 1 : 0; S.groot[i] = true; S.geld -= GROTE_PRIJS; kassa(); bewaar(); tekenKnoppen();
       meld(`De ${i ? 'rechter' : 'linker'} oven is nu een grote oven: er passen twee pizza's tegelijk in!`); return; }
+    if (b.dataset.p == 'ober') { if ($('menu').style.display == 'block' && $('menu').dataset.knop == 'ober') { sluitMenu(); return; }
+      const d = PERSONEEL.ober; toonKeuze(`🤵 Obers: ${S.obers}`, [
+        { ik: '➕', n: 'Ober aannemen', pr: S.obers >= d.max ? 'maximaal ' + d.max : `€${d.prijs}, loon €${LOON} per dag`, uit: S.obers >= d.max || S.geld < d.prijs, doe: () => {
+          S.geld -= d.prijs; S.obers++; maakPersoneel(); kassa(); bewaar(); tekenKnoppen(); meld('Een extra ober! Die kost wel ' + LOON + ' euro loon per dag.'); } },
+        { ik: '👋', n: 'Ober ontslaan', pr: S.obers <= 1 ? 'je hebt er minstens één nodig' : 'scheelt €' + LOON + ' loon per dag', uit: S.obers <= 1, doe: () => {
+          S.obers--; maakPersoneel(); bewaar(); tekenKnoppen(); meld('De ober krijgt een fles wijn mee en een zoen op elke wang. Arrivederci!'); } } ],
+        b.getBoundingClientRect(), 'ober'); return; }
     const d = PERSONEEL[b.dataset.p]; if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
-    S.geld -= d.prijs; if (b.dataset.p == 'oven') S.ovens++; else S.obers++; kassa(); bewaar(); tekenKnoppen();
+    S.geld -= d.prijs; if (b.dataset.p == 'oven') S.ovens++; else S.obers++; maakPersoneel(); kassa(); bewaar(); tekenKnoppen();
     meld(b.dataset.p == 'oven' ? 'Een extra oven met een kok erbij! Nu bakken er meer pizza\'s tegelijk.' : 'Een extra ober! Die kost wel ' + LOON + ' euro loon per dag.');
   });
   k.querySelector('[data-pizza]').onclick = () => { wekGeluid(); sluitMenu(); kies = null; toonKaart(); };
@@ -2036,7 +2111,7 @@ const uur = (f) => { const m = Math.floor(17 * 60 + f * 5 * 60); return String(M
 
 // ---------- terugknop: tijdens het spelen eerst terug naar inrichten ----------
 $('terug').onclick = (e) => {
-  if (modus != 'inrichten') { e.preventDefault(); if (confirm('Zaak nu sluiten? De klanten van vandaag tellen dan niet meer mee.')) { modus = 'inrichten'; mensen = []; obers = []; tekenKnoppen(); } }
+  if (modus != 'inrichten') { e.preventDefault(); if (confirm('Zaak nu sluiten? De klanten van vandaag tellen dan niet meer mee.')) { modus = 'inrichten'; mensen = []; maakPersoneel(); tekenKnoppen(); } }
 };
 
 // ---------- start ----------
@@ -2055,6 +2130,7 @@ if (TEGEL) { // plaatje voor de startpagina
   wolkjes.push({ m: mensen[2], tekst: 'Mamma mia!', t: 999 });
 }
 
+if (!TEGEL) maakPersoneel(); // ook 's ochtends staan de koks en obers al klaar
 maat();
 let vorig = performance.now();
 function lus(nu) {
