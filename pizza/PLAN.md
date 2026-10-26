@@ -129,7 +129,7 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
 3. **Gedaan (26 okt).** Kalender ("Za 14 nov" i.p.v. "DAG 9"): vrijdag/zaterdag druk, maandag rustig, zondag gezinnen; feestdagen (Sinterklaas, Valentijn,
    carnaval). **Belasting** stil bijhouden (~15% van de winst, niet uitleggen, verstopt in een schriftje); laatste dag van de maand komt
    de belastinginspecteur; niet genoeg = 1 dag uitstel met 10% boete, daarna beslag of een dag dicht. (Lenen bij Sjaak gaat een keer mis.)
-4. Tegenvallers, niet te vaak: personeel ziek → uitzendkracht (duurder, langzamer), leverancier te laat (ingrediënt op), stroomstoring
+4. **Vlekken en scherven gedaan (26 okt).** Tegenvallers, niet te vaak: personeel ziek → uitzendkracht (duurder, langzamer), leverancier te laat (ingrediënt op), stroomstoring
    (oven even uit), keuringsdienst, vlekken/scherven op de vloer om weg te klikken.
 5. **Gedaan (26 okt):** schilderij (aan de zijmuur) + geheime vraag van de man met de gleufhoed → `S.achterkamer`. Volgende: de achterkamer zelf.
 
@@ -140,7 +140,7 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
   schilder?" Normaal kies je iets gewoons (een kunstenaar uit de buurt, de kringloop), maar het geheime antwoord "een échte Van Gogh"
   opent de achterkamer (zie stap 3 hieronder). Daarvoor moet er eerst **een schilderij aan de muur** te koop zijn (versiering).
 
-## Later: manager en de stad (Marcel, 26 okt)
+## Later: manager en de stad (Marcel, 26 okt) — manager pas samen met de stad bouwen (anders heeft hij geen nut)
 - Stadskaart: `pizza/stad-gemini.jpg` (16:9, plein met fontein en markt, bank, politiebureau, galerie, studentenhuis, bouwplaats,
   3x TE HUUR, gracht met bruggetjes, villawijk). Gebruiken als achtergrond met klikbare plekken eroverheen; is groot genoeg.
 - **Manager** aannemen: van slecht (goedkoop) tot goed (duur). Bevoegdheden instelbaar, bv. zelf een uitzendkracht bellen, inkopen,

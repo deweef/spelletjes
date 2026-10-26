@@ -55,4 +55,8 @@ gespiegeld; wie boven of naast de tafel zit wordt vóór het tafelblad getekend 
 Schilderij (`SPUL.schilderij`, bij de versiering-knop; `muur: true` = alleen tegen de linker- of rechtermuur, `aanDeMuur`): voorlopig zelf
 getekend (`tekenSchilderij`: zonnebloemen of landschapje, `s.v`, wisselen met 🔄). Hangt er een schilderij, dan kan de geheime vraag komen
 (`VRAGEN` id 'gleufhoed'): antwoord C "Een échte Van Gogh" zet `S.achterkamer` (dag); de achterkamer zelf moet nog gebouwd worden.
+Vlekken en scherven (`vlekken`, `VLEK`: saus, scherven, kruimels, cola, poep; `nieuweVlek`, `tekenVlekken` op de vloer onder alles):
+tijdens het eten valt er soms wat; tik erop tijdens het werk om op te ruimen (`vlekBij`); in de buurt van een tafel kost elke vlek een
+sterretje gezellig (max. 2); over scherven lopen = "Au!" en populariteit omlaag; wat 's avonds blijft liggen maakt de zaak viezer
+(`S.vuil` +0,5 per vlek, keuringsdienst). Dagoverzicht: opgeruimd / blijven liggen. Vragen 'glas' en 'poep' leggen er ook een neer.
 Plan en volgende stappen: `pizza/PLAN.md`.
