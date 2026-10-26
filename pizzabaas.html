@@ -69,7 +69,14 @@
   .antwoord b { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #b5381c; color: #fff; text-align: center; line-height: 22px; margin-right: 6px; font-size: 13px; }
   .antwoord:hover { background: #ead2a8; }
   #sleutel { position: fixed; z-index: 5; top: 8px; left: 60px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
-  #sleutel.verborgen { display: none; }
+  #sleutel.verborgen, #stadknop.verborgen { display: none; }
+  #stadknop { position: fixed; z-index: 5; top: 8px; left: 108px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
+  #stadknop:disabled { opacity: .35; }
+  #kaartvak { position: relative; width: min(100%, 1100px); margin: 0 auto; border: 6px solid #7a4520; border-radius: 10px; overflow: hidden; }
+  #kaartvak img { display: block; width: 100%; image-rendering: pixelated; }
+  .plek { position: absolute; border: 0; background: transparent; cursor: pointer; padding: 0; border-radius: 8px; }
+  .plek span { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); white-space: nowrap; background: rgba(40,20,8,.85); color: #fff7e8; font: 700 12px system-ui; padding: 3px 7px; border-radius: 8px; pointer-events: none; }
+  .plek:hover, .plek:focus { background: rgba(255,230,120,.25); outline: 3px solid #ffd23f; }
   .pers { display: inline-block; width: 100px; height: 100px; background: url(pizza/drukpers.png) 0 0 / 400px 100px no-repeat; flex: none; } /* pers, bon, vervalste bon, stapel (pizza/drukpers-gemini.jpg) */
   #drukbalk { position: relative; height: 28px; background: #e8d7b5; border-radius: 14px; margin: 14px 10px 4px; overflow: hidden; }
   #drukgroen { position: absolute; top: 0; bottom: 0; width: 12%; background: #2e9d52; }
@@ -146,6 +153,8 @@
 <div class="scherm verborgen" id="vraag"><div class="kaart" id="vraagkaart"></div></div>
 <div class="scherm verborgen" id="achter"><div class="kaart breed" id="achterkaart"></div></div>
 <button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
+<button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
+<div class="scherm verborgen" id="stad"><div id="stadkaart" style="margin:auto;width:100%"></div></div>
 <div class="scherm verborgen" id="bank"><div class="kaart" id="bankkaart"></div></div>
 <div class="scherm verborgen" id="pizzas"><div class="kaart breed" id="pizzakaart"></div></div>
 
@@ -306,7 +315,7 @@ const LEKKER = { // per soort klant: [vond het heerlijk, vond het niks]
   opa: [['Net als vroeger!', 'Lekker zacht, voor mijn kunstgebit.', 'Dat hadden wij vroeger niet!'], ['Veel te heet! Water!', 'Vroeger was alles beter.', 'Daar kan ik niet op kauwen.']],
 };
 function kiesSoort() { // op zondag komen er meer opa's en oma's, op vrijdag meer werkers en studenten
-  const wd = modus == 'inrichten' ? 0 : weekdag(), w = Object.entries(SOORT).map(([k, d]) => [k, d.kans * (wd == 6 && k == 'opa' ? 2.5 : wd == 4 && (k == 'werker' || k == 'student') ? 1.4 : 1)]);
+  const wd = modus == 'inrichten' ? 0 : weekdag(), w = Object.entries(SOORT).map(([k, d]) => [k, d.kans * (wd == 6 && k == 'opa' ? 2.5 : wd == 4 && (k == 'werker' || k == 'student') ? 1.4 : 1) * (k == 'student' && vandaag.studenten ? 2 : 1)]);
   let r = Math.random() * w.reduce((a, [, v]) => a + v, 0); for (const [k, v] of w) if ((r -= v) < 0) return k; return 'werker'; }
 
 // ---------- spullen en stoelen ----------
@@ -502,7 +511,7 @@ function openDeuren() {
   tel = NIEUWTEL(); bezet = null; // de inrichting kan veranderd zijn: looproutes opnieuw
   bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
   if (S.bonnen && S.bonnen.tot >= S.dag) { vandaag.aankomst *= 1 + 0.4 * S.bonnen.q; if (kans(0.12 + (1 - S.bonnen.q) * 0.4)) S.verplicht = [...(S.verplicht || []), 'luigiBoos']; } // valse bonnen
-  sabotageVandaag();
+  sabotageVandaag(); if (S.studentenMorgen) { vandaag.studenten = true; S.studentenMorgen = false; } // flyers bij het studentenhuis
   const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (laatsteVanDeMaand() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
@@ -550,7 +559,7 @@ function eindeDag() {
 // rente = wat je in totaal extra terugbetaalt; dagen = in hoeveel dagen (elke avond een deel); max = hoeveel ze je willen lenen
 const AANBIEDER = {
   bank: { n: 'Banca Fortuna', gz: '🏦', wie: 'De nette bank op de hoek. Lage rente, maar ze lenen alleen aan zaken die goed lopen.',
-    rente: 0.1, dagen: 10, max: () => Math.max(0, Math.round((100 + S.rep * 12 + Math.min(1500, (S.omzetGisteren || 0) * 3)) / 50) * 50),
+    get rente() { return aanBalie ? 0.09 : 0.1; } /* aan het loket in de stad 1% minder */, dagen: 10, max: () => Math.max(0, Math.round((100 + S.rep * 12 + Math.min(1500, (S.omzetGisteren || 0) * 3)) / 50) * 50),
     weiger: () => (S.leningen || []).some((l) => l.achter) ? 'U heeft een betalingsachterstand. Wij doen geen zaken met wanbetalers.' : S.dag < 3 ? 'Uw zaak is nog te nieuw. Komt u over een paar dagen terug.' : null,
     klein: 'Banca Fortuna mag bij een betalingsachterstand van twee dagen spullen uit uw zaak verkopen. Rente wordt berekend over het hele bedrag. Koffie is gratis.' },
   oma: { n: 'Oma Truus', gz: '👵', wie: 'Je lieve oma. Geen rente, maar het moet wel snel terug, want ze gaat op cruise.',
@@ -974,6 +983,8 @@ function toonDrukken() {
 let rat = null;
 function sabotageVandaag() {
   const sb = S.sabotage; S.sabotage = null; if (!sb) return;
+  if (S.luigiRust > S.dag) { setTimeout(() => meld('Luigi durft niets: de politie houdt hem in de gaten. 👮'), 1200); return; }
+  S.gesaboteerd = S.dag;
   if (sb == 'rat') { rat = { x: 7.5, y: H - 1, dx: 1, dy: -1 }; vandaag.gezellig -= 1; setTimeout(() => meld('🐀 Er loopt een rat door de zaak! Luigi?! Tik erop om hem te vangen.'), 1200); }
   if (sb == 'stinkbom') { vandaag.aankomst *= 0.6; vandaag.gezellig -= 1; setTimeout(() => meld('🤢 Iemand heeft een stinkbom door je brievenbus gegooid. Luigi!'), 1200); }
   if (sb == 'keuring') { S.vuil = (S.vuil || 0) + 3; S.verplicht = [...(S.verplicht || []), 'keuring']; setTimeout(() => meld('📋 Luigi heeft de keuringsdienst getipt…'), 1200); }
@@ -988,6 +999,66 @@ function tekenRat() { if (!rat) return; g.save(); g.translate(rat.x * T, rat.y *
 function rechercheurVindt() { // betrapt: vervalsingen in beslag, boete, morgen dicht, populariteit omlaag
   const n = (S.vervalsingen || []).length; S.vervalsingen = []; ge(-300); S.dicht = 'De kunstrecherche heeft je zaak een dag gesloten.'; rep(-10);
   return `Ze vindt ${n} ${n == 1 ? 'vervalsing' : 'vervalsingen'}! In beslag genomen, € 300 boete, en morgen blijft de zaak dicht.`;
+}
+
+// ---------- de stad (knop 🗺️, `toonStad`): kaart pizza/stad-gemini.jpg (1376 x 768) met klikbare plekken ----------
+// Zonder manager kan je alleen naar buiten tijdens het inrichten. PLEK: x, y, b, h in pixels van de kaart.
+const PLEK = {
+  zaak: { n: 'Jouw pizzeria', ik: '🍕', x: 540, y: 180, b: 125, h: 140 },
+  bank: { n: 'Banca Fortuna', ik: '🏦', x: 850, y: 260, b: 150, h: 140 },
+  markt: { n: 'De markt', ik: '🧺', x: 570, y: 330, b: 250, h: 170 },
+  politie: { n: 'Politiebureau', ik: '👮', x: 850, y: 405, b: 150, h: 135 },
+  luigi: { n: 'Pizzeria Luigi', ik: '🕶️', x: 1000, y: 350, b: 115, h: 125 },
+  turk: { n: 'Shoarma Ahmet', ik: '🥙', x: 420, y: 290, b: 115, h: 110 },
+  kunst: { n: 'Kunstuitleen', ik: '🖼️', x: 560, y: 490, b: 100, h: 110 },
+  studenten: { n: 'Studentenhuis', ik: '🎓', x: 110, y: 520, b: 170, h: 170 },
+  huur1: { n: 'Te huur: klein pand', ik: '🏚️', x: 580, y: 40, b: 130, h: 115, huur: 600, buurt: 'studenten' },
+  huur2: { n: 'Te huur: aan het plein', ik: '🏠', x: 715, y: 180, b: 110, h: 135, huur: 1200, buurt: 'toeristen' },
+  huur3: { n: 'Te huur: villa met tuin', ik: '🏡', x: 1100, y: 130, b: 200, h: 170, huur: 2500, buurt: 'villa' },
+  bouw: { n: 'Bouwplaats', ik: '🏗️', x: 1000, y: 440, b: 260, h: 220 },
+};
+let aanBalie = false; // langs bij de bank: 1% minder rente
+function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze niet veranderen als je opnieuw kijkt)
+  let z = S.dag * 9301 + 49297; const rnd = () => (z = (z * 16807) % 2147483647) / 2147483647;
+  const ings = Object.keys(ING).filter((k) => !ING[k].s.includes('gek') || rnd() < 0.3);
+  return [0, 1, 2].map(() => { const i = ings.splice(Math.floor(rnd() * ings.length), 1)[0]; return { i, prijs: 15 + Math.round(rnd() * 4) * 5, dagen: 5 + Math.floor(rnd() * 3) }; });
+}
+function toonStad(plek) {
+  const k = $('stadkaart');
+  if (!plek) {
+    k.innerHTML = `<div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%"><span>${p.ik} ${esc(p.n)}</span></button>`).join('')}</div>
+      <p class="buurt" style="text-align:center">Tik op een plek in de stad. <button class="knop" id="stadterug" style="margin-left:8px">🍕 Terug naar je zaak</button></p>`;
+    k.querySelectorAll('[data-plek]').forEach((b) => b.onclick = () => toonStad(b.dataset.plek));
+    $('stadterug').onclick = () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); };
+    $('stad').classList.remove('verborgen'); return;
+  }
+  const p = PLEK[plek], terug = `<button class="knop" id="plekterug">🗺️ Terug naar de kaart</button>`;
+  let h = `<h1>${p.ik} ${esc(p.n)}</h1>`, knoppen = '';
+  if (plek == 'zaak') { $('stad').classList.add('verborgen'); tekenKnoppen(); return; }
+  if (plek == 'bank') { h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button>`; }
+  if (plek == 'markt') {
+    const aanbod = marktAanbod(), heb = S.korting && S.korting.tot > S.dag ? S.korting : null;
+    h += `<p>Kraampjes vol groente, kaas en worst. "Verse waar! Alles moet weg!"</p>${heb ? `<p class="buurt">Je hebt al korting op ${esc(ING[heb.i].n.toLowerCase())} tot ${esc(datumLang(heb.tot))}.</p>` : ''}
+      ${aanbod.map((a, n) => `<button class="aanbieder" data-koop="${n}" ${S.geld < a.prijs ? 'disabled' : ''}><span class="gz">🧺</span><span><b>${esc(ING[a.i].n)}: halve prijs</b><br>${a.dagen} dagen lang, voor € ${a.prijs}</span></button>`).join('')}`;
+  }
+  if (plek == 'politie') {
+    const kan = S.gesaboteerd && S.gesaboteerd >= S.dag - 3 && !(S.aangifte >= S.gesaboteerd);
+    h += `<p>Agent Jansen zit achter de balie met een kop koffie en een gevulde koek. "${pak(['Rustig dagje vandaag.', 'Komt u een fiets ophalen? Nee? Jammer, we hebben er driehonderd.', 'Lekkere pizza had u laatst, trouwens.'])}"</p>${kan ? '<p>Je zou aangifte kunnen doen tegen Luigi voor die sabotage…</p>' : ''}`;
+    if (kan) knoppen = `<button class="knop rood" id="aangifte">📝 Aangifte doen tegen Luigi</button>`;
+  }
+  if (plek == 'luigi') h += `<p>Je gluurt door het raam van Pizzeria Luigi. ${pak(['Het is er vol met studenten. Hij verkoopt pizza\'s voor € 6!', 'Het is er stil. Luigi zit zelf aan een tafel, met zijn zonnebril op, binnen.', 'Luigi staat te telefoneren en kijkt boos naar jouw zaak aan de overkant.', 'Er staat een bord: "Pizza Kapsalon, NIEUW!" Hmm.'])}</p>`;
+  if (plek == 'turk') h += `<p>Ahmet zwaait vanachter het draaiende spit. "${pak(['Hé buurman! Jij pizza, ik shoarma, samen houden we Luigi klein!', 'Probeer mijn knoflooksaus, daar krijg je haar op je borst van!', 'Kapsalon is eigenlijk ook een soort pizza, toch? Geintje!'])}"</p>`;
+  if (plek == 'kunst') h += `<p>Een stille zaal vol schilderijen. Een mevrouw met een bril op het puntje van haar neus kijkt je streng aan. "Niet aankomen." ${S.achterkamer ? 'Je bekijkt de Van Goghs heel goed… voor later.' : ''}</p><p class="buurt">(Hier kun je later schilderijen lenen.)</p>`;
+  if (plek == 'studenten') { h += `<p>Fietsen tegen de gevel, muziek uit een open raam en een bank op het grasveld. "Pizza? Als het goedkoop is, zijn wij er!"</p>`; knoppen = `<button class="knop rood" id="flyers" ${S.geld < 15 || S.flyers == S.dag ? 'disabled' : ''}>📄 Flyers uitdelen (€ 15)</button>`; }
+  if (p.huur) h += `<p>Een leeg pand${p.buurt == 'studenten' ? ' in een smal straatje vol fietsen' : p.buurt == 'toeristen' ? ' aan het plein, vlak bij de fontein' : ' met een grote tuin, in de villawijk'}. Huur: <b>€ ${p.huur} per maand</b>.</p>
+    <p class="buurt">Een tweede pizzeria kan pas als je een manager hebt die minstens een week bij je werkt, en € 2000 voor de borg en de verbouwing. (Komt later.)</p>`;
+  if (plek == 'bouw') h += `<p>Een kraan, zand en een bord: "Hier komt binnenkort: ????". De bouwvakkers eten trouwens graag pizza…</p>`;
+  const k2 = $('stadkaart'); k2.innerHTML = `<div class="kaart" style="margin:auto">${h}<div class="rij">${knoppen}${terug}</div></div>`;
+  $('plekterug').onclick = () => toonStad();
+  if ($('balie')) $('balie').onclick = () => { aanBalie = true; toonBank(); };
+  if ($('aangifte')) $('aangifte').onclick = () => { S.aangifte = S.dag; if (kans(0.6)) { S.luigiRust = S.dag + 10; ge(0); bewaar(); meld('De politie gaat met Luigi praten. Hij laat je voorlopig met rust.'); } else meld('"Zonder bewijs kunnen we weinig doen," zegt agent Jansen.'); bewaar(); toonStad('politie'); };
+  if ($('flyers')) $('flyers').onclick = () => { ge(-15); S.flyers = S.dag; S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.15 }; S.studentenMorgen = true; bewaar(); tekenKnoppen(); meld('Flyers uitgedeeld! Morgen komen er meer studenten.'); toonStad('studenten'); };
+  k2.querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const a = marktAanbod()[+b.dataset.koop]; ge(-a.prijs); S.korting = { i: a.i, tot: S.dag + a.dagen }; kassa(); bewaar(); tekenKnoppen(); meld(`${ING[a.i].n} voor de halve prijs, ${a.dagen} dagen lang!`); toonStad('markt'); });
 }
 
 // ---------- klanten ----------
@@ -1881,6 +1952,7 @@ function bewaarPizza() {
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
   $('sleutel').classList.toggle('verborgen', !S.achterkamer);
+  $('stadknop').disabled = modus != 'inrichten'; // zonder manager alleen 's ochtends de deur uit
   const k = $('raster'), open = modus != 'inrichten';
   let h = '';
   for (const [t0, d0] of Object.entries(SPUL)) {
@@ -1920,6 +1992,7 @@ function tekenKnoppen() {
 }
 let laatsteDag = '';
 $('sleutel').onclick = () => { wekGeluid(); sluitMenu(); toonAchterkamer(); };
+$('stadknop').onclick = () => { wekGeluid(); sluitMenu(); if (modus != 'inrichten') { meld('Je kunt de zaak niet alleen laten! (Met een manager kan dat straks wel.)'); return; } toonStad(); };
 const isAanraak = matchMedia('(pointer: coarse)').matches;
 
 let meldT = 0;

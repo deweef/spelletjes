@@ -74,4 +74,10 @@ Grote oven (knop 🧱 als er 2 ovens zijn, `GROTE_PRIJS`, `S.groot[i]`, `ruimte(
 `pizza/grote-oven-gemini.jpg`: 0 dicht, 1 gloeiend, 2 met pizza's). Een oven heeft `o.in` = [{ b, t }]; de kok heeft `k.hand` = lijst: bij een
 grote oven maakt hij 2 deegjes, schuift ze samen in en brengt er 2 tegelijk weg (anders is hij zelf de bottleneck; getest: 1 grote oven
 = bijna niemand boos, 1 gewone oven = 4-18 boos per dag in een zaak van 25 stoelen).
+De stad (knop 🗺️ `#stadknop` linksboven, `toonStad`, `#stad`): kaart `pizza/stad-gemini.jpg` (1376x768) met klikbare plekken `PLEK` (x/y/b/h in
+kaartpixels). Zonder manager alleen tijdens het inrichten. Bank: lenen aan het loket = 1% minder rente (`aanBalie`, `AANBIEDER.bank.rente` is een
+getter); markt: 3 aanbiedingen per dag (`marktAanbod`, vast per dag) = halve prijs op een ingrediënt (`S.korting`); politie: aangifte tegen
+Luigi na sabotage (`S.gesaboteerd`, `S.aangifte`; 60% = `S.luigiRust` 10 dagen geen sabotage); studentenhuis: flyers (€15, morgen meer klanten
+en 2x zoveel studenten: `S.studentenMorgen` → `vandaag.studenten`); Luigi, Shoarma Ahmet, kunstuitleen, bouwplaats: alleen een tekstje;
+drie panden te huur (`huur`, `buurt`) voor de tweede pizzeria (nog niet).
 Plan en volgende stappen: `pizza/PLAN.md`.
