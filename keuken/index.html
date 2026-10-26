@@ -16,6 +16,7 @@ input,select{font:inherit;border:1px solid var(--lijn);border-radius:7px;padding
 header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px 6px 52px}
 header h1{font-size:19px;margin:0 auto 0 0}
 header .knoppen{display:flex;gap:6px;flex-wrap:wrap}
+header select{border-radius:9px;padding:6px 8px}
 #palet{display:flex;gap:6px;overflow-x:auto;padding:4px 12px 8px;touch-action:pan-x;scrollbar-width:thin}
 #palet .groep{font-size:11px;font-weight:700;color:var(--zacht);text-transform:uppercase;writing-mode:vertical-rl;transform:rotate(180deg);align-self:center;padding:0 2px}
 #palet button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 8px;min-width:76px;user-select:none;-webkit-user-select:none;touch-action:pan-x}
@@ -26,6 +27,7 @@ main{flex:1;min-height:0;position:relative}
 #plan{width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none}
 #onder{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px calc(10px + env(safe-area-inset-bottom));background:var(--kaart);border-top:1px solid var(--lijn);min-height:52px}
 #onder .tip{color:var(--zacht);font-size:13px}
+#sel[hidden],#tip[hidden]{display:none!important}
 #sel{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 #sel input[type=number]{width:62px}
 #sel #sNaam{width:150px}
@@ -75,6 +77,8 @@ dialog .rij{display:flex;gap:8px;justify-content:flex-end}
 <header>
   <h1>Keukenplanner</h1>
   <div class="knoppen">
+    <select id="bVoorbeeld" aria-label="Voorbeelden"><option value="">📋 Voorbeelden…</option><option value="nu">Keuken nu (geschat)</option><option value="anja">Plan Anja</option></select>
+    <button id="bBoven" title="Bovenkasten tonen of verbergen">👁️ Bovenkasten</button>
     <button id="bKamer">📐 Afmetingen</button>
     <button id="bDeel">🔗 Delen</button>
     <button id="bPrint">🖨️ Afdrukken</button>
@@ -138,7 +142,8 @@ const DINGEN = [
     ['Onderkast 80', 80, 60, 'onder', '#e9d8b4'],
     ['Spoelbak', 80, 60, 'onder', '#bcd9ea'],
     ['Kookplaat', 60, 60, 'onder', '#c9c9c9'],
-    ['Fornuis', 60, 60, 'onder', '#a9a9a9'],
+    ['Fornuis 90', 90, 60, 'onder', '#a9a9a9'],
+    ['Fornuis 60', 60, 60, 'onder', '#a9a9a9'],
     ['Oven onder', 60, 60, 'onder', '#9e9e9e'],
     ['Werkblad', 100, 62, 'onder', '#d9c7a3'],
   ]],
@@ -178,7 +183,7 @@ const WANDEN = { boven: 'boven', rechts: 'rechts', onder: 'onder', links: 'links
 const KAMER0 = {
   b: 303, d: 255,
   deur: { wand: 'onder', van: 25, breed: 89 },
-  raam: { wand: 'links', van: 20, breed: 140 },
+  raam: { wand: 'links', van: 20, breed: 140, naam: 'raam + buitendeur' },
   kolf: { wand: 'boven', van: 10, breed: 15, diep: 15 },
 };
 const SLEUTEL = 'keuken_plan';
@@ -186,7 +191,8 @@ const NS = 'http://www.w3.org/2000/svg';
 const $ = id => document.getElementById(id);
 const svg = $('plan');
 let S = { kamer: structuredClone(KAMER0), items: [] };
-let gekozen = null, sleep = null, wacht = null;
+let gekozen = null, sleep = null, wacht = null, toonBoven = true;
+try { toonBoven = localStorage.getItem('keuken_boven') !== 'nee'; } catch (e) {}
 
 // ---- opslaan, laden, delen
 function bewaar() {
@@ -264,7 +270,7 @@ function teken() {
   maatV(-R + 8, 0, K.d, K.d + ' diep');
   // dingen: eerst vloer, dan boven
   const volgorde = [...S.items].sort((a, b) => (a.laag === 'boven') - (b.laag === 'boven'));
-  for (const it of volgorde) tekenDing(it);
+  for (const it of volgorde) if (toonBoven || it.laag !== 'boven') tekenDing(it);
   if (gekozen && S.items.includes(gekozen)) afstanden(gekozen);
   lijst();
 }
@@ -283,7 +289,7 @@ function opening(o, soort) {
     if (lig) for (const f of [.2, .5, .8]) el('line', { x1: r.x, y1: r.y + r.h * f, x2: r.x + r.w, y2: r.y + r.h * f, stroke: '#4a7aa3', 'stroke-width': .6 }, svg);
     else for (const f of [.2, .5, .8]) el('line', { x1: r.x + r.w * f, y1: r.y, x2: r.x + r.w * f, y2: r.y + r.h, stroke: '#4a7aa3', 'stroke-width': .6 }, svg);
   }
-  const tekst = (soort === 'raam' ? 'raam + buitendeur ' : 'doorgang ') + o.breed;
+  const tekst = (soort === 'raam' ? (o.naam || 'raam') + ' ' : 'doorgang ') + o.breed;
   const buiten = { boven: [0, -21], onder: [0, 25], links: [-24, 0], rechts: [24, 0] }[o.wand];
   const t = el('text', { x: r.x + r.w / 2 + buiten[0], y: r.y + r.h / 2 + buiten[1] * (lig ? .55 : 0), class: 'maat' }, svg);
   if (!lig) t.setAttribute('transform', `rotate(-90 ${r.x + r.w / 2 + buiten[0] * .55} ${r.y + r.h / 2})`), t.setAttribute('x', r.x + r.w / 2 + buiten[0] * .55);
@@ -501,6 +507,12 @@ $('bDeel').onclick = async () => {
     else { await navigator.clipboard.writeText(link); melding('Link gekopieerd'); }
   } catch (e) { try { await navigator.clipboard.writeText(link); melding('Link gekopieerd'); } catch (e2) { prompt('Kopieer deze link:', link); } }
 };
+$('bBoven').onclick = () => {
+  toonBoven = !toonBoven;
+  try { localStorage.setItem('keuken_boven', toonBoven ? 'ja' : 'nee'); } catch (e) {}
+  if (!toonBoven && gekozen && gekozen.laag === 'boven') gekozen = null;
+  kies(gekozen); melding(toonBoven ? 'Bovenkasten zichtbaar' : 'Bovenkasten verborgen');
+};
 $('bPrint').onclick = () => { kies(null); setTimeout(() => print(), 50); };
 $('bLeeg').onclick = () => { if (S.items.length && confirm('Alle kastjes en apparaten weghalen?')) { S.items = []; kies(null); bewaar(); } };
 
@@ -518,6 +530,51 @@ for (const [id, pad] of Object.entries(velden)) $(id).addEventListener('input', 
 });
 $('bKamer').onclick = () => { vulDlg(); $('kamerDlg').showModal(); };
 $('kStandaard').onclick = () => { S.kamer = structuredClone(KAMER0); vulDlg(); S.items.forEach(binnen); teken(); bewaar(); };
+
+// ---- voorbeelden. Maten van de huidige keuken zijn geschat vanaf de foto's (oktober 2026).
+// d(naam, breed, diep, laag, kleur, x, y, rot): rot 0 = tegen de bovenmuur, 1 = rechtermuur, 3 = linkermuur
+const d = (naam, b, dp, laag, kleur, x, y, rot) => ({ naam, b, d: dp, laag, kleur, x, y, rot });
+const KAST = '#e9d8b4', BOVEN = '#f0e2c2';
+const BOVENKASTEN = [
+  d('Bovenkast 60', 60, 35, 'boven', BOVEN, 25, 0, 0),
+  d('Magnetron', 60, 35, 'boven', '#bdbdbd', 85, 0, 0),
+  d('Bovenkast 80', 80, 35, 'boven', BOVEN, 145, 0, 0),
+  d('Bovenkast 78', 78, 35, 'boven', BOVEN, 225, 0, 0),
+  d('Bovenkast 60', 60, 35, 'boven', BOVEN, 268, 35, 1),
+];
+const VOORBEELDEN = {
+  nu: {
+    raam: { wand: 'links', van: 20, breed: 140, naam: 'raam + buitendeur' },
+    items: [
+      d('Vaatwasser', 60, 60, 'onder', '#cfe3d6', 25, 0, 0),
+      d('Spoelbak', 80, 60, 'onder', '#bcd9ea', 85, 0, 0),
+      d('Ladekast 60', 60, 60, 'onder', KAST, 165, 0, 0),
+      d('Hoekkast', 78, 60, 'onder', KAST, 225, 0, 0),
+      d('Oven + kookplaat', 60, 60, 'onder', '#9e9e9e', 243, 60, 1),
+      ...BOVENKASTEN,
+    ],
+  },
+  anja: {
+    raam: { wand: 'links', van: 20, breed: 140, naam: 'nieuw raam' },
+    items: [
+      d('Werkblad 60', 60, 60, 'onder', '#d9c7a3', 0, 15, 3),
+      d('Fornuis 90', 90, 60, 'onder', '#a9a9a9', 0, 75, 3),
+      d('Onderkast 25', 25, 60, 'onder', KAST, 60, 0, 0),
+      d('Vaatwasser', 60, 60, 'onder', '#cfe3d6', 85, 0, 0),
+      d('Spoelbak', 80, 60, 'onder', '#bcd9ea', 145, 0, 0),
+      d('Hoekkast', 78, 60, 'onder', KAST, 225, 0, 0),
+      d('Onderkast 60', 60, 60, 'onder', KAST, 243, 60, 1),
+      ...BOVENKASTEN,
+    ],
+  },
+};
+$('bVoorbeeld').onchange = e => {
+  const v = VOORBEELDEN[e.target.value]; e.target.value = '';
+  if (!v || (S.items.length && !confirm('Je huidige ontwerp wordt vervangen. Doorgaan?'))) return;
+  S.kamer.raam = structuredClone(v.raam);
+  S.items = v.items.map(it => ({ ...it, id: nieuwId() }));
+  kies(null); bewaar();
+};
 
 laad();
 teken();

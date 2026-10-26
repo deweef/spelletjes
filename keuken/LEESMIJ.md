@@ -19,3 +19,13 @@ Staat niet in `spellen.json` (dus niet op de startpagina); open via https://dewe
   Rood = botst. Bovenkasten botsen alleen met bovenkasten, hoge kasten en de kolf.
 - Dikke streep = voorkant. Tegen een muur draait een kastje vanzelf met de rug naar de muur.
 - Blauwe maten = afstand van het gekozen ding tot de muur of het eerstvolgende ding.
+
+## Plan Anja (oktober 2026)
+- Het kozijn met raam en buitendeur op de linkermuur gaat eruit. Er komt een raam zoals het huidige rechterraam
+  (met bovenlicht), ook op de plek waar nu de deur zit. Geen buitendeur meer.
+- Onder dat raam het fornuis (altijd 90 breed), daarnaast 60 werkblad (in de plattegrond richting de hoek bij de kolf).
+- De spoelbak/kraan op de bovenmuur gaat 60 cm naar rechts.
+- In de app: 📋 Voorbeelden → "Keuken nu (geschat)" en "Plan Anja". De kastmaten van de huidige keuken zijn
+  geschat vanaf foto's: vaatwasser 60, spoelbak 80, ladekast 60, hoekkast 78 op de bovenmuur, oven + kookplaat
+  op de rechtermuur. Bij echte maten: `VOORBEELDEN` in `index.html` bijwerken.
+- Let op: boven het fornuis zit dan een raam, dus geen afzuigkap tegen de muur.
