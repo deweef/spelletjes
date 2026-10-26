@@ -93,6 +93,9 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 - **Vaste opdracht per klant** (één figuur per keer, steeds 4 rijen; het ober-vel meesturen als voorbeeld voor stijl en grootte):
   rij 1 lopen opzij (7), rij 2 lopen naar voren (4), rij 3 lopen van achteren (4), rij 4 zitten op een onzichtbare stoel: van voren,
   van achteren, van opzij, eten van voren, eten van achteren, eten van opzij. Zie de opdracht voor de Chinese gast in het gesprek van 26 okt.
+- Chinese toerist (rood polo, fototoestel, rugzak): `pizza/toerist-gemini.jpg` = het meest compleet (opzij lopen, voor, achter, zitten
+  voor/achter/opzij, eten, foto maken); `pizza/toerist3-gemini.jpg` = extra: echt profiel lopen en zitten van opzij/achter;
+  `toerist2` = bijna hetzelfde (plus Chinese gast in bloemetjeshemd, dames in qipao, Afrikaanse gasten).
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
 ## Bank (idee Marcel, 25 okt) — gedaan: Banca Fortuna, Oma Truus en Ome Sjaak (woekeraar), zie CLAUDE.md.
