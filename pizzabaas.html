@@ -62,6 +62,7 @@
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
+  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 170px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
   .vraagwie { font-weight: 800; color: #b5381c; font-size: 15px; }
   .vraagtekst { font-size: 17px; margin: 8px 0 12px; }
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
@@ -419,7 +420,7 @@ function feestdag(d = S.dag) { // { n, aankomst, tekst, kaars? }
 
 // ---------- belasting (niet uitgelegd: S.belasting loopt stil op, laatste dag van de maand komt de inspecteur) ----------
 const BELASTING = 0.15; // deel van de winst
-const INSPECTEUR = { id: 'inspecteur', ik: '🕴️', wie: 'Belastinginspecteur', vraag: () => `Goedendag. Ik kom de belasting van deze maand innen: € ${S.belasting}.`,
+const INSPECTEUR = { id: 'inspecteur', ik: '🕴️', portret: 1, wie: 'Belastinginspecteur', vraag: () => `Goedendag. Ik kom de belasting van deze maand innen: € ${S.belasting}.`,
   a: [['Betalen.', () => { if (S.geld >= S.belasting) { ge(-S.belasting); const b = S.belasting; S.belasting = 0; return `Je betaalt € ${b}. "Tot volgende maand."`; }
       S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Je hebt niet genoeg geld! Je krijgt een dag uitstel, met 10% boete: morgenavond € ${S.aanslag}.`; }],
     ['Kan ik het morgen betalen?', () => { S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Vooruit. Morgenavond € ${S.aanslag}, met 10% boete.`; }],
@@ -584,7 +585,7 @@ const VRAGEN = [
     a: [['Daar heb ik voorlopig geen tijd voor.', () => { rep(-1); return 'De klant zucht. "Dan ga ik volgende week maar naar Luigi."'; }],
       ['Goed idee, morgen staat er wat nieuws op!', () => { rep(1); return 'De klant knikt tevreden. Denk eraan: knop 📖 Pizza\'s!'; }],
       ['Hoe moet dat eigenlijk?', () => 'UITLEG'] ] },
-  { id: 'agent', ik: '👮', wie: 'Agent', als: () => S.spullen.some((s) => s.t == 'jukebox'), vraag: 'Goedenavond. Er zijn klachten over geluidsoverlast van uw jukebox. Dat wordt een boete van € 80.',
+  { id: 'agent', ik: '👮', portret: 0, wie: 'Agent', als: () => S.spullen.some((s) => s.t == 'jukebox'), vraag: 'Goedenavond. Er zijn klachten over geluidsoverlast van uw jukebox. Dat wordt een boete van € 80.',
     a: [['Betalen.', () => { ge(-80); return 'Je betaalt € 80. De agent tikt tegen zijn pet.'; }],
       ['Ik zet de jukebox wel uit.', () => { vandaag.gezellig -= 1; return 'Geen boete, maar het is vanavond wel een stuk stiller (minder gezellig).'; }],
       ['Wilt u geen gratis pizza, agent?', () => { S.dicht = 'Je zat een nacht in de cel voor poging tot omkoping.'; rep(-5); return '"Omkoping?!" Je gaat mee naar het bureau. Morgen blijft de zaak dicht.'; }] ] },
@@ -758,11 +759,12 @@ function kiesVraag() {
 function toonVraag(v) {
   pauze = true; S.gehad = S.gehad || {}; S.gehad[v.id] = S.dag; ding(880, 0.1); setTimeout(() => ding(1100, 0.12), 120);
   const k = $('vraagkaart');
-  k.innerHTML = `<div class="vraagik">${v.ik}</div><div class="vraagwie">${esc(v.wie)}</div><p class="vraagtekst">"${esc(typeof v.vraag == 'function' ? v.vraag() : v.vraag)}"</p>
+  const ik = v.portret != null ? `<div class="portret" style="background-position:${-v.portret * 85}px 0"></div>` : v.ik; // getekend figuur (pizza/portretten.png) of emoji
+  k.innerHTML = `<div class="vraagik">${ik}</div><div class="vraagwie">${esc(v.wie)}</div><p class="vraagtekst">"${esc(typeof v.vraag == 'function' ? v.vraag() : v.vraag)}"</p>
     ${v.a.map(([t], i) => `<button class="antwoord" data-i="${i}"><b>${'ABC'[i]}</b> ${esc(t)}</button>`).join('')}`;
   k.querySelectorAll('[data-i]').forEach((b) => b.onclick = () => {
     const uit = v.a[+b.dataset.i][1](); bewaar(); tekenKnoppen();
-    k.innerHTML = `<div class="vraagik">${v.ik}</div>${uit == 'UITLEG' ? `<p class="vraagtekst"><b>Zo maak je een nieuwe pizza:</b></p>${PIZZA_UITLEG}<button class="groot" id="laatzien">📖 Laat zien</button>` : `<p class="vraagtekst">${esc(uit)}</p>`}
+    k.innerHTML = `<div class="vraagik">${ik}</div>${uit == 'UITLEG' ? `<p class="vraagtekst"><b>Zo maak je een nieuwe pizza:</b></p>${PIZZA_UITLEG}<button class="groot" id="laatzien">📖 Laat zien</button>` : `<p class="vraagtekst">${esc(uit)}</p>`}
       <button class="groot" id="vraagverder" style="margin-top:8px">Verder</button>`;
     $('vraagverder').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; };
     if ($('laatzien')) $('laatzien').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; toonKaart(); };
