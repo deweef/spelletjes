@@ -61,7 +61,7 @@ const BORD_URL='https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpb
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
-const VAK={engels:'Engels',wiskunde:'Wiskunde',biologie:'Biologie','scheikunde-h1':'Scheikunde H1',scheikunde:'Scheikunde H2',frans:'Frans','frans-copilot':'Frans v2','frans-combi':'Frans combi','frans-spel':'Frans spel','frans-5':'Frans v5',duits:'Duits',natuurkunde:'Natuurkunde H1',geschiedenis:'Geschiedenis H1-H2',nederlands:'Nederlands'};
+const VAK={engels:'Engels',wiskunde:'Wiskunde',biologie:'Biologie','scheikunde-h1':'Scheikunde H1',scheikunde:'Scheikunde H2',frans:'Frans','frans-copilot':'Frans v2','frans-combi':'Frans combi','frans-spel':'Frans spel','frans-5':'Frans v5',duits:'Duits',natuurkunde:'Natuurkunde H1',geschiedenis:'Geschiedenis H1-H2',nederlands:'Nederlands',nlt:'NLT Forensisch'};
 const KLEUR={Ben:'var(--ben)',Dana:'var(--dana)',Marcel:'var(--ouder)',Anja:'var(--anja)'};
 const dag=d=>new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
 const tijd=d=>new Date(d).toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
