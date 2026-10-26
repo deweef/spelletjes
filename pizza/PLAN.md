@@ -96,6 +96,8 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
 - Chinese toerist (rood polo, fototoestel, rugzak): `pizza/toerist-gemini.jpg` = het meest compleet (opzij lopen, voor, achter, zitten
   voor/achter/opzij, eten, foto maken); `pizza/toerist3-gemini.jpg` = extra: echt profiel lopen en zitten van opzij/achter;
   `toerist2` = bijna hetzelfde (plus Chinese gast in bloemetjeshemd, dames in qipao, Afrikaanse gasten).
+- Chinese dame in rode qipao: `pizza/dame-china-gemini.jpg` (voor, achter, zitten in alle richtingen, eten met stokjes, thee) en
+  `pizza/dame-china2-gemini.jpg` (onderste rij: echte profiel-loopcyclus van 7 plaatjes).
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
 ## Bank (idee Marcel, 25 okt) — gedaan: Banca Fortuna, Oma Truus en Ome Sjaak (woekeraar), zie CLAUDE.md.
