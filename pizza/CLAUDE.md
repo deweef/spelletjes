@@ -48,7 +48,7 @@ vraag met voorrang): betalen, of een dag uitstel met 10% (of 25%) boete in `S.aa
 neemt max. 3 spullen mee (geen tafels/stoelen) en de zaak is een dag verzegeld (`S.dicht`).
 Klanten als Gemini-figuren (`KLANTEN` = `pizza/klanten.png`, per figuur een rij van 18 plaatjes van 113x192: 0-6 lopen opzij, 7-10 van
 achteren, 11 staan, 12/13 zitten/eten voor, 14/15 achter, 16/17 opzij; `KLANTVEL(rij)`): rij 0 werker, 1 student, 2 villadame, 3 Afrikaanse
-man, 4 Chinese dame, 5 Chinese toerist, 6 opa (`opa2`), 7 studente, 8 Afrikaanse vrouw, 9 zakenman; welke soort welke figuren krijgt staat in `FIGUREN` (`m.fig`; oma volgt nog).
+man, 4 Chinese dame, 5 Chinese toerist, 6 opa (`opa2`), 7 studente, 8 Afrikaanse vrouw, 9 zakenman, 10 oma (`oma2`); welke soort welke figuren krijgt staat in `FIGUREN` (`m.fig`).
 Uitgeknipt per vak van de vaste Gemini-indeling (vellen `pizza/*-gemini.jpg` van 1408x768: onderste rij 7 profielstappen, midden: rug,
 zitten voor/eten/achter/eten, onder rechts zitten opzij). Zittend (`tekenKlantFig`): kant 0 = van voren, 1 = rug, 2 = opzij, 3 = opzij
 gespiegeld; wie boven of naast de tafel zit wordt vóór het tafelblad getekend (in `tekenSpul`, `voorTafel`), zodat de benen eronder verdwijnen.

@@ -141,6 +141,11 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
   schilder?" Normaal kies je iets gewoons (een kunstenaar uit de buurt, de kringloop), maar het geheime antwoord "een échte Van Gogh"
   opent de achterkamer (zie stap 3 hieronder). Daarvoor moet er eerst **een schilderij aan de muur** te koop zijn (versiering).
 
+Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goedkoop, slordig), `manager-sandra-gemini.jpg` (degelijk),
+`manager-bruno-gemini.jpg` (duur, Italiaans) — elk: 7 profielstappen, 4 rug, 6 staan (gapen/telefoon/klembord/wijzen/…);
+`pizza/luigi-gemini.jpg` (Luigi in groen pak: lopen, rug, armen over elkaar, lachen, wijzen, stampvoeten, met rat);
+`pizza/drukpers-gemini.jpg` (drukpers, kortingsbon, vervalste bon met vlekken, stapel bonnen, inkt, kwast, vergrootglas) voor de valsmunterij.
+
 ## Later: manager en de stad (Marcel, 26 okt) — manager pas samen met de stad bouwen (anders heeft hij geen nut)
 - Stadskaart: `pizza/stad-gemini.jpg` (16:9, plein met fontein en markt, bank, politiebureau, galerie, studentenhuis, bouwplaats,
   3x TE HUUR, gracht met bruggetjes, villawijk). Gebruiken als achtergrond met klikbare plekken eroverheen; is groot genoeg.
