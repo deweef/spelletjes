@@ -82,6 +82,10 @@ Gedaan (25 okt): de ober (en de klanten) lopen om de tafels heen in plaats van e
   kruimels, kinderstoel). Idee: afhalen, en kinderstoel als meubel.
 - `pizza/moeder-kind-gemini.jpg`: moeder met peuter (zelfde opzet: lopen voor/opzij/achter, kind op de arm, zitten, voeren).
   Samen met de vader: soort klant **gezin**.
+- `pizza/opa-gemini.jpg`: opa met wandelstok (lopen voor/opzij/achter met en zonder stok, zitten aan tafel, dammen, met oma en
+  kleinkind). Goed voor de klantsoort Opa en oma.
+- `pizza/inspecteur-gemini.jpg` (de eerste, gladgeschoren man en de vrouw met koffertje) wordt niet meer als inspecteur gebruikt:
+  bruikbaar als klanten, bv. zakenman en zakenvrouw (nieuwe klantsoort, of bij de villabewoners).
 - K1 werker lopen: `pizza/werker-gemini.jpg` (rij 1 = 7 goede loopstappen; rij 2 bijna gelijk, niet gebruiken). Wacht op K2 (zitten).
 
 ## Bank (idee Marcel, 25 okt) — gedaan: Banca Fortuna, Oma Truus en Ome Sjaak (woekeraar), zie CLAUDE.md.
