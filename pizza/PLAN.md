@@ -118,6 +118,8 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
   opent de achterkamer (zie stap 3 hieronder). Daarvoor moet er eerst **een schilderij aan de muur** te koop zijn (versiering).
 
 ## Later: manager en de stad (Marcel, 26 okt)
+- Stadskaart: `pizza/stad-gemini.jpg` (16:9, plein met fontein en markt, bank, politiebureau, galerie, studentenhuis, bouwplaats,
+  3x TE HUUR, gracht met bruggetjes, villawijk). Gebruiken als achtergrond met klikbare plekken eroverheen; is groot genoeg.
 - **Manager** aannemen: van slecht (goedkoop) tot goed (duur). Bevoegdheden instelbaar, bv. zelf een uitzendkracht bellen, inkopen,
   vragen van klanten beantwoorden, prijzen aanpassen. Met een manager kun jij de deur uit; hij belt je (pop-up) met vragen, vaker naarmate
   hij minder mag of minder goed is. Een slechte manager neemt ook rare besluiten ("ik heb 200 ananassen besteld").

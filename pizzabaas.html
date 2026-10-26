@@ -757,7 +757,7 @@ function kiesVraag() {
   return lijst[0];
 }
 // agent en inspecteur komen echt binnen: ze lopen van de deur naar het midden, stellen daar hun vraag en lopen weer weg.
-// pizza/bezoekers.png: rij 0 agent, rij 1 inspecteur; per rij 0-1 lopen van achteren (naar binnen), 2-3 van voren (staan, naar buiten)
+// pizza/bezoekers.png: rij 0 agent (uit pizza/agent2-gemini.jpg), rij 1 inspecteur; per rij 0-3 lopen van achteren (naar binnen), 4-7 van voren (staan, naar buiten)
 const BEZOEK = new Image(); BEZOEK.src = 'pizza/bezoekers.png';
 let bezoeker = null; // { rij, x, y, st: 'in' | 'praat' | 'uit', v, loopT }
 function laatBinnen(v) { bezoeker = { rij: v.portret, x: DEUR.x + 0.5, y: H + 0.4, st: 'in', v, loopT: 0 }; }
@@ -768,7 +768,7 @@ function stapBezoeker(dt) {
 }
 function tekenBezoeker() {
   const b = bezoeker; if (!b || !BEZOEK.complete || !BEZOEK.naturalWidth) return;
-  const [x, y] = naarScherm(b.x, b.y), f = (b.st == 'in' ? 0 : 2) + (b.loopT > 0 ? Math.floor(b.loopT * 4) % 2 : 0), h = 1.85 * T * schaal, w = h * 113 / 192;
+  const [x, y] = naarScherm(b.x, b.y), f = (b.st == 'in' ? 0 : 4) + (b.loopT > 0 ? Math.floor(b.loopT * 6) % 4 : 0), h = 1.85 * T * schaal, w = h * 113 / 192;
   g.fillStyle = 'rgba(40,15,5,.28)'; g.beginPath(); g.ellipse(x + 7 * schaal, y + 5 * schaal, w * 0.3, 7 * schaal, 0, 0, 7); g.fill();
   g.drawImage(BEZOEK, f * 113, b.rij * 192, 113, 192, x - w / 2, y - h + 6 * schaal, w, h);
 }
