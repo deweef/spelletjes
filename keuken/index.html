@@ -100,10 +100,10 @@ dialog .rij{display:flex;gap:8px;justify-content:flex-end}
 <dialog id="kamerDlg">
   <form method="dialog">
     <h2>Afmetingen keuken</h2>
-    <p>Binnenmaten in cm. Bovenaan de plattegrond is de raamkant. "Vanaf" is de afstand vanaf de linkerhoek (boven/onder) of de bovenhoek (links/rechts).</p>
+    <p>Binnenmaten in cm. Bovenaan de plattegrond is de muur met het aanrecht en de kolf, links het raam en de buitendeur. "Vanaf" is de afstand vanaf de linkerhoek (boven/onder) of de bovenhoek (links/rechts).</p>
     <fieldset><legend>Keuken</legend>
       <label>breed (links–rechts)<input id="kB" type="number"></label>
-      <label>diep (raam–deur)<input id="kD" type="number"></label>
+      <label>diep (boven–onder)<input id="kD" type="number"></label>
     </fieldset>
     <fieldset><legend>Doorgang (boog)</legend>
       <label>muur<select id="dW"></select></label>
@@ -173,12 +173,12 @@ const DINGEN = [
     ['Eigen ding…', 50, 50, 'vrij', '#f2b8a0'],
   ]],
 ];
-const WANDEN = { boven: 'boven (raam)', rechts: 'rechts', onder: 'onder', links: 'links' };
+const WANDEN = { boven: 'boven', rechts: 'rechts', onder: 'onder', links: 'links' };
 // Beginmaten uit de schets van Marcel (zie keuken/LEESMIJ.md)
 const KAMER0 = {
   b: 303, d: 255,
   deur: { wand: 'onder', van: 25, breed: 89 },
-  raam: { wand: 'boven', van: 40, breed: 120 },
+  raam: { wand: 'links', van: 20, breed: 140 },
   kolf: { wand: 'boven', van: 10, breed: 15, diep: 15 },
 };
 const SLEUTEL = 'keuken_plan';
@@ -199,6 +199,8 @@ function laad() {
     try { S = JSON.parse(decodeURIComponent(escape(atob(h.replace(/-/g, '+').replace(/_/g, '/'))))); melding('Gedeeld ontwerp geladen'); return; } catch (e) {}
   }
   try { const s = JSON.parse(localStorage.getItem(SLEUTEL)); if (s && s.kamer && s.items) S = s; } catch (e) {}
+  // oude gok: raam aan de bovenkant; het zit links
+  const r = S.kamer.raam; if (r && r.wand === 'boven' && r.van === 40 && r.breed === 120) S.kamer.raam = structuredClone(KAMER0.raam);
 }
 function deelLink() {
   const code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -281,7 +283,7 @@ function opening(o, soort) {
     if (lig) for (const f of [.2, .5, .8]) el('line', { x1: r.x, y1: r.y + r.h * f, x2: r.x + r.w, y2: r.y + r.h * f, stroke: '#4a7aa3', 'stroke-width': .6 }, svg);
     else for (const f of [.2, .5, .8]) el('line', { x1: r.x + r.w * f, y1: r.y, x2: r.x + r.w * f, y2: r.y + r.h, stroke: '#4a7aa3', 'stroke-width': .6 }, svg);
   }
-  const tekst = (soort === 'raam' ? 'raam ' : 'doorgang ') + o.breed;
+  const tekst = (soort === 'raam' ? 'raam + buitendeur ' : 'doorgang ') + o.breed;
   const buiten = { boven: [0, -21], onder: [0, 25], links: [-24, 0], rechts: [24, 0] }[o.wand];
   const t = el('text', { x: r.x + r.w / 2 + buiten[0], y: r.y + r.h / 2 + buiten[1] * (lig ? .55 : 0), class: 'maat' }, svg);
   if (!lig) t.setAttribute('transform', `rotate(-90 ${r.x + r.w / 2 + buiten[0] * .55} ${r.y + r.h / 2})`), t.setAttribute('x', r.x + r.w / 2 + buiten[0] * .55);
