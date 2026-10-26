@@ -52,4 +52,7 @@ man, 4 Chinese dame, 5 Chinese toerist; welke soort welke figuren krijgt staat i
 Uitgeknipt per vak van de vaste Gemini-indeling (vellen `pizza/*-gemini.jpg` van 1408x768: onderste rij 7 profielstappen, midden: rug,
 zitten voor/eten/achter/eten, onder rechts zitten opzij). Zittend (`tekenKlantFig`): kant 0 = van voren, 1 = rug, 2 = opzij, 3 = opzij
 gespiegeld; wie boven of naast de tafel zit wordt vóór het tafelblad getekend (in `tekenSpul`, `voorTafel`), zodat de benen eronder verdwijnen.
+Schilderij (`SPUL.schilderij`, bij de versiering-knop; `muur: true` = alleen tegen de linker- of rechtermuur, `aanDeMuur`): voorlopig zelf
+getekend (`tekenSchilderij`: zonnebloemen of landschapje, `s.v`, wisselen met 🔄). Hangt er een schilderij, dan kan de geheime vraag komen
+(`VRAGEN` id 'gleufhoed'): antwoord C "Een échte Van Gogh" zet `S.achterkamer` (dag); de achterkamer zelf moet nog gebouwd worden.
 Plan en volgende stappen: `pizza/PLAN.md`.

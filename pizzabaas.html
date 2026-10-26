@@ -167,6 +167,7 @@ const SPUL = {
   wijnrek: { n: 'Wijnrekje', ik: '🍷', prijs: 40, w: 1, h: 1, onder: 'plant', vak: 1, b: 117, hh: 184, tw: 1 },
   wijnkast: { n: 'Wijnkast', ik: '🍾', prijs: 120, w: 2, h: 1, onder: 'plant', vak: 2, b: 331, hh: 369, tw: 2.1 },
   servieskast: { n: 'Servieskast', ik: '🍽️', prijs: 120, w: 2, h: 1, onder: 'plant', vak: 3, b: 311, hh: 343, tw: 2 },
+  schilderij: { n: 'Schilderij', ik: '🖼️', prijs: 60, w: 1, h: 1, onder: 'plant', muur: true }, // alleen tegen de linker- of rechtermuur; s.v = welk schilderij
   plant: { n: 'Plant', ik: '🪴', prijs: 20, w: 1, h: 1 },
   jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 2, h: 2, een: true, onder: 'plant' },
 };
@@ -304,7 +305,8 @@ const vrij = (x, y, w, h, behalve) => {
 const op = (x, y) => S.spullen.find((s) => x >= s.x && x < s.x + SPUL[s.t].w && y >= s.y && y < s.y + SPUL[s.t].h);
 const TAFELSOORT = ['tafel', 'lang', 'langL', 'tafeltje'];
 const isTafel = (s) => TAFELSOORT.includes(s.t);
-const VERSIERING = ['plant', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast', 'jukebox'];
+const VERSIERING = ['plant', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast', 'schilderij', 'jukebox'];
+const aanDeMuur = (d, x) => !d.muur || x == 0 || x == W - d.w; // een schilderij hangt aan de muur
 const GROEP = { tafel: TAFELSOORT, plant: VERSIERING }; // knoppen die bij elke klik naar de volgende soort gaan
 // bij welke tafel hoort een stoel op (x, y), en aan welke kant: 0 boven de tafel, 1 eronder, 2 links, 3 rechts (de eerste tafel die ernaast staat)
 function kantVoor(x, y) {
@@ -733,6 +735,11 @@ const VRAGEN = [
     a: [['Die is van Beppe! Teruggeven.', () => { rep(1); return 'Beppe is zo blij dat hij de hele avond zingt.'; }],
       ['Mag u houden, als excuus.', () => { rep(1); if (ovens[1]) ovens[1].traag = true; return 'Beppe is zijn trouwring kwijt en werkt de rest van de avond verdrietig (trager).'; }],
       ['Gefeliciteerd, u wint onze prijsvraag!', () => { rep(2); return 'De klant juicht. Beppe kijkt bedenkelijk.'; }] ] },
+  { id: 'gleufhoed', ik: '🎩', wie: 'Man met gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
+    vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
+    a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
+      ['Van de kringloop, vijf euro.', () => '"Jammer," mompelt hij. "Jammer."'],
+      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); return 'Hij kijkt om zich heen en fluistert: "Dan bent u de man die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken is toch nog een kamertje?" Hij legt een sleutel op tafel en verdwijnt. 🗝️ (De achterkamer wordt nog gebouwd…)'; }] ] },
   { id: 'menuraad', ik: '🧑‍🍳', wie: 'Mario, de kok', als: () => S.menu.length < 4, kans: 2, vraag: 'Baas, mag ik een nieuwe pizza verzinnen voor de kaart?',
     a: [['Ja, verras me!', () => { const nieuw = { naam: vrijeNaam(), prijs: 10, stukjes: [{ i: 'kaas', x: -0.3, y: -0.3, r: 1 }, { i: 'salami', x: 0.4, y: -0.1, r: 2 }, { i: 'champignon', x: -0.2, y: 0.4, r: 3 }, { i: 'tomaat', x: 0.3, y: 0.4, r: 4 }, { i: 'kaas', x: 0.1, y: 0.05, r: 5 }, { i: 'paprika', x: -0.5, y: 0.1, r: 0 }] }; if (S.menu.length < MAXMENU) S.menu.push(nieuw); return `Mario zet de "${nieuw.naam}" op de kaart (salami, champignons, paprika).`; }],
       ['Nee, ik maak de kaart zelf.', () => 'Mario haalt zijn schouders op. Knop 📖 Pizza\'s!'],
@@ -1366,10 +1373,22 @@ const KLEDEN = new Image(); KLEDEN.src = 'pizza/kleden.png';
 // pizza/lange-tafels.png (uit pizza/lange-tafels-gemini.jpg): staand 192 x 512 (0 marmer, 1 rood-wit, 2 wit), daaronder liggend
 // 512 x 192 (een kwartslag gedraaid), daaronder het tafeltje 192 x 204
 const LANG = new Image(); LANG.src = 'pizza/lange-tafels.png';
+// schilderij aan de muur (voorlopig zelf getekend): vergulde lijst met zonnebloemen in een vaas (s.v = 1: een landschapje)
+function tekenSchilderij(s, x, y) {
+  const links = s.x == 0, bx = x + (links ? 4 : T - 40), by = y + 2, bw = 36, bh = 44;
+  g.fillStyle = 'rgba(40,15,5,.35)'; g.fillRect(bx + 4, by + 5, bw, bh);
+  g.fillStyle = '#b8892a'; g.fillRect(bx, by, bw, bh); g.fillStyle = '#e8c35a'; g.fillRect(bx + 2, by + 2, bw - 4, 2); g.fillRect(bx + 2, by + 2, 2, bh - 4);
+  const ix = bx + 5, iy = by + 5, iw = bw - 10, ih = bh - 10;
+  if (s.v) { g.fillStyle = '#7fb3d9'; g.fillRect(ix, iy, iw, ih * 0.55); g.fillStyle = '#4f8a3b'; g.fillRect(ix, iy + ih * 0.55, iw, ih * 0.45); g.fillStyle = '#f2d24b'; g.beginPath(); g.arc(ix + iw * 0.7, iy + ih * 0.25, 4, 0, 7); g.fill(); g.fillStyle = '#2f5d28'; g.beginPath(); g.moveTo(ix + 4, iy + ih * 0.6); g.lineTo(ix + 9, iy + ih * 0.2); g.lineTo(ix + 14, iy + ih * 0.6); g.fill(); return; }
+  g.fillStyle = '#d9b44a'; g.fillRect(ix, iy, iw, ih); // geel, zoals zonnebloemen van Vincent
+  g.fillStyle = '#4a7ab8'; g.fillRect(ix + iw * 0.3, iy + ih * 0.62, iw * 0.4, ih * 0.38);
+  for (const [fx, fy] of [[0.3, 0.3], [0.65, 0.25], [0.5, 0.48], [0.25, 0.55], [0.75, 0.5]]) { g.fillStyle = '#f0a020'; g.beginPath(); g.arc(ix + iw * fx, iy + ih * fy, 4, 0, 7); g.fill(); g.fillStyle = '#6b3a12'; g.beginPath(); g.arc(ix + iw * fx, iy + ih * fy, 1.6, 0, 7); g.fill(); }
+}
 const VERSIER = new Image(); VERSIER.src = 'pizza/versiering.png'; // kapstok, wijnrekje, wijnkast (pizza/kapstok-wijn-gemini.jpg), servieskast (pizza/kasten-gemini.jpg)
 const HOUT = new Image(); HOUT.src = 'pizza/houten-tafels.png'; // uit pizza/houten-tafels3-gemini.jpg; de staande is het vierkante blad uitgerekt // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
 function tekenSpul(s, nu, zitten) {
   const x = s.x * T, y = s.y * T;
+  if (s.t == 'schilderij') { tekenSchilderij(s, x, y); return; }
   if (SPUL[s.t].vak != null && VERSIER.complete && VERSIER.naturalWidth) { // versiering staat op zijn vakje en steekt naar boven uit
     const d = SPUL[s.t], w = d.tw * T, h = w * d.hh / d.b;
     metSchaduw(VERSIER, d.vak * 360 + (360 - d.b) / 2, 360 - d.hh, d.b, d.hh, x + (d.w * T - w) / 2, y + T - h + 2, w, h);
@@ -1468,6 +1487,7 @@ doek.addEventListener('pointerdown', (e) => {
     laatsteTik = null;
     if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
+    if (!aanDeMuur(d, x)) { meld('Een schilderij hangt aan de muur: zet hem tegen de linker- of rechtermuur.'); return; }
     if (d.een && S.spullen.some((s) => s.t == kies)) { meld('Je hebt al een ' + d.n.toLowerCase() + '.'); return; }
     S.spullen.push({ t: kies, x, y, ...((kies == 'stoel' ? S.houtStoel : isTafel({ t: kies }) && S.houtTafel) ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
     if (d.een) kies = null;
@@ -1485,6 +1505,7 @@ doek.addEventListener('pointerup', (e) => {
   if (!bewogen) { toonMenu(s, e.clientX, e.clientY); return; }
   if (x == s.x && y == s.y) return;
   if (!vrij(x, y, SPUL[s.t].w, SPUL[s.t].h, s)) { meld('Daar is geen plek.'); return; }
+  if (!aanDeMuur(SPUL[s.t], x)) { meld('Een schilderij hangt aan de muur.'); return; }
   s.x = x; s.y = y; plof(); bewaar();
 });
 doek.addEventListener('pointercancel', () => { sleep = null; });
@@ -1505,6 +1526,7 @@ function toonMenu(s, cx, cy) {
     h += s.kaars ? `<button data-a="kaars-">Kaarsje weg</button>` : `<button data-a="kaars" ${S.geld < EXTRA.kaars.prijs ? 'disabled' : ''}>🕯️ Kaarsje erop (€${EXTRA.kaars.prijs})</button>`;
   }
   if (s.t == 'plant') h += `<button data-a="plant">🔄 Andere plant</button>`;
+  if (s.t == 'schilderij') h += `<button data-a="schilderij">🔄 Ander schilderij</button>`;
   if (s.t == 'stoel' || isTafel(s)) h += `<button data-a="hout">${s.hout ? (s.t == 'stoel' ? '🪑 Gestreepte stoel' : '⬜ Marmeren tafel') : (s.t == 'stoel' ? '🪵 Houten stoel met kussen' : '🪵 Houten tafel')}</button>`;
   h += `<button data-a="verkoop">💶 Verkopen (€${Math.floor(d.prijs / 2)})</button>`;
   h += `<small style="display:block;padding:6px 6px 0;opacity:.7">Verplaatsen: vasthouden en slepen.</small>`;
@@ -1517,6 +1539,7 @@ function toonMenu(s, cx, cy) {
     if (a == 'kaars') { S.geld -= EXTRA[a].prijs; s[a] = true; plof(); }
     if (a == 'kleed-' || a == 'kaars-') s[a.slice(0, -1)] = false;
     if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
+    if (a == 'schilderij') { s.v = s.v ? 0 : 1; plof(); }
     if (a == 'hout') { s.hout = s.hout ? 0 : 1; if (s.t == 'stoel') S.houtStoel = s.hout; else S.houtTafel = s.hout; plof(); } // nieuwe stoelen/tafels krijgen dezelfde stijl
     if (a == 'draai') { const n = s.t == 'lang' ? 'langL' : 'lang', nx = s.x + (SPUL[s.t].w - SPUL[n].w) / 2, ny = s.y + (SPUL[s.t].h - SPUL[n].h) / 2; // om het midden draaien
       if (nx >= 0 && nx + SPUL[n].w <= W && ny >= KEUKEN && ny + SPUL[n].h <= H && vrij(nx, ny, SPUL[n].w, SPUL[n].h, s)) { s.t = n; s.x = nx; s.y = ny; plof(); } else meld('Daar is geen plek om te draaien.'); }

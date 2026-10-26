@@ -131,7 +131,7 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
    de belastinginspecteur; niet genoeg = 1 dag uitstel met 10% boete, daarna beslag of een dag dicht. (Lenen bij Sjaak gaat een keer mis.)
 4. Tegenvallers, niet te vaak: personeel ziek → uitzendkracht (duurder, langzamer), leverancier te laat (ingrediënt op), stroomstoring
    (oven even uit), keuringsdienst, vlekken/scherven op de vloer om weg te klikken.
-5. Schilderij + geheime vraag → achterkamer.
+5. **Gedaan (26 okt):** schilderij (aan de zijmuur) + geheime vraag van de man met de gleufhoed → `S.achterkamer`. Volgende: de achterkamer zelf.
 
 ## Klanten stellen vragen (Marcel, 25 okt), opstap naar de achterkamer
 - Af en toe vraagt een klant iets en moet je kiezen uit een paar antwoorden (pop-up, spel gaat even op pauze), bv. "Kan het zonder ui?",
