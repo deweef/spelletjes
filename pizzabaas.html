@@ -1194,10 +1194,11 @@ function figuur(img, p, bijzonder, rug, achter, vel) {
 // ---------- klanten als getekende figuren (Gemini) ----------
 // pizza/klanten.png: per figuur een rij van 18 plaatjes van 113 x 192: 0-6 lopen opzij (neus naar rechts), 7-10 lopen van achteren, 11 staan,
 // 12 zitten voor, 13 eten voor, 14 zitten achter, 15 eten achter, 16 zitten opzij, 17 eten opzij (zittend: op een onzichtbare stoel)
-// rijen: 0 werker (pizza/werker2-gemini.jpg), 1 student (student2), 2 villadame, 3 Afrikaanse man (afrikaan), 4 Chinese dame (dame-china2), 5 Chinese toerist (toerist)
+// rijen: 0 werker (pizza/werker2-gemini.jpg), 1 student (student2), 2 villadame, 3 Afrikaanse man (afrikaan), 4 Chinese dame (dame-china2), 5 Chinese toerist (toerist),
+// 6 opa (opa2), 7 studente, 8 Afrikaanse vrouw (afrikaanse-vrouw), 9 zakenman
 const KLANTEN = new Image(); KLANTEN.src = 'pizza/klanten.png';
 const KLANTVEL = (rij) => ({ rij, staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], fps: 9 });
-const FIGUREN = { werker: [0, 0, 3], student: [1], villa: [2], toerist: [5, 4, 3] }; // opa en oma volgen nog: die blijven de getekende poppetjes
+const FIGUREN = { werker: [0, 0, 3], student: [1, 7], villa: [2, 9], toerist: [5, 4, 3, 8], opa: [6] }; // oma volgt nog
 function tekenKlantFig(m, nu) { // in wereldcoördinaten (pixels van de zaak); zittend op zijn stoel, of lopend
   const zit = m.st == 'wacht' || m.st == 'eet', v = KLANTVEL(m.fig);
   g.save(); g.translate(m.x * T, m.y * T);
@@ -1412,16 +1413,14 @@ const KLEDEN = new Image(); KLEDEN.src = 'pizza/kleden.png';
 // pizza/lange-tafels.png (uit pizza/lange-tafels-gemini.jpg): staand 192 x 512 (0 marmer, 1 rood-wit, 2 wit), daaronder liggend
 // 512 x 192 (een kwartslag gedraaid), daaronder het tafeltje 192 x 204
 const LANG = new Image(); LANG.src = 'pizza/lange-tafels.png';
-// schilderij aan de muur (voorlopig zelf getekend): vergulde lijst met zonnebloemen in een vaas (s.v = 1: een landschapje)
+// schilderij aan de muur: pizza/schilderijen.png (uit pizza/schilderijen-gemini.jpg), 6 vakjes van 160: 0 zonnebloemen, 1 sterrennacht,
+// 2 meisje met de parel, 3 glimlachende dame, 4 de schreeuw, 5 Hollandse molen (s.v); hangt tegen de linker- of rechtermuur
+const SCHILD = new Image(); SCHILD.src = 'pizza/schilderijen.png';
+const SCHILDERIJEN = ['Zonnebloemen', 'Sterrennacht', 'Meisje met de parel', 'Glimlachende dame', 'De schreeuw', 'Hollandse molen'];
 function tekenSchilderij(s, x, y) {
-  const links = s.x == 0, bx = x + (links ? 4 : T - 40), by = y + 2, bw = 36, bh = 44;
-  g.fillStyle = 'rgba(40,15,5,.35)'; g.fillRect(bx + 4, by + 5, bw, bh);
-  g.fillStyle = '#b8892a'; g.fillRect(bx, by, bw, bh); g.fillStyle = '#e8c35a'; g.fillRect(bx + 2, by + 2, bw - 4, 2); g.fillRect(bx + 2, by + 2, 2, bh - 4);
-  const ix = bx + 5, iy = by + 5, iw = bw - 10, ih = bh - 10;
-  if (s.v) { g.fillStyle = '#7fb3d9'; g.fillRect(ix, iy, iw, ih * 0.55); g.fillStyle = '#4f8a3b'; g.fillRect(ix, iy + ih * 0.55, iw, ih * 0.45); g.fillStyle = '#f2d24b'; g.beginPath(); g.arc(ix + iw * 0.7, iy + ih * 0.25, 4, 0, 7); g.fill(); g.fillStyle = '#2f5d28'; g.beginPath(); g.moveTo(ix + 4, iy + ih * 0.6); g.lineTo(ix + 9, iy + ih * 0.2); g.lineTo(ix + 14, iy + ih * 0.6); g.fill(); return; }
-  g.fillStyle = '#d9b44a'; g.fillRect(ix, iy, iw, ih); // geel, zoals zonnebloemen van Vincent
-  g.fillStyle = '#4a7ab8'; g.fillRect(ix + iw * 0.3, iy + ih * 0.62, iw * 0.4, ih * 0.38);
-  for (const [fx, fy] of [[0.3, 0.3], [0.65, 0.25], [0.5, 0.48], [0.25, 0.55], [0.75, 0.5]]) { g.fillStyle = '#f0a020'; g.beginPath(); g.arc(ix + iw * fx, iy + ih * fy, 4, 0, 7); g.fill(); g.fillStyle = '#6b3a12'; g.beginPath(); g.arc(ix + iw * fx, iy + ih * fy, 1.6, 0, 7); g.fill(); }
+  const v = (s.v || 0) % 6, k = 0.36, bw = 160 * k, bh = 160 * k, bx = x + (s.x == 0 ? 2 : T - bw - 2), by = y + T - bh - 4;
+  if (SCHILD.complete && SCHILD.naturalWidth) { metSchaduw(SCHILD, v * 160, 0, 160, 160, bx, by, bw, bh, 4); return; }
+  g.fillStyle = '#b8892a'; g.fillRect(bx, by, bw, bh); g.fillStyle = '#d9b44a'; g.fillRect(bx + 5, by + 5, bw - 10, bh - 10);
 }
 const VERSIER = new Image(); VERSIER.src = 'pizza/versiering.png'; // kapstok, wijnrekje, wijnkast (pizza/kapstok-wijn-gemini.jpg), servieskast (pizza/kasten-gemini.jpg)
 const HOUT = new Image(); HOUT.src = 'pizza/houten-tafels.png'; // uit pizza/houten-tafels3-gemini.jpg; de staande is het vierkante blad uitgerekt // pizza/tafels-gemini.jpg, onderste rij: 4 tafels van 192 x 156
@@ -1570,7 +1569,7 @@ function toonMenu(s, cx, cy) {
     h += s.kaars ? `<button data-a="kaars-">Kaarsje weg</button>` : `<button data-a="kaars" ${S.geld < EXTRA.kaars.prijs ? 'disabled' : ''}>🕯️ Kaarsje erop (€${EXTRA.kaars.prijs})</button>`;
   }
   if (s.t == 'plant') h += `<button data-a="plant">🔄 Andere plant</button>`;
-  if (s.t == 'schilderij') h += `<button data-a="schilderij">🔄 Ander schilderij</button>`;
+  if (s.t == 'schilderij') h += `<button data-a="schilderij">🔄 Ander schilderij (${SCHILDERIJEN[(s.v || 0) % 6]})</button>`;
   if (s.t == 'stoel' || isTafel(s)) h += `<button data-a="hout">${s.hout ? (s.t == 'stoel' ? '🪑 Gestreepte stoel' : '⬜ Marmeren tafel') : (s.t == 'stoel' ? '🪵 Houten stoel met kussen' : '🪵 Houten tafel')}</button>`;
   h += `<button data-a="verkoop">💶 Verkopen (€${Math.floor(d.prijs / 2)})</button>`;
   h += `<small style="display:block;padding:6px 6px 0;opacity:.7">Verplaatsen: vasthouden en slepen.</small>`;
@@ -1583,7 +1582,7 @@ function toonMenu(s, cx, cy) {
     if (a == 'kaars') { S.geld -= EXTRA[a].prijs; s[a] = true; plof(); }
     if (a == 'kleed-' || a == 'kaars-') s[a.slice(0, -1)] = false;
     if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
-    if (a == 'schilderij') { s.v = s.v ? 0 : 1; plof(); }
+    if (a == 'schilderij') { s.v = ((s.v || 0) + 1) % 6; plof(); }
     if (a == 'hout') { s.hout = s.hout ? 0 : 1; if (s.t == 'stoel') S.houtStoel = s.hout; else S.houtTafel = s.hout; plof(); } // nieuwe stoelen/tafels krijgen dezelfde stijl
     if (a == 'draai') { const n = s.t == 'lang' ? 'langL' : 'lang', nx = s.x + (SPUL[s.t].w - SPUL[n].w) / 2, ny = s.y + (SPUL[s.t].h - SPUL[n].h) / 2; // om het midden draaien
       if (nx >= 0 && nx + SPUL[n].w <= W && ny >= KEUKEN && ny + SPUL[n].h <= H && vrij(nx, ny, SPUL[n].w, SPUL[n].h, s)) { s.t = n; s.x = nx; s.y = ny; plof(); } else meld('Daar is geen plek om te draaien.'); }
