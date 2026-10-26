@@ -286,7 +286,9 @@ const LEKKER = { // per soort klant: [vond het heerlijk, vond het niks]
   werker: [['Dat vult lekker!', 'Hier kan ik weer tegenaan!', 'Lekker pittig, top!'], ['Daar krijg ik geen honger van weg.', 'Is dat alles?', 'Waar is het vlees?']],
   opa: [['Net als vroeger!', 'Lekker zacht, voor mijn kunstgebit.', 'Dat hadden wij vroeger niet!'], ['Veel te heet! Water!', 'Vroeger was alles beter.', 'Daar kan ik niet op kauwen.']],
 };
-function kiesSoort() { let r = Math.random(); for (const [k, d] of Object.entries(SOORT)) if ((r -= d.kans) < 0) return k; return 'werker'; }
+function kiesSoort() { // op zondag komen er meer opa's en oma's, op vrijdag meer werkers en studenten
+  const wd = modus == 'inrichten' ? 0 : weekdag(), w = Object.entries(SOORT).map(([k, d]) => [k, d.kans * (wd == 6 && k == 'opa' ? 2.5 : wd == 4 && (k == 'werker' || k == 'student') ? 1.4 : 1)]);
+  let r = Math.random() * w.reduce((a, [, v]) => a + v, 0); for (const [k, v] of w) if ((r -= v) < 0) return k; return 'werker'; }
 
 // ---------- spullen en stoelen ----------
 const vrij = (x, y, w, h, behalve) => {
@@ -329,7 +331,7 @@ const RICHTING = [[0, 1], [0, -1], [1, 0], [-1, 0]]; // per kant: van de stoel n
 const midden = (s) => [s.x + SPUL[s.t].w / 2, s.y + SPUL[s.t].h / 2];
 function gezellig(s) { // 1 tot 6 sterretjes
   const kl = kleedVan(s);
-  let g = 1 + (kl ? 1 + (KLEED[kl].chic ? 1 : 0) : 0) + (s.kaars ? 1 : 0) + (modus != 'inrichten' ? vandaag.gezellig : 0);
+  let g = 1 + (kl ? 1 + (KLEED[kl].chic ? 1 : 0) : 0) + (s.kaars ? (modus != 'inrichten' && vandaag.kaars ? 2 : 1) : 0) + (modus != 'inrichten' ? vandaag.gezellig : 0);
   const [cx, cy] = midden(s);
   g += Math.min(3, S.spullen.filter((p) => VERSIERING.includes(p.t) && Math.hypot(p.x + 0.5 - cx, p.y + 0.5 - cy) <= 3.6).length);
   if (S.spullen.some((p) => p.t == 'jukebox')) g += 1;
@@ -395,6 +397,50 @@ function stapOven(o, dt) {
   }
 }
 
+// ---------- kalender: dag 1 = maandag 2 november 2026 ----------
+const DAGNAAM = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
+const MAAND = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+const datum = (d = S.dag) => new Date(2026, 10, 1 + d);
+const weekdag = (d = S.dag) => (datum(d).getDay() + 6) % 7; // 0 = maandag
+const datumKort = (d = S.dag) => (DAGNAAM[weekdag(d)].slice(0, 2) + ' ' + datum(d).getDate() + ' ' + MAAND[datum(d).getMonth()].slice(0, 3)).toUpperCase();
+const datumLang = (d = S.dag) => DAGNAAM[weekdag(d)][0].toUpperCase() + DAGNAAM[weekdag(d)].slice(1) + ' ' + datum(d).getDate() + ' ' + MAAND[datum(d).getMonth()];
+const laatsteVanDeMaand = (d = S.dag) => datum(d + 1).getDate() == 1;
+const DRUKTE = [0.7, 0.85, 0.9, 1, 1.3, 1.5, 1.1]; // maandag rustig, vrijdag en zaterdag druk, zondag gezinnen
+function feestdag(d = S.dag) { // { n, aankomst, tekst, kaars? }
+  const dt = datum(d), k = (dt.getMonth() + 1) + '-' + dt.getDate();
+  return { '12-5': { n: 'Pakjesavond', aankomst: 1.2, tekst: 'Pakjesavond! Er komen gezinnen met chocoladeletters.' },
+    '12-24': { n: 'Kerstavond', aankomst: 1.4, tekst: 'Kerstavond! Iedereen wil uit eten.' },
+    '12-25': { n: 'Eerste kerstdag', aankomst: 1.2, tekst: 'Eerste kerstdag. Opa en oma komen gezellig eten.' },
+    '12-26': { n: 'Tweede kerstdag', aankomst: 1.2, tekst: 'Tweede kerstdag: niemand wil nog koken.' },
+    '12-31': { n: 'Oudejaarsavond', aankomst: 1.5, tekst: 'Oudejaarsavond! Pizza met oliebollen, iemand?' },
+    '1-1': { n: 'Nieuwjaarsdag', aankomst: 0.6, tekst: 'Nieuwjaarsdag. Iedereen ligt nog in bed.' },
+    '2-14': { n: 'Valentijnsdag', aankomst: 1.3, kaars: true, tekst: 'Valentijnsdag! Kaarsjes zijn vandaag extra romantisch.' } }[k] || null;
+}
+
+// ---------- belasting (niet uitgelegd: S.belasting loopt stil op, laatste dag van de maand komt de inspecteur) ----------
+const BELASTING = 0.15; // deel van de winst
+const INSPECTEUR = { id: 'inspecteur', ik: '🕴️', wie: 'Belastinginspecteur', vraag: () => `Goedendag. Ik kom de belasting van deze maand innen: € ${S.belasting}.`,
+  a: [['Betalen.', () => { if (S.geld >= S.belasting) { ge(-S.belasting); const b = S.belasting; S.belasting = 0; return `Je betaalt € ${b}. "Tot volgende maand."`; }
+      S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Je hebt niet genoeg geld! Je krijgt een dag uitstel, met 10% boete: morgenavond € ${S.aanslag}.`; }],
+    ['Kan ik het morgen betalen?', () => { S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Vooruit. Morgenavond € ${S.aanslag}, met 10% boete.`; }],
+    ['Belasting? Ik ben maar een kleine zaak…', () => { S.aanslag = Math.round(S.belasting * 1.25); S.aanslagDag = S.dag + 1; S.belasting = 0; rep(-1); return `"Dat zeggen ze allemaal." Morgenavond € ${S.aanslag}, met 25% boete.`; }] ] };
+function belastingAvond(winst) { // 's avonds: belasting opzij, en de aanslag betalen als die vandaag moet
+  const regels = [];
+  if (winst > 0) S.belasting = (S.belasting || 0) + Math.round(winst * BELASTING);
+  if (S.aanslag && S.dag >= S.aanslagDag) {
+    if (S.geld >= S.aanslag) { S.geld -= S.aanslag; regels.push(['🕴️ Belasting betaald', -S.aanslag]); S.aanslag = 0; }
+    else { // de deurwaarder van de belastingdienst: neemt spullen mee (geen tafels en stoelen) en verzegelt de zaak een dag
+      let buit = 0; const weg = [];
+      for (const s of [...S.spullen].filter((s) => !isTafel(s) && s.t != 'stoel').sort((x, y) => SPUL[y.t].prijs - SPUL[x.t].prijs)) {
+        if (buit >= S.aanslag || weg.length >= 3) break; buit += Math.floor(SPUL[s.t].prijs * 0.6); weg.push(SPUL[s.t].n.toLowerCase()); S.spullen.splice(S.spullen.indexOf(s), 1); }
+      S.aanslag = Math.max(0, S.aanslag - buit); S.aanslagDag = S.dag + 2;
+      S.dicht = 'De belastingdienst heeft je zaak een dag verzegeld.';
+      regels.push([`🕴️ Belasting niet betaald! ${weg.length ? 'De deurwaarder nam mee: ' + weg.join(', ') + '. ' : ''}Morgen is de zaak verzegeld.`, 0]);
+    }
+  }
+  return regels;
+}
+
 const NIEUWTEL = () => ({ blij: 0, boos: 0, boosKeuken: 0, boosOber: 0, vol: 0, niks: 0, omzet: 0, fooi: 0, kosten: 0, wacht: 0, wachtN: 0, lekker: 0, verkocht: {}, soort: {} });
 function openDeuren() {
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
@@ -402,6 +448,9 @@ function openDeuren() {
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
   tel = NIEUWTEL(); bezet = null; // de inrichting kan veranderd zijn: looproutes opnieuw
   vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
+  const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
+  if (laatsteVanDeMaand() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
+  setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen();
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
@@ -409,11 +458,11 @@ function eindeDag() {
   modus = 'inrichten';
   const lonen = (S.obers - 1) * LOON, totaal = tel.omzet + tel.fooi - tel.kosten - HUUR - lonen;
   S.geld += -HUUR - lonen; // omzet, fooi en ingrediënten zijn al verrekend
-  S.omzetGisteren = tel.omzet; const lening = aflossen();
+  S.omzetGisteren = tel.omzet; const lening = [...aflossen(), ...belastingAvond(totaal)];
   const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
   const oud = S.dag; S.dag++; bewaar();
-  $('eindkaart').innerHTML = `<h1>Dag ${oud} zit erop!</h1>
+  $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
     ${tel.dicht ? `<p><b>🔒 Vandaag was de zaak dicht.</b> ${esc(tel.dicht)}</p>` : ''}
     <table>
       <tr><td>😋 Tevreden klanten</td><td>${tel.blij}</td></tr>
@@ -696,6 +745,7 @@ const PIZZA_UITLEG = `<ol style="text-align:left;line-height:1.5"><li>Tik op <b>
 function planVragen() { // 2 tot 4 vragen op een willekeurig moment van de dag (niet in de eerste en laatste stukjes)
   const n = 2 + Math.floor(Math.random() * 3); vraagTijden = [];
   for (let i = 0; i < n; i++) vraagTijden.push(DAG * (0.1 + 0.75 * (i + Math.random() * 0.8) / n));
+  vraagTijden.sort((a, b) => a - b);
 }
 function kiesVraag() {
   S.gehad = S.gehad || {};
@@ -839,7 +889,8 @@ function stap(dt) {
   if (modus == 'open') {
     volgendeKlant -= dt;
     if (volgendeKlant <= 0) { nieuweGroep(); volgendeKlant = Math.max(2.2, 7.5 - S.rep * 0.05) * (0.6 + Math.random() * 0.8) / vandaag.aankomst; }
-    if (vraagTijden.length && klok >= vraagTijden[0]) { vraagTijden.shift(); toonVraag(kiesVraag()); }
+    if (vraagTijden.includes(-1) && klok > DAG * 0.3) { vraagTijden = vraagTijden.filter((t) => t != -1); toonVraag(INSPECTEUR); }
+    else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { vraagTijden.shift(); toonVraag(kiesVraag()); }
     if (klok >= DAG) { modus = 'sluiten'; meld('De deur gaat dicht. Nog even de laatste klanten helpen…'); tekenKnoppen(); }
   }
   if (modus == 'sluiten' && (!mensen.length || klok > DAG + 40)) { mensen = []; eindeDag(); return; }
@@ -1613,7 +1664,7 @@ function balk(nu) {
   const f = modus == 'inrichten' ? 0 : Math.min(1, klok / DAG);
   const wacht = tel.wachtN ? Math.round(tel.wacht / tel.wachtN) : 0;
   const rij = (a, b) => a.padEnd(13, ' ') + String(b).padStart(5, ' ');
-  $('lcd').innerHTML = `<span class="kop">DAG ${S.dag}  ${modus == 'inrichten' ? 'INRICHTEN' : uur(f)}</span><span class="kop">PIZZERIA ${esc((speler || 'DE BAAS').toUpperCase().slice(0, 10))}</span>` +
+  $('lcd').innerHTML = `<span class="kop">${datumKort()}  ${modus == 'inrichten' ? 'INRICHTEN' : uur(f)}</span><span class="kop">PIZZERIA ${esc((speler || 'DE BAAS').toUpperCase().slice(0, 10))}</span>` +
     [rij('POPULARITEIT', Math.round(S.rep)), rij('KOKS', S.ovens), rij('OBERS', S.obers), rij('TAFELS', S.spullen.filter(isTafel).length), rij('GEZELLIG', gemGezellig().toFixed(1)),
      rij("PIZZA'S", tel.blij || 0), rij('WACHTTIJD', wacht + ' s')].join('\n') + `<span class="geld">€ ${Math.floor(S.geld)}</span>`;
 }

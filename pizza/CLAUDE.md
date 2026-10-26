@@ -40,4 +40,10 @@ kiest (`toonVraag`, `#vraag`). Gevolgen voor vandaag in `vandaag` (`VANDAAG`: fo
 voor morgen `S.morgen`, morgen dicht `S.dicht` (de dag erna toont het dagoverzicht "dicht"), hoe vies de zaak is `S.vuil` (keuring),
 korting op een ingrediënt `S.korting`, kok naar huis `ovens[1].ziek`/`traag`. "Hoe moet dat eigenlijk?" = `PIZZA_UITLEG` + knop naar de
 menukaart. 📖 Pizza's kan nu ook tijdens de werkdag.
+Kalender: `S.dag` 1 = maandag 2 november 2026 (`datum`, `weekdag`, `datumKort` op het schermpje, `datumLang` in het dagoverzicht).
+Drukte per weekdag `DRUKTE` (ma 0,7 … za 1,5) × `feestdag()` (Pakjesavond, Kerst, Oud en Nieuw, Nieuwjaar, Valentijn: kaarsjes
+tellen dubbel) via `vandaag.aankomst`; zondag meer opa/oma, vrijdag meer werkers/studenten (`kiesSoort`). Belasting: niet uitgelegd;
+elke avond 15% van de winst erbij in `S.belasting` (`belastingAvond`); op de laatste dag van de maand komt de inspecteur (`INSPECTEUR`,
+vraag met voorrang): betalen, of een dag uitstel met 10% (of 25%) boete in `S.aanslag`/`S.aanslagDag`; dan niet betaald = deurwaarder
+neemt max. 3 spullen mee (geen tafels/stoelen) en de zaak is een dag verzegeld (`S.dicht`).
 Plan en volgende stappen: `pizza/PLAN.md`.
