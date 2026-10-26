@@ -117,6 +117,20 @@ je niet op tijd af, dan is de bank snel klaar met je (geen nieuwe lening, beslag
   schilder?" Normaal kies je iets gewoons (een kunstenaar uit de buurt, de kringloop), maar het geheime antwoord "een échte Van Gogh"
   opent de achterkamer (zie stap 3 hieronder). Daarvoor moet er eerst **een schilderij aan de muur** te koop zijn (versiering).
 
+## Later: manager en de stad (Marcel, 26 okt)
+- **Manager** aannemen: van slecht (goedkoop) tot goed (duur). Bevoegdheden instelbaar, bv. zelf een uitzendkracht bellen, inkopen,
+  vragen van klanten beantwoorden, prijzen aanpassen. Met een manager kun jij de deur uit; hij belt je (pop-up) met vragen, vaker naarmate
+  hij minder mag of minder goed is. Een slechte manager neemt ook rare besluiten ("ik heb 200 ananassen besteld").
+- **De stad** (knop "Naar buiten"): kaartje met plekken:
+  - panden te huur, prijs per buurt (dure villawijk, goedkope studentenbuurt, toeristisch centrum) → tweede pizzeria, wisselen tussen
+    zaken (zie stap 5, meer buurten en een tweede filiaal);
+  - concurrenten: de zaken van Luigi, de Turk (shoarma/kapsalon), misschien een hamburgertent; je kunt er gaan kijken (spioneren);
+  - de markt: ingrediënten goedkoper/verser inkopen, aanbiedingen;
+  - de bank: wie langsgaat krijgt 1% minder rente dan via de telefoon;
+  - de kunstuitleen: schilderijen voor aan de muur (opstap naar de achterkamer, nog invullen);
+  - het politiebureau: alleen op bezoek (of als je in de cel zit).
+- Is de manager niet goed genoeg of heeft hij te weinig bevoegdheden, dan moet je terug naar je zaak (vragen stapelen zich op).
+
 ## Volgende stappen (in deze volgorde)
 1. ~~Pizza's samenstellen~~ (klaar, zie hierboven).
 2. **Klanten als eigen figuren** (net als kok en ober), met Gemini; de zittende houdingen staan al op de vellen.
