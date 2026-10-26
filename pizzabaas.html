@@ -62,7 +62,7 @@
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
-  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 170px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
+  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 340px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
   .vraagwie { font-weight: 800; color: #b5381c; font-size: 15px; }
   .vraagtekst { font-size: 17px; margin: 8px 0 12px; }
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
@@ -70,6 +70,10 @@
   .antwoord:hover { background: #ead2a8; }
   #sleutel { position: fixed; z-index: 5; top: 8px; left: 60px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #sleutel.verborgen { display: none; }
+  .pers { display: inline-block; width: 100px; height: 100px; background: url(pizza/drukpers.png) 0 0 / 400px 100px no-repeat; flex: none; } /* pers, bon, vervalste bon, stapel (pizza/drukpers-gemini.jpg) */
+  #drukbalk { position: relative; height: 28px; background: #e8d7b5; border-radius: 14px; margin: 14px 10px 4px; overflow: hidden; }
+  #drukgroen { position: absolute; top: 0; bottom: 0; width: 12%; background: #2e9d52; }
+  #drukschuif { position: absolute; top: 2px; bottom: 2px; width: 8px; margin-left: -4px; background: #3a2414; border-radius: 4px; }
   .mini { display: inline-block; background-image: url(pizza/schilderijen.png); background-repeat: no-repeat; image-rendering: pixelated; vertical-align: middle; }
   .opdracht { display: flex; gap: 12px; align-items: center; background: #f1e1c4; border-radius: 12px; padding: 10px; margin: 8px 0; }
   .atelier { display: flex; gap: 14px; justify-content: center; align-items: flex-start; text-align: center; flex-wrap: wrap; }
@@ -496,7 +500,9 @@ function openDeuren() {
   if (S.dicht) { tel = NIEUWTEL(); tel.dicht = S.dicht; S.dicht = null; mensen = []; eindeDag(); return; } // vandaag blijft de zaak dicht
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
   tel = NIEUWTEL(); bezet = null; // de inrichting kan veranderd zijn: looproutes opnieuw
-  bezoeker = null; vlekken = []; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
+  bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
+  if (S.bonnen && S.bonnen.tot >= S.dag) { vandaag.aankomst *= 1 + 0.4 * S.bonnen.q; if (kans(0.12 + (1 - S.bonnen.q) * 0.4)) S.verplicht = [...(S.verplicht || []), 'luigiBoos']; } // valse bonnen
+  sabotageVandaag();
   const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (laatsteVanDeMaand() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
@@ -806,6 +812,16 @@ const VRAGEN = [
     a: [['Natuurlijk, kijkt u gerust.', () => (S.vervalsingen || []).length ? rechercheurVindt() : (rep(1), 'Ze vindt alleen een oude bezem en drie spinnen. "Excuses voor het storen."')],
       ['Hier is niets te zien. Wilt u een pizza?', () => (S.vervalsingen || []).length && kans(0.5) ? '"Omkoping? Nu wil ik juist kijken." ' + rechercheurVindt() : 'Ze eet een Margherita en vergeet waarom ze kwam.'],
       ['Ik bel mijn advocaat, Mr. Gladjanus (€ 150).', () => { ge(-150); return 'Mr. Gladjanus komt binnen in een glimmend pak. "Zonder bevel komt u er niet in." De rechercheur druipt af.'; }] ] },
+  { id: 'luigiBoos', ik: '😡', portret: 3, rij: 2, wie: 'Luigi van de overkant', als: () => false, // komt alleen via S.verplicht
+    vraag: 'HÉ! Iemand deelt valse kortingsbonnen van MIJN zaak uit. En al mijn klanten zitten hier! Dat ben jij, hè?!',
+    a: [['Ik weet van niks, Luigi.', () => { if (kans(0.25 + (S.bonnen ? S.bonnen.q : 0) * 0.5)) return '"Hmpf." Hij gelooft je… voorlopig.'; S.sabotage = pak(['rat', 'stinkbom', 'keuring']); return '"Leugenaar!" Hij stormt weg. "Dit zal je berouwen!" (Morgen kun je iets verwachten…)'; }],
+      ['Sorry, Luigi. Hier is € 150 voor de schrik.', () => { ge(-150); S.bonnen = null; return 'Hij telt het geld na en grijnst. "Afgesproken. Maar ik hou je in de gaten."'; }],
+      ['Wegwezen, Luigi! Mijn pizza is gewoon beter.', () => { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); rep(1); return 'De klanten applaudisseren. Luigi stampvoet naar buiten. "Wacht maar!" (Morgen kun je iets verwachten…)'; }] ] },
+  { id: 'luigi', ik: '🕶️', portret: 2, rij: 2, wie: 'Luigi van de overkant', kans: 2, als: () => S.dag > 4,
+    vraag: 'Zo, collega. Mooi zaakje heb je hier. Zou zonde zijn als er iets mee… gebeurde.',
+    a: [['Is dat een dreigement, Luigi?', () => '"Ik? Nooit!" Hij lacht en loopt weg.'],
+      ['Wil je een pizza proeven, Luigi?', () => { ge(-9); S.morgen = { ...(S.morgen || {}), aankomst: 0.9 }; return 'Hij proeft, glimlacht… en morgen staat jouw pizza bij hém op de kaart.'; }],
+      ['Ga toch pizza\'s bakken, Luigi.', () => { if (kans(0.4)) { S.sabotage = pak(['rat', 'stinkbom']); return '"Dat zal je berouwen!" (Morgen kun je iets verwachten…)'; } return 'Hij snuift en vertrekt.'; }] ] },
   { id: 'menuraad', ik: '🧑‍🍳', wie: 'Mario, de kok', als: () => S.menu.length < 4, kans: 2, vraag: 'Baas, mag ik een nieuwe pizza verzinnen voor de kaart?',
     a: [['Ja, verras me!', () => { const nieuw = { naam: vrijeNaam(), prijs: 10, stukjes: [{ i: 'kaas', x: -0.3, y: -0.3, r: 1 }, { i: 'salami', x: 0.4, y: -0.1, r: 2 }, { i: 'champignon', x: -0.2, y: 0.4, r: 3 }, { i: 'tomaat', x: 0.3, y: 0.4, r: 4 }, { i: 'kaas', x: 0.1, y: 0.05, r: 5 }, { i: 'paprika', x: -0.5, y: 0.1, r: 0 }] }; if (S.menu.length < MAXMENU) S.menu.push(nieuw); return `Mario zet de "${nieuw.naam}" op de kaart (salami, champignons, paprika).`; }],
       ['Nee, ik maak de kaart zelf.', () => 'Mario haalt zijn schouders op. Knop 📖 Pizza\'s!'],
@@ -830,10 +846,10 @@ function kiesVraag() {
   return lijst[0];
 }
 // agent en inspecteur komen echt binnen: ze lopen van de deur naar het midden, stellen daar hun vraag en lopen weer weg.
-// pizza/bezoekers.png: rij 0 agent (uit pizza/agent2-gemini.jpg), rij 1 inspecteur; per rij 0-3 lopen van achteren (naar binnen), 4-7 van voren (staan, naar buiten)
+// pizza/bezoekers.png: rij 0 agent (uit pizza/agent2-gemini.jpg), rij 1 inspecteur, rij 2 Luigi (pizza/luigi-gemini.jpg, voren = opzij lopen); per rij 0-3 lopen van achteren (naar binnen), 4-7 van voren (staan, naar buiten)
 const BEZOEK = new Image(); BEZOEK.src = 'pizza/bezoekers.png';
 let bezoeker = null; // { rij, x, y, st: 'in' | 'praat' | 'uit', v, loopT }
-function laatBinnen(v) { bezoeker = { rij: v.portret, x: DEUR.x + 0.5, y: H + 0.4, st: 'in', v, loopT: 0 }; }
+function laatBinnen(v) { bezoeker = { rij: v.rij ?? v.portret, x: DEUR.x + 0.5, y: H + 0.4, st: 'in', v, loopT: 0 }; }
 function stapBezoeker(dt) {
   const b = bezoeker; if (!b) return;
   if (b.st == 'in' && loopNaar(b, [7.5, 8.5], 2.6, dt)) { b.st = 'praat'; b.loopT = 0; toonVraag(b.v); }
@@ -876,10 +892,16 @@ function toonAchterkamer() {
     <div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van de man met de gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
       Hij betaalt tot <b>€ ${o.prijs}</b> (hoe echter, hoe meer).<br><small>Uiterlijk ${esc(datumLang(o.tot))}.</small></div></div>
     ${klaar.length ? `<p><b>Staan te drogen of klaar om op te halen:</b> ${klaar.map((f) => `${esc(SCHILDERIJEN[f.v])} (${Math.round(f.q * 100)}% echt${f.dag >= S.dag ? ', nog nat' : ''})`).join(', ')}</p>` : ''}
-    <div class="rij"><button class="knop rood" id="schilder" ${S.geld < DOEK ? 'disabled' : ''}>🎨 Schilderen (€ ${DOEK} verf en doek)</button><button class="knop" id="achterdicht">Deur dicht</button></div>
+    <div class="rij"><button class="knop rood" id="schilder" ${S.geld < DOEK ? 'disabled' : ''}>🎨 Schilderen (€ ${DOEK} verf en doek)</button></div>
+    <div class="opdracht"><span class="pers" style="background-position:0 0"></span><div><b>De drukpers</b><br>${!S.pers ? `Een oude drukpers in de hoek. Daarmee kun je… kortingsbonnen van Luigi drukken. Dan lopen zijn klanten naar jou.`
+      : S.bonnen && S.bonnen.tot >= S.dag ? `Er zijn bonnen in omloop (${Math.round(S.bonnen.q * 100)}% echt), nog tot ${esc(datumLang(S.bonnen.tot))}. Luigi's klanten komen naar jou!` : `Klaar om te drukken. Valse bonnen "50% korting bij Luigi" (die in jouw zaak gelden) lokken zijn klanten drie dagen naar jou.`}
+      <br><small>Hoe slordiger gedrukt, hoe sneller Luigi het doorheeft.</small></div></div>
+    <div class="rij">${!S.pers ? `<button class="knop rood" id="perskoop" ${S.geld < PERS ? 'disabled' : ''}>🖨️ Drukpers opknappen (€ ${PERS})</button>` : `<button class="knop rood" id="druk" ${S.geld < INKT || (S.bonnen && S.bonnen.tot >= S.dag) ? 'disabled' : ''}>🖨️ Bonnen drukken (€ ${INKT} inkt)</button>`}<button class="knop" id="achterdicht">Deur dicht</button></div>
     <p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>`;
   $('achter').classList.remove('verborgen');
   $('achterdicht').onclick = () => $('achter').classList.add('verborgen');
+  if ($('perskoop')) $('perskoop').onclick = () => { S.geld -= PERS; S.pers = true; kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); };
+  if ($('druk')) $('druk').onclick = () => { S.geld -= INKT; bewaar(); tekenKnoppen(); toonDrukken(); };
   $('schilder').onclick = () => { S.geld -= DOEK; tel.kosten = (tel.kosten || 0) + DOEK; bewaar(); tekenKnoppen(); toonAtelier(o.v); };
 }
 // het minispel: het origineel links, rechts een doek van 6 x 7 vakjes; kies een kleur en tik op de vakjes. 45 seconden.
@@ -923,6 +945,46 @@ function toonAtelier(v) {
   $('ateliereklaar').onclick = klaar;
 }
 const droog = () => (S.vervalsingen || []).find((f) => f.dag < S.dag) || { v: (S.opdracht || { v: 0 }).v, q: 0.5 }; // de vervalsing die opgehaald kan worden
+// ---------- de valsmunterij: valse kortingsbonnen van Luigi (S.pers, S.bonnen = { q, tot }) ----------
+// drukken = minispel: een schuifje loopt heen en weer, druk op de knop als het in het groene vak staat (3 keer); q = gemiddelde.
+// Bonnen in omloop = 3 dagen meer klanten (vandaag.aankomst × 1 + 0,4q); elke dag een kans dat Luigi het doorheeft (vraag 'luigiBoos' via S.verplicht)
+const PERS = 150, INKT = 20;
+function toonDrukken() {
+  let ronde = 0, pos = 0, rich = 1, loopt = true; const score = [];
+  $('achterkaart').innerHTML = `<h1>🖨️ Bonnen drukken</h1><p class="buurt">Druk op de hendel als het schuifje precies in het groen staat. Drie vellen.</p>
+    <div style="display:flex;justify-content:center;gap:12px;align-items:center"><span class="pers" style="background-position:0 0"></span><span class="pers" id="bonplaatje" style="background-position:-100px 0"></span></div>
+    <div id="drukbalk"><div id="drukgroen"></div><div id="drukschuif"></div></div><p style="text-align:center">Vel <b id="drukvel">1</b> van 3</p>
+    <div class="rij"><button class="knop rood" id="hendel">⬇️ Drukken!</button></div>`;
+  const groen = 0.38 + Math.random() * 0.2; $('drukgroen').style.left = (groen * 100 - 6) + '%';
+  const tik = () => { if (!loopt || !$('drukschuif')) return; pos += rich * 0.022; if (pos > 1 || pos < 0) { rich = -rich; pos = Math.max(0, Math.min(1, pos)); } $('drukschuif').style.left = (pos * 100) + '%'; requestAnimationFrame(tik); };
+  requestAnimationFrame(tik);
+  $('hendel').onclick = () => {
+    const q = Math.max(0, 1 - Math.abs(pos - groen) / 0.3); score.push(q); if (ac) klak(ac.currentTime, 0.15, 400, 0.3);
+    $('bonplaatje').style.backgroundPosition = q > 0.6 ? '-100px 0' : '-200px 0'; ronde++;
+    if (ronde < 3) { $('drukvel').textContent = ronde + 1; return; }
+    loopt = false; const gem = score.reduce((a, v) => a + v, 0) / 3;
+    S.bonnen = { q: gem, tot: S.dag + 3 }; bewaar();
+    $('achterkaart').innerHTML = `<h1>${gem > 0.75 ? '🤩 Niet van echt te onderscheiden!' : gem > 0.45 ? '🙂 Gaat wel' : '😬 Vol inktvlekken…'}</h1>
+      <p>Je bonnen zijn voor <b>${Math.round(gem * 100)}%</b> echt. Een student deelt ze uit in de stad. Luigi's klanten komen drie dagen naar jou!</p>
+      <div class="rij"><button class="knop" id="achterterug">Terug</button></div>`;
+    $('achterterug').onclick = toonAchterkamer;
+  };
+}
+// Luigi's sabotage (S.sabotage, de dag erna): rat in de zaak (tik erop om hem te vangen), stinkbom (minder klanten), keuringsdienst getipt
+let rat = null;
+function sabotageVandaag() {
+  const sb = S.sabotage; S.sabotage = null; if (!sb) return;
+  if (sb == 'rat') { rat = { x: 7.5, y: H - 1, dx: 1, dy: -1 }; vandaag.gezellig -= 1; setTimeout(() => meld('🐀 Er loopt een rat door de zaak! Luigi?! Tik erop om hem te vangen.'), 1200); }
+  if (sb == 'stinkbom') { vandaag.aankomst *= 0.6; vandaag.gezellig -= 1; setTimeout(() => meld('🤢 Iemand heeft een stinkbom door je brievenbus gegooid. Luigi!'), 1200); }
+  if (sb == 'keuring') { S.vuil = (S.vuil || 0) + 3; S.verplicht = [...(S.verplicht || []), 'keuring']; setTimeout(() => meld('📋 Luigi heeft de keuringsdienst getipt…'), 1200); }
+}
+function stapRat(dt) {
+  if (!rat) return;
+  if (Math.random() < dt * 1.5) { const a = Math.random() * 7; rat.dx = Math.cos(a); rat.dy = Math.sin(a); }
+  rat.x = Math.max(0.5, Math.min(W - 0.5, rat.x + rat.dx * dt * 3)); rat.y = Math.max(KEUKEN + 0.5, Math.min(H - 0.5, rat.y + rat.dy * dt * 3));
+  if (Math.random() < dt * 0.4) { const m = mensen.find((m) => (m.st == 'eet' || m.st == 'wacht') && Math.hypot(m.x - rat.x, m.y - rat.y) < 2.5); if (m) { zeg(m, R(['Iiiek! Een rat!', 'Een RAT!', 'Hier eet ik nooit meer!'])); rep(-0.5); } }
+}
+function tekenRat() { if (!rat) return; g.save(); g.translate(rat.x * T, rat.y * T); if (rat.dx > 0) g.scale(-1, 1); g.font = '52px system-ui'; g.textAlign = 'center'; g.fillText('🐀', 0, 16); g.restore(); }
 function rechercheurVindt() { // betrapt: vervalsingen in beslag, boete, morgen dicht, populariteit omlaag
   const n = (S.vervalsingen || []).length; S.vervalsingen = []; ge(-300); S.dicht = 'De kunstrecherche heeft je zaak een dag gesloten.'; rep(-10);
   return `Ze vindt ${n} ${n == 1 ? 'vervalsing' : 'vervalsingen'}! In beslag genomen, € 300 boete, en morgen blijft de zaak dicht.`;
@@ -1050,6 +1112,7 @@ function stap(dt) {
     if (volgendeKlant <= 0) { nieuweGroep(); volgendeKlant = Math.max(2.2, 7.5 - S.rep * 0.05) * (0.6 + Math.random() * 0.8) / vandaag.aankomst; }
     const stel = (v) => v.portret != null ? laatBinnen(v) : toonVraag(v); // met een figuur: eerst binnenlopen
     if (bezoeker) {} // wacht tot de vorige bezoeker weg is
+    else if (S.verplicht && S.verplicht.length && klok > DAG * 0.25) { const id = S.verplicht.shift(); const v = VRAGEN.find((v) => v.id == id); if (v) stel(v); }
     else if (vraagTijden.includes(-1) && klok > DAG * 0.3) { vraagTijden = vraagTijden.filter((t) => t != -1); stel(INSPECTEUR); }
     else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { vraagTijden.shift(); stel(kiesVraag()); }
     if (klok >= DAG) { modus = 'sluiten'; meld('De deur gaat dicht. Nog even de laatste klanten helpen…'); tekenKnoppen(); }
@@ -1093,7 +1156,7 @@ function stap(dt) {
   }
   // ovens bakken wat er besteld is
   for (const o of ovens) stapOven(o, dt);
-  stapBezoeker(dt);
+  stapBezoeker(dt); stapRat(dt);
   if (vandaag.ovenUit > 0) vandaag.ovenUit -= dt;
   S.vuil = (S.vuil || 0) + mensen.filter((m) => m.st == 'eet').length * dt * 0.0006; // hoe meer er gegeten wordt, hoe viezer
   // obers brengen de pizza's rond
@@ -1361,7 +1424,7 @@ function teken(nu) {
   g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = 1; for (let i = 0; i < 6; i++) { g.beginPath(); g.moveTo(-RAND, -RAND + 3 + i * 2.5); g.lineTo(WW + RAND, -RAND + 3 + i * 2.5); g.stroke(); }
   g.fillStyle = '#4a2810'; g.fillRect(-4, -4, WW + 8, WH + 8);
   g.drawImage(achter, 0, 0);
-  tekenVlekken(nu);
+  tekenVlekken(nu); tekenRat();
   // bakstenen muren links en rechts van de zaal (in de binnenrand van het kader)
   for (const mx of [-13, WW]) {
     g.fillStyle = '#9c3522'; g.fillRect(mx, KEUKEN * T - 22, 13, WH - KEUKEN * T + 22);
@@ -1622,6 +1685,7 @@ doek.addEventListener('pointerdown', (e) => {
   wekGeluid();
   if (modus != 'inrichten') { // tijdens het werk: tik op een vlek om hem op te ruimen
     const v = naarVak(e), vl = vlekBij(v.fx, v.fy);
+    if (rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) { muntjes.push({ x: rat.x, y: rat.y, t: 1.2, tekst: '🐀 Gevangen!' }); rat = null; vandaag.gezellig += 1; kassa(); return; }
     if (vl) { vlekken.splice(vlekken.indexOf(vl), 1); tel.opgeruimd = (tel.opgeruimd || 0) + 1; ding(1500, 0.05, 'sine', 0.05); setTimeout(() => ding(1900, 0.06, 'sine', 0.05), 50);
       muntjes.push({ x: vl.x, y: vl.y, t: 1, tekst: vl.soort == 'poep' ? '🧻 Bah!' : '🧽 Schoon!' }); }
     return;
@@ -1927,7 +1991,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>

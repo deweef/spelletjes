@@ -60,6 +60,12 @@ voor €40 (`DOEK`) = minispel `toonAtelier`: het origineel naast een doek van 6
 45 s; kwaliteit q = deel goede vakjes. Vervalsing droogt een nacht (`S.vervalsingen` = [{ v, q, dag }], `droog`); vraag 'koper' haalt hem op
 (prijs × (0,25 + 0,75q), niet besteld = minder; C = dubbel vragen, gok); vraag 'rechercheur' (vaker als er vervalsingen liggen): laten kijken =
 betrapt (`rechercheurVindt`: in beslag, €300 boete, morgen dicht, populariteit −10), pizza aanbieden = gok, Mr. Gladjanus (€150) = veilig.
+Valsmunterij (in de achterkamer): drukpers opknappen (`PERS` €150, `S.pers`), bonnen drukken (`INKT` €20, `toonDrukken`: schuifje 3x in
+het groen stoppen, q = gemiddelde) → `S.bonnen` = { q, tot: +3 dagen }: meer klanten (aankomst × 1 + 0,4q) en elke dag kans dat Luigi het
+merkt → vraag 'luigiBoos' via `S.verplicht` (lijst vraag-id's die vandaag zeker komen, na 25% van de dag). Luigi komt binnen als bezoeker
+(`rij: 2` in `pizza/bezoekers.png`, portret 2/3 in `pizza/portretten.png` = Luigi en boze Luigi, uit `pizza/luigi-gemini.jpg`; ook de
+gewone vraag 'luigi'). Sabotage de dag erna (`S.sabotage`, `sabotageVandaag`): rat (`rat`, loopt rond, klanten gillen, tik om te vangen),
+stinkbom (minder klanten), keuringsdienst getipt. Plaatjes pers/bonnen: `pizza/drukpers.png` (4 vakjes van 200, uit `pizza/drukpers-gemini.jpg`).
 Vlekken en scherven (`vlekken`, `VLEK`: saus, scherven, kruimels, cola, poep; `nieuweVlek`, `tekenVlekken` op de vloer onder alles):
 tijdens het eten valt er soms wat; tik erop tijdens het werk om op te ruimen (`vlekBij`); in de buurt van een tafel kost elke vlek een
 sterretje gezellig (max. 2); over scherven lopen = "Au!" en populariteit omlaag; wat 's avonds blijft liggen maakt de zaak viezer
