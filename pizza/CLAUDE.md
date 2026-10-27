@@ -174,3 +174,5 @@ Pizza's (27 okt): bodem `pizza/bodem.png` (uit `pizza/bodem-gemini.jpg`, met ges
 `pizza/beleg.png` (20 vakjes van 128, volgorde van `ING`, uit `pizza/beleg-gemini.jpg`; ook voor de knopjes `.ing`). In de zaak staat de echte
 pizza op het bord en op de uitgifte (`kleinePizza` = 96 px plaatje per pizza, `pizzaFoto`). Achterkamer: één schilderij per dag; na het
 schilderen of drukken ga je terug naar de pizzeria.
+Achterkamer één keer per dag (`S.achterDag`): het sleuteltje linksboven werkt daarna niet meer (half doorzichtig, melding "morgen weer");
+als Gerrit of Barrie je meeneemt telt dat ook als het bezoek van die dag. Onderin de achterkamer: de laptop (crypto) en Barrie's klusjes.

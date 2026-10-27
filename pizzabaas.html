@@ -1002,7 +1002,7 @@ function stapBezoeker(dt) {
   else if (b.st == 'luik' && loopNaar(b, [LUIK_X, KEUKEN + 0.7], 2.4, dt)) b.st = 'keuken';
   else if (b.st == 'keuken' && beweeg(b, [LUIK_X, 0.9], 1.8, dt)) { b.st = 'deur'; b.t = 0; ding(220, 0.15, 'square', 0.04); } // kriep
   else if (b.st == 'deur') { b.t += dt; deurOpen = Math.min(1, b.t * 2); if (b.t > 0.6) beweeg(b, [LUIK_X, -0.3], 1.5, dt);
-    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; achterPauze = true; meld((b.v.id == 'barrie' ? 'Barrie' : 'Gerrit') + ' wacht in de achterkamer…', 3000); toonAchterkamer(); } }
+    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; achterPauze = true; S.achterDag = S.dag; tekenKnoppen(); meld((b.v.id == 'barrie' ? 'Barrie' : 'Gerrit') + ' wacht in de achterkamer…', 3000); toonAchterkamer(); } }
   luikOpen = b && b.y < KEUKEN + 1 && b.y > KEUKEN - 1.2 && Math.abs(b.x - LUIK_X) < 0.6 ? 1 : 0; // het luik klapt open als hij erdoor loopt
 }
 // het klapluik in de toonbank (midden, tussen de twee uitgiftes) en het geheime deurtje achter in de keuken (naar de achterkamer).
@@ -2589,6 +2589,7 @@ function bewaarPizza() {
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
   $('sleutel').classList.toggle('verborgen', !S.achterkamer || S.zaak > 0); // de achterkamer zit achter de eerste zaak
+  $('sleutel').style.opacity = S.achterDag == S.dag ? 0.35 : 1; // vandaag al geweest
   $('stadknop').disabled = modus != 'inrichten' && !S.manager; // zonder manager alleen 's ochtends de deur uit
   const k = $('raster'), open = modus != 'inrichten';
   let h = '';
@@ -2667,7 +2668,9 @@ function toonKoning() {
 function herstart() { // alles opnieuw, behalve je hoogste pizzatoren
   schrijf(SLEUTEL, { ...NIEUW(), torenBest: S.torenBest || 0 }); location.reload();
 }
-$('sleutel').onclick = () => { wekGeluid(); sluitMenu(); toonAchterkamer(); };
+$('sleutel').onclick = () => { wekGeluid(); sluitMenu(); // één keer per dag naar de achterkamer (S.achterDag), anders valt het op
+  if (S.achterDag == S.dag) { meld('Je bent vandaag al in de achterkamer geweest. Te vaak naar binnen glippen valt op… Morgen weer!', 3500); return; }
+  S.achterDag = S.dag; bewaar(); tekenKnoppen(); toonAchterkamer(); };
 $('stadknop').onclick = () => { wekGeluid(); sluitMenu(); if (modus != 'inrichten' && !S.manager) { meld('Je kunt de zaak niet alleen laten! Neem een manager aan (Personeel).'); return; } toonStad(); };
 const isAanraak = matchMedia('(pointer: coarse)').matches;
 
