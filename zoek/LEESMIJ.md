@@ -31,6 +31,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Herfststorm (level 22, `zoek/herfst.jpg`): https://share.gemini.google/oA5r20yQiPnK
 - Boerenbruiloft (B4, `zoek/bruiloft.jpg`, nog niet in de repo): https://share.gemini.google/JbF3SmiAzZef
 - Luilekkerland (Bruegel-lijn na B4, `zoek/luilekkerland.jpg`, nog niet in de repo): https://share.gemini.google/f8feEokDyCBP
+- Plaats delict (level 23, `zoek/delict.jpg`, nog niet in de repo): https://share.gemini.google/uEPCHXEcdLg1
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
