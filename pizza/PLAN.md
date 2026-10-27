@@ -169,6 +169,16 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   antwoord door het luik en de keuken naar een deurtje achterin (nieuw), daarna naar het atelier. Later: de kok loopt de zaak in en vraagt
   aan een klant of het smaakt. **Gedaan 27 okt** (luik, deurtje, Gerrit loopt erheen, achterkamer gaat open). De kok door het luik: **gedaan 27 okt** (vraagt of het smaakt; bij een leuke dame blijft hij kletsen en brandt de pizza aan). Koks en obers lopen rond als ze niks te doen hebben.
 
+## Ideeën na de tweede pizzeria (Marcel + Claude, 27 okt) — nog niet afgesproken welke eerst
+- Populariteit is al per zaak; eventueel op de stadskaart tonen (⭐ per zaak).
+- Bezorgdienst: scooter bij de deur kopen, een bezorger (eigen figuur), telefonische bestellingen tijdens de dag, de scooter rijdt weg en komt
+  terug; te laat = koude pizza, minder geld. Gebeurtenissen: lekke band, regen, verdwaald, bezorger eet zelf een punt. Extra omzet los van de tafels.
+- Luigi een hak zetten: nieuwe dubieuze figuur (voorstel Barrie de Bink), komt pas na sabotage van Luigi; goed antwoord = hij in de achterkamer.
+  Klusjesbord: stinkbom, ratten, nep-recensie, keuringsdienst tippen, (bezorgscooter van Luigi lek); kans op betrapt worden; Luigi neemt wraak
+  (ruzie-meter, vrede sluiten met grappa). Effect: Luigi's klanten komen naar jou, Luigi's pand op de kaart stinkt/is dicht.
+- Crypto (nog niet gebouwd): Bitkaas, Ethertje, MozzaMunt, DogePizza; laptop in de achterkamer, koers per dag +40% / −60%, nieuws
+  ("DogePizza-tweet +200%", "oprichter MozzaMunt met de kas verdwenen −95%"), klanten die met crypto of yuan willen betalen.
+
 ## Later: manager en de stad (Marcel, 26 okt) — manager pas samen met de stad bouwen (anders heeft hij geen nut)
 - Stadskaart: `pizza/stad-gemini.jpg` (16:9, plein met fontein en markt, bank, politiebureau, galerie, studentenhuis, bouwplaats,
   3x TE HUUR, gracht met bruggetjes, villawijk). Gebruiken als achtergrond met klikbare plekken eroverheen; is groot genoeg.
