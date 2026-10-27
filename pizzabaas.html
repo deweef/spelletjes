@@ -2780,7 +2780,7 @@ const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
 // als dikke houten balk aan de kant van de tafel af. De schaduw valt altijd naar rechtsonder.
 const STOELSOORT = { // s.stijl (oud: s.hout = kussen); nieuwe stoelen krijgen de laatst gekozen soort (S.stoelStijl)
   streep: { n: 'Blauw gestreept', kl: '#3f6fb5' }, groen: { n: 'Groen gestreept', kl: '#2e8b57' }, kussen: { n: 'Rood kussen', kl: '#b52a22' },
-  leer: { n: 'Zwart leer', kl: '#222' }, riet: { n: 'Rieten stoel', kl: '#d9b26a' }, kruk: { n: 'Krukje', kl: '#8a5428' } };
+  leer: { n: 'Zwart leer', kl: '#222' }, riet: { n: 'Rieten stoel', kl: '#d9b26a' }, hout: { n: 'Houten stoel (bij de houten tafel)', kl: '#6b3d1e' }, kruk: { n: 'Krukje', kl: '#8a5428' } };
 const stijlVan = (s) => STOELSOORT[s.stijl] ? s.stijl : s.hout ? 'kussen' : 'streep';
 function rechteStoel({ sx, sy, kant, stijl }) {
   const x = sx * T, y = sy * T, r = 21;
@@ -2794,10 +2794,11 @@ function rechteStoel({ sx, sy, kant, stijl }) {
   g.fillStyle = 'rgba(45,18,6,.4)'; g.fillRect(x - r + 7, y - r + 6, 2 * r, 2 * r);
   g.save(); g.translate(x, y); g.rotate([0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
   g.fillStyle = '#4a2a12'; g.fillRect(-r, -r, 2 * r, 2 * r); // frame
-  const lijst = stijl == 'riet' ? '#c99a52' : stijl == 'leer' ? '#2a1a10' : hout ? '#8a5428' : '#9a6a3c';
+  const lijst = stijl == 'riet' ? '#c99a52' : stijl == 'leer' ? '#2a1a10' : stijl == 'hout' ? '#5a3216' : hout ? '#8a5428' : '#9a6a3c';
   g.fillStyle = lijst; g.fillRect(-r + 2, -r + 2, 2 * r - 4, 2 * r - 4);
   if (hout) { g.fillStyle = '#b52a22'; g.fillRect(-13, -8, 26, 22); g.fillStyle = '#d94a3a'; g.fillRect(-11, -6, 15, 8); }
   else if (stijl == 'leer') { g.fillStyle = '#1b1b1b'; g.fillRect(-14, -8, 28, 23); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(-12, -6, 10, 6); g.fillStyle = '#555'; for (const [a, b] of [[-7, 0], [7, 0], [0, 8]]) g.fillRect(a - 1, b - 1, 2, 2); }
+  else if (stijl == 'hout') { g.fillStyle = '#8a5428'; g.fillRect(-15, -9, 30, 25); g.fillStyle = '#6b3d1e'; for (let j = -9; j < 16; j += 6) g.fillRect(-15, j, 30, 1.5); g.fillStyle = 'rgba(255,220,170,.25)'; g.fillRect(-13, -7, 10, 2); } // kale houten zitting met planken
   else if (stijl == 'riet') { g.fillStyle = '#e8c88a'; g.fillRect(-14, -8, 28, 23); g.fillStyle = 'rgba(120,80,30,.45)'; for (let i = -14; i < 14; i += 4) { g.fillRect(i, -8, 1, 23); } for (let j = -8; j < 15; j += 4) g.fillRect(-14, j, 28, 1); }
   else { g.fillStyle = '#eef3f8'; g.fillRect(-14, -8, 28, 23); g.fillStyle = STOELSOORT[stijl].kl; for (let i = -12; i < 14; i += 5) g.fillRect(i, -8, 2.5, 23); }
   g.fillStyle = '#3a200c'; g.fillRect(-r - 1, -r - 2, 2 * r + 2, 10); // leuning
@@ -2858,6 +2859,7 @@ function tekenSpul(s, nu, zitten) {
   }
   const cx = midden(s)[0] * T, cy = midden(s)[1] * T;
   for (const m of zitten) if (m.tafel == s && alsFiguur(m) && voorTafel(m)) tekenKlantFig(m, nu); // klanten boven en naast de tafel: hun benen verdwijnen onder het blad
+  const puntKleed = s.punt && kleedVan(s) && !KLEED[kleedVan(s)].rond && kleedVan(s); if (puntKleed) s.kleed = null; // kleed op de punt: eerst de kale tafel, daarna het kleed schuin erop
   if (s.hout && !kleedVan(s) && HOUT.complete && HOUT.naturalWidth) { // houten tafel (pizza/houten-tafels.png): vierkant, lang liggend, lang staand
     const [bx, bw, bh] = { tafel: [0, 120, 137], tafeltje: [0, 120, 137], langL: [120, 292, 137], lang: [412, 120, 241] }[s.t];
     const w = SPUL[s.t].w * T + (s.t == 'tafeltje' ? 8 : 4), h = w * bh / bw;
@@ -2889,6 +2891,8 @@ function tekenSpul(s, nu, zitten) {
     g.restore();
   }
   }
+  if (puntKleed) { s.kleed = puntKleed; if (KLEDEN.complete && KLEDEN.naturalWidth) { const z = Math.min(SPUL[s.t].w, SPUL[s.t].h) * T * 0.78;
+      g.save(); g.translate(cx, cy - 4); g.rotate(Math.PI / 4); g.globalAlpha *= 0.97; g.drawImage(KLEDEN, KLEED[puntKleed].i * 192 + 18, 18, 156, 156, -z / 2, -z / 2, z, z); g.restore(); } }
   // borden: leeg (wachten) of met pizza (eten), op de tafel voor de stoel
   for (const m of zitten) if (m.tafel == s) {
     const p = stoelPlekken(s)[m.stoel]; if (!p) continue; const px = p.sx + RICHTING[p.kant][0] * 1.15, py = p.sy + RICHTING[p.kant][1] * 1.15;
@@ -2998,7 +3002,7 @@ function toonMenu(s, cx, cy) {
     if (mag.length) h += `<div class="kleden">${Object.entries(KLEED).filter(([k]) => mag.includes(k)).map(([k, d]) => `<button data-a="kleed:${k}" title="${esc(d.n)} (€${d.prijs}${d.chic ? ', chic: extra gezellig' : ''})" class="${kl == k ? 'aan' : ''}" ${kl != k && S.geld < d.prijs ? 'disabled' : ''} style="background:${d.kl}">${d.chic ? '✨' : ''}</button>`).join('')}</div>`;
     if (mag.length) h += `<small style="display:block;padding:2px 6px 4px;opacity:.7">${kl ? esc(KLEED[kl].n) + (KLEED[kl].chic ? ' ✨' : '') : 'Kies een kleedje: €10' + (mag.length > 2 ? ', chic ✨ €20' : '')}</small>`;
     if (s.t == 'lang' || s.t == 'langL') h += `<button data-a="draai">↻ Draaien</button>`;
-    if (kl) h += `<button data-a="kleed-">Kleedje eraf</button>`;
+    if (kl) h += `${KLEED[kl].rond ? '' : `<button data-a="punt">${s.punt ? '▢ Kleed over de hele tafel' : '◆ Kleed op de punt (half over de tafel)'}</button>`}<button data-a="kleed-">Kleedje eraf</button>`;
     h += s.kaars ? `<button data-a="kaars-">Kaarsje weg</button>` : `<button data-a="kaars" ${S.geld < EXTRA.kaars.prijs ? 'disabled' : ''}>🕯️ Kaarsje erop (€${EXTRA.kaars.prijs})</button>`;
   }
   if (s.t == 'plant') h += `<button data-a="plant">🔄 Andere plant</button>`;
@@ -3019,6 +3023,7 @@ function toonMenu(s, cx, cy) {
     if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
     if (a == 'schilderij') { s.v = ((s.v || 0) + 1) % 6; plof(); }
     if (a == 'bij') { const l = stoelTafels(s.x, s.y), nu = kantVoor(s.x, s.y, s.bij).tafel, i = l.findIndex((k) => k.tafel == nu), v = l[(i + 1) % l.length].tafel; s.bij = v.x + ',' + v.y; plof(); }
+    if (a == 'punt') { s.punt = s.punt ? 0 : 1; plof(); }
     if (a.startsWith('stijl:')) { s.stijl = S.stoelStijl = a.slice(6); delete s.hout; plof(); }
     if (a == 'hout') { s.hout = s.hout ? 0 : 1; if (s.t == 'stoel') S.houtStoel = s.hout; else S.houtTafel = s.hout; plof(); } // nieuwe stoelen/tafels krijgen dezelfde stijl
     if (a == 'draai') { const n = s.t == 'lang' ? 'langL' : 'lang', nx = s.x + (SPUL[s.t].w - SPUL[n].w) / 2, ny = s.y + (SPUL[s.t].h - SPUL[n].h) / 2; // om het midden draaien

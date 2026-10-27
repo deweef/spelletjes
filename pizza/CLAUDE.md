@@ -217,3 +217,5 @@ Pizza-acrobatiek op de markt (`toonAcro`, `ACRO`, scherm `#acrob`, één keer pe
 vanghoogte is (binnen 14 px = perfect, combo); per vangst geld (meer naarmate je langer volhoudt), elke 5 vangsten een kunstje +€5; 3 levens.
 ≥ 10 keer = populariteit +1 en morgen wat meer klanten. Record `S.acroBest`, scorebord `acrobatiek`. Keuzelijstjes hebben een tip onderaan
 (`toonKeuze(…, voet)`): kleedje/kaarsje = tik op een tafel, stoel veranderen = tik op die stoel.
+Oud-pizzeria: stoelsoort `hout` (kale houten stoel met planken, bij de houten tafel) en kleed op de punt (`s.punt`, knop in het tafelmenu, niet
+voor ronde kleedjes `KLEED[..].rond`): eerst de kale tafel (hout of marmer), dan het kleed 45° gedraaid en kleiner erop.
