@@ -565,7 +565,7 @@ function stapOven(o, dt) {
     const m = k.klant; k.t += dt;
     if (!m || !mensen.includes(m)) { k.st = 'terug'; k.fase = 'zaal'; return; }
     if (k.t > 1.2 && !k.antw) { k.antw = true; const o2 = m.oordeel; zeg(m, k.dame ? R(ZEG.dame) : R(o2 >= 4 ? ZEG.lekker : o2 >= 2 ? ZEG.gaat : ZEG.vies));
-      if (!k.dame) S.rep = Math.max(0, Math.min(100, S.rep + (o2 >= 4 ? 0.6 : o2 < 2 ? -0.3 : 0.2))); }
+      if (!k.dame) rep(o2 >= 4 ? 0.6 : o2 < 2 ? -0.3 : 0.2); }
     if (k.dame && k.t > 2.6 && Math.floor(k.t / 1.6) != Math.floor((k.t - dt) / 1.6)) { muntjes.push({ x: k.x, y: k.y - 1.2, t: 1.2, tekst: '❤️' }); if (Math.random() < 0.4) zeg(k, R(ZEG.charme)); }
     if (k.schrik || k.t > k.duur) { if (k.schrik) { zeg(k, 'Mamma mia! De oven!'); k.haast = true; } else if (k.dame) { m.chef = true; zeg(m, 'Ciao, bello! 😘'); }
       k.st = 'terug'; k.fase = 'zaal'; k.schrik = false; }
@@ -594,7 +594,7 @@ const datum = (d = S.dag) => new Date(2026, 10, 1 + d);
 const weekdag = (d = S.dag) => (datum(d).getDay() + 6) % 7; // 0 = maandag
 const datumKort = (d = S.dag) => (DAGNAAM[weekdag(d)].slice(0, 2) + ' ' + datum(d).getDate() + ' ' + MAAND[datum(d).getMonth()].slice(0, 3)).toUpperCase();
 const datumLang = (d = S.dag) => DAGNAAM[weekdag(d)][0].toUpperCase() + DAGNAAM[weekdag(d)].slice(1) + ' ' + datum(d).getDate() + ' ' + MAAND[datum(d).getMonth()];
-const laatsteVanDeMaand = (d = S.dag) => datum(d + 1).getDate() == 1;
+const laatsteVanDeMaand = (d = S.dag) => datum(d + 1).getDate() == 1 || (weekdag(d + 1) == 0 && datum(d + 2).getDate() == 1); // laatste wérkdag van de maand (maandag is de zaak dicht)
 const DRUKTE = [0.7, 0.85, 0.9, 1, 1.3, 1.5, 1.1]; // maandag rustig, vrijdag en zaterdag druk, zondag gezinnen
 function feestdag(d = S.dag) { // { n, aankomst, tekst, kaars? }
   const dt = datum(d), k = (dt.getMonth() + 1) + '-' + dt.getDate();
@@ -640,6 +640,10 @@ function openDeuren() {
   bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
   if (S.bonnen && S.bonnen.tot >= S.dag) { vandaag.aankomst *= 1 + 0.4 * S.bonnen.q; if (kans(0.12 + (1 - S.bonnen.q) * 0.4)) S.verplicht = [...(S.verplicht || []), 'luigiBoos']; } // valse bonnen
   sabotageVandaag(); if (S.studentenMorgen) { vandaag.studenten = true; S.studentenMorgen = false; } // flyers bij het studentenhuis
+  // vaste bezoeken: Gerrit 1-2 dagen na het ophangen van een schilderij (en daarna om de 4 dagen tot je het goede antwoord geeft), Luigi rond dag 5
+  if (!S.zaak && !S.achterkamer && S.spullen.some((t) => t.t == 'schilderij')) { if (!S.gerritNa) S.gerritNa = S.dag + 1 + (Math.random() < 0.5 ? 1 : 0);
+    if (S.dag >= S.gerritNa) { S.verplicht = [...(S.verplicht || []), 'gleufhoed']; S.gerritNa = S.dag + 4; } }
+  if (S.dag >= 5 && !S.luigiKwam) { S.luigiKwam = S.dag; S.verplicht = [...(S.verplicht || []), 'luigi']; }
   vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ if (torenOpen()) vandaag.aankomst *= 1.1; /* toeristen voor de toren */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (laatsteVanDeMaand() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
@@ -657,6 +661,7 @@ function eindeDag() {
     if (S.geld < 0) { manWeg = `${M.n} is ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
     else if (S.manager.wie == 'bruno' && S.manager.dagen % 5 == 4) S.verplicht = [...(S.verplicht || []), 'opslag']; } // Bruno wil opslag
   maakPersoneel(); // omzet en fooi zijn al verrekend; de inkoop (tel.ing) nu pas
+  if (!S.zaak && S.geld > 1000 && !S.sabotage && !(S.luigiRust > S.dag) && !(S.verplicht || []).includes('luigiJaloers') && kans(Math.min(0.35, (S.geld - 1000) / 4000 + 0.08))) S.verplicht = [...(S.verplicht || []), 'luigiJaloers']; // het gaat te goed: Luigi wordt jaloers
   if (S.ruzie > 0) { if (!S.sabotage && !(S.luigiRust > S.dag) && kans(S.ruzie / 300)) S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.ruzie = Math.max(0, S.ruzie - 5); } // ruzie met Luigi: hij slaat terug, en het zakt langzaam
   if (S.crypto) cryptoAvond(); // nieuwe koersen
   S.omzetGisteren = tel.omzet; const lening = [...aflossen(), ...belastingAvond(totaal)];
@@ -665,9 +670,9 @@ function eindeDag() {
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
   S.rood = S.geld + (S.bankSaldo || 0) < 0 ? (S.rood || 0) + 1 : 0; S.besteDag = Math.max(S.besteDag || 0, kl(tel.blij)); // 3 avonden achter elkaar rood = failliet
   const koningNu = !S.koning && S.zaken.length >= 4 && torenOpen() && S.geld + (S.bankSaldo || 0) >= 10000; if (koningNu) S.koning = S.dag; // het grote doel
-  const oud = S.dag; S.dag++; bewaar();
+  const oud = S.dag; S.dag++; const maandag = weekdag() == 0; if (maandag) S.dag++; bewaar(); // maandag dicht: zes werkdagen per week
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
-    ${S.rood ? `<p style="color:#b33a1e"><b>⚠️ Je staat rood: − € ${Math.round(-S.geld)}. ${S.rood >= 3 ? 'Drie dagen achter elkaar…' : `Sta je nog ${3 - S.rood} avond${3 - S.rood > 1 ? 'en' : ''} rood, dan ben je failliet! Verkoop iets, leen geld of verdien het terug.`}</b></p>` : ''}
+    ${maandag ? '<p class="buurt">📅 Morgen is het maandag: dan is de zaak dicht. Op naar dinsdag!</p>' : ''}${S.rood ? `<p style="color:#b33a1e"><b>⚠️ Je staat rood: − € ${Math.round(-S.geld)}. ${S.rood >= 3 ? 'Drie dagen achter elkaar…' : `Sta je nog ${3 - S.rood} avond${3 - S.rood > 1 ? 'en' : ''} rood, dan ben je failliet! Verkoop iets, leen geld of verdien het terug.`}</b></p>` : ''}
     ${tel.dicht ? `<p><b>🔒 Vandaag was de zaak dicht.</b> ${esc(tel.dicht)}</p>` : ''}${manWeg ? `<p><b>👋 ${esc(manWeg)}</b></p>` : ''}${S.crypto && S.crypto.nieuws.length && cryptoWaarde() > 0 ? `<p>📰 <b>Cryptonieuws:</b> ${S.crypto.nieuws.map(esc).join(' ')} Je crypto is nu ${euro(cryptoWaarde())} waard.</p>` : ''}
     <table>
       <tr><td>😋 Tevreden klanten</td><td>${kl(tel.blij)}</td></tr>
@@ -782,7 +787,9 @@ let vandaag = VANDAAG(), vraagTijden = [], pauze = false;
 const pak = (l) => l[Math.floor(Math.random() * l.length)];
 const kans = (p) => Math.random() < p;
 const ge = (n) => { S.geld += n; if (n < 0) tel.kosten += -n; else tel.omzet += n; }; // geld erbij of eraf, telt mee in het dagoverzicht
-const rep = (n) => { S.rep = Math.max(0, Math.min(100, S.rep + n)); };
+// populariteit: omhoog gaat steeds moeilijker naarmate je hoger zit (boven 60 flink), omlaag gaat gewoon
+const repRem = (n) => n > 0 ? n * Math.max(0.05, Math.min(1, 1.6 - S.rep / 60) ** 2) : n;
+const rep = (n) => { S.rep = Math.max(0, Math.min(100, S.rep + repRem(n))); };
 const opDeKaart = () => [...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
 const besteOordeel = () => Math.max(...S.menu.map((p) => Object.keys(SOORT).reduce((a, k) => a + oordeel(p, k) * SOORT[k].kans, 0)));
 function oberWeg() { if (obers.length > 1) { const o = obers.pop(); if (o.taak) ritten.unshift(o.taak); return true; } return false; }
@@ -1235,6 +1242,32 @@ const VRAGEN = [
         S.wijn = null; ge(-150); rep(-5); return '"Tonen van… kraanwater? En kartonnen pak!" Hij roept de keuringsdienst. Al je flessen in beslag en € 150 boete.'; }],
       ['Helaas, net de laatste fles verkocht.', () => '"Dommage." Hij kijkt je lang aan en vertrekt.'],
       ['Een glaasje van het huis, gratis?', () => { if (kans(0.5)) { rep(1); return 'Hij proeft de huiswijn, trekt een gezicht, maar vergeet de Château te vragen.'; } if (S.wijn) S.wijn.n = Math.max(0, S.wijn.n - 3); rep(-2); return 'Hij proeft toch stiekem van een "Château". Hij zegt niks, maar kijkt heel streng. Je gooit voor de zekerheid drie flessen weg.'; }] ] },
+  // ---- tegenvallers: vaker naarmate er meer geld in de kassa zit ----
+  { id: 'luigiJaloers', ik: '🕶️', portret: 3, rij: 2, wie: 'Luigi van de overkant', als: () => false, // via S.verplicht (eindeDag: veel geld)
+    vraag: 'Luigi leunt op je toonbank. "Ciao, vicino… Ik hoor jouw kassa de hele dag rinkelen. Dat is MIJN geld. Mijn klanten. Dat kan zo niet doorgaan."',
+    a: [['Hier, € 100. Dan zijn we vrienden.', () => { ge(-100); S.luigiRust = S.dag + 6; return 'Luigi telt het na, knikt en vertrekt. "Voorlopig," zegt hij nog. (− € 100, een week rust)'; }],
+      ['Bak dan betere pizza\'s, Luigi!', () => { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.ruzie = Math.min(100, (S.ruzie || 0) + 15); return 'De klanten lachen. Luigi niet. "Dat zal je berouwen!" (Morgen kun je iets verwachten…)'; }],
+      ['Kom eens proeven, van het huis.', () => { ge(-PRIJS); if (kans(0.5)) { S.luigiRust = S.dag + 4; return 'Luigi eet zwijgend. "Hmpf. Niet slecht." Hij laat je even met rust.'; } S.sabotage = pak(['rat', 'stinkbom']); return '"Te weinig zout!" Hij smijt zijn servet neer. (Morgen kun je iets verwachten…)'; }] ] },
+  { id: 'ovenkapot', ik: '🔧', wie: 'Mario, de kok', kans: () => S.geld > 700 ? 2 + S.geld / 600 : 0.3,
+    vraag: 'Baas! De oven maakt een raar geluid… pruttel… pruttel… KABOEM. Er komt rook uit!',
+    a: [['Bel de reparateur.', () => { ge(-180); vandaag.ovenUit = 6; return 'De reparateur komt, zuigt op zijn tanden en rekent € 180. "Vervelend hè?"'; }],
+      ['Mario, met plakband lukt het vast.', () => { if (kans(0.5)) return 'Wonder boven wonder: hij doet het weer! Mario is trots als een pauw.'; vandaag.ovenUit = 25; kokTraag(); return 'Het plakband smelt. De oven ligt een tijd stil en Mario werkt de rest van de avond traag.'; }],
+      ['Meteen een nieuwe, met garantie.', () => { ge(-320); return 'Een glanzende nieuwe oven. Mario aait hem. (− € 320)'; }] ] },
+  { id: 'energie', ik: '💡', wie: 'De postbode', kans: () => S.geld > 700 ? 2 + S.geld / 700 : 0.3,
+    vraag: () => `Een dikke envelop: de energierekening. Een pizzaoven stoken kost wat… € ${Math.round(80 + S.geld * 0.06)}.`,
+    a: [['Betalen, dan is het klaar.', () => { const n = Math.round(80 + S.geld * 0.06); ge(-n); return `€ ${n} weg. Mario zucht: "Hout was vroeger goedkoper."`; }],
+      ['Bezwaar maken.', () => { const n = Math.round(80 + S.geld * 0.06); if (kans(0.4)) { ge(-Math.round(n / 2)); return 'Na drie uur in de wacht: de helft korting!'; } ge(-n - 25); return 'Afgewezen, en € 25 extra administratiekosten. Au.'; }],
+      ['Vanaf nu de lampen uit en kaarsjes aan.', () => { const n = Math.round(60 + S.geld * 0.04); ge(-n); vandaag.gezellig += 1; vandaag.kaars = true; return `Iets goedkoper (€ ${n}), en romantisch! Alleen zie je de pizza amper.`; }] ] },
+  { id: 'lekkage', ik: '💧', wie: 'De ober', kans: () => S.geld > 800 ? 1.5 + S.geld / 900 : 0.2,
+    vraag: 'Baas, er druppelt water uit het plafond. Precies boven tafel 2. Drup. Drup. DRUP.',
+    a: [['Bel de loodgieter.', () => { ge(-140); return 'De loodgieter komt binnen een uur. € 140. Zijn broek zakt wel heel ver af als hij bukt.'; }],
+      ['Zet er een emmer onder.', () => { vandaag.gezellig -= 1; nieuweVlek(4, 6, 'cola'); return 'Drup… plens. De emmer is vol voor je het weet. Minder gezellig vanavond.'; }],
+      ['Barrie kent wel iemand.', () => { ge(-60); if (kans(0.4)) { S.dicht = 'De "loodgieter" van Barrie zette de hele keuken onder water.'; return 'De neef van Barrie draait aan de verkeerde kraan. FWOESJ. Morgen blijft de zaak dicht.'; } return 'Een man zonder gereedschapskist maakt het in vijf minuten. € 60, contant. Niet vragen.'; }] ] },
+  { id: 'huisbaas', ik: '🏠', wie: 'De huisbaas', kans: () => S.geld > 1500 ? 2 : 0, als: () => S.geld > 1500 && !(S.huurDag > S.dag - 14),
+    vraag: () => `"Het gaat goed met de zaak, hè? Mooi, mooi. Dan gaat vanaf morgen de huur wat omhoog." Nu is het € ${S.huur || HUUR} per dag.`,
+    a: [['Vooruit dan maar.', () => { S.huurDag = S.dag; S.huur = (S.huur || HUUR) + 15; return `De huur wordt € ${S.huur} per dag.`; }],
+      ['Laten we onderhandelen.', () => { S.huurDag = S.dag; S.huur = (S.huur || HUUR) + (kans(0.5) ? 5 : 10); return `Na een kwartier gepingpong: € ${S.huur} per dag.`; }],
+      ['Dan verhuis ik naar het pand van Luigi!', () => { S.huurDag = S.dag; if (kans(0.5)) return '"Ho ho, dat hoeft niet!" De huur blijft gelijk.'; S.huur = (S.huur || HUUR) + 25; return '"Ga je gang." Je bluf werkt niet: € ' + S.huur + ' per dag.'; }] ] },
   { id: 'gleufhoed', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
@@ -2296,7 +2329,7 @@ function stap(dt) {
         muntjes.push({ x: m.x, y: m.y - 0.6, t: 1.4, tekst: '🍷 +€' + w }); if (!S.wijn.n) S.wijn = null; }
       tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1;
       const s = tel.soort[m.soort] = tel.soort[m.soort] || [0, 0]; s[0]++; s[1] += o; // aantal, totaal oordeel
-      S.rep = Math.max(0, Math.min(100, S.rep + (o - 2.5) * 0.4 + (m.wacht < 18 ? 0.4 : 0)));
+      rep((o - 2.5) * 0.4 + (m.wacht < 18 ? 0.4 : 0));
       muntjes.push({ x: m.x, y: m.y, t: 1.2, tekst: '+€' + Math.round(prijs + fooi) }); kassa();
       if (Math.random() < 0.5 && (o >= 4.5 || o < 2.5)) zeg(m, R(LEKKER[m.soort][o >= 4.5 ? 0 : 1]));
       m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6];
@@ -2717,7 +2750,7 @@ function teken(nu) {
   g.textAlign = 'center';
   for (const c of muntjes) { g.globalAlpha = Math.min(1, c.t * 2); g.fillStyle = '#ffd23f'; g.strokeStyle = '#5a3a00'; g.lineWidth = 3 * schaal; g.font = `bold ${16 * schaal}px system-ui`; const x = ox + c.x * T * schaal, y = oy + (c.y - 0.5 - (1.2 - c.t) * 0.6) * T * schaal; g.strokeText(c.tekst, x, y); g.fillText(c.tekst, x, y); }
   g.globalAlpha = 1;
-  tekenRit();
+  tekenRit(); g.textAlign = 'center'; // tekenRit zet links uitlijnen
   for (const w of wolkjes) {
     const x = ox + w.m.x * T * schaal, y = oy + (w.m.y - (w.m.fig != null ? (w.m.st == 'wacht' || w.m.st == 'eet' ? 1.45 : 1.85) : 0.55)) * T * schaal;
     g.font = `600 ${13 * schaal}px system-ui`; const bw = g.measureText(w.tekst).width + 16 * schaal, bh = 24 * schaal;
@@ -3362,6 +3395,7 @@ if (TEGEL) { // plaatje voor de startpagina
 }
 
 if (S.verbouwd && !TEGEL) { const v = S.verbouwd; delete S.verbouwd; bewaar(); setTimeout(() => meld(`De zaak is verbouwd: hij is wat kleiner en gezelliger. ${v.n} spullen pasten niet meer; je hebt € ${v.terug} teruggekregen.`, 7000), 800); }
+if (!TEGEL && weekdag() == 0) { S.dag++; bewaar(); } // maandag is de zaak dicht
 if (!TEGEL) maakPersoneel(); // ook 's ochtends staan de koks en obers al klaar
 maat();
 let vorig = performance.now();

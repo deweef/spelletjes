@@ -219,3 +219,8 @@ vanghoogte is (binnen 14 px = perfect, combo); per vangst geld (meer naarmate je
 (`toonKeuze(…, voet)`): kleedje/kaarsje = tik op een tafel, stoel veranderen = tik op die stoel.
 Oud-pizzeria: stoelsoort `hout` (kale houten stoel met planken, bij de houten tafel) en kleed op de punt (`s.punt`, knop in het tafelmenu, niet
 voor ronde kleedjes `KLEED[..].rond`): eerst de kale tafel (hout of marmer), dan het kleed 45° gedraaid en kleiner erop.
+Tempo en tegenvallers (27 okt): maandag is de zaak dicht (`eindeDag` slaat hem over; `laatsteVanDeMaand` = laatste wérkdag, dus de inspecteur
+komt op tijd); populariteit stijgt steeds moeilijker (`repRem` in `rep`: boven 60 flink trager, max. 100). Tegenvallers met meer kans bij veel
+geld: 'ovenkapot', 'energie', 'lekkage', 'huisbaas' (verhoogt `S.huur`, max. eens per 14 dagen). Jaloerse Luigi ('luigiJaloers', via
+`S.verplicht` in `eindeDag` bij > €1000). Vaste bezoeken in `openDeuren`: Gerrit 1-2 dagen na het ophangen van een schilderij (`S.gerritNa`, daarna om
+de 4 dagen tot het goede antwoord), Luigi op dag 5 (`S.luigiKwam`). Getest 30 dagen: populariteit 30-58, Gerrit en Luigi komen langs.
