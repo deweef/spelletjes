@@ -234,3 +234,7 @@ Diner voor de sterrenchef (vraag 'sterrenchef', vanaf populariteit 45, eens per 
 3 gangen (`DINER`; hoofdgerecht = willekeurige `CHEFSMAAK`), per gang een pizza van de kaart (`chefOordeel`: afstand tot het smaakdoel, variatie,
 groente bij het voorgerecht, geen gek/vlees waar het niet hoort) + wijn (`DINERWIJN`: wit, rood, zoet; champagne half goed). Totaal 0-21:
 ≥ 18 = 3 sterren, ≥ 13,5 = 2, ≥ 9 = 1. Populariteit −5/+2/+5/+9 in al je zaken en €0/30/80/150; ingrediënten €30. `S.chefSterren` = beste.
+Tempo: na 21:30 (90% van `DAG`) geen nieuwe klanten of telefoontjes; na sluitingstijd loopt de tijd 3x zo snel; knop ⏩ (`#snelknop`, `snel`) = 2x.
+Ranglijst: `zaakWaarde()` = kas + bank + crypto + de helft van spullen, extra ovens en borg van de panden − leningen en aanslag. In het
+dagoverzicht met twee lijsten (`#dagbord`, `#dagbord2`): onderdeel `pizzawaarde` (record `S.waardeBest`) en `pizzamaand` (waarde na 30 dagen,
+`S.maandWaarde`, de eerlijke wedstrijd). Scores-app kent ze. Een manager die al in een andere zaak werkt, staat niet in het lijstje.

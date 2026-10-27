@@ -76,6 +76,8 @@
   #sleutel.verborgen, #stadknop.verborgen { display: none; }
   #stadknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 108px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #stadknop:disabled { opacity: .35; }
+  #snelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 258px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 18px; cursor: pointer; }
+  #snelknop.aan { background: #e8a33a; }
   #doelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 208px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #doelknop b { position: absolute; right: -4px; top: -4px; background: #e74c3c; color: #fff; border-radius: 9px; font: 700 11px system-ui; padding: 1px 5px; }
   #zoomknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 158px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
@@ -110,7 +112,7 @@
   .kaart .groot { display: block; width: 100%; margin-top: 12px; border: 0; border-radius: 14px; padding: 13px; background: #b5361f; color: #fff; font: 700 17px system-ui, sans-serif; cursor: pointer; }
   .verborgen { display: none !important; }
   #melding { position: absolute; left: 50%; top: calc(56px + env(safe-area-inset-top)); transform: translateX(-50%); background: rgba(0,0,0,.7); padding: 8px 14px; border-radius: 12px; font-size: 14px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .3s; max-width: 90vw; text-align: center; }
-  body.tegel #paneel, body.tegel .terug, body.tegel #stadknop, body.tegel #zoomknop, body.tegel #doelknop, body.tegel #sleutel { display: none; }
+  body.tegel #paneel, body.tegel .terug, body.tegel #stadknop, body.tegel #zoomknop, body.tegel #doelknop, body.tegel #snelknop, body.tegel #sleutel { display: none; }
   /* pizza's samenstellen */
   .kaart.breed { max-width: 760px; padding: 16px; }
   .kaart .rij { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -168,6 +170,7 @@
 <button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
 <button id="zoomknop" title="Inzoomen (of knijp met twee vingers)">🔍</button>
 <button id="doelknop" title="Doelen">🎯</button>
+<button id="snelknop" title="Tijd sneller (2x)">⏩</button>
  <div class="scherm verborgen" id="acrob" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🤹 Pizza-acrobatiek</h1><div id="acrotekst" class="buurt" style="margin:0 0 6px">Het deeg vliegt omhoog. Tik als het weer bij Mario's handen is! Hoe langer je volhoudt, hoe hoger en hoe meer de toeristen geven.</div>
   <canvas id="acrodoek" width="360" height="480" style="width:100%;max-width:340px;aspect-ratio:3/4;display:block;margin:0 auto;border-radius:12px;touch-action:none;cursor:pointer"></canvas>
@@ -673,6 +676,8 @@ function eindeDag() {
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
   S.rood = S.geld + (S.bankSaldo || 0) < 0 ? (S.rood || 0) + 1 : 0; S.besteDag = Math.max(S.besteDag || 0, kl(tel.blij)); // 3 avonden achter elkaar rood = failliet
   const koningNu = !S.koning && S.zaken.length >= 4 && torenOpen() && S.geld + (S.bankSaldo || 0) >= 25000; if (koningNu) S.koning = S.dag; // het grote doel
+  const waarde = zaakWaarde(), nieuwRecord = waarde > (S.waardeBest || 0); if (nieuwRecord) S.waardeBest = waarde;
+  const dertig = !S.maandWaarde && S.dag >= 30; if (dertig) S.maandWaarde = waarde; // de eerlijke wedstrijd: wat is je zaak waard na 30 dagen?
   const oud = S.dag; S.dag++; const maandag = weekdag() == 0; if (maandag) S.dag++; bewaar(); // maandag dicht: zes werkdagen per week
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
     ${maandag ? '<p class="buurt">📅 Morgen is het maandag: dan is de zaak dicht. Op naar dinsdag!</p>' : ''}${S.rood ? `<p style="color:#b33a1e"><b>⚠️ Je staat rood: − € ${Math.round(-S.geld)}. ${S.rood >= 3 ? 'Drie dagen achter elkaar…' : `Sta je nog ${3 - S.rood} avond${3 - S.rood > 1 ? 'en' : ''} rood, dan ben je failliet! Verkoop iets, leen geld of verdien het terug.`}</b></p>` : ''}
@@ -698,9 +703,11 @@ function eindeDag() {
     </table>
     <p>${tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
       : tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
+    <p style="margin:10px 0 2px"><b>🏆 Waarde van je pizzeria: € ${waarde}</b>${waarde >= (S.waardeBest || 0) ? ' (record!)' : ` (record € ${S.waardeBest})`}</p><div id="dagbord" class="buurt" style="text-align:left"></div><div id="dagbord2" class="buurt" style="text-align:left;margin-top:4px"></div>
     <button class="groot" id="verder">Verder met inrichten</button>`;
   laatsteDag = $('eindkaart').innerHTML.replace('Verder met inrichten', 'Sluiten').replace('zit erop!', 'zat erop');
-  $('einde').classList.remove('verborgen');
+  $('einde').classList.remove('verborgen'); bordLijst('pizzawaarde', $('dagbord'), '€'); bordLijst('pizzamaand', $('dagbord2'), '€');
+  if (nieuwRecord) stuurRecord('pizzawaarde', S.waardeBest, $('dagbord'), '€'); if (dertig) stuurRecord('pizzamaand', S.maandWaarde, $('dagbord2'), '€');
   $('verder').onclick = () => { $('einde').classList.add('verborgen'); tekenKnoppen(); if (S.rood >= 3) toonFailliet(); else if (koningNu) toonKoning(); };
 }
 
@@ -1480,7 +1487,7 @@ function nieuweBestelling() {
 }
 function stapBezorg(dt) {
   if (!S.bezorg || !bezorger) return; const z = bezorger, snel = 3.2;
-  if (modus == 'open') { volgendeBestelling -= dt; if (volgendeBestelling <= 0) { nieuweBestelling(); volgendeBestelling = (14 + Math.random() * 14) / ((0.5 + S.rep / 100) * vandaag.aankomst * (klusLoopt() && S.klus.k == 'scooter' ? 1.6 : 1)); } }
+  if (modus == 'open' && klok < DAG * 0.9) { volgendeBestelling -= dt; if (volgendeBestelling <= 0) { nieuweBestelling(); volgendeBestelling = (14 + Math.random() * 14) / ((0.5 + S.rep / 100) * vandaag.aankomst * (klusLoopt() && S.klus.k == 'scooter' ? 1.6 : 1)); } }
   if (z.st == 'thuis') { const b = bezorgingen.find((b) => !b.af && !b.weg && b.klaar >= b.n); loopNaar(z, vrijBij([W - 1.3, KEUKEN + 0.6]), 2, dt); if (b) { z.b = b; z.st = 'halen'; } }
   else if (z.st == 'halen') { const nog = klaar.filter((x) => x.bezorg == z.b); if (!nog.length) { z.st = 'deur'; z.draagt = z.b.n; z.b.weg = true; return; }
     const hier = nog[0].oven || 0, [ux] = UITGIFTE(hier); if (loopNaar(z, vrijBij([ux + 0.9, KEUKEN + 0.4]), snel, dt)) klaar = klaar.filter((x) => !(x.bezorg == z.b && (x.oven || 0) == hier)); }
@@ -1789,7 +1796,9 @@ function stuurRecord(onderdeel, best, el, eenheid) {
     .then((d) => { try { localStorage.setItem(lk, best); localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} bordLijst(onderdeel, el, eenheid, d); }).catch(() => {});
 }
 function bordLijst(onderdeel, el, eenheid, d) {
-  const zet = (d) => { const l = (d && d[onderdeel + '_gewoon']) || []; el.innerHTML = l.length ? '<b>🏆 Scorebord</b><br>' + l.map((x, i) => `${i + 1}. ${esc(x.naam)}: ${x.score}`).join(' · ') : (speler ? '' : 'Kies je naam op de startpagina, dan komt je record op het scorebord.'); };
+  if (!el) return;
+  const zet = (d) => { const l = (d && d[onderdeel + '_gewoon']) || []; const kop = { pizzawaarde: 'Ranglijst: waarde van je pizzeria', pizzamaand: 'Ranglijst: waarde na 30 dagen' }[onderdeel] || 'Scorebord', eu = eenheid == '€' ? '€ ' : '';
+    el.innerHTML = l.length ? `<b>🏆 ${kop}</b><br>` + l.map((x, i) => `${i + 1}. ${esc(x.naam)}: ${eu}${x.score}`).join(' · ') : (speler ? '' : 'Kies je naam op de startpagina, dan komt je record op het scorebord.'); };
   if (d) return zet(d); try { zet(JSON.parse(localStorage.getItem('pizzabaas_bord') || 'null')); } catch (e) {}
   fetch(BORD_URL, { redirect: 'follow' }).then((r) => r.json()).then((d) => { try { localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} zet(d); }).catch(() => {});
 }
@@ -2399,7 +2408,7 @@ function stap(dt) {
   klok += dt;
   if (modus == 'open') {
     volgendeKlant -= dt;
-    if (volgendeKlant <= 0) { nieuweGroep(); volgendeKlant = Math.max(2.2, 7.5 - S.rep * 0.05) * (0.6 + Math.random() * 0.8) / vandaag.aankomst; }
+    if (volgendeKlant <= 0 && klok < DAG * 0.9) { nieuweGroep(); /* na 21:30 geen nieuwe klanten meer */ volgendeKlant = Math.max(2.2, 7.5 - S.rep * 0.05) * (0.6 + Math.random() * 0.8) / vandaag.aankomst; }
     const stel = (v) => v.portret != null ? laatBinnen(v) : toonVraag(v); // met een figuur: eerst binnenlopen
     if (bezoeker) {} // wacht tot de vorige bezoeker weg is
     else if (isWeg() && manAanwezig()) { // jij bent de stad in: de manager regelt de gewone vragen, de rest wacht tot je terug bent
@@ -3363,7 +3372,7 @@ function tekenKnoppen() {
           : { ik: '🛵', n: 'Bezorgdienst starten', pr: `scooter € ${BEZORG.scooter}, bezorger € ${BEZORG.loon} per dag. Telefoonbestellingen, los van je tafels.`, uit: S.geld < BEZORG.scooter, doe: () => { S.geld -= BEZORG.scooter; S.bezorg = { sinds: S.dag }; maakPersoneel(); kassa(); bewaar(); tekenKnoppen(); meld('Brrrm! Een rode scooter voor de deur. Vanaf nu gaat tijdens het werk de telefoon voor bestellingen.', 4500); } },
         ...(S.manager ? [{ ik: '👋', n: MANAGER[S.manager.wie].n + ' ontslaan', pr: `manager, €${MANLOON()} per dag, ${S.manager.dagen || 0} dagen in dienst`, doe: () => {
           const n = MANAGER[S.manager.wie].n; S.manager = null; maakPersoneel(); bewaar(); tekenKnoppen(); meld(n + ' pakt zijn spullen. Je moet nu weer zelf op de zaak passen.', 4000); } }]
-        : Object.entries(MANAGER).map(([k, M]) => ({ ik: M.ik, n: 'Manager: ' + M.n, pr: MAG_MANAGER() ? `€${M.loon} per dag. ${M.uitleg}` : `pas vanaf populariteit 40, 3 pizza's op de kaart en dag 7`, uit: !MAG_MANAGER(), doe: () => {
+        : Object.entries(MANAGER).filter(([k]) => !S.zaken.some((z, i) => i != S.zaak && z.manager && z.manager.wie == k)).map(([k, M]) => ({ ik: M.ik, n: 'Manager: ' + M.n, pr: MAG_MANAGER() ? `€${M.loon} per dag. ${M.uitleg}` : `pas vanaf populariteit 40, 3 pizza's op de kaart en dag 7`, uit: !MAG_MANAGER(), doe: () => {
           S.manager = { wie: k, sinds: S.dag, dagen: 0, opslag: 0 }; maakPersoneel(); bewaar(); tekenKnoppen(); meld(`${M.n} is je manager! Nu kun je ook overdag de stad in (🗺️); ${M.n.split(' ').pop()} past op de zaak.`, 5000); } }))) ],
         b.getBoundingClientRect(), 'ober'); return; }
     const d = PERSONEEL[b.dataset.p]; if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
@@ -3379,6 +3388,14 @@ function tekenKnoppen() {
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
 let laatsteDag = '';
+// waarde van je pizzeria (voor de ranglijst): kas + bank + crypto + de helft van je spullen, ovens en panden − leningen en openstaande belasting
+function zaakWaarde() {
+  const spul = (l) => (l || []).reduce((a, x) => a + (SPUL[x.t] ? SPUL[x.t].prijs : 0) * 0.5, 0);
+  let w = S.geld + (S.bankSaldo || 0) + (S.crypto ? cryptoWaarde() : 0) + spul(S.spullen) + ((S.ovens || 1) - 1) * 125;
+  S.zaken.forEach((z, i) => { const plek = i == S.zaak ? S.plek : z.plek; if (i != S.zaak) w += spul(z.spullen); if (PLEK[plek] && PLEK[plek].borg) w += PLEK[plek].borg * 0.5; });
+  w -= (S.leningen || []).reduce((a, l) => a + l.rest, 0) + (S.aanslag || 0);
+  return Math.max(0, Math.round(w));
+}
 // ---------- doelen: aan de hand nemen in het begin (alleen de gewone kant van het spel; de schimmige wereld zoek je zelf uit) ----------
 // S.doelen = { id: dag gehaald }. controleerDoelen kijkt na elke actie (tekenKnoppen) en na elke dag; per gehaald doel een vinkje en wat geld.
 const DOELEN = [
@@ -3412,6 +3429,7 @@ function toonDoelen() {
     <button class="groot" id="verder">Verder</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen');
 }
+let snel = 1; $('snelknop').onclick = () => { wekGeluid(); snel = snel == 1 ? 2 : 1; $('snelknop').classList.toggle('aan', snel == 2); meld(snel == 2 ? '⏩ De tijd gaat twee keer zo snel.' : '▶️ Weer gewoon tempo.'); };
 $('doelknop').onclick = () => { wekGeluid(); sluitMenu(); toonDoelen(); };
 // ---------- einde van het spel: failliet (3 avonden rood), of Pizzakoning (4 zaken, de toren open en € 25.000); opnieuw beginnen kan altijd ----------
 function eindStand() { return `<table><tr><td>📅 Dagen gespeeld</td><td>${S.dag - 1}</td></tr><tr><td>🏪 Pizzeria's</td><td>${S.zaken.length}</td></tr><tr><td>🍕 Pizza's op de kaart</td><td>${S.menu.length}</td></tr>
@@ -3504,7 +3522,7 @@ let vorig = performance.now();
 function lus(nu) {
   const dt = Math.min(0.1, (nu - vorig) / 1000); vorig = nu;
   if (achterPauze && $('achter').classList.contains('verborgen')) achterPauze = false;
-  if (!TEGEL && $('einde').classList.contains('verborgen') && !pauze && !achterPauze) stap(dt);
+  if (!TEGEL && $('einde').classList.contains('verborgen') && !pauze && !achterPauze) stap(dt * (modus == 'sluiten' ? 3 : snel)); // na sluitingstijd 3x zo snel; ⏩ = 2x
   teken(nu); balk(nu);
   requestAnimationFrame(lus);
 }
