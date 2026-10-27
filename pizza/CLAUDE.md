@@ -178,7 +178,7 @@ pizza op het bord en op de uitgifte (`kleinePizza` = 96 px plaatje per pizza, `p
 schilderen of drukken ga je terug naar de pizzeria.
 Achterkamer één keer per dag (`S.achterDag`): het sleuteltje linksboven werkt daarna niet meer (half doorzichtig, melding "morgen weer");
 als Gerrit of Barrie je meeneemt telt dat ook als het bezoek van die dag. Onderin de achterkamer: de laptop (crypto) en Barrie's klusjes.
-Vragen (27 okt): nu 66, o.a. kokjarig, tiktok, vegan, blinddate, haring, wielrenners, snurk, goochelaar, supermarkt, patat, schoolreis, kat,
+Vragen (27 okt): nu 92 (26 uit een lijst van Gemini, uitgezocht en aangepast; hulpjes `morgenKl`, `kokTraag`, `oberTempo`, `ietsOp`), o.a. kokjarig, tiktok, vegan, blinddate, haring, wielrenners, snurk, goochelaar, supermarkt, patat, schoolreis, kat,
 wachtwoord, aanzoek, bierfiets, nonna; meer praatwolkjes in `ZEG` en `LEKKER`. Gerrit komt ook zomaar langs ('gerritlangs', tip: bestelling
 +€50). Gravin Gloria van Glitterstein ('gravin', kunstverzamelaar, roze bontjas, hondje Fifi): als er een droge vervalsing ligt, biedt ze het
 dubbele van Gerrit, maar alleen bij q ≥ 0,7; anders "NEP!" (populariteit −4 en de kunstrechercheur komt: `S.verplicht`). Bezoeker rij 5 in `pizza/bezoekers.png`, portret 6 (uit `pizza/gravin-gemini.jpg`).
