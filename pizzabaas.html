@@ -640,8 +640,11 @@ function eindeDag() {
   const rommel = vlekken.length; S.vuil = (S.vuil || 0) + rommel * 0.5; vlekken = []; // wat er blijft liggen maakt de zaak viezer (keuringsdienst!)
   const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
+  S.rood = S.geld < 0 ? (S.rood || 0) + 1 : 0; // 3 avonden achter elkaar rood = failliet
+  const koningNu = !S.koning && S.zaken.length >= 2 && torenOpen() && S.geld >= 10000; if (koningNu) S.koning = S.dag; // het grote doel
   const oud = S.dag; S.dag++; bewaar();
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
+    ${S.rood ? `<p style="color:#b33a1e"><b>⚠️ Je staat rood: − € ${Math.round(-S.geld)}. ${S.rood >= 3 ? 'Drie dagen achter elkaar…' : `Sta je nog ${3 - S.rood} avond${3 - S.rood > 1 ? 'en' : ''} rood, dan ben je failliet! Verkoop iets, leen geld of verdien het terug.`}</b></p>` : ''}
     ${tel.dicht ? `<p><b>🔒 Vandaag was de zaak dicht.</b> ${esc(tel.dicht)}</p>` : ''}${manWeg ? `<p><b>👋 ${esc(manWeg)}</b></p>` : ''}${S.crypto && S.crypto.nieuws.length && cryptoWaarde() > 0 ? `<p>📰 <b>Cryptonieuws:</b> ${S.crypto.nieuws.map(esc).join(' ')} Je crypto is nu ${euro(cryptoWaarde())} waard.</p>` : ''}
     <table>
       <tr><td>😋 Tevreden klanten</td><td>${kl(tel.blij)}</td></tr>
@@ -667,8 +670,7 @@ function eindeDag() {
     <button class="groot" id="verder">Verder met inrichten</button>`;
   laatsteDag = $('eindkaart').innerHTML.replace('Verder met inrichten', 'Sluiten').replace('zit erop!', 'zat erop');
   $('einde').classList.remove('verborgen');
-  $('verder').onclick = () => { $('einde').classList.add('verborgen'); tekenKnoppen(); };
-  if (S.geld < 0) meld('Je staat rood! Verkoop iets of verdien het morgen terug.');
+  $('verder').onclick = () => { $('einde').classList.add('verborgen'); tekenKnoppen(); if (S.rood >= 3) toonFailliet(); else if (koningNu) toonKoning(); };
 }
 
 // ---------- geld lenen: kies de aanbieder ----------
@@ -1098,18 +1100,24 @@ function stapBezorg(dt) {
     if (v) meld('🛵 ' + v.tekst, 3500); } }
   else if (z.st == 'terug') { if (loopNaar(z, [W - 1.3, KEUKEN + 0.6], snel, dt)) z.st = 'thuis'; }
 }
+// pizza/bezorger.png (uit pizza/bezorger-gemini.jpg, vakjes 170 x 192): 0-6 lopen opzij met pizzadozen, 7-10 lopen van achteren, 11 staan;
+// pizza/scooter.png = op de scooter (rijdt over het balkje linksboven)
+const BEZVEL = Object.assign(new Image(), { src: 'pizza/bezorger.png' }), SCOOTER = Object.assign(new Image(), { src: 'pizza/scooter.png' });
 function tekenBezorger() {
   const z = bezorger; if (!z || z.st == 'rit' || !KLANTEN.complete || !KLANTEN.naturalWidth) return; const [x, y] = naarScherm(z.x, z.y);
-  g.save(); g.translate(x, y); g.scale(schaal, schaal); figuur(KLANTEN, z, false, false, null, KLANTVEL(1));
-  g.fillStyle = '#c0392b'; g.beginPath(); g.ellipse(0, -1.5 * T, 14, 8, 0, Math.PI, 0); g.fill(); g.fillRect(-2, -1.5 * T - 1, 22, 4); // rode pet
+  g.save(); g.translate(x, y); g.scale(schaal, schaal);
+  if (BEZVEL.complete && BEZVEL.naturalWidth) { figuur(BEZVEL, z, false, false, null, { staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], fps: 10, sw: 170 }); g.restore(); return; }
+  figuur(KLANTEN, z, false, false, null, KLANTVEL(1)); g.fillStyle = '#c0392b'; g.beginPath(); g.ellipse(0, -1.5 * T, 14, 8, 0, Math.PI, 0); g.fill(); g.fillRect(-2, -1.5 * T - 1, 22, 4); // rode pet
   if (z.draagt) for (let i = 0; i < Math.min(3, z.draagt); i++) { g.fillStyle = '#c8955a'; g.fillRect(-18, -0.72 * T - i * 7, 36, 7); g.fillStyle = '#a5743f'; g.fillRect(-18, -0.72 * T - i * 7 + 5, 36, 2); g.fillStyle = '#c0392b'; g.fillRect(-4, -0.72 * T - i * 7 + 1, 8, 3); } // pizzadozen
   g.restore();
 }
 function tekenRit() { // linksboven in de zaal: waar is de scooter?
   const z = bezorger; if (!z || (z.st != 'rit' && !bezorgingen.length)) return;
-  const [x, y] = naarScherm(0.2, KEUKEN + 0.15), w = 150 * schaal, h = 30 * schaal;
+  const rit = z.st == 'rit', [x, y] = naarScherm(0.2, KEUKEN + 0.15), w = 170 * schaal, h = (rit ? 52 : 30) * schaal;
   g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(x, y, w, h); g.fillStyle = '#fff'; g.font = `bold ${Math.round(12 * schaal)}px system-ui`; g.textAlign = 'left';
-  if (z.st == 'rit') { g.fillText('🛵 ' + z.b.adres, x + 5 * schaal, y + 13 * schaal); g.fillStyle = '#2ecc71'; g.fillRect(x + 5 * schaal, y + 19 * schaal, (w - 10 * schaal) * Math.min(1, z.t / z.ritT), 6 * schaal); }
+  if (rit) { const f = Math.min(1, z.t / z.ritT); g.fillText('🛵 ' + z.b.adres, x + 5 * schaal, y + 13 * schaal); g.fillStyle = '#555'; g.fillRect(x + 5 * schaal, y + 46 * schaal, w - 10 * schaal, 3 * schaal);
+    g.fillStyle = '#2ecc71'; g.fillRect(x + 5 * schaal, y + 46 * schaal, (w - 10 * schaal) * f, 3 * schaal);
+    if (SCOOTER.complete && SCOOTER.naturalWidth) { const sw = 34 * schaal, sh = sw * 224 / 240, sx = x + 5 * schaal + (w - 10 * schaal - sw) * f; g.drawImage(SCOOTER, sx, y + 46 * schaal - sh + Math.sin(performance.now() / 60) * schaal, sw, sh); } }
   else g.fillText(`📞 ${bezorgingen.length} bestelling${bezorgingen.length > 1 ? 'en' : ''} in de keuken`, x + 5 * schaal, y + 19 * schaal);
 }
 
@@ -2595,10 +2603,29 @@ function tekenKnoppen() {
   });
   k.querySelector('[data-pizza]').onclick = () => { wekGeluid(); sluitMenu(); kies = null; toonKaart(); };
   k.querySelector('[data-bank]').onclick = () => { wekGeluid(); sluitMenu(); kies = null; toonBank(); };
-  k.querySelector('[data-dag]').onclick = () => { if (laatsteDag) { $('eindkaart').innerHTML = laatsteDag; $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); } else meld('Je hebt nog geen dag gedraaid.'); };
+  k.querySelector('[data-dag]').onclick = () => { $('eindkaart').innerHTML = (laatsteDag || '<h1>📊 Gisteren</h1><p>Je hebt nog geen dag gedraaid.</p><button class="groot" id="verder">Sluiten</button>')
+      + '<p style="text-align:center;margin-top:14px"><button class="knop" id="herbegin">🔄 Opnieuw beginnen</button></p>'; $('einde').classList.remove('verborgen');
+    $('verder').onclick = () => $('einde').classList.add('verborgen');
+    $('herbegin').onclick = () => { if (confirm('Echt helemaal opnieuw beginnen? Je zaak, je geld en al je spullen zijn dan weg (je hoogste pizzatoren blijft).')) herstart(); }; };
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
 let laatsteDag = '';
+// ---------- einde van het spel: failliet (3 avonden rood), of Pizzakoning (2 zaken, de toren open en € 10.000); opnieuw beginnen kan altijd ----------
+function eindStand() { return `<table><tr><td>📅 Dagen gespeeld</td><td>${S.dag - 1}</td></tr><tr><td>🏪 Pizzeria's</td><td>${S.zaken.length}</td></tr><tr><td>🍕 Pizza's op de kaart</td><td>${S.menu.length}</td></tr>
+  <tr><td>⭐ Populariteit</td><td>${Math.round(S.rep)}</td></tr>${S.torenBest ? `<tr><td>🗼 Hoogste pizzatoren</td><td>${S.torenBest}</td></tr>` : ''}</table>`; }
+function toonFailliet() {
+  $('eindkaart').innerHTML = `<h1>💸 Failliet!</h1><p>De deurwaarder plakt een briefje op de deur: <b>GESLOTEN</b>. Mario huilt in zijn schort, de ober neemt de laatste fles wijn mee. Luigi staat aan de overkant te lachen.</p>
+    ${eindStand()}<p>Maar een echte pizzabaas geeft niet op. Nieuwe stad, nieuwe kansen!</p><button class="groot" id="verder">🔄 Opnieuw beginnen</button>`;
+  $('einde').classList.remove('verborgen'); $('verder').onclick = () => herstart();
+}
+function toonKoning() {
+  $('eindkaart').innerHTML = `<h1>👑 Pizzakoning van de stad!</h1><p>Twee pizzeria's, de Toren van Pizza staat er dankzij jou, en € ${Math.round(S.geld)} op de bank. De burgemeester geeft je een gouden pizzaschep. Luigi verhuist naar een ander land.</p>
+    ${eindStand()}<p>Je hebt het spel uitgespeeld! Je kunt gewoon doorspelen (meer zaken, hogere torens), of opnieuw beginnen.</p><button class="groot" id="verder">Doorspelen</button>`;
+  $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); kassa(); setTimeout(kassa, 300);
+}
+function herstart() { // alles opnieuw, behalve je hoogste pizzatoren
+  schrijf(SLEUTEL, { ...NIEUW(), torenBest: S.torenBest || 0 }); location.reload();
+}
 $('sleutel').onclick = () => { wekGeluid(); sluitMenu(); toonAchterkamer(); };
 $('stadknop').onclick = () => { wekGeluid(); sluitMenu(); if (modus != 'inrichten' && !S.manager) { meld('Je kunt de zaak niet alleen laten! Neem een manager aan (Personeel).'); return; } toonStad(); };
 const isAanraak = matchMedia('(pointer: coarse)').matches;

@@ -157,4 +157,8 @@ naar een adres (`STRATEN`). Ze staan in de `wachtrij` als { m: { pizza }, bezorg
 in `stapOven` kennen ze). De bezorger (`bezorger`, `stapBezorg`, voorlopig het studentfiguur met rode pet en pizzadozen, `tekenBezorger`)
 haalt ze op, loopt de deur uit, is `ritT` weg (balkje linksboven: `tekenRit`), soms met een `VOORVAL` (lekke band, regen, verdwaald,
 geflitst, punt opgegeten, verjaardag), en rekent af: prijs × TELT − €2,5, plus fooi; later dan `KOUD` (55 s) = half geld en populariteit −1.
-Dagoverzicht: aantal bezorgd, koud, voorvallen; loon bezorger bij de lonen. Nog: eigen Gemini-figuur met scooter.
+Dagoverzicht: aantal bezorgd, koud, voorvallen; loon bezorger bij de lonen. Figuur `pizza/bezorger.png` (`BEZVEL`, uit `pizza/bezorger-gemini.jpg`, vakjes 170: 0-6 opzij met dozen, 7-10 van achteren, 11 staan) en
+`pizza/scooter.png` (`SCOOTER`, rijdt over het balkje in `tekenRit`).
+Einde van het spel: drie avonden achter elkaar rood (`S.rood`, waarschuwing in het dagoverzicht) = failliet (`toonFailliet`, met `eindStand`);
+het doel = Pizzakoning (`toonKoning`, `S.koning`): 2 zaken, de Toren van Pizza open en € 10.000; daarna kun je doorspelen. Opnieuw beginnen
+(`herstart`: nieuwe opslag, alleen `torenBest` blijft) kan altijd via 📊 Gisteren.
