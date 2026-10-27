@@ -190,6 +190,13 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   op de markt, met het online scorebord; (3) "Toren van Pizza" als speciaal gerecht of als versiering (scheef torentje) in de zaak.
 - Idee Marcel (27 okt): Pizzakoning pas met 4 pizzeria's (gedaan), en in elke zaak iets speciaals (nog uitwerken, zie voorstel in de chat:
   studentenbuurt = eetwedstrijd/studentenavond, plein = selfiemuur/straatmuzikant, villawijk = wijnkelder/sterrenchef).
+- **Achterkamers per zaak** (afspraak Marcel, 27 okt; nog bouwen): in élke zaak een achterkamer met Barrie (Luigi kan overal saboteren) en de
+  laptop, plus één eigen ding: zaak 1 = atelier met Gerrit en de gravin; zaak 2 (studentenbuurt) = drukpers; zaak 3 (plein) = illegale gokhal
+  met roulettetafel (minispel, inzetten tegen een gokker); zaak 4 (villawijk) = voorstel Claude: wijnvervalsing "Château Kraanwater"
+  (goedkope wijn in dure flessen, etiketten namaken, een sommelier als rechercheur). Geen bontjassen (Marcel: zielig en niet ethisch).
+- **Extra activiteit per buurt** (boven, legaal): studentenbuurt = eetwedstrijd; voorstellen Claude: plein = pizza-acrobatiek op straat
+  (deeg opgooien, minispel), villawijk = wijnproeverij/diner voor de sterrenchef. Vraag-idee Marcel "Russische roulette": voorstel om er
+  "pepperoni-roulette" van te maken (één punt met een gloeiend hete peper) i.p.v. iets met wapens.
 - Meer ideeën (Claude, 27 okt): Gouden Pizzaschep (recensent incognito), pizzawedstrijd op de markt tegen Luigi, smokkeltruffel via Barrie
   (douane belt), ober verliefd op Luigi's dochter (romance of spion).
 - Crypto (nog niet gebouwd): Bitkaas, Ethertje, MozzaMunt, DogePizza; laptop in de achterkamer, koers per dag +40% / −60%, nieuws
