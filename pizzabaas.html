@@ -661,6 +661,8 @@ function eindeDag() {
     if (S.geld < 0) { manWeg = `${M.n} is ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
     else if (S.manager.wie == 'bruno' && S.manager.dagen % 5 == 4) S.verplicht = [...(S.verplicht || []), 'opslag']; } // Bruno wil opslag
   maakPersoneel(); // omzet en fooi zijn al verrekend; de inkoop (tel.ing) nu pas
+  if ((S.lief || 0) >= 3 && kans(0.3 + S.lief * 0.08) && !(S.verplicht || []).some((v) => ['profiteurs', 'personeelBoos', 'boekhouder'].includes(v))) S.verplicht = [...(S.verplicht || []), pak(['profiteurs', 'personeelBoos', 'boekhouder'])]; // te vrijgevig
+  S.lief = Math.max(0, (S.lief || 0) - 0.3);
   if (!S.zaak && S.geld > 1000 && !S.sabotage && !(S.luigiRust > S.dag) && !(S.verplicht || []).includes('luigiJaloers') && kans(Math.min(0.35, (S.geld - 1000) / 4000 + 0.08))) S.verplicht = [...(S.verplicht || []), 'luigiJaloers']; // het gaat te goed: Luigi wordt jaloers
   if (S.ruzie > 0) { if (!S.sabotage && !(S.luigiRust > S.dag) && kans(S.ruzie / 300)) S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.ruzie = Math.max(0, S.ruzie - 5); } // ruzie met Luigi: hij slaat terug, en het zakt langzaam
   if (S.crypto) cryptoAvond(); // nieuwe koersen
@@ -1242,6 +1244,22 @@ const VRAGEN = [
         S.wijn = null; ge(-150); rep(-5); return '"Tonen van… kraanwater? En kartonnen pak!" Hij roept de keuringsdienst. Al je flessen in beslag en € 150 boete.'; }],
       ['Helaas, net de laatste fles verkocht.', () => '"Dommage." Hij kijkt je lang aan en vertrekt.'],
       ['Een glaasje van het huis, gratis?', () => { if (kans(0.5)) { rep(1); return 'Hij proeft de huiswijn, trekt een gezicht, maar vergeet de Château te vragen.'; } if (S.wijn) S.wijn.n = Math.max(0, S.wijn.n - 3); rep(-2); return 'Hij proeft toch stiekem van een "Château". Hij zegt niks, maar kijkt heel streng. Je gooit voor de zekerheid drie flessen weg.'; }] ] },
+  // ---- te vrijgevig (S.lief: te vaak geld weggegeven om klanten blij te maken) ----
+  { id: 'profiteurs', ik: '🤑', wie: 'Groepje profiteurs', als: () => false,
+    vraag: 'Zes man staan aan de toonbank. "We hoorden dat je hier altijd alles gratis krijgt als je een beetje zielig kijkt. Klopt dat?" Ze kijken heel zielig.',
+    a: [['Ach, vooruit dan.', () => { ge(-6 * PRIJS); S.lief = (S.lief || 0) + 2; return `Ze eten zich rond en vertrekken zonder te betalen. − € ${6 * PRIJS}. En morgen nemen ze hun neven mee…`; }],
+      ['Nee, hier betaal je gewoon.', () => { S.lief = Math.max(0, (S.lief || 0) - 3); rep(-1); return '"Pff, vroeger was het hier leuker." Ze gaan weg. De rest van de zaak knikt goedkeurend.'; }],
+      ['Gratis bestaat niet, maar wel afwassen.', () => { S.lief = Math.max(0, (S.lief || 0) - 2); oberTempo(1.1); return 'Twee blijven er zowaar. Ze wassen af in ruil voor een punt pizza.'; }] ] },
+  { id: 'personeelBoos', ik: '😤', wie: 'De ober en Mario', als: () => false,
+    vraag: '"Baas, even serieus. Jij geeft alles weg, maar wíj werken ons een ongeluk. Waar blijft onze fooi? Zo kunnen we niet doorgaan."',
+    a: [['Jullie hebben gelijk: € 40 bonus.', () => { ge(-40); S.lief = Math.max(0, (S.lief || 0) - 2); return 'Ze grijnzen. "Grazie, baas!" Ze werken weer met plezier.'; }],
+      ['De klant is koning, jongens.', () => { oberTempo(0.8); kokTraag(); return 'Ze mopperen en werken vanavond een stuk trager. Koning klant moet maar wachten.'; }],
+      ['Vanaf nu is iedereen gewoon klant.', () => { S.lief = 0; return '"Eindelijk!" Mario hangt een bordje op: GRATIS BESTAAT NIET.'; }] ] },
+  { id: 'boekhouder', ik: '🧮', wie: 'Je boekhouder', als: () => false,
+    vraag: () => `Je boekhouder schuift een papier over tafel. "Ik zie veel… cadeautjes. Gratis pizza's, kortingen, rondjes van de zaak. Gezellig hoor, maar populariteit betaalt de huur niet. Je zit al op ${Math.round(S.rep)}."`,
+    a: [['Je hebt gelijk, ik let beter op.', () => { S.lief = 0; return 'Hij knikt tevreden en rekent € 0 voor dit advies. Een wonder.'; }],
+      ['Gelukkige klanten komen terug!', () => { ge(-50); return '"Dat zal best. Mijn rekening komt ook terug." − € 50 voor het gesprek.'; }],
+      ['Wil je een gratis pizza?', () => { ge(-PRIJS); S.lief = (S.lief || 0) + 1; return 'Hij zucht diep, eet de pizza op en schrijft "hopeloos" in zijn map.'; }] ] },
   // ---- tegenvallers: vaker naarmate er meer geld in de kassa zit ----
   { id: 'luigiJaloers', ik: '🕶️', portret: 3, rij: 2, wie: 'Luigi van de overkant', als: () => false, // via S.verplicht (eindeDag: veel geld)
     vraag: 'Luigi leunt op je toonbank. "Ciao, vicino… Ik hoor jouw kassa de hele dag rinkelen. Dat is MIJN geld. Mijn klanten. Dat kan zo niet doorgaan."',
@@ -1386,7 +1404,8 @@ function toonVraag(v) {
   k.innerHTML = `<div class="vraagik">${ik}</div><div class="vraagwie">${esc(v.wie)}</div><p class="vraagtekst">"${esc(typeof v.vraag == 'function' ? v.vraag() : v.vraag)}"</p>
     ${v.a.map(([t], i) => `<button class="antwoord" data-i="${i}"><b>${'ABC'[i]}</b> ${esc(t)}</button>`).join('')}`;
   k.querySelectorAll('[data-i]').forEach((b) => b.onclick = () => {
-    const uit = v.a[+b.dataset.i][1](); bewaar(); tekenKnoppen();
+    const g0 = S.geld, r0 = S.rep, z0 = vandaag.gezellig, f0 = vandaag.fooi; const uit = v.a[+b.dataset.i][1](); // vrijgevig = geld eraf voor blije klanten: dat wordt bijgehouden (S.lief)
+    if (S.geld < g0 - 0.5 && (S.rep > r0 || vandaag.gezellig > z0 || vandaag.fooi > f0)) S.lief = (S.lief || 0) + 1; bewaar(); tekenKnoppen();
     k.innerHTML = `<div class="vraagik">${ik}</div>${uit == 'UITLEG' ? `<p class="vraagtekst"><b>Zo maak je een nieuwe pizza:</b></p>${PIZZA_UITLEG}<button class="groot" id="laatzien">📖 Laat zien</button>` : `<p class="vraagtekst">${esc(uit)}</p>`}
       <button class="groot" id="vraagverder" style="margin-top:8px">Verder</button>`;
     $('vraagverder').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; if (bezoeker) bezoeker.st = 'uit'; if (naVraag) { const f = naVraag; naVraag = null; f(); } };

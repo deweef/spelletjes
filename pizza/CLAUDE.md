@@ -224,3 +224,6 @@ komt op tijd); populariteit stijgt steeds moeilijker (`repRem` in `rep`: boven 6
 geld: 'ovenkapot', 'energie', 'lekkage', 'huisbaas' (verhoogt `S.huur`, max. eens per 14 dagen). Jaloerse Luigi ('luigiJaloers', via
 `S.verplicht` in `eindeDag` bij > €1000). Vaste bezoeken in `openDeuren`: Gerrit 1-2 dagen na het ophangen van een schilderij (`S.gerritNa`, daarna om
 de 4 dagen tot het goede antwoord), Luigi op dag 5 (`S.luigiKwam`). Getest 30 dagen: populariteit 30-58, Gerrit en Luigi komen langs.
+Te vrijgevig (`S.lief`): een antwoord dat geld kost en populariteit, gezelligheid of fooi oplevert telt +1 (in `toonVraag`); elke avond −0,3.
+Vanaf 3: kans op 'profiteurs' (willen gratis eten), 'personeelBoos' (ober en Mario willen ook wat) of 'boekhouder', via `S.verplicht`.
+Zo is het klantvriendelijkste antwoord niet altijd het beste.
