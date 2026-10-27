@@ -133,7 +133,7 @@
   #bak button { border: 2px solid #c9a873; background: #fff; border-radius: 10px; padding: 3px 2px; font: 600 10.5px/1.1 system-ui, sans-serif; color: #3a2414; cursor: pointer; display: flex; flex-direction: column; align-items: center; min-width: 0; }
   #bak button:disabled { opacity: .4; }
   #bak button small { opacity: .7; font-weight: 400; }
-  .ing { width: 40px; height: 40px; background: url(pizza/ingredienten.png) 0 0 / 800px 40px no-repeat; }
+  .ing { width: 40px; height: 40px; background: url(pizza/beleg.png) 0 0 / 800px 40px no-repeat; } /* pizza/beleg.png (Gemini), vroeger pizza/ingredienten.png (Kenney) */
   .kaart input[type=text] { font: 700 16px system-ui, sans-serif; padding: 7px 9px; border-radius: 9px; border: 2px solid #c9a873; background: #fff; color: #3a2414; min-width: 0; flex: 1; }
   @media (max-width: 560px) {
     #maak { grid-template-columns: minmax(0, 1fr); } #maak canvas#bodem { max-width: 210px; }
@@ -537,7 +537,7 @@ function stapOven(o, dt) {
     if (k.fase == 'luik') { if (beweeg(k, [LUIK_X, 2.25], 2.6, dt)) k.fase = 'door'; return; } // door de keuken naar het luik
     if (k.fase == 'door') { if (beweeg(k, [LUIK_X, KEUKEN + 0.7], 2.6, dt)) k.fase = 'zaal'; return; }
     const p = stoelPlekken(m.tafel)[m.stoel] || { sx: m.x, sy: m.y, kant: 0 }, [rx, ry] = RICHTING[p.kant];
-    if (loopNaar(k, [p.sx - rx * 0.8 + 0.35, p.sy - ry * 0.8], 2.6, dt)) { k.st = 'praat'; k.t = 0; zeg(k, R(ZEG.kok)); k.kijk = Math.atan2(m.y - k.y, m.x - k.x); }
+    if (loopNaar(k, vrijBij([p.sx - rx * 0.8 + 0.35, p.sy - ry * 0.8]), 2.6, dt)) { k.st = 'praat'; k.t = 0; zeg(k, R(ZEG.kok)); k.kijk = Math.atan2(m.y - k.y, m.x - k.x); }
   } else if (k.st == 'praat') {
     const m = k.klant; k.t += dt;
     if (!m || !mensen.includes(m)) { k.st = 'terug'; k.fase = 'zaal'; return; }
@@ -641,7 +641,7 @@ function eindeDag() {
   const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
   S.rood = S.geld < 0 ? (S.rood || 0) + 1 : 0; // 3 avonden achter elkaar rood = failliet
-  const koningNu = !S.koning && S.zaken.length >= 2 && torenOpen() && S.geld >= 10000; if (koningNu) S.koning = S.dag; // het grote doel
+  const koningNu = !S.koning && S.zaken.length >= 4 && torenOpen() && S.geld >= 10000; if (koningNu) S.koning = S.dag; // het grote doel
   const oud = S.dag; S.dag++; bewaar();
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
     ${S.rood ? `<p style="color:#b33a1e"><b>⚠️ Je staat rood: − € ${Math.round(-S.geld)}. ${S.rood >= 3 ? 'Drie dagen achter elkaar…' : `Sta je nog ${3 - S.rood} avond${3 - S.rood > 1 ? 'en' : ''} rood, dan ben je failliet! Verkoop iets, leen geld of verdien het terug.`}</b></p>` : ''}
@@ -1087,9 +1087,9 @@ function nieuweBestelling() {
 function stapBezorg(dt) {
   if (!S.bezorg || !bezorger) return; const z = bezorger, snel = 3.2;
   if (modus == 'open') { volgendeBestelling -= dt; if (volgendeBestelling <= 0) { nieuweBestelling(); volgendeBestelling = (14 + Math.random() * 14) / ((0.5 + S.rep / 100) * vandaag.aankomst * (klusLoopt() && S.klus.k == 'scooter' ? 1.6 : 1)); } }
-  if (z.st == 'thuis') { const b = bezorgingen.find((b) => !b.af && !b.weg && b.klaar >= b.n); loopNaar(z, [W - 1.3, KEUKEN + 0.6], 2, dt); if (b) { z.b = b; z.st = 'halen'; } }
+  if (z.st == 'thuis') { const b = bezorgingen.find((b) => !b.af && !b.weg && b.klaar >= b.n); loopNaar(z, vrijBij([W - 1.3, KEUKEN + 0.6]), 2, dt); if (b) { z.b = b; z.st = 'halen'; } }
   else if (z.st == 'halen') { const nog = klaar.filter((x) => x.bezorg == z.b); if (!nog.length) { z.st = 'deur'; z.draagt = z.b.n; z.b.weg = true; return; }
-    const hier = nog[0].oven || 0, [ux] = UITGIFTE(hier); if (loopNaar(z, [ux + 0.9, KEUKEN + 0.4], snel, dt)) klaar = klaar.filter((x) => !(x.bezorg == z.b && (x.oven || 0) == hier)); }
+    const hier = nog[0].oven || 0, [ux] = UITGIFTE(hier); if (loopNaar(z, vrijBij([ux + 0.9, KEUKEN + 0.4]), snel, dt)) klaar = klaar.filter((x) => !(x.bezorg == z.b && (x.oven || 0) == hier)); }
   else if (z.st == 'deur') { if (loopNaar(z, [DEUR.x + 0.5, H + 0.6], snel, dt)) { z.st = 'rit'; z.t = 0; z.v = VOORVAL.find((v) => Math.random() < v.kans) || null; z.ritT = 8 + Math.random() * 8 + (z.v ? z.v.extra : 0); ding(180, 0.25, 'sawtooth', 0.03); } }
   else if (z.st == 'rit') { z.t += dt; z.x = -9; if (z.t >= z.ritT) { // afgeleverd: afrekenen bij de deur
     const b = z.b, koud = klok - b.t0 > KOUD, v = z.v; let geld = b.prijs * TELT * (koud ? 0.5 : 1) * (v && v.maal || 1), fooi = koud ? 0 : (1 + Math.random() * 2) * TELT * (v ? v.fooi : 1);
@@ -1098,7 +1098,7 @@ function stapBezorg(dt) {
     b.af = true; bezorgingen = bezorgingen.filter((x) => x != b); z.x = DEUR.x + 0.5; z.y = H + 0.6; z.draagt = 0; z.st = 'terug';
     muntjes.push({ x: DEUR.x + 0.5, y: H - 0.6, t: 1.6, tekst: (koud ? '🥶 Koud! ' : '🛵 ') + '+€' + Math.round(geld + fooi) }); kassa();
     if (v) meld('🛵 ' + v.tekst, 3500); } }
-  else if (z.st == 'terug') { if (loopNaar(z, [W - 1.3, KEUKEN + 0.6], snel, dt)) z.st = 'thuis'; }
+  else if (z.st == 'terug') { if (loopNaar(z, vrijBij([W - 1.3, KEUKEN + 0.6]), snel, dt)) z.st = 'thuis'; }
 }
 // pizza/bezorger.png (uit pizza/bezorger-gemini.jpg, vakjes 170 x 192): 0-6 lopen opzij met pizzadozen, 7-10 lopen van achteren, 11 staan;
 // pizza/scooter.png = op de scooter (rijdt over het balkje linksboven)
@@ -1300,7 +1300,7 @@ function toonAchterkamer() {
     <div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van Gerrit Gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
       Hij betaalt tot <b>€ ${o.prijs}</b> (hoe echter, hoe meer).<br><small>Uiterlijk ${esc(datumLang(o.tot))}.</small></div></div>
     ${klaar.length ? `<p><b>Staan te drogen of klaar om op te halen:</b> ${klaar.map((f) => `${esc(SCHILDERIJEN[f.v])} (${Math.round(f.q * 100)}% echt${f.dag >= S.dag ? ', nog nat' : ''})`).join(', ')}</p>` : ''}
-    <div class="rij"><button class="knop rood" id="schilder" ${S.geld < DOEK ? 'disabled' : ''}>🎨 Schilderen (€ ${DOEK} verf en doek)</button></div>
+    <div class="rij"><button class="knop rood" id="schilder" ${S.geld < DOEK || (S.vervalsingen || []).some((f) => f.dag == S.dag) ? 'disabled' : ''}>🎨 ${(S.vervalsingen || []).some((f) => f.dag == S.dag) ? 'Vandaag al geschilderd: morgen weer' : `Schilderen (€ ${DOEK} verf en doek)`}</button></div>
     <div class="opdracht"><span class="pers" style="background-position:0 0"></span><div><b>De drukpers</b><br>${!S.pers ? `Een oude drukpers in de hoek. Daarmee kun je… kortingsbonnen van Luigi drukken. Dan lopen zijn klanten naar jou.`
       : S.bonnen && S.bonnen.tot >= S.dag ? `Er zijn bonnen in omloop (${Math.round(S.bonnen.q * 100)}% echt), nog tot ${esc(datumLang(S.bonnen.tot))}. Luigi's klanten komen naar jou!` : `Klaar om te drukken. Valse bonnen "50% korting bij Luigi" (die in jouw zaak gelden) lokken zijn klanten drie dagen naar jou.`}
       <br><small>Hoe slordiger gedrukt, hoe sneller Luigi het doorheeft.</small></div></div>
@@ -1356,8 +1356,8 @@ function toonAtelier(v) {
     S.vervalsingen = S.vervalsingen || []; S.vervalsingen.push({ v, q, dag: S.dag }); bewaar();
     $('achterkaart').innerHTML = `<h1>${q > 0.8 ? '🤩 Meesterlijk!' : q > 0.55 ? '🙂 Niet slecht' : '😬 Hmm…'}</h1><p>Je namaak lijkt voor <b>${Math.round(q * 100)}%</b> op het echte schilderij.
       ${q > 0.8 ? 'Zelfs Vincent zou twijfelen.' : q > 0.55 ? 'Van een afstandje gaat het wel.' : 'Ziet eruit alsof een kleuter het heeft gedaan. Met wanten aan.'}</p>
-      <p class="buurt">Het doek moet een nacht drogen. Daarna komt Gerrit Gleufhoed het ophalen.</p><div class="rij"><button class="knop" id="achterterug">Terug</button></div>`;
-    $('achterterug').onclick = toonAchterkamer;
+      <p class="buurt">Het doek moet een nacht drogen. Daarna komt Gerrit Gleufhoed het ophalen. Snel, voor iemand iets merkt: terug naar je pizzeria!</p><div class="rij"><button class="knop rood" id="achterterug">🍕 Terug naar de pizzeria</button></div>`;
+    $('achterterug').onclick = () => $('achter').classList.add('verborgen'); // klaar = de achterkamer uit (één schilderij per dag, zie toonAchterkamer)
   }
   $('ateliereklaar').onclick = klaar;
 }
@@ -1383,8 +1383,8 @@ function toonDrukken() {
     S.bonnen = { q: gem, tot: S.dag + 3 }; bewaar();
     $('achterkaart').innerHTML = `<h1>${gem > 0.75 ? '🤩 Niet van echt te onderscheiden!' : gem > 0.45 ? '🙂 Gaat wel' : '😬 Vol inktvlekken…'}</h1>
       <p>Je bonnen zijn voor <b>${Math.round(gem * 100)}%</b> echt. Een student deelt ze uit in de stad. Luigi's klanten komen drie dagen naar jou!</p>
-      <div class="rij"><button class="knop" id="achterterug">Terug</button></div>`;
-    $('achterterug').onclick = toonAchterkamer;
+      <div class="rij"><button class="knop rood" id="achterterug">🍕 Terug naar de pizzeria</button></div>`;
+    $('achterterug').onclick = () => $('achter').classList.add('verborgen');
   };
 }
 // Luigi's sabotage (S.sabotage, de dag erna): rat in de zaak (tik erop om hem te vangen), stinkbom (minder klanten), keuringsdienst getipt
@@ -1535,7 +1535,7 @@ function maakMens(tafel, stoel, soort = kiesSoort()) {
   const d = SOORT[soort];
   const m = { x: DEUR.x + 0.5, y: H + 0.4, tafel, stoel, st: 'loop', t: 0, soort,
     kleur: R(d.kleur || KLEUR), huid: R(HUID), haar: R(d.haar || HAAR), lang: Math.random() < 0.5, pet: d.pet && Math.random() < 0.6, helm: d.helm, hoed: d.hoed };
-  if (tafel) m.doel = stoelen(tafel)[stoel];
+  if (tafel) { const p = stoelPlekken(tafel)[stoel]; m.doel = p ? [p.stoel.x + 0.5, p.stoel.y + 0.5] : stoelen(tafel)[stoel]; } // naar de echte stoel lopen; bij het zitten naar de getekende plek
   if (FIGUREN[soort]) m.fig = R(FIGUREN[soort]); // getekend figuur (pizza/klanten.png)
   return m;
 }
@@ -1559,25 +1559,33 @@ function maakBezet() {
   for (const s of S.spullen) {
     blok(s.x + 0.05, s.y + 0.05, s.x + SPUL[s.t].w - 0.05, s.y + SPUL[s.t].h - 0.05);
   }
+  // bereik = de vrije cellen waar je vanaf de deur kunt komen (geen ingesloten hokjes tussen tafel en stoelen)
+  bereik = new Uint8Array(RW * RH); const [di, dj] = [Math.floor((DEUR.x + 0.5) * R2), RH - 1], rij = [];
+  for (let i = Math.max(0, di - 2); i <= Math.min(RW - 1, di + 2); i++) if (!bezet[dj * RW + i]) { bereik[dj * RW + i] = 1; rij.push(dj * RW + i); }
+  while (rij.length) { const c = rij.pop(), ci = c % RW, cj = Math.floor(c / RW);
+    for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ni = ci + a, nj = cj + b, n = nj * RW + ni; if (ni < 0 || nj < 0 || ni >= RW || nj >= RH || bezet[n] || bereik[n]) continue; bereik[n] = 1; rij.push(n); } }
 }
+let bereik = null;
 const cel = (x, y) => [Math.max(0, Math.min(RW - 1, Math.floor(x * R2))), Math.max(KEUKEN * R2, Math.min(RH - 1, Math.floor(y * R2)))];
 function vrijeLijn(a, b, va, vb) { // kan je in een rechte lijn van a naar b zonder iets te raken? (va, vb = start- en eindcel mogen bezet zijn)
   const d = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.ceil(d / 0.15);
   for (let k = 1; k < n; k++) { const [i, j] = cel(a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n), c = j * RW + i; if (bezet[c] && c != va && c != vb) return false; }
   return true;
 }
+const lijnVrij = (a, b) => { if (!bezet) maakBezet(); const [ai, aj] = cel(...a), [bi, bj] = cel(...b); return vrijeLijn(a, b, aj * RW + ai, bj * RW + bi); };
 function zoekPad(van, naar) {
   if (!bezet) maakBezet();
   // binnen het raster blijven (de deur zit onder de onderste rij): begin- en eindpunt erbuiten komen er los bij
   const binnen = (p) => [Math.max(0.25, Math.min(W - 0.25, p[0])), Math.max(KEUKEN + 0.25, Math.min(H - 0.25, p[1]))];
   const a = binnen(van), b = binnen(naar), [ai, aj] = cel(...a), [bi, bj] = cel(...b), start = aj * RW + ai, eind = bj * RW + bi;
+  if (!bereik[start] && !zoekPad.uit) { const e = vrijBij(a); if (e != a) { zoekPad.uit = true; const rest = zoekPad(e, naar); zoekPad.uit = false; return [e, ...rest]; } } // staat midden in iets: eerst eruit
   const kost = new Float32Array(RW * RH).fill(1e9), vorige = new Int32Array(RW * RH).fill(-1), dicht = new Uint8Array(RW * RH);
   const h = (c) => { const dx = Math.abs(c % RW - bi), dy = Math.abs(Math.floor(c / RW) - bj); return Math.max(dx, dy) + 0.414 * Math.min(dx, dy); };
   const vrijCel = (x) => !bezet[x] || x == eind || x == start;
-  const open = [start]; kost[start] = 0;
+  const open = [start]; kost[start] = 0; let dichtst = start; // dichtst = de bereikbare cel het dichtst bij het doel (als er geen weg is)
   while (open.length) {
     let bk = 0; for (let k = 1; k < open.length; k++) if (kost[open[k]] + h(open[k]) < kost[open[bk]] + h(open[bk])) bk = k;
-    const c = open.splice(bk, 1)[0]; if (c == eind) break; if (dicht[c]) continue; dicht[c] = 1;
+    const c = open.splice(bk, 1)[0]; if (c == eind) break; if (dicht[c]) continue; dicht[c] = 1; if (h(c) < h(dichtst)) dichtst = c;
     const ci = c % RW, cj = Math.floor(c / RW);
     for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
       if (!di && !dj) continue;
@@ -1588,8 +1596,10 @@ function zoekPad(van, naar) {
       if (k < kost[n]) { kost[n] = k; vorige[n] = c; open.push(n); }
     }
   }
-  if (vorige[eind] < 0 && eind != start) return [naar]; // geen weg: dan maar rechtdoor
-  const cellen = []; for (let c = eind; c != start && c >= 0; c = vorige[c]) cellen.unshift(c);
+  let doelCel = eind; // geen weg: dan naar de dichtstbijzijnde plek die wel kan (niet rechtdoor over de tafels), het laatste stukje rechtdoor
+  if (vorige[eind] < 0 && eind != start) { if (dichtst == start) { const e = vrijBij(a); return e != a ? [e, naar] : [naar]; } doelCel = dichtst; }
+  const cellen = []; for (let c = doelCel; c != start && c >= 0; c = vorige[c]) cellen.unshift(c);
+  if (doelCel != eind) cellen.push(eind);
   const punten = [a, ...cellen.slice(0, -1).map((c) => [(c % RW + 0.5) / R2, (Math.floor(c / RW) + 0.5) / R2]), b];
   const strak = [punten[0]]; // strak trekken: steeds het verste punt dat je nog in een rechte lijn haalt
   for (let k = 0; k < punten.length - 1;) { let v = punten.length - 1; while (v > k + 1 && !vrijeLijn(punten[k], punten[v], start, eind)) v--; strak.push(punten[v]); k = v; }
@@ -1598,13 +1608,21 @@ function zoekPad(van, naar) {
   if (b[0] != naar[0] || b[1] != naar[1]) pad.push(naar); // en naar buiten
   return pad;
 }
+function vrijBij(p) { // de dichtstbijzijnde plek bij p waar niets staat (voor wachtplekken)
+  if (!bezet) maakBezet(); const [i0, j0] = cel(p[0], p[1]);
+  for (let d = 0; d < 14; d++) for (let dj = -d; dj <= d; dj++) for (let di = -d; di <= d; di++) { if (Math.max(Math.abs(di), Math.abs(dj)) != d) continue;
+    const i = i0 + di, j = j0 + dj; if (i < 0 || j < KEUKEN * R2 || i >= RW || j >= RH || bezet[j * RW + i] || !bereik[j * RW + i]) continue; return d ? [(i + 0.5) / R2, (j + 0.5) / R2] : p; }
+  return p;
+}
 function loopNaar(o, doel, snel, dt) { // als beweeg, maar om de tafels heen
-  if (!o.pad || o.padDoel[0] != doel[0] || o.padDoel[1] != doel[1]) { o.pad = zoekPad([o.x, o.y], doel); o.padDoel = [...doel]; }
+  // opnieuw zoeken als het doel anders is, of als hij intussen ergens anders is geweest (anders loopt hij een oude route vanaf de verkeerde plek)
+  if (!o.pad || o.padDoel[0] != doel[0] || o.padDoel[1] != doel[1] || !o.padPos || Math.hypot(o.x - o.padPos[0], o.y - o.padPos[1]) > 0.3) { o.pad = zoekPad([o.x, o.y], doel); o.padDoel = [...doel]; }
+  else if (o.pad.length > 1 && o.y > KEUKEN && !lijnVrij([o.x, o.y], o.pad[0])) o.pad = zoekPad([o.x, o.y], doel); // de weg naar het volgende tussenpunt is niet (meer) vrij (het laatste stukje naar een stoel mag wel)
   if (o.pad.length > 1) { // tussenpunt: doorlopen zonder de loopanimatie te onderbreken
-    const lt = o.loopT; if (beweeg(o, o.pad[0], snel, dt)) { o.pad.shift(); o.loopT = lt; } return false;
+    const lt = o.loopT; if (beweeg(o, o.pad[0], snel, dt)) { o.pad.shift(); o.loopT = lt; } o.padPos = [o.x, o.y]; return false;
   }
-  if (beweeg(o, o.pad[0] || doel, snel, dt)) { o.pad = null; return true; }
-  return false;
+  if (beweeg(o, o.pad[0] || doel, snel, dt)) { o.pad = null; o.padPos = null; return true; }
+  o.padPos = [o.x, o.y]; return false;
 }
 function beweeg(o, doel, snel, dt) {
   const dx = doel[0] - o.x, dy = doel[1] - o.y, d = Math.hypot(dx, dy);
@@ -1691,7 +1709,7 @@ function stap(dt) {
       if (!keus) { // niks lekkers op de kaart: weer weg
         m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; zeg(m, R(ZEG.niks)); tel.niks++; S.rep = Math.max(0, S.rep - 1);
       } else {
-        m.st = 'wacht'; m.t = 0; m.pizza = keus.p; m.oordeel = keus.o;
+        m.st = 'wacht'; m.t = 0; m.pizza = keus.p; m.oordeel = keus.o; { const p = stoelPlekken(m.tafel)[m.stoel]; if (p) { m.x = p.sx; m.y = p.sy; } }
         if (Math.random() < 0.25) { const g = gezellig(m.tafel); if (g >= 4) zeg(m, R(ZEG.gezellig)); else if (g <= 1) zeg(m, R(ZEG.kaal)); }
       }
       bestel(m.groep);
@@ -1736,12 +1754,12 @@ function stap(dt) {
       const nog = borden.filter((b) => klaar.includes(b));
       if (!nog.length) { ob.fase = 'brengen'; ob.draagt = borden.length; continue; }
       const hier = nog[0].oven || 0, [ux] = UITGIFTE(hier);
-      if (loopNaar(ob, [ux + 0.9, KEUKEN + 0.4], 3.4 * vandaag.oberSnel, dt)) { klaar = klaar.filter((b) => !(nog.includes(b) && (b.oven || 0) == hier)); ob.draagt = borden.filter((b) => !klaar.includes(b)).length; }
+      if (loopNaar(ob, vrijBij([ux + 0.9, KEUKEN + 0.4]), 3.4 * vandaag.oberSnel, dt)) { klaar = klaar.filter((b) => !(nog.includes(b) && (b.oven || 0) == hier)); ob.draagt = borden.filter((b) => !klaar.includes(b)).length; }
       continue;
     }
     const m = borden[0].m;
     const p = stoelPlekken(m.tafel)[m.stoel] || { sx: m.x, sy: m.y, kant: 0 }, [rx, ry] = RICHTING[p.kant]; // de ober komt achter de stoel staan
-    if (loopNaar(ob, [p.sx - rx * 0.8, p.sy - ry * 0.8], 3.4 * vandaag.oberSnel, dt)) {
+    if (loopNaar(ob, vrijBij([p.sx - rx * 0.8, p.sy - ry * 0.8]), 3.4 * vandaag.oberSnel, dt)) {
       m.st = 'eet'; m.wacht = m.t; tel.wacht += m.t; tel.wachtN++; m.t = 0; borden.shift(); ob.draagt = borden.length; ob.serveer = 0.6;
       if (!borden.length) ob.taak = null;
       if (Math.random() < 0.35) zeg(m, R(ZEG.eten));
@@ -1759,7 +1777,7 @@ let wachtrij = [];
 function oberRust(ob, dt) {
   ob.rust = (ob.rust || 0) + dt;
   if (!ob.plek || ob.rust > ob.plekT) {
-    ob.plek = ob.thuis;
+    ob.plek = vrijBij(ob.thuis);
     if (Math.random() < 0.5) for (let k = 0; k < 20; k++) { const x = Math.floor(Math.random() * W), y = KEUKEN + 1 + Math.floor(Math.random() * (H - KEUKEN - 2));
       if (!op(x, y) && !(y == MAT.y && x >= MAT.x && x < MAT.x + MAT.w) && Math.abs(x + 0.5 - LUIK_X) > 0.6) { ob.plek = [x + 0.5, y + 0.5]; break; } }
     ob.plekT = ob.rust + 4 + Math.random() * 6;
@@ -1875,14 +1893,15 @@ const VLOEREN = new Image(); VLOEREN.onload = () => tekenAchter(); VLOEREN.src =
 tekenAchter();
 
 function rondRect(x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
-function pizza(x, y, r, half) {
+function pizza(x, y, r, half, p) {
+  const f = kleinePizza(p); if (f) { g.drawImage(f, x - r * 1.08, y - r * 1.08, r * 2.16, r * 2.16); if (half) { g.fillStyle = '#fff'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, r + 1.5, -0.3, 2.2); g.fill(); } return; }
   g.fillStyle = '#e0a458'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
   g.fillStyle = '#c8371d'; g.beginPath(); g.arc(x, y, r * 0.82, 0, 7); g.fill();
   g.fillStyle = '#ffe9a8'; for (let i = 0; i < 6; i++) { const a = i * 1.05 + 0.4; g.beginPath(); g.arc(x + Math.cos(a) * r * 0.45, y + Math.sin(a) * r * 0.45, r * 0.18, 0, 7); g.fill(); }
   g.fillStyle = '#3c8d2f'; for (let i = 0; i < 3; i++) { const a = i * 2.1 + 1; g.beginPath(); g.arc(x + Math.cos(a) * r * 0.25, y + Math.sin(a) * r * 0.25, r * 0.1, 0, 7); g.fill(); }
   if (half) { g.fillStyle = '#fff'; g.beginPath(); g.moveTo(x, y); g.arc(x, y, r + 1, -0.3, 2.2); g.fill(); }
 }
-function bord(x, y, vol, half) { g.save(); g.translate(x, y); g.scale(1.4, 1.4); x = 0; y = 0; g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.arc(x + 1, y + 2, 10, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 10, 0, 7); g.fill(); g.strokeStyle = '#d8d8d8'; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 7.5, 0, 7); g.stroke(); if (vol) pizza(x, y, 7, half); g.restore(); }
+function bord(x, y, vol, half, p) { g.save(); g.translate(x, y); g.scale(1.4, 1.4); x = 0; y = 0; g.fillStyle = 'rgba(0,0,0,.15)'; g.beginPath(); g.arc(x + 1, y + 2, 10, 0, 7); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(x, y, 10, 0, 7); g.fill(); g.strokeStyle = '#d8d8d8'; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 7.5, 0, 7); g.stroke(); if (vol) pizza(x, y, 7.6, half, p); g.restore(); }
 // een poppetje van bovenaf dat de kant van `kijk` op kijkt: schouders, armpjes, hoofd met haar aan de achterkant
 function poppetje(p, opties = {}) {
   const kijk = p.kijk ?? Math.PI / 2, loop = p.loopT ? Math.sin(p.loopT * 12) : 0;
@@ -2086,18 +2105,19 @@ function teken(nu) {
   g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(ux * T - 12, ty + 4, 11, 5, 0, 0, 7); g.fill(); // belletje
   g.fillStyle = '#d4a017'; g.beginPath(); g.arc(ux * T - 14, ty + 2, 10, Math.PI, 0); g.fill(); g.fillStyle = '#a77d0c'; g.fillRect(ux * T - 26, ty + 1, 24, 4);
   g.fillStyle = '#fff3b0'; g.beginPath(); g.arc(ux * T - 17, ty - 3, 3, 0, 7); g.fill(); g.fillStyle = '#a77d0c'; g.beginPath(); g.arc(ux * T - 14, ty - 9, 2.5, 0, 7); g.fill();
-  klaar.filter((b) => (b.oven || 0) == i).forEach((b, j) => { const x = (ux + 0.1 + (j % 4) * 0.48) * T, y = ty - Math.floor(j / 4) * 6; g.fillStyle = '#eee'; g.beginPath(); g.arc(x, y, 12, 0, 7); g.fill(); pizza(x, y, 9.5); });
+  klaar.filter((b) => (b.oven || 0) == i).forEach((b, j) => { const x = (ux + 0.1 + (j % 4) * 0.48) * T, y = ty - Math.floor(j / 4) * 6; g.fillStyle = '#eee'; g.beginPath(); g.arc(x, y, 12, 0, 7); g.fill(); pizza(x, y, 9.5, false, b.m && b.m.pizza); });
   }
   g.fillStyle = '#fff'; g.font = 'bold 15px system-ui'; g.textAlign = 'center';
   g.fillText('PIZZERIA' + (speler ? ' ' + speler.toUpperCase() : '') + (S.zaak && BUURT[S.buurt] ? ' · ' + BUURT[S.buurt].kort : ''), WW / 2 - 170, H * T + 20); g.fillText('🍕', WW / 2 + 170, H * T + 21);
 
   // spullen
   const zitten = mensen.filter((m) => m.st == 'wacht' || m.st == 'eet');
-  // eerst de stoelen boven en naast de tafels, dan tafels en de rest (van boven naar beneden), dan de stoelen onder de tafels (die staan ervoor)
   const lijst = S.spullen.filter((s) => !(sleep && sleep.bewogen && s == sleep.s)), kv = indeling().kantVan;
-  for (const s of lijst) if (s.t == 'stoel' && kv.get(s) != 1) tekenSpul(s, nu, zitten);
-  for (const s of [...lijst].filter((s) => s.t != 'stoel').sort((a, b) => a.y + SPUL[a.t].h - b.y - SPUL[b.t].h)) tekenSpul(s, nu, zitten);
-  for (const s of lijst) if (s.t == 'stoel' && kv.get(s) == 1) tekenSpul(s, nu, zitten);
+  // de spullen gaan samen met de mensen in één lijst van achter naar voor (op de onderkant), zodat wie achter een tafel loopt er niet overheen
+  // getekend wordt; een stoel onder de tafel net na de tafel, een stoel boven of naast de tafel net ervoor
+  const spulItems = lijst.map((s) => ({ y: s.t == 'stoel' ? s.y + 1 + (kv.get(s) == 1 ? 0.02 : -0.02) : s.y + SPUL[s.t].h, f: () => { g.save(); g.translate(ox, oy); g.scale(schaal, schaal); tekenSpul(s, nu, zitten); g.restore(); } }));
+  g.restore();
+  const bovenop = () => { g.save(); g.translate(ox, oy); g.scale(schaal, schaal);
   if (sleep && sleep.bewogen) { // een spul dat versleept wordt: half doorzichtig, groen = past, rood = geen plek
     const d = SPUL[sleep.s.t], ok = vrij(sleep.x, sleep.y, d.w, d.h, sleep.s);
     g.globalAlpha = 0.7; tekenSpul({ ...sleep.s, x: sleep.x, y: sleep.y }, nu, []); g.globalAlpha = 1;
@@ -2109,12 +2129,13 @@ function teken(nu) {
     g.strokeStyle = ok ? '#2e9d52' : '#d63031'; g.lineWidth = 4; g.strokeRect(hover.x * T + 2, hover.y * T + 2, d.w * T - 4, d.h * T - 4);
   }
   if (gekozen) { g.strokeStyle = '#fff'; g.lineWidth = 4; g.setLineDash([8, 6]); g.strokeRect(gekozen.x * T + 2, gekozen.y * T + 2, SPUL[gekozen.t].w * T - 4, SPUL[gekozen.t].h * T - 4); g.setLineDash([]); }
-  g.restore();
+  g.restore(); };
 
   // koks, mensen en obers (in schermpixels, gesorteerd op y)
   const koks = ovs.map((o) => ({ y: o.kok.y, f: () => kok(o.kok, nu) }));
-  const alles = [...koks, ...mensen.map((m) => ({ y: m.y, f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : []), ...(man ? [{ y: man.y, f: tekenManager }] : []), ...(bezorger && bezorger.st != 'rit' ? [{ y: bezorger.y, f: tekenBezorger }] : [])].sort((a, b) => a.y - b.y);
+  const alles = [...spulItems, ...koks, ...mensen.map((m) => ({ y: zitY(m), f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : []), ...(man ? [{ y: man.y, f: tekenManager }] : []), ...(bezorger && bezorger.st != 'rit' ? [{ y: bezorger.y, f: tekenBezorger }] : [])].sort((a, b) => a.y - b.y);
   for (const a of alles) a.f();
+  bovenop(); // wat je versleept of neerzet, en de gekozen rand
   // muntjes en tekstwolkjes
   g.textAlign = 'center';
   for (const c of muntjes) { g.globalAlpha = Math.min(1, c.t * 2); g.fillStyle = '#ffd23f'; g.strokeStyle = '#5a3a00'; g.lineWidth = 3 * schaal; g.font = `bold ${16 * schaal}px system-ui`; const x = ox + c.x * T * schaal, y = oy + (c.y - 0.5 - (1.2 - c.t) * 0.6) * T * schaal; g.strokeText(c.tekst, x, y); g.fillText(c.tekst, x, y); }
@@ -2231,8 +2252,15 @@ const LANG = new Image(); LANG.src = 'pizza/lange-tafels.png';
 const SCHILD = new Image(); SCHILD.src = 'pizza/schilderijen.png';
 const SCHILDERIJEN = ['Zonnebloemen', 'Sterrennacht', 'Meisje met de parel', 'Glimlachende dame', 'De schreeuw', 'Hollandse molen'];
 function tekenSchilderij(s, x, y) {
-  const v = (s.v || 0) % 6, k = 0.36, bw = 160 * k, bh = 160 * k, bx = x + (s.x == 0 ? 2 : T - bw - 2), by = y + T - bh - 4;
-  if (SCHILD.complete && SCHILD.naturalWidth) { metSchaduw(SCHILD, v * 160, 0, 160, 160, bx, by, bw, bh, 4); return; }
+  // aan de zijmuur: van opzij gezien, dus smal en schuin (zoals de muur zelf), een stukje boven de vloer, met een schaduwtje op de muur
+  const v = (s.v || 0) % 6, links = s.x == 0, h = 1.15 * T, by = y + T * 0.95 - h;
+  if (SCHILD.complete && SCHILD.naturalWidth) {
+    g.save(); g.translate(links ? -2 : WW + 2, by); g.transform(links ? 0.3 : -0.3, -0.12, 0, 1, 0, 0);
+    g.fillStyle = 'rgba(40,15,5,.35)'; g.fillRect(8, 6, 160 * h / 160, h); // schaduw
+    g.drawImage(SCHILD, v * 160, 0, 160, 160, 0, 0, h, h); g.restore();
+    g.fillStyle = 'rgba(40,15,5,.18)'; g.fillRect(links ? 0 : WW - 10, y + T * 0.9, 10, 4); // schaduw op de vloer
+    return; }
+  const bw = 0.55 * T, bx = x + (links ? 2 : T - bw - 2), bh = bw;
   g.fillStyle = '#b8892a'; g.fillRect(bx, by, bw, bh); g.fillStyle = '#d9b44a'; g.fillRect(bx + 5, by + 5, bw - 10, bh - 10);
 }
 const VERSIER = new Image(); VERSIER.src = 'pizza/versiering.png'; // kapstok, wijnrekje, wijnkast (pizza/kapstok-wijn-gemini.jpg), servieskast (pizza/kasten-gemini.jpg)
@@ -2286,7 +2314,7 @@ function tekenSpul(s, nu, zitten) {
   // borden: leeg (wachten) of met pizza (eten), op de tafel voor de stoel
   for (const m of zitten) if (m.tafel == s) {
     const p = stoelPlekken(s)[m.stoel]; if (!p) continue; const px = p.sx + RICHTING[p.kant][0] * 1.15, py = p.sy + RICHTING[p.kant][1] * 1.15;
-    bord(px * T, py * T, m.st == 'eet', m.st == 'eet' && m.t > ETEN / 2);
+    bord(px * T, py * T, m.st == 'eet', m.st == 'eet' && m.t > ETEN / 2, m.pizza);
   }
   if (s.kaars) {
     const kx = cx, ky = cy;
@@ -2296,6 +2324,8 @@ function tekenSpul(s, nu, zitten) {
     g.fillStyle = '#ffb627'; g.beginPath(); g.arc(kx, ky, 2.5 * fl, 0, 7); g.fill();
   }
 }
+const zitY = (m) => { // waar iemand in de tekenvolgorde komt: lopend = zijn voeten, zittend = net na zijn stoel
+  if (m.st != 'wacht' && m.st != 'eet') return m.y; const p = m.tafel && stoelPlekken(m.tafel)[m.stoel]; return p ? p.stoel.y + 1.05 : m.y; };
 function tekenMens(m, nu) {
   if (alsFiguur(m)) { if (voorTafel(m)) return; g.save(); g.translate(ox, oy); g.scale(schaal, schaal); tekenKlantFig(m, nu); g.restore(); return; }
   const [x, y] = naarScherm(m.x, m.y);
@@ -2441,6 +2471,12 @@ function toonKeuze(titel, lijst, r, knop) {
 
 // ---------- de menukaart: pizza's samenstellen (zoals in Pizza Connection) ----------
 const ING_IMG = new Image(); ING_IMG.src = 'pizza/ingredienten.png';
+// nieuwe pizza's (uit pizza/bodem-gemini.jpg en pizza/beleg-gemini.jpg): bodem met gesmolten kaas, en per ingrediënt een groepje beleg (128 x 128)
+const BODEM_IMG = new Image(); BODEM_IMG.src = 'pizza/bodem.png'; const BELEG_IMG = new Image(); BELEG_IMG.src = 'pizza/beleg.png';
+const pizzaFoto = new Map(); // kleine plaatjes van de pizza's op de kaart, voor op de borden en de uitgifte
+function kleinePizza(p) { if (!p || !p.stukjes || !(BODEM_IMG.complete && BODEM_IMG.naturalWidth && BELEG_IMG.complete && BELEG_IMG.naturalWidth)) return null;
+  const k = JSON.stringify(p.stukjes); let c = pizzaFoto.get(k); if (!c) { c = document.createElement('canvas'); c.width = c.height = 96; tekenPizzaOp(c, p); pizzaFoto.set(k, c); } return c; }
+for (const im of [BODEM_IMG, BELEG_IMG]) im.addEventListener('load', () => { pizzaFoto.clear(); if (!$('pizzas').classList.contains('verborgen')) bewerk ? tekenMaak() : toonKaart(); });
 ING_IMG.onload = () => { if (!$('pizzas').classList.contains('verborgen')) bewerk ? tekenMaak() : toonKaart(); };
 const NAMEN = ['Pizza Baas', 'Pizza Pittig', 'Pizza Bomba', 'Pizza Mamma Mia', 'Pizza Kapsalon', 'Pizza Hawaii', 'Pizza Vulcano', 'Pizza Bellissima',
   'Pizza Zoetekauw', 'Pizza Rotterdam', 'Pizza Bouwvakker', 'Pizza Tentamen', 'Pizza Kunstgebit', 'Pizza Zondag', 'Pizza Rommelbak', 'Pizza Dikke Vette'];
@@ -2450,6 +2486,11 @@ function tekenPizzaOp(cv, p) {
   const c = cv.getContext('2d'), r = cv.width / 2;
   c.clearRect(0, 0, cv.width, cv.width); c.save(); c.translate(r, r);
   c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.arc(r * 0.02, r * 0.04, r * 0.96, 0, 7); c.fill();
+  const nieuw = BODEM_IMG.complete && BODEM_IMG.naturalWidth && BELEG_IMG.complete && BELEG_IMG.naturalWidth;
+  if (nieuw) { // de echte pizza: bodem met kaas (pizza/bodem.png) en per stukje een groepje beleg (pizza/beleg.png, volgorde van ING)
+    c.drawImage(BODEM_IMG, -r * 0.97, -r * 0.97, r * 1.94, r * 1.94); const z = r * 0.52;
+    for (const st of p.stukjes) { c.save(); c.translate(st.x * r * 0.74, st.y * r * 0.74); c.rotate(st.r); c.drawImage(BELEG_IMG, ING[st.i].i * 128, 0, 128, 128, -z / 2, -z / 2, z, z); c.restore(); }
+    c.restore(); return; }
   c.fillStyle = '#c98a45'; c.beginPath(); c.arc(0, 0, r * 0.96, 0, 7); c.fill();
   c.fillStyle = '#e7b56f'; c.beginPath(); c.arc(0, 0, r * 0.9, 0, 7); c.fill();
   c.fillStyle = '#c8371d'; c.beginPath(); for (let a = 0; a <= 64; a++) { const h = a / 64 * Math.PI * 2, q = r * (0.79 + Math.sin(h * 7) * 0.012 + Math.sin(h * 3) * 0.01); c.lineTo(Math.cos(h) * q, Math.sin(h) * q); } c.fill();
@@ -2610,7 +2651,7 @@ function tekenKnoppen() {
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
 let laatsteDag = '';
-// ---------- einde van het spel: failliet (3 avonden rood), of Pizzakoning (2 zaken, de toren open en € 10.000); opnieuw beginnen kan altijd ----------
+// ---------- einde van het spel: failliet (3 avonden rood), of Pizzakoning (4 zaken, de toren open en € 10.000); opnieuw beginnen kan altijd ----------
 function eindStand() { return `<table><tr><td>📅 Dagen gespeeld</td><td>${S.dag - 1}</td></tr><tr><td>🏪 Pizzeria's</td><td>${S.zaken.length}</td></tr><tr><td>🍕 Pizza's op de kaart</td><td>${S.menu.length}</td></tr>
   <tr><td>⭐ Populariteit</td><td>${Math.round(S.rep)}</td></tr>${S.torenBest ? `<tr><td>🗼 Hoogste pizzatoren</td><td>${S.torenBest}</td></tr>` : ''}</table>`; }
 function toonFailliet() {
@@ -2619,7 +2660,7 @@ function toonFailliet() {
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => herstart();
 }
 function toonKoning() {
-  $('eindkaart').innerHTML = `<h1>👑 Pizzakoning van de stad!</h1><p>Twee pizzeria's, de Toren van Pizza staat er dankzij jou, en € ${Math.round(S.geld)} op de bank. De burgemeester geeft je een gouden pizzaschep. Luigi verhuist naar een ander land.</p>
+  $('eindkaart').innerHTML = `<h1>👑 Pizzakoning van de stad!</h1><p>Vier pizzeria's, in elke buurt van de stad één, de Toren van Pizza staat er dankzij jou, en € ${Math.round(S.geld)} op de bank. De burgemeester geeft je een gouden pizzaschep. Luigi verhuist naar een ander land.</p>
     ${eindStand()}<p>Je hebt het spel uitgespeeld! Je kunt gewoon doorspelen (meer zaken, hogere torens), of opnieuw beginnen.</p><button class="groot" id="verder">Doorspelen</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); kassa(); setTimeout(kassa, 300);
 }

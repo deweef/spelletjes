@@ -188,6 +188,8 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   binnenkort: ????") wordt de Toren van Pizza, een stadsproject waar je in stukjes aan meebetaalt; klaar = veel meer toeristen, Luigi jaloers;
   (2) minispel "pizza's stapelen" (slingerende pizza op het goede moment loslaten, scheve toren die omvalt), bij de opening of als wedstrijd
   op de markt, met het online scorebord; (3) "Toren van Pizza" als speciaal gerecht of als versiering (scheef torentje) in de zaak.
+- Idee Marcel (27 okt): Pizzakoning pas met 4 pizzeria's (gedaan), en in elke zaak iets speciaals (nog uitwerken, zie voorstel in de chat:
+  studentenbuurt = eetwedstrijd/studentenavond, plein = selfiemuur/straatmuzikant, villawijk = wijnkelder/sterrenchef).
 - Meer ideeën (Claude, 27 okt): Gouden Pizzaschep (recensent incognito), pizzawedstrijd op de markt tegen Luigi, smokkeltruffel via Barrie
   (douane belt), ober verliefd op Luigi's dochter (romance of spion).
 - Crypto (nog niet gebouwd): Bitkaas, Ethertje, MozzaMunt, DogePizza; laptop in de achterkamer, koers per dag +40% / −60%, nieuws

@@ -160,5 +160,17 @@ geflitst, punt opgegeten, verjaardag), en rekent af: prijs × TELT − €2,5, p
 Dagoverzicht: aantal bezorgd, koud, voorvallen; loon bezorger bij de lonen. Figuur `pizza/bezorger.png` (`BEZVEL`, uit `pizza/bezorger-gemini.jpg`, vakjes 170: 0-6 opzij met dozen, 7-10 van achteren, 11 staan) en
 `pizza/scooter.png` (`SCOOTER`, rijdt over het balkje in `tekenRit`).
 Einde van het spel: drie avonden achter elkaar rood (`S.rood`, waarschuwing in het dagoverzicht) = failliet (`toonFailliet`, met `eindStand`);
-het doel = Pizzakoning (`toonKoning`, `S.koning`): 2 zaken, de Toren van Pizza open en € 10.000; daarna kun je doorspelen. Opnieuw beginnen
+het doel = Pizzakoning (`toonKoning`, `S.koning`): 4 zaken (alle panden), de Toren van Pizza open en € 10.000; daarna kun je doorspelen. Opnieuw beginnen
 (`herstart`: nieuwe opslag, alleen `torenBest` blijft) kan altijd via 📊 Gisteren.
+Tekenvolgorde (27 okt): spullen en mensen in één lijst van achter naar voor (`spulItems` + `alles` in `teken`, sleutel = onderkant; stoel onder
+de tafel net na de tafel, zittende klant `zitY` net na zijn stoel), zodat wie achter een tafel loopt niet over de tafel of de hoofden getekend
+wordt. Lopen (`zoekPad`, `loopNaar`): geen weg = naar de dichtstbijzijnde bereikbare cel (`dichtst`), niet meer rechtdoor; `bereik` (in
+`maakBezet`) = vrije cellen die je vanaf de deur haalt (geen ingesloten hokjes); `vrijBij` = dichtstbijzijnde bereikbare vrije plek (voor
+wachtplekken, de uitgifte, achter een stoel); staat iemand in een hokje of in een spul, dan eerst daaruit; een oude route wordt opnieuw
+gezocht als iemand intussen ergens anders was (`padPos`) of als de weg naar het volgende tussenpunt dicht is (`lijnVrij`). Klanten lopen naar
+de echte stoel en schuiven bij het zitten naar de getekende plek. Getest: in een drukke dag bijna niemand meer binnen een tafel.
+Schilderij hangt aan de zijmuur (smal en schuin getekend in `tekenSchilderij`), niet meer plat op de vloer.
+Pizza's (27 okt): bodem `pizza/bodem.png` (uit `pizza/bodem-gemini.jpg`, met gesmolten kaas) en per stukje een groepje beleg uit
+`pizza/beleg.png` (20 vakjes van 128, volgorde van `ING`, uit `pizza/beleg-gemini.jpg`; ook voor de knopjes `.ing`). In de zaak staat de echte
+pizza op het bord en op de uitgifte (`kleinePizza` = 96 px plaatje per pizza, `pizzaFoto`). Achterkamer: één schilderij per dag; na het
+schilderen of drukken ga je terug naar de pizzeria.
