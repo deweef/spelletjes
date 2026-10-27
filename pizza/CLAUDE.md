@@ -247,3 +247,10 @@ Manager in de tweede, derde… zaak: meteen (`MAG_MANAGER`: populariteit 40 alle
 andere zaak met manager (`belZ`), en de vraag komt hooguit eens per 8 dagen. Doelen voor later in het spel: manager2, zes, vijftig, rep80, chef,
 maand, derde, spaar (vóór Pizzakoning). Gerrit en de achterkamer via het schilderij horen alleen bij zaak 1; Gerrit wacht tot je daar weer staat.
 Belasting, boekhouder en inspecteur gaan over de hele keten en komen waar je die dag staat.
+Dag korter: `DAG = 100` (was 120). Belasting elke twee weken: `belastingDag()` = de 15e (of de 14e als de 15e een maandag is) en de laatste
+werkdag van de maand; de boekhouder komt op de 9e-13e of vanaf de 24e, één keer per helft (`periode()`, bewaard in `S.bhMaand`).
+Luigi (luigiJaloers, luigiUltimatum, sabotage) doet nu bij elke zaak mee ("helemaal hierheen gefietst").
+Vragen kunnen een eigen rusttijd hebben (`rust: () => dagen`, standaard 8); `belZaak` = 8 / aantal andere zaken met manager (minimaal 2).
+Nieuwe vragen: `bedorven` (ingrediënt uit het menu, `bedorven`; dure markt / toch gebruiken / zonder), goede doelen `voetbalclub`, `voedselbank`,
+`sponsorloop` (`sponsor: true` = telt niet mee voor `S.lief`, te vrijgevig). Reclamebord bij de bouwplaats: € 150 (`RECLAME`), 7 dagen
+`S.reclame.tot`, rep +3 en 15% meer klanten in alle zaken (ook in `simuleerZaak`).
