@@ -108,3 +108,12 @@ Een leuke dame (`DAMES` = figuren 2, 4, 7, 8; 60% kans dat hij haar kiest) = 6-1
 inkopen, zwarte rook (`o.rook`), `tel.aangebrand` in het dagoverzicht, en de kok rent terug (`k.schrik`, `k.haast`).
 Zonder werk staan koks en obers niet steeds op dezelfde plek: de kok loopt wat rond in de keuken (`k.plek`), de ober staat de helft van de
 tijd ergens in de zaak (`oberRust`, `ob.plek`).
+Manager (`S.manager` = { wie, sinds, dagen, opslag }, `MANAGER`: kevin €20 / sandra €45 / bruno €90; aannemen via de knop Personeel (vroeger
+Obers) vanaf `MAG_MANAGER` = populariteit ≥ 40, ≥ 3 pizza's, dag ≥ 7; ontslaan kan daar ook). Loon `MANLOON` in `eindeDag` (geld daarna < 0 =
+de manager neemt ontslag). Figuur in de zaak: `man`, `stapManager`, `tekenManager`, plaatjes `pizza/managers.png` (rij 0 Kevin, 1 Sandra,
+2 Bruno; vakjes 150x192; indeling bij `MANAGER` in de code). Met een manager kan 🗺️ ook tijdens het werk: dan loopt de dag door, en `isWeg()`.
+Gewone vragen regelt de manager (`managerVraag`): met kans `belt` belt hij je (de vraag komt in de stad, `#vraag` z-index 9), anders kiest Kevin
+een willekeurig antwoord (met gevolgen) en regelen Sandra/Bruno het zonder gevolgen. Vragen met een bezoeker (portret) wachten tot je terug
+bent. Kevin belt ook om onzin (`ONZIN`). Sandra en Bruno ruimen vlekken op. Bruno: fooi × 1,12, en elke 5 dagen vraag 'opslag' (via
+`S.verplicht`; nee = 40% kans dat hij vertrekt). Terug in de zaak: `toonWegLog` laat zien wat er gebeurde (`wegLog`). Dagen in dienst tellen
+mee voor de tweede pizzeria (≥ 7).

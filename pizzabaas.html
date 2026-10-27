@@ -62,7 +62,7 @@
   .bedragen button.aan { background: #2e9d52; color: #fff; border-color: #2e9d52; }
   .teken { display: flex; gap: 8px; align-items: center; margin: 8px 0; font-size: 14px; }
   .teken input { width: 22px; height: 22px; }
-  #vraag { background: rgba(20,10,4,.45); }
+  #vraag { background: rgba(20,10,4,.45); z-index: 9; } /* ook boven de stad (de manager belt) */
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
@@ -437,6 +437,7 @@ let kies = null; // wat er gekocht en neergezet wordt
 function maakPersoneel() {
   obers = []; for (let i = 0; i < S.obers; i++) { const hx = W / 2 + [-1.6, 1.6, -2.6][i]; obers.push({ dame: i == 1, x: hx, y: KEUKEN + 0.5, thuis: [hx, KEUKEN + 0.5], taak: null, draagt: null }); } // niet voor het klapluik
   ovens = []; for (let i = 0; i < S.ovens; i++) ovens.push(maakOven(i));
+  maakManager();
 }
 // max. twee ovens, elk met een eigen kok: oven 0 links (Mario, de kok), oven 1 rechts (Beppe, de bebaarde bakker). De kok maakt het
 // deeg aan de werkbank naast zijn oven, schuift de pizza in de oven en zet hem als hij klaar is op het uitgiftepunt in het midden
@@ -574,20 +575,25 @@ function openDeuren() {
   const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (laatsteVanDeMaand() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
-  maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen();
+  maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen(); wegLog = [];
+  if (S.manager && MANAGER[S.manager.wie].fooi) vandaag.fooi *= MANAGER[S.manager.wie].fooi; // Bruno: de klanten zijn dol op hem
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
 function eindeDag() {
   modus = 'inrichten';
-  const lonen = (S.obers - 1) * LOON, totaal = tel.omzet + tel.fooi - tel.kosten - HUUR - lonen;
-  S.geld += -HUUR - lonen - (tel.ing || 0); maakPersoneel(); // omzet en fooi zijn al verrekend; de inkoop (tel.ing) nu pas
+  const manLoon = MANLOON(), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi - tel.kosten - HUUR - lonen;
+  S.geld += -HUUR - lonen - (tel.ing || 0);
+  let manWeg = ''; if (S.manager) { const M = MANAGER[S.manager.wie]; S.manager.dagen = (S.manager.dagen || 0) + 1;
+    if (S.geld < 0) { manWeg = `${M.n} is ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
+    else if (S.manager.wie == 'bruno' && S.manager.dagen % 5 == 4) S.verplicht = [...(S.verplicht || []), 'opslag']; } // Bruno wil opslag
+  maakPersoneel(); // omzet en fooi zijn al verrekend; de inkoop (tel.ing) nu pas
   S.omzetGisteren = tel.omzet; const lening = [...aflossen(), ...belastingAvond(totaal)];
   const rommel = vlekken.length; S.vuil = (S.vuil || 0) + rommel * 0.5; vlekken = []; // wat er blijft liggen maakt de zaak viezer (keuringsdienst!)
   const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
   const oud = S.dag; S.dag++; bewaar();
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
-    ${tel.dicht ? `<p><b>🔒 Vandaag was de zaak dicht.</b> ${esc(tel.dicht)}</p>` : ''}
+    ${tel.dicht ? `<p><b>🔒 Vandaag was de zaak dicht.</b> ${esc(tel.dicht)}</p>` : ''}${manWeg ? `<p><b>👋 ${esc(manWeg)}</b></p>` : ''}
     <table>
       <tr><td>😋 Tevreden klanten</td><td>${kl(tel.blij)}</td></tr>
       <tr><td>😡 Boos weggelopen</td><td>${kl(tel.boos)}</td></tr>
@@ -602,7 +608,7 @@ function eindeDag() {
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
       <tr><td>🧀 Ingrediënten (groothandel)</td><td>− € ${Math.round(tel.ing || 0)}</td></tr>${tel.kosten - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.ing || 0))}</td></tr>` : ''}
       <tr><td>🏠 Huur</td><td>− € ${HUUR}</td></tr>
-      ${lonen ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen}</td></tr>` : ''}
+      ${lonen - manLoon ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen - manLoon}</td></tr>` : ''}${manLoon ? `<tr><td>📋 Loon manager</td><td>− € ${manLoon}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
       ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
     </table>
@@ -862,6 +868,11 @@ const VRAGEN = [
     a: [['Die is van Beppe! Teruggeven.', () => { rep(1); return 'Beppe is zo blij dat hij de hele avond zingt.'; }],
       ['Mag u houden, als excuus.', () => { rep(1); if (ovens[1]) ovens[1].traag = true; return 'Beppe is zijn trouwring kwijt en werkt de rest van de avond verdrietig (trager).'; }],
       ['Gefeliciteerd, u wint onze prijsvraag!', () => { rep(2); return 'De klant juicht. Beppe kijkt bedenkelijk.'; }] ] },
+  { id: 'opslag', ik: '🎩', wie: 'Signor Bruno', als: () => false, // alleen via S.verplicht (eindeDag, elke 5 dagen)
+    vraag: () => `Signore, ik werk hier nu ${S.manager ? S.manager.dagen : 'al een paar'} dagen. De klanten houden van mij, de fooien stijgen… Een kleine opslag? Vijftien euro per dag.`,
+    a: [['Natuurlijk, Bruno. Je verdient het.', () => { if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno kust je op beide wangen. "Grazie, signore!"'; }],
+      ['Nee, daar is geen geld voor.', () => { if (Math.random() < 0.4 && S.manager) { S.manager = null; man = null; return 'Bruno zet zijn hoed op. "Dan ga ik naar Luigi." Weg is hij. (Je hebt geen manager meer.)'; } return 'Bruno zucht diep. "Va bene. Voorlopig."'; }],
+      ['Hier, een fles van onze beste wijn.', () => { ge(-25); if (Math.random() < 0.6) return 'Bruno ruikt eraan. "Ah, een Barolo! Voor nu ben ik tevreden." (− € 25)'; S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno: "Wijn betaalt mijn huur niet." Hij krijgt de opslag toch. (− € 25, en € 15 per dag extra)'; }] ] },
   { id: 'gleufhoed', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
@@ -1119,14 +1130,15 @@ function toonStad(plek) {
   const k = $('stadkaart');
   if (!plek) {
     k.innerHTML = `<div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%"><span>${p.ik} ${esc(p.n)}</span></button>`).join('')}</div>
+      ${modus != 'inrichten' && S.manager ? `<p class="buurt" style="text-align:center">🕒 De zaak is open. ${esc(MANAGER[S.manager.wie].n)} past op de winkel${S.manager.wie == 'kevin' ? '… hopelijk' : ''}.</p>` : ''}
       <p class="buurt" style="text-align:center">Tik op een plek in de stad. <button class="knop" id="stadterug" style="margin-left:8px">🍕 Terug naar je zaak</button></p>`;
     k.querySelectorAll('[data-plek]').forEach((b) => b.onclick = () => toonStad(b.dataset.plek));
-    $('stadterug').onclick = () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); };
+    $('stadterug').onclick = () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); toonWegLog(); };
     $('stad').classList.remove('verborgen'); return;
   }
   const p = PLEK[plek], terug = `<button class="knop" id="plekterug">🗺️ Terug naar de kaart</button>`;
   let h = `<h1>${p.ik} ${esc(p.n)}</h1>`, knoppen = '';
-  if (plek == 'zaak') { $('stad').classList.add('verborgen'); tekenKnoppen(); return; }
+  if (plek == 'zaak') { $('stad').classList.add('verborgen'); tekenKnoppen(); toonWegLog(); return; }
   if (plek == 'bank') { h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button>`; }
   if (plek == 'markt') {
     const aanbod = marktAanbod(), heb = S.korting && S.korting.tot > S.dag ? S.korting : null;
@@ -1266,6 +1278,60 @@ function beweeg(o, doel, snel, dt) {
   const s = Math.min(d, snel * dt); o.x += dx / d * s; o.y += dy / d * s; o.loopT = (o.loopT || 0) + dt; o.kijk = Math.atan2(dy, dx); return false;
 }
 
+// ---------- de manager (vanaf populariteit 40, 3 pizza's en dag 7) ----------
+// Met een manager mag je ook overdag de stad in. Terwijl je weg bent (`isWeg`) regelt hij de gewone vragen (`managerVraag`); bezoekers
+// (agent, inspecteur, Luigi, Gerrit…) wachten tot je terug bent. Wat hij deed staat in `wegLog`, te zien als je terugkomt.
+// Plaatjes: pizza/managers.png (rij 0 Kevin, 1 Sandra, 2 Bruno; vakjes 150 x 192: 0-6 lopen opzij, 7-10 van achteren, 11 staan,
+// 12-16 houdingen: Kevin gaapt (12), appt (13), haalt zijn schouders op (14), klembord (15), belt (16); uit pizza/manager-*-gemini.jpg)
+const MANAGER = {
+  kevin: { n: 'Kevin', ik: '🧢', loon: 20, rij: 0, uitleg: 'Goedkoop. Geeft vaak een raar antwoord, gaapt, en belt je om onzin.', belt: 0.45, gok: true, poses: [12, 12, 13, 14, 16] },
+  sandra: { n: 'Sandra', ik: '📋', loon: 45, rij: 1, uitleg: 'Verstandig. Regelt vragen netjes en ruimt vlekken op.', belt: 0.12, poetst: true, poses: [12, 13, 14, 15] },
+  bruno: { n: 'Signor Bruno', ik: '🎩', loon: 90, rij: 2, uitleg: 'Alles van Sandra, en de klanten geven meer fooi. Wil wel eens opslag.', belt: 0.05, poetst: true, fooi: 1.12, poses: [12, 13, 14, 15, 16] } };
+const MAG_MANAGER = () => S.rep >= 40 && S.menu.length >= 3 && S.dag >= 7;
+const MANLOON = () => S.manager ? MANAGER[S.manager.wie].loon + (S.manager.opslag || 0) : 0;
+const MANVEL = Object.assign(new Image(), { src: 'pizza/managers.png' });
+let man = null, wegLog = []; // man = de manager in de zaak { x, y, kijk, loopT, plek, pose }
+const isWeg = () => modus != 'inrichten' && !$('stad').classList.contains('verborgen');
+function maakManager() { man = S.manager ? { x: DEUR.x + 2.5, y: H - 1.5, kijk: -Math.PI / 2, loopT: 0, rust: 0 } : null; }
+const ONZIN = ['Waar staan de servetten eigenlijk?', 'Mag de jukebox harder? Het is hier zo stil.', 'Er staat een man met een hond voor de deur. Is dat een klant?',
+  'Hoe zet je de oven uit? …Grapje! Of nee, echt: hoe?', 'Mag ik pauze? Ik ben al twintig minuten aan het werk.', 'Is ananas groente of fruit? Een klant vraagt het.',
+  'De wifi doet het niet. O wacht, verkeerde knop.', 'Moet ik die bonnetjes bewaren of mag ik er een vliegtuigje van vouwen?'];
+function stapManager(dt) {
+  if (!man || !S.manager) return; const M = MANAGER[S.manager.wie];
+  if (M.poetst && vlekken.length && Math.random() < dt * 0.12) { const v = vlekken.shift(); tel.opgeruimd = (tel.opgeruimd || 0) + 1; muntjes.push({ x: v.x, y: v.y, t: 1, tekst: '🧽 ' + M.n.split(' ').pop() }); }
+  if (M.gok && isWeg() && !pauze && Math.random() < dt * 0.02) { // Kevin belt je om onzin
+    toonVraag({ id: 'kevinbelt', ik: '📞', wie: '📞 Kevin belt', vraag: R(ONZIN), a: [['Kevin… doe gewoon je werk.', () => 'Kevin: "Oké oké. Doei."'], ['Vraag het aan Mario.', () => 'Kevin: "Mario zegt dat ik moet ophangen."']] }); }
+  man.rust += dt;
+  if (!man.plek || man.rust > man.plekT) {
+    man.plek = R([[DEUR.x + 2, H - 1.4], [LUIK_X + 3, KEUKEN + 0.6], [LUIK_X - 3.5, KEUKEN + 0.6]]); man.pose = 11;
+    for (let k = 0; k < 15 && Math.random() < 0.5; k++) { const x = Math.floor(Math.random() * W), y = KEUKEN + 1 + Math.floor(Math.random() * (H - KEUKEN - 2)); if (!op(x, y) && Math.abs(x + 0.5 - LUIK_X) > 0.6) { man.plek = [x + 0.5, y + 0.5]; break; } }
+    man.plekT = man.rust + 6 + Math.random() * 6; man.poseT = man.rust + 2 + Math.random() * 2;
+  }
+  if (loopNaar(man, man.plek, 1.6, dt) && man.rust > man.poseT) { man.pose = man.pose == 11 ? R(M.poses) : 11; man.poseT = man.rust + 2 + Math.random() * 3; }
+}
+function tekenManager() {
+  if (!man || !S.manager || !MANVEL.complete || !MANVEL.naturalWidth) return; const [x, y] = naarScherm(man.x, man.y);
+  g.save(); g.translate(x, y); g.scale(schaal, schaal);
+  figuur(MANVEL, man, false, false, null, { staan: man.loopT > 0 ? 11 : man.pose || 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], fps: 10, sw: 150, rij: MANAGER[S.manager.wie].rij });
+  g.restore();
+}
+const vraagKort = (v) => { const t = typeof v.vraag == 'function' ? v.vraag() : v.vraag; return t.length > 90 ? t.slice(0, 88) + '…' : t; };
+function managerVraag(v) { // een gewone vraag terwijl jij de stad in bent
+  const M = MANAGER[S.manager.wie];
+  if (Math.random() < M.belt) { wegLog.push(`📞 ${M.n} belde je: ${v.wie}.`); toonVraag({ ...v, wie: `📞 ${M.n} belt: ${v.wie}` }); return; }
+  S.gehad = S.gehad || {}; S.gehad[v.id] = S.dag;
+  if (M.gok) { const [t, f] = R(v.a); const uit = f(); wegLog.push(`${M.ik} ${v.wie}: "${vraagKort(v)}" Kevin zei: "${t}" ${uit == 'UITLEG' ? '' : uit}`); }
+  else wegLog.push(`${M.ik} ${v.wie}: "${vraagKort(v)}" ${M.n} heeft het netjes geregeld.`);
+}
+function toonWegLog() { // terug uit de stad: wat gebeurde er?
+  if (modus == 'inrichten' || !S.manager) return; const M = MANAGER[S.manager.wie];
+  const k = $('vraagkaart'); pauze = true;
+  k.innerHTML = `<div class="vraagik">${M.ik}</div><div class="vraagwie">${esc(M.n)}</div><p class="vraagtekst">${wegLog.length ? 'Terwijl je weg was:' : (M.gok ? '"Niks gebeurd hoor. Denk ik."' : '"Alles rustig, baas."')}</p>
+    ${wegLog.map((t) => `<p class="buurt" style="text-align:left;margin:4px 0">${esc(t)}</p>`).join('')}<button class="groot" id="vraagverder" style="margin-top:8px">Verder</button>`;
+  $('vraagverder').onclick = () => { $('vraag').classList.add('verborgen'); pauze = false; };
+  $('vraag').classList.remove('verborgen'); wegLog = [];
+}
+
 // ---------- elke stap ----------
 function stap(dt) {
   if (modus == 'inrichten') return;
@@ -1275,6 +1341,8 @@ function stap(dt) {
     if (volgendeKlant <= 0) { nieuweGroep(); volgendeKlant = Math.max(2.2, 7.5 - S.rep * 0.05) * (0.6 + Math.random() * 0.8) / vandaag.aankomst; }
     const stel = (v) => v.portret != null ? laatBinnen(v) : toonVraag(v); // met een figuur: eerst binnenlopen
     if (bezoeker) {} // wacht tot de vorige bezoeker weg is
+    else if (isWeg() && S.manager) { // jij bent de stad in: de manager regelt de gewone vragen, de rest wacht tot je terug bent
+      if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { const v = kiesVraag(); if (v.portret != null) vraagTijden[0] = klok + 8; else { vraagTijden.shift(); managerVraag(v); } } }
     else if (S.verplicht && S.verplicht.length && klok > DAG * 0.25) { const id = S.verplicht.shift(); const v = VRAGEN.find((v) => v.id == id); if (v) stel(v); }
     else if (vraagTijden.includes(-1) && klok > DAG * 0.3) { vraagTijden = vraagTijden.filter((t) => t != -1); stel(INSPECTEUR); }
     else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { vraagTijden.shift(); stel(kiesVraag()); }
@@ -1319,7 +1387,7 @@ function stap(dt) {
   }
   // ovens bakken wat er besteld is
   for (const o of ovens) stapOven(o, dt);
-  stapBezoeker(dt); stapRat(dt);
+  stapBezoeker(dt); stapRat(dt); stapManager(dt);
   if (!luikOpen) luikOpen = ovens.some((o) => Math.abs(o.kok.x - LUIK_X) < 0.6 && o.kok.y < KEUKEN + 1 && o.kok.y > KEUKEN - 1.2) ? 1 : 0; // ook de kok gaat door het luik
   if (vandaag.ovenUit > 0) vandaag.ovenUit -= dt;
   S.vuil = (S.vuil || 0) + mensen.filter((m) => m.st == 'eet').length * dt * 0.0006; // hoe meer er gegeten wordt, hoe viezer
@@ -1711,7 +1779,7 @@ function teken(nu) {
 
   // koks, mensen en obers (in schermpixels, gesorteerd op y)
   const koks = ovs.map((o) => ({ y: o.kok.y, f: () => kok(o.kok, nu) }));
-  const alles = [...koks, ...mensen.map((m) => ({ y: m.y, f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : [])].sort((a, b) => a.y - b.y);
+  const alles = [...koks, ...mensen.map((m) => ({ y: m.y, f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : []), ...(man ? [{ y: man.y, f: tekenManager }] : [])].sort((a, b) => a.y - b.y);
   for (const a of alles) a.f();
   // muntjes en tekstwolkjes
   g.textAlign = 'center';
@@ -2129,7 +2197,7 @@ function bewaarPizza() {
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
   $('sleutel').classList.toggle('verborgen', !S.achterkamer);
-  $('stadknop').disabled = modus != 'inrichten'; // zonder manager alleen 's ochtends de deur uit
+  $('stadknop').disabled = modus != 'inrichten' && !S.manager; // zonder manager alleen 's ochtends de deur uit
   const k = $('raster'), open = modus != 'inrichten';
   let h = '';
   for (const [t0, d0] of Object.entries(SPUL)) {
@@ -2141,7 +2209,7 @@ function tekenKnoppen() {
   for (const [t, d] of Object.entries(PERSONEEL)) {
     const n = t == 'oven' ? S.ovens : S.obers, vol = n >= d.max, groot = t == 'oven' && vol && (S.groot || []).filter(Boolean).length < S.ovens; // daarna: ovens groot maken
     if (groot) h += `<button data-p="groot" class="${S.geld < GROTE_PRIJS ? 'duur' : ''}" ${open ? 'disabled' : ''}><span class="ik">🧱</span>Grote oven<span class="pr">€${GROTE_PRIJS}</span></button>`;
-    else if (t == 'ober') h += `<button data-p="ober" ${open ? 'disabled' : ''}><span class="ik">${d.ik}</span>Obers<span class="pr">${S.obers} in dienst</span></button>`;
+    else if (t == 'ober') h += `<button data-p="ober" ${open ? 'disabled' : ''}><span class="ik">${d.ik}</span>Personeel<span class="pr">${S.obers} ober${S.obers > 1 ? 's' : ''}${S.manager ? ' + ' + esc(MANAGER[S.manager.wie].n.split(' ').pop()) : ''}</span></button>`;
     else h += `<button data-p="${t}" class="${S.geld < d.prijs ? 'duur' : ''}" ${open || vol ? 'disabled' : ''}><span class="ik">${d.ik}</span>${t == 'oven' ? 'Oven + kok' : 'Ober'}<span class="pr">${vol ? 'maximaal' : '€' + d.prijs}</span></button>`;
   }
   h += `<button data-pizza><span class="ik">📖</span>Pizza's<span class="pr">${S.menu.length} op de kaart</span></button>`;
@@ -2166,11 +2234,15 @@ function tekenKnoppen() {
       S.groot = S.groot || []; const i = S.groot[0] ? 1 : 0; S.groot[i] = true; S.geld -= GROTE_PRIJS; kassa(); bewaar(); tekenKnoppen();
       meld(`De ${i ? 'rechter' : 'linker'} oven is nu een grote oven: er passen twee pizza's tegelijk in!`); return; }
     if (b.dataset.p == 'ober') { if ($('menu').style.display == 'block' && $('menu').dataset.knop == 'ober') { sluitMenu(); return; }
-      const d = PERSONEEL.ober; toonKeuze(`🤵 Obers: ${S.obers}`, [
+      const d = PERSONEEL.ober; toonKeuze(`🤵 Personeel: ${S.obers} ober${S.obers > 1 ? 's' : ''}${S.manager ? ', manager ' + MANAGER[S.manager.wie].n : ''}`, [
         { ik: '➕', n: 'Ober aannemen', pr: S.obers >= d.max ? 'maximaal ' + d.max : `€${d.prijs}, loon €${LOON} per dag`, uit: S.obers >= d.max || S.geld < d.prijs, doe: () => {
           S.geld -= d.prijs; S.obers++; maakPersoneel(); kassa(); bewaar(); tekenKnoppen(); meld('Een extra ober! Die kost wel ' + LOON + ' euro loon per dag.'); } },
         { ik: '👋', n: 'Ober ontslaan', pr: S.obers <= 1 ? 'je hebt er minstens één nodig' : 'scheelt €' + LOON + ' loon per dag', uit: S.obers <= 1, doe: () => {
-          S.obers--; maakPersoneel(); bewaar(); tekenKnoppen(); meld('De ober krijgt een fles wijn mee en een zoen op elke wang. Arrivederci!'); } } ],
+          S.obers--; maakPersoneel(); bewaar(); tekenKnoppen(); meld('De ober krijgt een fles wijn mee en een zoen op elke wang. Arrivederci!'); } },
+        ...(S.manager ? [{ ik: '👋', n: MANAGER[S.manager.wie].n + ' ontslaan', pr: `manager, €${MANLOON()} per dag, ${S.manager.dagen || 0} dagen in dienst`, doe: () => {
+          const n = MANAGER[S.manager.wie].n; S.manager = null; maakPersoneel(); bewaar(); tekenKnoppen(); meld(n + ' pakt zijn spullen. Je moet nu weer zelf op de zaak passen.', 4000); } }]
+        : Object.entries(MANAGER).map(([k, M]) => ({ ik: M.ik, n: 'Manager: ' + M.n, pr: MAG_MANAGER() ? `€${M.loon} per dag. ${M.uitleg}` : `pas vanaf populariteit 40, 3 pizza's op de kaart en dag 7`, uit: !MAG_MANAGER(), doe: () => {
+          S.manager = { wie: k, sinds: S.dag, dagen: 0, opslag: 0 }; maakPersoneel(); bewaar(); tekenKnoppen(); meld(`${M.n} is je manager! Nu kun je ook overdag de stad in (🗺️); ${M.n.split(' ').pop()} past op de zaak.`, 5000); } }))) ],
         b.getBoundingClientRect(), 'ober'); return; }
     const d = PERSONEEL[b.dataset.p]; if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     S.geld -= d.prijs; if (b.dataset.p == 'oven') S.ovens++; else S.obers++; maakPersoneel(); kassa(); bewaar(); tekenKnoppen();
@@ -2183,7 +2255,7 @@ function tekenKnoppen() {
 }
 let laatsteDag = '';
 $('sleutel').onclick = () => { wekGeluid(); sluitMenu(); toonAchterkamer(); };
-$('stadknop').onclick = () => { wekGeluid(); sluitMenu(); if (modus != 'inrichten') { meld('Je kunt de zaak niet alleen laten! (Met een manager kan dat straks wel.)'); return; } toonStad(); };
+$('stadknop').onclick = () => { wekGeluid(); sluitMenu(); if (modus != 'inrichten' && !S.manager) { meld('Je kunt de zaak niet alleen laten! Neem een manager aan (Personeel).'); return; } toonStad(); };
 const isAanraak = matchMedia('(pointer: coarse)').matches;
 
 let meldT = 0;
@@ -2220,7 +2292,7 @@ function balk(nu) {
   const wacht = tel.wachtN ? Math.round(tel.wacht / tel.wachtN) : 0;
   const rij = (a, b) => a.padEnd(13, ' ') + String(b).padStart(5, ' ');
   $('lcd').innerHTML = `<span class="kop">${datumKort()}  ${modus == 'inrichten' ? 'INRICHTEN' : uur(f)}</span><span class="kop">PIZZERIA ${esc((speler || 'DE BAAS').toUpperCase().slice(0, 10))}</span>` +
-    [rij('POPULARITEIT', Math.round(S.rep)), rij('KOKS', S.ovens), rij('OBERS', S.obers), rij('TAFELS', S.spullen.filter(isTafel).length), rij('GEZELLIG', gemGezellig().toFixed(1)),
+    [rij('POPULARITEIT', Math.round(S.rep)), rij('KOKS', S.ovens), rij('OBERS', S.obers), rij('MANAGER', S.manager ? 'JA' : 'NEE'), rij('TAFELS', S.spullen.filter(isTafel).length), rij('GEZELLIG', gemGezellig().toFixed(1)),
      rij("PIZZA'S", kl(tel.blij)), rij('WACHTTIJD', wacht + ' s')].join('\n') + `<span class="geld">€ ${Math.floor(S.geld)}</span>`;
 }
 const uur = (f) => { const m = Math.floor(17 * 60 + f * 5 * 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }; // van 17:00 tot 22:00
@@ -2258,7 +2330,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, get man() { return man; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>

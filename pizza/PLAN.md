@@ -156,7 +156,7 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   politiebureau, kunstuitleen, Luigi, panden te huur. Zonder manager alleen naar buiten tijdens het inrichten; met manager ook overdag.
 - Tweede pizzeria pas met een manager die ≥ 7 dagen bij je werkt en € 2000 (borg + verbouwing). Panden: klein in de studentenbuurt
   (goedkoop), aan het plein (toeristen), groot in de villawijk (duur, villabewoners).
-- Bouwvolgorde: 1 stad (bank, markt, politie) **gedaan 26 okt**, 2 manager, 3 overdag naar buiten, 4 tweede pizzeria.
+- Bouwvolgorde: 1 stad (bank, markt, politie) **gedaan 26 okt**, 2 manager en 3 overdag naar buiten **gedaan 27 okt** (Kevin, Sandra, Bruno; zie CLAUDE.md), 4 tweede pizzeria.
 
 ## Feedback Marcel op de iPhone (26 okt)
 - Gedaan: Tafel/Plant/Obers openen een keuzelijstje met prijzen (schilderij was niet te vinden); ober staat er al vanaf het begin
