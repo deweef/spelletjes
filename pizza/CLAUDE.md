@@ -182,3 +182,7 @@ Vragen (27 okt): nu 92 (26 uit een lijst van Gemini, uitgezocht en aangepast; hu
 wachtwoord, aanzoek, bierfiets, nonna; meer praatwolkjes in `ZEG` en `LEKKER`. Gerrit komt ook zomaar langs ('gerritlangs', tip: bestelling
 +€50). Gravin Gloria van Glitterstein ('gravin', kunstverzamelaar, roze bontjas, hondje Fifi): als er een droge vervalsing ligt, biedt ze het
 dubbele van Gerrit, maar alleen bij q ≥ 0,7; anders "NEP!" (populariteit −4 en de kunstrechercheur komt: `S.verplicht`). Bezoeker rij 5 in `pizza/bezoekers.png`, portret 6 (uit `pizza/gravin-gemini.jpg`).
+Vaste figuren (`FIGUUR`, na `VRAGEN`): elk ±5 vragen die hun `wie`, `rij` en `portret` krijgen: Opa Henk (rij 6, portret 7), Kimberley de
+influencer (7/8), Kees van de markt (8/9), Wethouder Wim (9/10), Zuster Zoë (10/11); plaatjes uit `pizza/henk|kimberley|kees|wim|zoe-gemini.jpg`
+(knippen: zelfde indeling als Gerrit: boven 4 rug, onder 4 voren, rechts portret). Zoë's griepprik = `S.griepvrij` (30 dagen geen zieke ober/Beppe).
+Nu 106 vragen.

@@ -66,7 +66,7 @@
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
-  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 595px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
+  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 1020px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
   .vraagwie { font-weight: 800; color: #b5381c; font-size: 15px; }
   .vraagtekst { font-size: 17px; margin: 8px 0 12px; }
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
@@ -788,11 +788,11 @@ const VRAGEN = [
     a: [['Mijn beste pizza.', () => { const o = besteOordeel(); rep(Math.round((o - 3) * 3)); return o >= 4 ? 'Krant: "Verrassend lekker! Vier sterren." Populariteit omhoog!' : 'Krant: "Tja. Het is eetbaar." Hmm.'; }],
       ['De duurste.', () => { const o = besteOordeel(); rep(Math.round((o - 3.5) * 3)); ge(5); return 'Krant: "Duur, maar ' + (o >= 4 ? 'het is het waard."' : 'dat smaak je niet."'); }],
       ['De Hawaii. Met extra ananas.', () => { rep(kans(0.5) ? 5 : -3); return 'Krant: "Ananas op pizza: SCHANDAAL!" Iedereen in de stad praat erover…'; }] ] },
-  { id: 'oberziek', ik: '🤧', wie: 'Je ober', vraag: 'Baas… ik voel me echt niet lekker. Hatsjoe!',
+  { id: 'oberziek', ik: '🤧', wie: 'Je ober', als: () => !(S.griepvrij > S.dag), vraag: 'Baas… ik voel me echt niet lekker. Hatsjoe!',
     a: [['Ga maar naar huis, beterschap.', () => oberWeg() ? 'Je hebt vanavond een ober minder.' : (vandaag.oberSnel *= 0.7, 'Hij gaat naar huis. Jij springt zelf in, maar jij bent wat langzamer.')],
       ['Doorwerken! Het is druk.', () => { if (kans(0.4)) { rep(-3); return 'Hij niest over een pizza. Twee klanten worden misselijk.'; } return 'Hij zet door. Snotterend, maar het gaat.'; }],
       ['Ik bel een uitzendkracht (€ 50).', () => { ge(-50); vandaag.oberSnel *= 0.85; return 'De uitzendkracht is er snel, maar moet nog even de weg zoeken.'; }] ] },
-  { id: 'kokziek', ik: '🤒', wie: 'Beppe, de bakker', als: () => ovens.length > 1, vraag: 'Baas, ik heb koorts. Mag ik naar huis?',
+  { id: 'kokziek', ik: '🤒', wie: 'Beppe, de bakker', als: () => ovens.length > 1 && !(S.griepvrij > S.dag), vraag: 'Baas, ik heb koorts. Mag ik naar huis?',
     a: [['Natuurlijk, ga maar.', () => { ovens[1].ziek = true; return 'Beppe gaat naar huis. Vanavond bakt alleen Mario.'; }],
       ['Nee, eerst de avond afmaken.', () => { if (kans(0.5)) { rep(-2); return 'Beppe valt bijna in slaap boven het deeg. Een paar pizza\'s zijn aangebrand.'; } return 'Beppe zet door. Respect.'; }],
       ['Uitzendbakker bellen (€ 60).', () => { ge(-60); ovens[1].traag = true; return 'De uitzendbakker is er, maar hij werkt wat langzamer.'; }] ] },
@@ -1121,6 +1121,63 @@ const VRAGEN = [
     a: [['Doen, dat ziet er hip uit!', () => { rep(1); vandaag.fooi *= 1.05; return 'Hij skatet door de bocht met een doos op zijn hoofd. Mensen filmen hem.'; }],
       ['Pak de fiets maar.', () => { ge(-15); return 'Hij peddelt zwetend door de stad. Band plakken kost € 15.'; }],
       ['Vandaag geen bezorging.', () => { rep(-1); morgenKl(0.97); return 'De bellers moeten zelf hun pizza komen halen. Ze mopperen.'; }] ] },
+  // ---- vaste figuren (elk ±5 vragen; de bestaande worden hieronder in FIGUUR aan ze gekoppeld) ----
+  { id: 'henkdans', ik: '👴', wie: '', vraag: 'Mag ik met de dame van tafel 4 een dansje wagen? Vroeger was ik de koning van de foxtrot!',
+    a: [['Natuurlijk, muziek aan!', () => { vandaag.gezellig += 1; return 'Henk zwiert door de zaak. Iedereen klapt mee. Zijn heup houdt het net.'; }],
+      ['Liever niet tussen de tafels, Henk.', () => 'Henk danst dan maar met zijn wandelstok. Ook mooi.'],
+      ['Alleen als de ober meedanst.', () => { oberTempo(0.9); vandaag.fooi *= 1.1; return 'De ober wordt meegesleurd in een polonaise. Meer fooi, minder bediening.'; }] ] },
+  { id: 'henkverhaal', ik: '👴', wie: '', vraag: 'Heb ik je al verteld over de winter van 1963? Toen fietsten we over het ijs naar Amsterdam. Nou, luister…',
+    a: [['Vertel, Henk!', () => { oberTempo(0.9); vandaag.gezellig += 0.5; return 'Drie kwartier later is hij bij het stuk waar de fiets door het ijs zakt. De ober luistert ademloos mee.'; }],
+      ['Sorry Henk, het is druk.', () => 'Henk vertelt het verhaal dan maar aan de plant.'],
+      ['Die ken ik al, Henk!', () => { rep(-0.5); return '"Nee, dit is die andere winter!" Henk is een beetje beledigd.'; }] ] },
+  { id: 'kimnaam', ik: '📸', wie: '', vraag: 'OMG, mag jullie nieuwste pizza "Pizza Kimberley" heten? Dan zet ik hem in mijn story!',
+    a: [['Ja hoor, Pizza Kimberley!', () => { morgenKl(1.12); return 'Ze maakt veertig selfies met de pizza. Morgen staan er tieners in de rij.'; }],
+      ['Nee, hij heet al Pizza Bouwvakker.', () => { rep(-1); return '"Bouwvakker? Echt niet aesthetic." Ze ontvolgt je.'; }],
+      ['Alleen als jij hem helemaal opeet.', () => { ge(PRIJS); return 'Ze eet één hapje voor de foto en geeft de rest aan haar vriendje. Betalen doet ze wel.'; }] ] },
+  { id: 'keestruffel', ik: '🍅', wie: '', vraag: 'Psst. Ik heb hier een échte Italiaanse truffel. Uit Italië! Of nou ja… uit Italië-ish. € 50 voor jou.',
+    a: [['Ik neem hem!', () => { ge(-50); if (kans(0.4)) { vandaag.fooi *= 1.25; return 'Hij is echt! De villabewoners smelten. Veel meer fooi vandaag.'; } return 'Mario ruikt eraan. "Baas… dit is een aardappel met zwarte schoensmeer."'; }],
+      ['Italië-ish? Nee, Kees.', () => '"Jammer. Dan verkoop ik hem aan Luigi." Kees knipoogt.'],
+      ['Eerst laten proeven door Mario.', () => '"Proeven? Dan is hij op!" Kees stopt hem snel weer in zijn schort.'] ] },
+  { id: 'keesruil', ik: '🍅', wie: '', vraag: 'Ik heb een berg kaas over. Zullen we ruilen? Tien bollen mozzarella voor vijf pizza\'s voor mijn marktkraam?',
+    a: [['Deal!', () => { S.korting = { i: 'kaas', tot: S.dag + 3 }; ge(-15); return 'Drie dagen lang kaas voor de halve prijs. Kees eet de pizza\'s op zijn kraam op.'; }],
+      ['Alleen voor geld, Kees.', () => { ge(-20); S.korting = { i: 'kaas', tot: S.dag + 2 }; return 'Hij rekent € 20. Twee dagen goedkope kaas.'; }],
+      ['Nee, ik heb genoeg kaas.', () => 'Kees roept "VERSE KAAS!" en loopt door naar Ahmet.'] ] },
+  { id: 'keesbasilicum', ik: '🍅', wie: '', vraag: 'Verse basilicum uit eigen tuin! Gekweekt naast mijn kippenhok, dus extra… natuurlijk.',
+    a: [['Lekker, ik neem een bos.', () => { ge(-8); vandaag.fooi *= 1.05; return 'Het ruikt heerlijk. Je vraagt maar niet waarom het zo goed groeit.'; }],
+      ['Naast het kippenhok? Nee, dank je.', () => 'Kees haalt zijn schouders op. "Kippen zijn ook mensen."'],
+      ['Als je er een liedje bij zingt.', () => { vandaag.gezellig += 0.5; return 'Kees zingt een marktlied over komkommers. Het hele terras doet mee.'; }] ] },
+  { id: 'wimkeurmerk', ik: '👔', wie: '', vraag: 'De gemeente geeft dit jaar het keurmerk "Lekkerste pizza van de stad". Ik kom proeven. Volledig onafhankelijk, natuurlijk.',
+    a: [['Welkom, Wim. Gewoon een Margherita?', () => { if (kans(0.5 + gemGezellig() / 10)) { rep(4); return 'Het keurmerk is voor jou! Er hangt nu een glimmend bordje op de deur.'; } return 'Hij vindt hem lekker, maar het keurmerk gaat naar… Luigi. Hmpf.'; }],
+      ['Een extra grote met alles, op het huis.', () => { ge(-15); if (kans(0.7)) { rep(3); return 'Wim knipoogt. Het keurmerk is voor jou. Volledig onafhankelijk.'; } rep(-2); return 'Een journalist ziet het. "WETHOUDER EET GRATIS!" staat morgen in de krant.'; }],
+      ['Keurmerken zijn onzin.', () => { rep(-1); return 'Wim schrijft iets op zijn klembord. Het ziet er niet goed uit.'; }] ] },
+  { id: 'wimtoren', ik: '👔', wie: '', als: () => !torenOpen(), vraag: 'Zoals u weet bouwt de gemeente een toren. Een sponsor krijgt zijn naam op een bordje. Interesse?',
+    a: [['Waar teken ik?', () => { ge(-50); rep(1); return 'Je naam komt op een bordje bij de bouwplaats. Klein, maar het staat er. (− € 50)'; }],
+      ['Hoe hoog wordt hij?', () => '"Hoog. En een beetje scheef. Dat is de bedoeling," zegt Wim snel.'],
+      ['Ik bouw zelf wel een toren.', () => 'Wim lacht. "Van pizzadozen zeker?" Hij heeft geen idee.'] ] },
+  { id: 'wimspeech', ik: '👔', wie: '', vraag: 'Ik moet morgen een toespraak houden. Mag ik hem even op u oefenen? Het duurt maar… veertig minuten.',
+    a: [['Ga je gang, Wim.', () => { vandaag.gezellig -= 0.5; rep(1); return 'Halverwege slaapt de halve zaak. Wim is erg tevreden.'; }],
+      ['Alleen de korte versie.', () => '"Geachte aanwezigen… dank u." Iedereen klapt opgelucht.'],
+      ['Doe het maar bij Luigi.', () => { morgenKl(1.03); return 'Wim spreekt Luigi\'s klanten in slaap. Ze komen morgen naar jou.'; }] ] },
+  { id: 'zoenacht', ik: '👩‍⚕️', wie: '', vraag: 'Hoi! Ik heb nachtdienst met de hele afdeling. Kunnen jullie twaalf pizza\'s naar het ziekenhuis brengen?',
+    a: [['Natuurlijk, voor de helden van de nacht!', () => { ge(90); rep(1); return 'De hele afdeling juicht. Zoë stuurt een foto met twaalf blije koppen. (+ € 90)'; }],
+      ['Met korting, jullie werken zo hard.', () => { ge(60); rep(3); return 'Iedereen in het ziekenhuis hoort ervan. (+ € 60)'; }],
+      ['Sorry, we bezorgen niet zo ver.', () => 'Zoë haalt ze dan zelf. Twaalf dozen op de fiets!'] ] },
+  { id: 'zoesnee', ik: '👩‍⚕️', wie: '', vraag: 'Oei, uw ober heeft zich gesneden aan een pizzames! Zal ik er even naar kijken?',
+    a: [['Graag, Zoë!', () => { oberTempo(1.05); return 'Een pleister, een knipoog, en de ober werkt de rest van de avond fluitend.'; }],
+      ['Ach, dat is maar een schrammetje.', () => { oberTempo(0.85); return 'De ober werkt met één hand. Het gaat een stuk trager.'; }],
+      ['Hij moet naar huis.', () => { oberTempo(0.8); return 'Zoë zegt dat het meevalt, maar hij is al weg. De rest moet harder werken.'; }] ] },
+  { id: 'zoegezond', ik: '👩‍⚕️', wie: '', vraag: 'Ik moet op mijn bloeddruk letten. Kan ik een pizza zonder zout en zonder kaas? Met extra groente?',
+    a: [['Komt eraan!', () => { rep(1); return 'Mario fronst, maar maakt een prachtige groentepizza. Zoë is blij.'; }],
+      ['Zonder kaas is het geen pizza.', () => 'Ze neemt toch een Margherita. "Eén keer kan geen kwaad." Ze knipoogt.'],
+      ['Dan krijgt u een salade.', () => { ge(4); return 'Ze eet de salade en pikt twee punten pizza van haar collega.'; }] ] },
+  { id: 'zoeknipoog', ik: '👩‍⚕️', wie: '', vraag: 'Zoë komt een pizza afhalen en knipoogt naar Mario. "Wat ruikt het hier lekker… of bent u dat, Mario?"',
+    a: [['Mario, aan het werk!', () => 'Mario bloost tot achter zijn oren en bakt met trillende handen door.'],
+      ['Laat ze even kletsen.', () => { const o = ovens[0]; if (o) for (const q of o.in) q.t += 8; vandaag.gezellig += 0.5; return 'Mario kletst en kletst… en de pizza in de oven wordt donkerder en donkerder.'; }],
+      ['Zoë, wil je met Mario uit eten? Hier, op de zaak.', () => { ge(-15); vandaag.fooi *= 1.1; return 'Ze zitten aan het kaarsjestafeltje. De hele zaak kijkt stiekem mee. Mario straalt.'; }] ] },
+  { id: 'zoeprik', ik: '👩‍⚕️', wie: '', vraag: 'Het griepseizoen komt eraan. Zal ik bij uw personeel een griepprik zetten? Kost niets.',
+    a: [['Graag!', () => { S.griepvrij = S.dag + 30; return 'Beppe valt flauw bij het zien van de naald. Maar de hele ploeg is beschermd!'; }],
+      ['Mijn personeel wordt nooit ziek.', () => 'Op dat moment niest de ober over een pizza. Zoë kijkt je veelzeggend aan.'],
+      ['Alleen als u er een pizza bij neemt.', () => { ge(PRIJS); S.griepvrij = S.dag + 30; return 'Ze prikt, eet en vertrekt met een knipoog. Iedereen beschermd.'; }] ] },
   { id: 'gleufhoed', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
@@ -1157,6 +1214,15 @@ const VRAGEN = [
       ['Nee, ik maak de kaart zelf.', () => 'Mario haalt zijn schouders op. Knop 📖 Pizza\'s!'],
       ['Alleen als er geen ananas op komt.', () => 'Mario: "Waarom zou ik ananas… o. Ja. Afgesproken."'] ] },
 ];
+// vaste figuren: ze komen echt binnen (rij in pizza/bezoekers.png, portret in pizza/portretten.png; uit pizza/<naam>-gemini.jpg)
+const FIGUUR = {
+  henk: { wie: 'Opa Henk', rij: 6, portret: 7, ids: ['gebit', 'snurk', 'snorren', 'henkdans', 'henkverhaal'] },
+  kim: { wie: 'Kimberley, influencer', rij: 7, portret: 8, ids: ['influencer', 'champagne', 'prank', 'kimnaam'] },
+  kees: { wie: 'Kees van de markt', rij: 8, portret: 9, ids: ['tomaten', 'mozzarella', 'keestruffel', 'keesruil', 'keesbasilicum'] },
+  wim: { wie: 'Wethouder Wim', rij: 9, portret: 10, ids: ['parkeren', 'terras', 'wimkeurmerk', 'wimtoren', 'wimspeech'] },
+  zoe: { wie: 'Zuster Zoë', rij: 10, portret: 11, ids: ['zoenacht', 'zoesnee', 'zoegezond', 'zoeknipoog', 'zoeprik'] } };
+for (const f of Object.values(FIGUUR)) for (const id of f.ids) { const v = VRAGEN.find((v) => v.id == id); if (v) Object.assign(v, { wie: f.wie, rij: f.rij, portret: f.portret }); }
+
 // UITLEG: bij "Hoe moet dat eigenlijk?" een stappenplan voor nieuwe pizza's, met een knop die meteen de menukaart opent
 const PIZZA_UITLEG = `<ol style="text-align:left;line-height:1.5"><li>Tik op <b>📖 Pizza's</b> in het paneel (dat kan ook nu, tijdens het werk).</li>
   <li>Kies <b>➕ Nieuwe pizza</b>.</li><li>Tik op ingrediënten om ze op de pizza te leggen (max. 14 stukjes, 4 van één soort).</li>
