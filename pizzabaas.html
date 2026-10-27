@@ -1194,7 +1194,7 @@ const torenOpen = () => S.toren && S.toren.open;
 function toonToren(opening) {
   $('toren').classList.remove('verborgen'); startToren(); toren.opening = !!opening;
   if (opening) $('torentekst').textContent = '🎉 De grote opening! De burgemeester kijkt mee: hoe hoger je stapelt, hoe meer de stad over je pizzeria praat.';
-  $('torenstart').onclick = () => { wekGeluid(); startToren(); };  // een nieuwe ronde is geen opening meer $('torendicht').onclick = () => { $('toren').classList.add('verborgen'); toren = null; };
+  $('torenstart').onclick = () => { wekGeluid(); startToren(); }; /* een nieuwe ronde is geen opening meer */ $('torendicht').onclick = () => { $('toren').classList.add('verborgen'); toren = null; };
   const c = $('torendoek'); c.onpointerdown = (e) => { e.preventDefault(); wekGeluid(); torenTik(); };
   torenBord();
 }
