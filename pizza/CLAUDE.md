@@ -264,6 +264,6 @@ op het moment van bestellen (`gebruik`, ook bezorgingen; aangebrand = nog eens).
 `S.inkoopVandaag` (komt bij het openen in `tel.inkoop`/`tel.kosten`), overdag via `ge` voor dubbele prijs (markt). De oude inkoop bij het bakken
 (`tel.ing`) is weg. `kanMaken`/`kiesPizza.uitv`: op = andere pizza of weg (`tel.uitverkocht`, rep −0,3). 's Nachts bederft 10% (`eindeVoorraad`,
 `tel.bedorven`). `voorstel()` = gisteren × 1,25 (× 1,6 als er iets op was, `S.opGeweest`) of een schatting, min wat er ligt. `S.autoBestel`
-(standaard aan): Mario bestelt bij het openen vanzelf het voorstel, zodat het voor beginners niet moeilijker wordt. `S.korting` (markt) = halve
+(standaard aan, `autoAan()`): Mario bestelt bij het openen vanzelf het voorstel, zodat het voor beginners niet moeilijker wordt; vanaf de tweede zaak niet meer (afspraak met Marcel: dan moet je zelf inkopen). `S.korting` (markt) = halve
 prijs bij het inkopen. Na het wisselen van zaak is `S.voorraad` null: die wordt gratis gevuld (de manager kocht in, betaald in `simuleerZaak`;
 Kevin vergeet dat soms: 60% van de klanten). De knop Open staat nu over de hele breedte (10 knoppen).

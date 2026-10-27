@@ -2256,7 +2256,7 @@ function toonStad(plek) {
   if ($('wissel')) $('wissel').onclick = () => { wisselZaak(zaakVan(plek)); $('stad').classList.add('verborgen'); meld('Welkom in ' + zaakNaam() + '!', 3000); };
   if ($('huren')) $('huren').onclick = () => { if (!confirm(`Dit pand huren voor € ${p.borg} (en € ${p.huur} per dag)?`)) return;
     ge(-p.borg); bewaarZaak(); S.zaken.push({ plek, buurt: p.buurt, huur: p.huur, spullen: BEGIN(), ovens: 1, obers: 1, groot: [], rep: BUURT[p.buurt].rep, manager: null, vuil: 0 });
-    kassa(); bewaar(); tekenKnoppen(); toonStad(plek); meld('Gefeliciteerd, je hebt een tweede pizzeria! Ga er \'s ochtends heen om hem in te richten.', 5000); };
+    kassa(); bewaar(); tekenKnoppen(); toonStad(plek); meld('Gefeliciteerd, je hebt een tweede pizzeria! Ga er \'s ochtends heen om hem in te richten. Let op: vanaf nu koop je zelf in (📦 Voorraad), Mario doet het niet meer vanzelf.', 7000); };
   if ($('balie')) $('balie').onclick = () => { aanBalie = true; toonBank(); };
   const bedrag = (vraag, max) => { const v = prompt(vraag, String(Math.floor(max))); const n = Math.min(Math.floor(max), Math.floor(+String(v).replace(',', '.') || 0)); return n > 0 ? n : 0; };
   if ($('storten')) $('storten').onclick = () => { const n = bedrag(`Hoeveel contant geld wil je storten? (je hebt € ${Math.floor(S.geld)})`, S.geld); if (!n) return; S.geld -= n; S.bankSaldo = (S.bankSaldo || 0) + n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} op je bankrekening gezet.`); toonStad('bank'); };
@@ -2416,6 +2416,7 @@ function beweeg(o, doel, snel, dt) {
 // weg (tel.uitverkocht). 's Nachts bederft 10%. S.autoBestel (standaard aan): Mario vult elke ochtend aan tot zijn voorstel, zodat beginners er
 // geen omkijken naar hebben. Wie zelf bestelt, kan slimmer inkopen (minder weggooien, korting van de markt: S.korting = halve prijs).
 let verbruikt = {};
+const autoAan = () => S.zaken.length < 2 && S.autoBestel !== false; // vanaf de tweede zaak koop je zelf in (de managers doen de andere zaken)
 const VNAAM = (i) => i == 'deeg' ? 'Deeg' : ING[i].n, VIK = (i) => i == 'deeg' ? '🫓' : '';
 const prijsV = (i) => i == 'deeg' ? BODEM.k : ING[i].k * (S.korting && S.korting.tot > S.dag && S.korting.i == i ? 0.5 : 1);
 const nodig = (p) => { const n = { deeg: TELT }; for (const s of p.stukjes) n[s.i] = (n[s.i] || 0) + TELT; return n; };
@@ -2433,7 +2434,7 @@ function inkopen(l, spoed) { const k = Math.round(bestelPrijs(l, spoed) * 100) /
 function startVoorraad() { // bij het openen van de deuren
   verbruikt = {}; if (!S.voorraad) { S.voorraad = {}; for (const [i, n] of Object.entries(voorstel())) S.voorraad[i] = n; } // eerste keer (of de manager deed het): gratis gevuld
   tel.inkoop = S.inkoopVandaag || 0; tel.kosten += tel.inkoop; S.inkoopVandaag = 0;
-  if (S.autoBestel !== false) { const l = voorstel(), k = bestelPrijs(l); if (k > 0) { for (const [i, n] of Object.entries(l)) S.voorraad[i] = (S.voorraad[i] || 0) + n; S.geld -= k; tel.inkoop += k; tel.kosten += k; } }
+  if (autoAan()) { const l = voorstel(), k = bestelPrijs(l); if (k > 0) { for (const [i, n] of Object.entries(l)) S.voorraad[i] = (S.voorraad[i] || 0) + n; S.geld -= k; tel.inkoop += k; tel.kosten += k; } }
   else { const krap = voorraadSoorten().filter((i) => (S.voorraad[i] || 0) < 8 * TELT); if (krap.length) setTimeout(() => meld(`📦 Bijna op: ${krap.map(VNAAM).join(', ')}! Bestel via 📦 Voorraad (overdag van de markt: dubbele prijs).`, 4500), 2500); }
 }
 function eindeVoorraad() { // 's avonds: wat er op ging onthouden, en 10% bederft
@@ -2447,7 +2448,7 @@ function toonVoorraad(l) {
     <table>${soorten.map((i) => `<tr><td>${VIK(i)} ${esc(VNAAM(i))}${S.korting && S.korting.tot > S.dag && S.korting.i == i ? ' 🏷️' : ''}<br><span style="font-size:.8em;opacity:.7">ligt er: ${Math.floor(v[i] || 0)}${gist[i] ? ` · gisteren op: ${Math.round(gist[i])}` : ''}</span></td>
       <td style="white-space:nowrap"><button class="knop" data-min="${i}">−</button> <b style="display:inline-block;min-width:2.2em;text-align:center">${l[i] || 0}</b> <button class="knop" data-plus="${i}">+</button></td></tr>`).join('')}</table>
     <div class="rij"><button class="knop" id="vvoorstel">💡 Voorstel van Mario</button><button class="knop rood" id="vbestel" ${k <= 0 || S.geld < k ? 'disabled' : ''}>🛒 Bestellen (${euro(k)})</button></div>
-    <p class="buurt"><label><input type="checkbox" id="vauto" ${S.autoBestel !== false ? 'checked' : ''}> Mario bestelt elke ochtend zelf zijn voorstel (makkelijk). Uit = je regelt het zelf.</label></p>
+    ${S.zaken.length < 2 ? `<p class="buurt"><label><input type="checkbox" id="vauto" ${S.autoBestel !== false ? 'checked' : ''}> Mario bestelt elke ochtend zelf zijn voorstel (makkelijk). Uit = je regelt het zelf.</label></p>` : '<p class="buurt">🏪 Je hebt nu een keten: het inkopen doe je zelf, in de zaak waar je staat (de managers doen het in de andere zaken). Tik op 💡 Voorstel en dan Bestellen, dan zit je goed.</p>'}
     <button class="groot" id="verder">Klaar</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen');
   const kaart = $('eindkaart');
@@ -2455,7 +2456,7 @@ function toonVoorraad(l) {
   kaart.querySelectorAll('[data-min]').forEach((b) => b.onclick = () => { l[b.dataset.min] = Math.max(0, (l[b.dataset.min] || 0) - 10); toonVoorraad(l); });
   $('vvoorstel').onclick = () => toonVoorraad(voorstel());
   $('vbestel').onclick = () => { const k = inkopen(l, spoed); kassa(); bewaar(); tekenKnoppen(); meld(spoed ? `Iemand rent naar de markt. − ${euro(k)}` : `Besteld bij de leverancier: − ${euro(k)}`, 3000); toonVoorraad(); };
-  $('vauto').onchange = () => { S.autoBestel = $('vauto').checked; bewaar(); };
+  if ($('vauto')) $('vauto').onchange = () => { S.autoBestel = $('vauto').checked; bewaar(); };
 }
 // ---------- de manager (vanaf populariteit 40, 3 pizza's en dag 7; in de tweede, derde… zaak meteen) ----------
 // Met een manager mag je ook overdag de stad in. Terwijl je weg bent (`isWeg`) regelt hij de gewone vragen (`managerVraag`); bezoekers
@@ -3463,7 +3464,7 @@ function tekenKnoppen() {
   const schuld = (S.leningen || []).reduce((a, l) => a + l.rest, 0);
   h += `<button data-bank ${open ? 'disabled' : ''}><span class="ik">🏦</span>Geld lenen<span class="pr">${schuld ? 'schuld €' + schuld : 'bank en meer'}</span></button>`;
   h += `<button data-dag><span class="ik">📊</span>Gisteren<span class="pr">overzicht</span></button>`;
-  h += `<button data-voorraad><span class="ik">📦</span>Voorraad<span class="pr">${S.autoBestel !== false ? 'Mario bestelt' : voorraadSoorten().some((i) => ((S.voorraad || {})[i] || 0) < 8 * TELT) ? '⚠️ bijna op' : 'zelf bestellen'}</span></button>`;
+  h += `<button data-voorraad><span class="ik">📦</span>Voorraad<span class="pr">${autoAan() ? 'Mario bestelt' : voorraadSoorten().some((i) => ((S.voorraad || {})[i] || 0) < 8 * TELT) ? '⚠️ bijna op' : 'zelf bestellen'}</span></button>`;
   h += open ? `<button class="open" disabled><span class="ik">🔔</span>Open</button>` : `<button class="open" id="open"><span class="ik">🔔</span>Open de deuren</button>`;
   k.innerHTML = h;
   k.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { wekGeluid(); const k = b.dataset.k, gr = GROEP[k];
