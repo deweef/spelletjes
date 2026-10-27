@@ -259,3 +259,11 @@ vraag `luigiBord` de dag erna (via `S.verplicht`). Sabotage blijft kans `S.ruzie
 Op de pof: `S.pof = [{ wie, bedrag, dag }]` (`opDePof`, vragen portemonnee A en gokverlies A); elke ochtend `pofBetalen` (kans 22%, gokker 8%,
 +25% na de herinneringsbrief `S.pofBrief`); in het dagoverzicht "Nog op de pof". Vraag `debiteuren` (boekhouder, vanaf € 40 en iets ouder dan
 6 dagen): brief / incasso (60% terug, rep −2) / doorstrepen (`S.lief` +1).
+Voorraad per zaak (knop 📦 Voorraad, `toonVoorraad`; ZAAKVELD `voorraad`, `verbruik`): in stukjes, een pizza gebruikt deeg + zijn stukjes × TELT
+op het moment van bestellen (`gebruik`, ook bezorgingen; aangebrand = nog eens). Kosten bij het inkopen (`inkopen`): 's ochtends via
+`S.inkoopVandaag` (komt bij het openen in `tel.inkoop`/`tel.kosten`), overdag via `ge` voor dubbele prijs (markt). De oude inkoop bij het bakken
+(`tel.ing`) is weg. `kanMaken`/`kiesPizza.uitv`: op = andere pizza of weg (`tel.uitverkocht`, rep −0,3). 's Nachts bederft 10% (`eindeVoorraad`,
+`tel.bedorven`). `voorstel()` = gisteren × 1,25 (× 1,6 als er iets op was, `S.opGeweest`) of een schatting, min wat er ligt. `S.autoBestel`
+(standaard aan): Mario bestelt bij het openen vanzelf het voorstel, zodat het voor beginners niet moeilijker wordt. `S.korting` (markt) = halve
+prijs bij het inkopen. Na het wisselen van zaak is `S.voorraad` null: die wordt gratis gevuld (de manager kocht in, betaald in `simuleerZaak`;
+Kevin vergeet dat soms: 60% van de klanten). De knop Open staat nu over de hele breedte (10 knoppen).
