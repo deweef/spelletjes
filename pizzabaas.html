@@ -412,7 +412,7 @@ function nieuweVlek(x, y, soort) {
   vlekken.push({ x, y, soort, t: 0, d: Math.random() * 6 });
   if (soort == 'scherven') ding(2400, 0.06, 'triangle', 0.05), setTimeout(() => ding(3100, 0.05, 'triangle', 0.04), 60);
 }
-function glasKapot() { const m = pak(mensen.filter((m) => m.st == 'eet')) || { x: 7, y: 9 }; nieuweVlek(m.x + 0.5, m.y + 0.5, 'scherven'); }
+function glasKapot() { const m = pak(mensen.filter((m) => m.st == 'eet')) || { x: 7, y: 9 }; nieuweVlek(m.x + 0.5, m.y + 0.5, 'scherven'); const v = vlekken[vlekken.length - 1]; if (v) muntjes.push({ x: v.x, y: v.y - 0.4, t: 3, tekst: '💥 Scherven! Tik erop' }); }
 function vlekBij(x, y) { return vlekken.find((v) => Math.hypot(v.x - x, v.y - y) < 0.75); }
 function tekenVlekken(nu) {
   for (const v of vlekken) {
