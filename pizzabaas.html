@@ -83,6 +83,8 @@
   #kaartvak img { display: block; width: 100%; image-rendering: pixelated; }
   .plek { position: absolute; border: 0; background: transparent; cursor: pointer; padding: 0; border-radius: 8px; }
   .plek span { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); white-space: nowrap; background: rgba(40,20,8,.85); color: #fff7e8; font: 700 12px system-ui; padding: 3px 7px; border-radius: 8px; pointer-events: none; }
+  .torenkaart { position: absolute; left: 20%; bottom: 10%; width: 60%; height: 95%; background: url(pizza/toren.png) 0 0 / 400% 100% no-repeat; pointer-events: none; }
+  .torenfoto { width: 120px; height: 160px; margin: 6px auto; background: url(pizza/toren.png) 0 0 / 480px 160px no-repeat; }
   .plek:hover, .plek:focus { background: rgba(255,230,120,.25); outline: 3px solid #ffd23f; }
   .pers { display: inline-block; width: 100px; height: 100px; background: url(pizza/drukpers.png) 0 0 / 400px 100px no-repeat; flex: none; } /* pers, bon, vervalste bon, stapel (pizza/drukpers-gemini.jpg) */
   #drukbalk { position: relative; height: 28px; background: #e8d7b5; border-radius: 14px; margin: 14px 10px 4px; overflow: hidden; }
@@ -336,7 +338,7 @@ const LEKKER = { // per soort klant: [vond het heerlijk, vond het niks]
   opa: [['Net als vroeger!', 'Lekker zacht, voor mijn kunstgebit.', 'Dat hadden wij vroeger niet!'], ['Veel te heet! Water!', 'Vroeger was alles beter.', 'Daar kan ik niet op kauwen.']],
 };
 function kiesSoort() { // op zondag komen er meer opa's en oma's, op vrijdag meer werkers en studenten
-  const wd = modus == 'inrichten' ? 0 : weekdag(), w = Object.entries(SOORT).map(([k, d]) => [k, d.kans * (wd == 6 && k == 'opa' ? 2.5 : wd == 4 && (k == 'werker' || k == 'student') ? 1.4 : 1) * (k == 'student' && vandaag.studenten ? 2 : 1) * ((BUURT[S.buurt] || BUURT.oud).soort[k] ?? 1)]);
+  const wd = modus == 'inrichten' ? 0 : weekdag(), w = Object.entries(SOORT).map(([k, d]) => [k, d.kans * (wd == 6 && k == 'opa' ? 2.5 : wd == 4 && (k == 'werker' || k == 'student') ? 1.4 : 1) * (k == 'student' && vandaag.studenten ? 2 : 1) * ((BUURT[S.buurt] || BUURT.oud).soort[k] ?? 1) * (k == 'toerist' && torenOpen() ? 2 : 1)]); // de Toren van Pizza trekt toeristen
   let r = Math.random() * w.reduce((a, [, v]) => a + v, 0); for (const [k, v] of w) if ((r -= v) < 0) return k; return 'werker'; }
 
 // ---------- spullen en stoelen ----------
@@ -615,7 +617,7 @@ function openDeuren() {
   bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
   if (S.bonnen && S.bonnen.tot >= S.dag) { vandaag.aankomst *= 1 + 0.4 * S.bonnen.q; if (kans(0.12 + (1 - S.bonnen.q) * 0.4)) S.verplicht = [...(S.verplicht || []), 'luigiBoos']; } // valse bonnen
   sabotageVandaag(); if (S.studentenMorgen) { vandaag.studenten = true; S.studentenMorgen = false; } // flyers bij het studentenhuis
-  vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
+  vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ if (torenOpen()) vandaag.aankomst *= 1.1; /* toeristen voor de toren */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (laatsteVanDeMaand() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen(); wegLog = [];
@@ -1113,12 +1115,19 @@ function cryptoBlok(wissel) { // de lijst munten: op de laptop (kopen) of bij Sn
 // het stuk erboven nog op zijn steun rust (zwaartepunt van alles boven laag j binnen de pizza eronder): zo niet, dan valt het om.
 const BORD_URL = 'https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
 const TR = 56, TD = 15, TW = 360, TH = 540; // straal en dikte van een pizza, maat van het veld
-let toren = null;
+let toren = null; const TBG = Object.assign(new Image(), { src: 'pizza/toren-achtergrond.jpg' });
 function nieuweTorenPizza(i) { let z = i * 9301 + 49297; const rnd = () => (z = (z * 16807) % 2147483647) / 2147483647;
   return { bel: Array.from({ length: 7 }, () => ({ a: rnd() * 6.28, d: 0.2 + rnd() * 0.6, s: Math.floor(rnd() * 3) })) }; }
-function toonToren() {
-  $('toren').classList.remove('verborgen'); startToren();
-  $('torenstart').onclick = () => { wekGeluid(); startToren(); }; $('torendicht').onclick = () => { $('toren').classList.add('verborgen'); toren = null; };
+// de Toren van Pizza als stadsproject (S.toren = { fase 0-4, bouwt: { tot }, open }): per verdieping meebetalen, dan bouwen de
+// bouwvakkers een paar dagen (`torenBij`). Op de stadskaart staat de toren (pizza/toren.png, 4 vakjes van 300x400 uit pizza/toren-gemini.jpg:
+// fundering, een derde, twee derde, af). Na fase 4 de opening (stapelwedstrijd, populariteit erbij); daarna meer toeristen (kiesSoort, openDeuren).
+const TORENFASE = [{ n: 'de fundering', prijs: 500, dagen: 2 }, { n: 'de eerste verdiepingen', prijs: 1000, dagen: 3 }, { n: 'nog meer verdiepingen', prijs: 1500, dagen: 3 }, { n: 'de top met de vlag', prijs: 2000, dagen: 4 }];
+function torenBij() { S.toren = S.toren || { fase: 0 }; if (S.toren.bouwt && S.dag >= S.toren.bouwt.tot) { S.toren.fase++; S.toren.bouwt = null; } return S.toren; }
+const torenOpen = () => S.toren && S.toren.open;
+function toonToren(opening) {
+  $('toren').classList.remove('verborgen'); startToren(); toren.opening = !!opening;
+  if (opening) $('torentekst').textContent = '🎉 De grote opening! De burgemeester kijkt mee: hoe hoger je stapelt, hoe meer de stad over je pizzeria praat.';
+  $('torenstart').onclick = () => { wekGeluid(); startToren(); };  // een nieuwe ronde is geen opening meer $('torendicht').onclick = () => { $('toren').classList.add('verborgen'); toren = null; };
   const c = $('torendoek'); c.onpointerdown = (e) => { e.preventDefault(); wekGeluid(); torenTik(); };
   torenBord();
 }
@@ -1158,10 +1167,12 @@ function tekenTorenPizza(g2, x, y, p, hoek) { // van opzij, iets van boven: kors
 }
 function tekenToren() {
   const T = toren, c = $('torendoek'), g2 = c.getContext('2d'), top = torenTop();
-  const lucht = g2.createLinearGradient(0, 0, 0, TH); lucht.addColorStop(0, '#7ec8f0'); lucht.addColorStop(1, '#dff3ff'); g2.fillStyle = lucht; g2.fillRect(0, 0, TW, TH);
-  g2.fillStyle = 'rgba(255,255,255,.8)'; for (const [x, y] of [[60, 80], [250, 140], [150, 40]]) { g2.beginPath(); g2.arc(x, y + T.cam * 0.3, 18, 0, 7); g2.arc(x + 20, y + 4 + T.cam * 0.3, 14, 0, 7); g2.arc(x - 18, y + 6 + T.cam * 0.3, 12, 0, 7); g2.fill(); }
+  if (TBG.complete && TBG.naturalWidth) { const by = T.cam * 0.5; g2.fillStyle = '#5ea9f2'; g2.fillRect(0, 0, TW, by + 2); g2.drawImage(TBG, 0, by, TW, TH); } // plein met bouwplaats (pizza/toren-achtergrond-gemini.jpg); omhoog = meer lucht
+  else { const lucht = g2.createLinearGradient(0, 0, 0, TH); lucht.addColorStop(0, '#7ec8f0'); lucht.addColorStop(1, '#dff3ff'); g2.fillStyle = lucht; g2.fillRect(0, 0, TW, TH); }
+  g2.fillStyle = 'rgba(255,255,255,.8)'; if (!(TBG.complete && TBG.naturalWidth)) for (const [x, y] of [[60, 80], [250, 140], [150, 40]]) { g2.beginPath(); g2.arc(x, y + T.cam * 0.3, 18, 0, 7); g2.arc(x + 20, y + 4 + T.cam * 0.3, 14, 0, 7); g2.arc(x - 18, y + 6 + T.cam * 0.3, 12, 0, 7); g2.fill(); }
   g2.save(); g2.translate(0, T.cam);
-  g2.fillStyle = '#c9b48a'; g2.fillRect(0, TH - 40, TW, 400); g2.fillStyle = '#7a5a30'; g2.fillRect(TW / 2 - 80, TH - 62, 160, 22); // grond en tafel
+  if (!(TBG.complete && TBG.naturalWidth)) { g2.fillStyle = '#c9b48a'; g2.fillRect(0, TH - 40, TW, 400); } // grond
+  g2.fillStyle = 'rgba(40,20,5,.35)'; g2.fillRect(TW / 2 - 76, TH - 40, 160, 8); g2.fillStyle = '#7a5a30'; g2.fillRect(TW / 2 - 80, TH - 62, 160, 22); g2.fillStyle = '#9a7442'; g2.fillRect(TW / 2 - 80, TH - 62, 160, 5); // houten pallet
   const basis = T.stapel[0].x, n = T.stapel.length, com = T.stapel.reduce((a, q) => a + q.x, 0) / n;
   const scheef = Math.max(-0.35, Math.min(0.35, (com - basis) / TR * 0.12)) + Math.sin(performance.now() / 70) * T.wiebel * 0.03; // de toren helt over (en wiebelt na)
   g2.save(); g2.translate(basis, TH - 62); g2.rotate(scheef);
@@ -1188,6 +1199,8 @@ function torenKlaar() {
       .then((r) => r.json()).then((d) => { try { localStorage.setItem(lk, S.torenBest); localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} torenBord(d); }).catch(() => {});
   }
   $('torentekst').textContent = T.score ? `${T.score} pizza's! ${T.record ? 'Dat is een nieuw record.' : ''}` : 'Helemaal mis. Nog een keer!';
+  if (T.opening && S.toren && !S.toren.open) { const b = Math.min(15, 3 + T.score); S.toren.open = S.dag; rep(b); for (const z of S.zaken) if (z && z.rep != null) z.rep = Math.min(100, z.rep + b); bewaar();
+    $('torentekst').textContent = `🎉 De Toren van Pizza is open! Je stapelde ${T.score} pizza's voor de burgemeester: populariteit +${b} in al je zaken. Vanaf nu komen er veel meer toeristen naar de stad.`; }
 }
 function torenBord(d) { // top 10 van het online scorebord (of de laatst bekende)
   const zet = (d) => { const l = (d && d.pizzatoren_gewoon) || []; $('torenbord').innerHTML = l.length ? '<b>🏆 Scorebord</b><br>' + l.map((x, i) => `${i + 1}. ${esc(x.naam)}: ${x.score}`).join(' · ') : (speler ? '' : 'Kies je naam op de startpagina, dan komt je record op het scorebord.'); };
@@ -1357,7 +1370,7 @@ function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze ni
 function toonStad(plek) {
   const k = $('stadkaart');
   if (!plek) {
-    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%"><span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
+    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%">${id == 'bouw' && torenBij().fase ? `<i class="torenkaart" style="background-position:${(torenBij().fase - 1) / 3 * 100}% 0"></i>` : ''}<span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
       ${modus != 'inrichten' && S.manager ? `<p class="buurt" style="text-align:center">🕒 De zaak is open. ${esc(MANAGER[S.manager.wie].n)} past op de winkel${S.manager.wie == 'kevin' ? '… hopelijk' : ''}.</p>` : ''}
       <p class="buurt" style="text-align:center">Tik op een plek in de stad. <button class="knop" id="stadterug" style="margin-left:8px">🍕 Terug naar je zaak</button></p>`;
     k.querySelectorAll('[data-plek]').forEach((b) => b.onclick = () => toonStad(b.dataset.plek));
@@ -1394,13 +1407,22 @@ function toonStad(plek) {
   if (plek == 'wissel') { h += `<p>Een smal winkeltje met een knipperend bord: <b>CRYPTO → CASH. GEEN VRAGEN.</b> Achter de toonbank zit Snelle Sjonnie met drie telefoons.
       "${pak(['Wisselen? Tien procent voor mij, de rest voor jou. Eerlijk is eerlijk.', 'Ik vraag niks, jij vraagt niks. Zo houden we het gezellig.', 'DogePizza? Mooi spul. Ik heb er zelf ook nog een paar miljoen.'])}"</p>
       <p class="buurt">Je krijgt de koers van vandaag, min 10% voor Sjonnie.</p>${cryptoBlok(true)}`; }
-  if (plek == 'bouw') { h += `<p>Een kraan, zand en een bord: "Hier komt binnenkort: ????". De bouwvakkers zitten te lunchen en stapelen hun pizzadozen… "Wedden dat jij niet hoger komt?"</p>${S.torenBest ? `<p class="buurt">Jouw hoogste toren: <b>${S.torenBest} pizza's</b>.</p>` : ''}`;
-    knoppen = `<button class="knop rood" id="stapel">🍕 Pizza's stapelen</button>`; }
+  if (plek == 'bouw') { const t = torenBij(), f = TORENFASE[t.fase];
+    h += t.fase == 0 && !t.bouwt ? `<p>Een kraan, zand en een bord: "Hier komt binnenkort: ????". Een bouwvakker veegt zijn mond af: "De gemeente wil hier iets bijzonders. Een toren! Maar er is geen geld… Wil jij meebetalen? Dan wordt het de <b>Toren van Pizza</b>!"</p>`
+      : t.fase < 4 ? `<p>De <b>Toren van Pizza</b> groeit! ${t.bouwt ? `De bouwvakkers werken aan ${esc(TORENFASE[t.fase].n)}: klaar op ${esc(datumLang(t.bouwt.tot))}.` : `Klaar: ${t.fase} van de 4 stukken. Volgende: ${esc(f.n)}.`}</p>`
+      : t.open ? `<p>Daar staat hij: de <b>Toren van Pizza</b>, scheef en trots. Toeristen maken er selfies, en daarna hebben ze honger. Luigi kijkt er jaloers naar vanuit zijn raam.</p>`
+      : `<p>De <b>Toren van Pizza</b> is af! Er hangt een groot rood lint omheen en de burgemeester staat al klaar met een schaar. "Wie knipt het lint door? De sponsor natuurlijk!"</p>`;
+    h += `<div class="torenfoto" style="background-position:${t.fase ? -(t.fase - 1) * 120 : 0}px 0;${t.fase ? '' : 'opacity:.35'}"></div>`;
+    h += S.torenBest ? `<p class="buurt">Jouw hoogste pizzatoren: <b>${S.torenBest} pizza's</b>.</p>` : '';
+    knoppen = (t.fase < 4 && !t.bouwt ? `<button class="knop rood" id="torenbetaal" ${S.geld < f.prijs ? 'disabled' : ''}>💶 Meebetalen aan ${esc(f.n)} (€ ${f.prijs})</button>` : '')
+      + (t.fase == 4 && !t.open ? `<button class="knop rood" id="torenopen">✂️ Lint doorknippen: openingswedstrijd!</button>` : `<button class="knop" id="stapel">🍕 Pizza's stapelen</button>`); }
   const k2 = $('stadkaart'); k2.innerHTML = `<div class="kaart" style="margin:auto">${h}<div class="rij">${knoppen}${terug}</div></div>`;
   $('plekterug').onclick = () => toonStad();
   k2.querySelectorAll('[data-verkoop]').forEach((b) => b.onclick = () => { const c = crypto(), id = b.dataset.verkoop, w = c.bezit[id] * c.koers[id] * 0.9; c.bezit[id] = 0; ge(Math.round(w * 100) / 100); kassa(); bewaar(); tekenKnoppen();
     meld(`Sjonnie telt ${euro(w)} uit op de toonbank. "Leuk zakendoen!"`, 3500); toonStad('wissel'); });
   if ($('stapel')) $('stapel').onclick = () => toonToren();
+  if ($('torenopen')) $('torenopen').onclick = () => toonToren(true);
+  if ($('torenbetaal')) $('torenbetaal').onclick = () => { const t = torenBij(), f = TORENFASE[t.fase]; ge(-f.prijs); t.bouwt = { tot: S.dag + f.dagen }; kassa(); bewaar(); tekenKnoppen(); meld(`De bouwvakkers juichen en gaan aan de slag met ${f.n}!`, 3000); toonStad('bouw'); };
   if ($('naarzaak')) $('naarzaak').onclick = () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); toonWegLog(); };
   if ($('wissel')) $('wissel').onclick = () => { wisselZaak(zaakVan(plek)); $('stad').classList.add('verborgen'); meld('Welkom in ' + zaakNaam() + '!', 3000); };
   if ($('huren')) $('huren').onclick = () => { if (!confirm(`Dit pand huren voor € ${p.borg} (en € ${p.huur} per dag)?`)) return;

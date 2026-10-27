@@ -146,4 +146,8 @@ een pizza slingert (`hangX`, sneller en wijder naarmate de toren hoger wordt), t
 toren scheef; na elke pizza: rust alles boven laag j nog op pizza j-1 (zwaartepunt binnen 0,95 × straal)? Zo niet: omvallen (`T.om`).
 Binnen 4 px = "Perfetto!" (precies erop). Pizza's zelf getekend (`tekenTorenPizza`). Record `S.torenBest`; online scorebord onderdeel
 `pizzatoren`, modus `gewoon` (zelfde `BORD_URL` als Fladderfeest; alleen met naam en alleen een beter record, `pizzabaas_ingestuurd:<naam>`,
-laatste lijst in `pizzabaas_bord`); de Scores-app kent het als "Pizzabaas / Toren van Pizza". Nog: de toren als stadsproject op de bouwplaats.
+laatste lijst in `pizzabaas_bord`); de Scores-app kent het als "Pizzabaas / Toren van Pizza". Achtergrond `pizza/toren-achtergrond.jpg` (uit `pizza/toren-achtergrond-gemini.jpg`, schuift langzamer mee omhoog).
+De Toren van Pizza als stadsproject (`S.toren` = { fase 0-4, bouwt: { tot }, open }, `torenBij`, `TORENFASE`: €500/€1000/€1500/€2000, 2-4 dagen
+bouwen per stuk): op de bouwplaats meebetalen; op de stadskaart staat de toren (`.torenkaart`, `pizza/toren.png` = 4 vakjes van 300x400 uit
+`pizza/toren-gemini.jpg`: fundering, een derde, twee derde, af). Na fase 4: "Lint doorknippen" = `toonToren(true)`, de openingswedstrijd:
+populariteit + min(15, 3 + score) in alle zaken, `S.toren.open`. Daarna (`torenOpen`) twee keer zoveel toeristen en 10% meer klanten.
