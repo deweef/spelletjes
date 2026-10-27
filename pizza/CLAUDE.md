@@ -135,3 +135,9 @@ vervangen). Antwoord C ("Wraak is een gerecht…") = `S.barrie`, hij loopt net a
 maar met kans `risico` gesnapt (€200 boete, populariteit −8) of ziet Luigi het (morgen sabotage). Elke klus verhoogt `S.ruzie` (0-100,
 `ruzieTekst`); elke avond kans ruzie/300 dat Luigi zelf saboteert, ruzie −5. Vrede (`VREDE`): limoncello (5 dagen) of grappa (8 dagen) =
 `S.luigiRust`, ruzie 0. Op de stadskaart zie je bij Luigi wat er aan de hand is.
+Crypto (`S.crypto` = { koers, hist (20 dagen), bezit, nieuws }, `crypto()` maakt het aan): munten `MUNT` (Bitkaas rustig … DogePizza wild,
+`vol`), elke avond `cryptoAvond` (willekeurige sprong, 30% kans op `CRYPTONIEUWS` met een grote klap; MozzaMunt kan herstarten na een
+instorting). Erbij komen: Gerrit betaalt een vervalsing in 45% van de gevallen in crypto, en klant-vraag 'cryptoklant'; dan `kiesMunt` (via
+`naVraag`, na Verder): je kiest de munt zonder de koers te zien. Laptop in de achterkamer (`cryptoBlok(false)`: koers, grafiekje `koersLijn`,
+bezit, munten kopen voor €50). Euro's ervan maken: alleen bij Snelle Sjonnie in de stad (`PLEK.wissel`, `cryptoBlok(true)`, 10% commissie).
+Het dagoverzicht toont het cryptonieuws als je munten hebt.
