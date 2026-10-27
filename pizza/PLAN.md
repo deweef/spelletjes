@@ -167,7 +167,7 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   als 1,5 klant (geld en telling); melding en knoppen onder het iPhone-randje.
 - Idee Marcel (27 okt): klapluik in de toonbank waar je doorheen kunt; Gerrit Gleufhoed (de man met de gleufhoed) loopt na het goede
   antwoord door het luik en de keuken naar een deurtje achterin (nieuw), daarna naar het atelier. Later: de kok loopt de zaak in en vraagt
-  aan een klant of het smaakt. Nodig: Gemini-vel van Gerrit (lopen van voren/achteren + portret).
+  aan een klant of het smaakt. **Gedaan 27 okt** (luik, deurtje, Gerrit loopt erheen, achterkamer gaat open). Nog: de kok door het luik.
 
 ## Later: manager en de stad (Marcel, 26 okt) — manager pas samen met de stad bouwen (anders heeft hij geen nut)
 - Stadskaart: `pizza/stad-gemini.jpg` (16:9, plein met fontein en markt, bank, politiebureau, galerie, studentenhuis, bouwplaats,

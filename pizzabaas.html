@@ -66,7 +66,7 @@
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
-  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 340px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
+  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 425px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
   .vraagwie { font-weight: 800; color: #b5381c; font-size: 15px; }
   .vraagtekst { font-size: 17px; margin: 8px 0 12px; }
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
@@ -429,7 +429,7 @@ let tel = {};
 let kies = null; // wat er gekocht en neergezet wordt
 
 function maakPersoneel() {
-  obers = []; for (let i = 0; i < S.obers; i++) obers.push({ dame: i == 1, x: DEUR.x + i, y: KEUKEN + 0.5, thuis: [DEUR.x + i, KEUKEN + 0.5], taak: null, draagt: null });
+  obers = []; for (let i = 0; i < S.obers; i++) { const hx = W / 2 + [-1.6, 1.6, -2.6][i]; obers.push({ dame: i == 1, x: hx, y: KEUKEN + 0.5, thuis: [hx, KEUKEN + 0.5], taak: null, draagt: null }); } // niet voor het klapluik
   ovens = []; for (let i = 0; i < S.ovens; i++) ovens.push(maakOven(i));
 }
 // max. twee ovens, elk met een eigen kok: oven 0 links (Mario, de kok), oven 1 rechts (Beppe, de bebaarde bakker). De kok maakt het
@@ -437,7 +437,7 @@ function maakPersoneel() {
 // van de toonbank, waar een ober hem ophaalt
 const OVEN_X = [1.5, W - 1.5];
 const KOK_HUIS = (i) => [OVEN_X[i], 2.1], BANK = (i) => [i ? W - 2.9 : 2.9, 2];
-const UITGIFTE = (i) => [i ? W - 5.6 : 4.1, 2.4]; // per oven een eigen uitgifteblad naast zijn werkbank; de pizza's staan daar in rijtjes van 4 naar rechts
+const UITGIFTE = (i) => [i ? W / 2 + 1 : W / 2 - 2.55, 2.4]; // het midden van de toonbank blijft vrij voor het klapluik // per oven een eigen uitgifteblad naast zijn werkbank; de pizza's staan daar in rijtjes van 4 naar rechts
 const ruimte = (i) => S.groot && S.groot[i] ? 2 : 1; // pizza's tegelijk in oven i
 const DEEG = 1.6, BAKKEN = BAKTIJD - DEEG; // deeg maken, en zo lang zit een pizza in de oven
 function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: OVEN_X[i], in: [], schep: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2, i, st: 'vrij', hand: [], t: 0 } }; }
@@ -818,12 +818,12 @@ const VRAGEN = [
     a: [['Die is van Beppe! Teruggeven.', () => { rep(1); return 'Beppe is zo blij dat hij de hele avond zingt.'; }],
       ['Mag u houden, als excuus.', () => { rep(1); if (ovens[1]) ovens[1].traag = true; return 'Beppe is zijn trouwring kwijt en werkt de rest van de avond verdrietig (trager).'; }],
       ['Gefeliciteerd, u wint onze prijsvraag!', () => { rep(2); return 'De klant juicht. Beppe kijkt bedenkelijk.'; }] ] },
-  { id: 'gleufhoed', ik: '🎩', wie: 'Man met gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
+  { id: 'gleufhoed', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
       ['Van de kringloop, vijf euro.', () => '"Jammer," mompelt hij. "Jammer."'],
-      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); return 'Hij kijkt om zich heen en fluistert: "Dan bent u de man die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken is toch nog een kamertje?" Hij legt een sleutel op tafel en verdwijnt. 🗝️ Linksboven zit nu een sleuteltje: de achterkamer!'; }] ] },
-  { id: 'koper', ik: '🎩', wie: 'Man met gleufhoed', kans: 10, als: () => (S.vervalsingen || []).some((f) => f.dag < S.dag),
+      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); if (bezoeker) bezoeker.achter = true; return 'Hij kijkt om zich heen en fluistert: "Dan bent u de man die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken zit toch nog een kamertje? Kom maar mee." Hij geeft je een sleutel, klapt het luikje in de toonbank omhoog en loopt dwars door je keuken naar een deurtje dat je nog nooit gezien had… 🗝️ Linksboven zit nu een sleuteltje: de achterkamer!'; }] ] },
+  { id: 'koper', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 10, als: () => (S.vervalsingen || []).some((f) => f.dag < S.dag),
     vraag: () => { const f = droog(); return `Hij buigt zich naar je toe en fluistert: "Is mijn… bestelling klaar? De ${SCHILDERIJEN[f.v]}?"`; },
     a: [['Ja, hier is hij.', () => { const f = droog(); S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f);
         const besteld = S.opdracht && S.opdracht.v == f.v, prijs = Math.round((besteld ? S.opdracht.prijs : 150) * (0.25 + 0.75 * f.q)); ge(prijs); if (besteld) nieuweOpdracht();
@@ -871,14 +871,46 @@ function kiesVraag() {
   return lijst[0];
 }
 // agent en inspecteur komen echt binnen: ze lopen van de deur naar het midden, stellen daar hun vraag en lopen weer weg.
-// pizza/bezoekers.png: rij 0 agent (uit pizza/agent2-gemini.jpg), rij 1 inspecteur, rij 2 Luigi (pizza/luigi-gemini.jpg, voren = opzij lopen); per rij 0-3 lopen van achteren (naar binnen), 4-7 van voren (staan, naar buiten)
+// pizza/bezoekers.png: rij 0 agent (uit pizza/agent2-gemini.jpg), rij 1 inspecteur, rij 2 Luigi (pizza/luigi-gemini.jpg, voren = opzij lopen), rij 3 Gerrit Gleufhoed (pizza/gerrit-gemini.jpg; portret 4); per rij 0-3 lopen van achteren (naar binnen), 4-7 van voren (staan, naar buiten)
 const BEZOEK = new Image(); BEZOEK.src = 'pizza/bezoekers.png';
 let bezoeker = null; // { rij, x, y, st: 'in' | 'praat' | 'uit', v, loopT }
 function laatBinnen(v) { bezoeker = { rij: v.rij ?? v.portret, x: DEUR.x + 0.5, y: H + 0.4, st: 'in', v, loopT: 0 }; }
 function stapBezoeker(dt) {
   const b = bezoeker; if (!b) return;
   if (b.st == 'in' && loopNaar(b, [7.5, 8.5], 2.6, dt)) { b.st = 'praat'; b.loopT = 0; toonVraag(b.v); }
+  else if (b.st == 'uit' && b.achter) b.st = 'luik'; // Gerrit gaat niet naar buiten maar de keuken in
   else if (b.st == 'uit' && loopNaar(b, [DEUR.x + 0.5, H + 0.6], 2.6, dt)) bezoeker = null;
+  else if (b.st == 'luik' && loopNaar(b, [LUIK_X, KEUKEN + 0.7], 2.4, dt)) b.st = 'keuken';
+  else if (b.st == 'keuken' && beweeg(b, [LUIK_X, 0.9], 1.8, dt)) { b.st = 'deur'; b.t = 0; ding(220, 0.15, 'square', 0.04); } // kriep
+  else if (b.st == 'deur') { b.t += dt; deurOpen = Math.min(1, b.t * 2); if (b.t > 0.6) beweeg(b, [LUIK_X, -0.3], 1.5, dt);
+    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; achterPauze = true; meld('Gerrit wacht in de achterkamer…', 3000); toonAchterkamer(); } }
+  luikOpen = b && b.y < KEUKEN + 1 && b.y > KEUKEN - 1.2 && Math.abs(b.x - LUIK_X) < 0.6 ? 1 : 0; // het luik klapt open als hij erdoor loopt
+}
+// het klapluik in de toonbank (midden, tussen de twee uitgiftes) en het geheime deurtje achter in de keuken (naar de achterkamer).
+// luikOpen / deurOpen = 0 (dicht) … 1 (open); het deurtje is er pas als je de achterkamer kent (of als Gerrit hem net laat zien)
+let luikOpen = 0, deurOpen = 0, achterPauze = false; // achterPauze: de werkdag staat stil zolang je met Gerrit in de achterkamer bent
+const LUIK_X = W / 2;
+function tekenLuikEnDeur() {
+  const x0 = (LUIK_X - 0.3) * T, w = 0.6 * T, y0 = KEUKEN * T - 22;
+  if (luikOpen < 0.5) { // dicht: een los stuk blad met scharnieren en een knopje
+    g.fillStyle = '#b07a44'; g.fillRect(x0, y0, w, 8); g.fillStyle = '#d9a46a'; g.fillRect(x0, y0, w, 2);
+    g.fillStyle = '#5a3216'; g.fillRect(x0 - 1, y0, 2, 22); g.fillRect(x0 + w - 1, y0, 2, 22); // naden
+    g.fillStyle = '#3a3a3a'; g.fillRect(x0 + 3, y0 + 2, 5, 3); g.fillRect(x0 + w - 8, y0 + 2, 5, 3); // scharnieren
+    g.fillStyle = '#8b3a22'; g.fillRect(x0 + 1, y0 + 8, w - 2, 14); g.fillStyle = '#c9a227'; g.beginPath(); g.arc(x0 + w / 2, y0 + 15, 2.5, 0, 7); g.fill();
+  } else { // open: een gat in de toonbank (keukentegels), het blad staat rechtop achter het gat
+    g.fillStyle = '#b8683c'; g.fillRect(x0 + 1, y0, w - 2, 22); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x0 + 1, y0, w - 2, 4);
+    g.fillStyle = '#5a3216'; g.fillRect(x0 - 1, y0 - 2, 3, 24); g.fillRect(x0 + w - 2, y0 - 2, 3, 24);
+    g.fillStyle = '#b07a44'; g.fillRect(x0, y0 - 20, w, 18); g.fillStyle = '#d9a46a'; g.fillRect(x0, y0 - 20, w, 2); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x0, y0 - 4, w, 2);
+  }
+  if (!S.achterkamer && !(bezoeker && bezoeker.achter)) return;
+  const dx = (LUIK_X - 0.45) * T, dw = 0.9 * T, dh = 1.05 * T; // deurtje bovenin de keuken, half in de muur
+  g.fillStyle = '#3a2414'; g.fillRect(dx - 4, -6, dw + 8, dh + 6); // kozijn
+  g.fillStyle = '#140a05'; g.fillRect(dx, -2, dw, dh); // donker erachter
+  const dicht = 1 - deurOpen; // het deurtje draait open (wordt smaller)
+  g.fillStyle = '#6b3d1e'; g.fillRect(dx, -2, dw * dicht, dh);
+  if (dicht > 0.15) { g.fillStyle = '#4e2a12'; for (let k = 1; k < 4; k++) g.fillRect(dx + dw * dicht * k / 4, -2, 1.5, dh); // planken
+    g.fillStyle = '#c9a227'; g.beginPath(); g.arc(dx + dw * dicht - 7, dh * 0.55, 3, 0, 7); g.fill(); }
+  if (deurOpen > 0) { g.fillStyle = 'rgba(255,200,90,.25)'; g.fillRect(dx + dw * dicht, -2, dw * deurOpen, dh); } // flikkerende lamp in de achterkamer
 }
 function tekenBezoeker() {
   const b = bezoeker; if (!b || !BEZOEK.complete || !BEZOEK.naturalWidth) return;
@@ -914,7 +946,7 @@ function toonAchterkamer() {
   const o = S.opdracht, klaar = (S.vervalsingen || []);
   $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1>
     <p class="buurt">Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert. Niemand weet ervan… hopelijk.</p>
-    <div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van de man met de gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
+    <div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van Gerrit Gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
       Hij betaalt tot <b>€ ${o.prijs}</b> (hoe echter, hoe meer).<br><small>Uiterlijk ${esc(datumLang(o.tot))}.</small></div></div>
     ${klaar.length ? `<p><b>Staan te drogen of klaar om op te halen:</b> ${klaar.map((f) => `${esc(SCHILDERIJEN[f.v])} (${Math.round(f.q * 100)}% echt${f.dag >= S.dag ? ', nog nat' : ''})`).join(', ')}</p>` : ''}
     <div class="rij"><button class="knop rood" id="schilder" ${S.geld < DOEK ? 'disabled' : ''}>🎨 Schilderen (€ ${DOEK} verf en doek)</button></div>
@@ -964,7 +996,7 @@ function toonAtelier(v) {
     S.vervalsingen = S.vervalsingen || []; S.vervalsingen.push({ v, q, dag: S.dag }); bewaar();
     $('achterkaart').innerHTML = `<h1>${q > 0.8 ? '🤩 Meesterlijk!' : q > 0.55 ? '🙂 Niet slecht' : '😬 Hmm…'}</h1><p>Je namaak lijkt voor <b>${Math.round(q * 100)}%</b> op het echte schilderij.
       ${q > 0.8 ? 'Zelfs Vincent zou twijfelen.' : q > 0.55 ? 'Van een afstandje gaat het wel.' : 'Ziet eruit alsof een kleuter het heeft gedaan. Met wanten aan.'}</p>
-      <p class="buurt">Het doek moet een nacht drogen. Daarna komt de man met de gleufhoed het ophalen.</p><div class="rij"><button class="knop" id="achterterug">Terug</button></div>`;
+      <p class="buurt">Het doek moet een nacht drogen. Daarna komt Gerrit Gleufhoed het ophalen.</p><div class="rij"><button class="knop" id="achterterug">Terug</button></div>`;
     $('achterterug').onclick = toonAchterkamer;
   }
   $('ateliereklaar').onclick = klaar;
@@ -1553,6 +1585,7 @@ function teken(nu) {
     g.fillStyle = '#6e1f10'; for (let y = KEUKEN * T - 22, r = 0; y < WH; y += 8, r++) { g.fillRect(mx, y, 13, 1); g.fillRect(mx + (r % 2 ? 4 : 9), y, 1, 8); }
     g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(mx == WW ? WW : -3, KEUKEN * T - 22, 3, WH - KEUKEN * T + 22); // schaduw langs de vloer
   }
+  tekenLuikEnDeur();
   // ovens: stenen koepels met vuur
   const ovs = modus == 'inrichten' ? Array.from({ length: S.ovens }, (_, i) => maakOven(i)) : ovens;
   for (const o of ovs) {
@@ -2160,7 +2193,8 @@ maat();
 let vorig = performance.now();
 function lus(nu) {
   const dt = Math.min(0.1, (nu - vorig) / 1000); vorig = nu;
-  if (!TEGEL && $('einde').classList.contains('verborgen') && !pauze) stap(dt);
+  if (achterPauze && $('achter').classList.contains('verborgen')) achterPauze = false;
+  if (!TEGEL && $('einde').classList.contains('verborgen') && !pauze && !achterPauze) stap(dt);
   teken(nu); balk(nu);
   requestAnimationFrame(lus);
 }

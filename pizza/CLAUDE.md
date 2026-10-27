@@ -95,3 +95,9 @@ iPhone: knoppen en de melding staan onder het randje bovenin (`env(safe-area-ins
 De tweede ober (`o.dame`, obers[1]) is een Italiaanse mamma: `DAME` (`pizza/obera.png`, uit `pizza/obera-gemini.jpg`), `DAME_BORD`/`DAME_TWEE`
 (`pizza/obera-borden.png`, uit `pizza/obera-borden-gemini.jpg`; indeling staat bij `DAME` in de code). Opzij met twee borden tekent
 `tweedeBord` het tweede achter haar.
+Gerrit Gleufhoed (de man met de gleufhoed, vragen 'gleufhoed' en 'koper'): bezoeker rij 3 in `pizza/bezoekers.png` en portret 4 in
+`pizza/portretten.png` (uit `pizza/gerrit-gemini.jpg`; `gerrit1-gemini.jpg` = eerste, te realistische versie, niet gebruikt). Geef je het goede
+antwoord ("Een échte Van Gogh"), dan krijgt de bezoeker `achter` en loopt hij na Verder niet naar buiten maar door het klapluik in het midden
+van de toonbank (`LUIK_X`, `luikOpen`) en de keuken naar het geheime deurtje achterin (`deurOpen`; het deurtje is er pas met `S.achterkamer`),
+daarna gaat de achterkamer open en staat de dag stil (`achterPauze`, tot je de achterkamer dichtdoet). Getekend in `tekenLuikEnDeur`.
+De uitgiftes staan links en rechts van het luik (`UITGIFTE`), de obers wachten ernaast (niet ervoor).
