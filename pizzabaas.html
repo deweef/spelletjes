@@ -695,7 +695,7 @@ function toonBank(gekozen, bedrag) {
     k.innerHTML = `<h1>💰 Geld lenen</h1>
       ${lopend ? `<p><b>Lopende leningen</b> (elke avond gaat er een deel af):</p><table style="width:100%;font-size:13px">${lopend}</table>` : ''}
       <p><b>Kies de aanbieder:</b></p>
-      ${Object.entries(AANBIEDER).map(([id, a]) => { const nee = a.weiger(); return `<button class="aanbieder" data-van="${id}"><span class="gz">${a.gz}</span><span><b>${esc(a.n)}</b><br>${esc(a.wie)}<br><small>${nee ? '❌ ' + esc(nee) : `Tot € ${a.max()} · rente ${Math.round(a.rente * 100)}% · terug in ${a.dagen} dagen`}</small></span></button>`; }).join('')}
+      ${Object.entries(AANBIEDER).map(([id, a]) => { const nee = a.weiger(); return `<button class="aanbieder" data-van="${id}"><span class="gz">${a.gz}</span><span><b>${esc(a.n)}</b><br>${esc(a.wie)}<br><small>${nee ? '❌ ' + esc(nee) : `Tot € ${a.max()} · rente ${Math.round(a.rente * 100)}% · terugbetalen in ${a.dagen} dagen`}</small></span></button>`; }).join('')}
       <button class="groot" id="bankdicht" style="margin-top:14px">Sluiten</button>`;
     k.querySelectorAll('[data-van]').forEach((b) => b.onclick = () => { const a = AANBIEDER[b.dataset.van], nee = a.weiger();
       if (nee) { meld(a.n + ': ' + nee); return; } if (a.max() < 50) { meld(a.n + ' wil je nu niets lenen.'); return; } toonBank(b.dataset.van); });
