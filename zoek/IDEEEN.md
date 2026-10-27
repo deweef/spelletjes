@@ -20,9 +20,7 @@
     - B9 De val van Icarus: piepkleine details, ver inzoomen (alleen een paar beentjes in het water).
     - B10 Afsluiter: één grote Bruegel-mix met figuren uit B1-B9 en alle spelvormen door elkaar.
   - Extra effecten per level (zoals de windvlagen bij de herfststorm), voorstel okt 2026:
-    - B4 Boerenbruiloft: proost! Na elk biertje (gevonden kan) wiebelt het beeld wat meer; vind de koffiepot voor een nuchtere blik.
     - B5 Carnaval en Vasten: confettikanon en een trommel die het beeld op de maat laat stuiteren.
-    - B6 Luilekkerland: slaapmeter, het beeld wordt langzaam wazig en donker (je dommelt in); elk gevonden hapje maakt je weer wakker.
     - B7 Toren van Babel: spraakverwarring, de namen bovenin staan in een andere taal (Engels, Duits, Frans, Fries, Limburgs) en wisselen af en toe.
     - B8 Boerendans: doedelzakmuziekje en het plaatje danst op de maat (heen en weer).
     - B9 Val van Icarus: de zon verblindt, een fel wit lichtvlak dat langzaam over het plaatje schuift (het omgekeerde van de zaklamp).
@@ -30,10 +28,10 @@
 - **Sjaak-plaat**: één plaat met ±20 Sjaakjes, gaat open als je Sjaak in alle levels hebt betrapt; een Sjaak-teller in het menu.
   Afgesproken: een geheim level, los van 21-30 en B1-B10, dat pas in het menu verschijnt als Sjaak overal betrapt is.
 - Orkest en strand hebben nog geen Sjaak (nieuwe Gemini-plaat of Sjaak erin plakken zoals de oldtimer bij het strand).
-- **Volgende gewone levels** (okt 2026): 24 muziekwinkel (elk gevonden instrument speelt zijn eigen geluidje), 25 brommerwerkplaats
-  (onderdelen van een brommer; idee: bij elk gevonden onderdeel komt de brommer een stukje verder in elkaar en aan het eind start hij).
-  We doen steeds 5 platen tegelijk. Reserve-ideeën van Marcel: naai-atelier, autorace, dromen.
+- We doen steeds 5 platen tegelijk. 23-25 en B4-B5 zijn gebouwd. Reserve-ideeën van Marcel: naai-atelier, autorace, dromen;
+  woordenlijst om op te schieten: kapsalon, tandarts, bouwplaats, kringloop, bakkerij, dierenarts, sinterklaas, kerstmarkt, zwembad,
+  bowling, festival, verhuisdag, meubelzaak, wasstraat, tuincentrum, trein, bioscoop, gevangenis (Sjaak in de cel), heksenhuis, ridderkasteel, dinomuseum.
 - **Afslag C: landen** (idee Marcel): een derde pad met per level een land (Frankrijk met de Franse kaart als puzzel en Franse spullen,
   Griekenland met miniaturen van bekende gebouwen, ...), C10 als afsluiter: de wereldwonderen. Waar de afslag komt nog kiezen (voorstel: na level 25).
-- Meer levels: winterkermis, Orkenstorm-dorp, plaats delict (iemand onder een laken met een been eruit).
+- Meer levels: winterkermis, Orkenstorm-dorp.
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.

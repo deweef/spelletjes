@@ -29,11 +29,11 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Kinderspelen (B2, Bruegel-lijn, `zoek/kinderspelen.jpg`): https://share.gemini.google/OaDav9QRH8uq
 - Jagers in de sneeuw / winterspelen (B3, wat hoort er niet bij, `zoek/jagers.jpg`): https://share.gemini.google/EQltclTI4uSA
 - Herfststorm (level 22, `zoek/herfst.jpg`): https://share.gemini.google/oA5r20yQiPnK
-- Boerenbruiloft (B4, `zoek/bruiloft.jpg`, nog niet in de repo): https://share.gemini.google/JbF3SmiAzZef
-- Luilekkerland (Bruegel-lijn na B4, `zoek/luilekkerland.jpg`, nog niet in de repo): https://share.gemini.google/f8feEokDyCBP
-- Plaats delict (level 23, `zoek/delict.jpg`, nog niet in de repo): https://share.gemini.google/uEPCHXEcdLg1
-- Muziekwinkel (level 24, `zoek/muziek.jpg`, nog niet in de repo): https://share.gemini.google/OVQnpSsUrkek
-- Brommerwerkplaats (level 25, `zoek/brommer.jpg`, nog niet in de repo): https://share.gemini.google/qZy0xDofvb8z
+- Boerenbruiloft (B4, `zoek/bruiloft.jpg`): https://share.gemini.google/JbF3SmiAzZef
+- Luilekkerland (B5, `zoek/luilekkerland.jpg`): https://share.gemini.google/f8feEokDyCBP
+- Plaats delict (level 23, `zoek/delict.jpg`): https://share.gemini.google/uEPCHXEcdLg1
+- Muziekwinkel (level 24, `zoek/muziek.jpg`): https://share.gemini.google/OVQnpSsUrkek
+- Brommerwerkplaats (level 25, `zoek/brommer.jpg`): https://share.gemini.google/qZy0xDofvb8z
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 

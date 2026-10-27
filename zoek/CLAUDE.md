@@ -41,7 +41,12 @@ Bruegel-lijn, `na: [ids]` = welke levels dit level openen (zonder `na`: het vori
 `na: [<id van 30>, <id van B10>]`). Daaruit volgen `label` (21, B1), `voor`, `isOpen` en `volgendeVan` (knop Volgende); het menu toont na 20 een
 splitsing met beide paden. `wat` = hoe de voorwerpen heten op het eindscherm (spreekwoorden, spelletjes). Gebouwd: 21 hockeywedstrijd (id `hockey`),
 22 herfststorm (`herfst`, `storm: 1`: dwarrelende bladeren en om de 11-19 s een windvlaag met een wolk bladeren over het scherm, `storm`/`blad`/`windGeluid`, plaatje schudt even via `stormSchud`), B1 spreekwoorden, B2 kinderspelen, B3 jagers in de sneeuw (`jagers`, wat hoort er niet bij: de moderne dingen zijn de
-voorwerpen; `winter: 1`: sneeuw, om de 14-22 s een sneeuwbui, ijsbloemen `ijs` groeien in ~50 s vanaf de randen, elk gevonden voorwerp ontdooit 30%, een 💡 Hint krabt de hele ruit schoon; het midden blijft altijd vrij en je tikt gewoon door het ijs heen, `winter`/`maakIjs`). Plan in `zoek/IDEEEN.md`; later ook een geheime Sjaak-plaat. De getekende versies van 1-5 staan als reserve in
+voorwerpen; `winter: 1`: sneeuw, om de 14-22 s een sneeuwbui, ijsbloemen `ijs` groeien in ~50 s vanaf de randen, elk gevonden voorwerp ontdooit 30%, een 💡 Hint krabt de hele ruit schoon; het midden blijft altijd vrij en je tikt gewoon door het ijs heen, `winter`/`maakIjs`). Verder: 23 plaats delict (`delict`, `wapens`/`verdachten`: het laatst gevonden wapen bepaalt op het eindscherm de dader, `dader`),
+24 muziekwinkel (`muziek`, `geluid: {naam: soort}`, geluidjes in `INSTRUMENT` via `noot`/`ruis`), 25 brommerwerkplaats (`brommer`, `onderdelen`:
+balkje linksonder `tekenBrommer`, ratel per onderdeel en de brommer slaat aan op het eindscherm, `sBrommer`), B4 boerenbruiloft (`bruiloft`,
+`bier`/`koffie`: elk biertje laat het beeld meer wiebelen en dubbel zien via `dronk`/`wiebel` (gaat via `draaiHoek`, dus tikken klopt), de
+koffiepot maakt nuchter), B5 Luilekkerland (`luilekkerland`, `slaap: 1`: in ~70 s donker met zakkende oogleden en gesnurk, `dommel`; elk
+gevonden voorwerp -35%, een hint maakt helemaal wakker). Plan in `zoek/IDEEEN.md`; later ook een geheime Sjaak-plaat. De getekende versies van 1-5 staan als reserve in
 commentaarregels in `LEVELS` (de tekenfuncties zijn er nog; `#tegel` gebruikt nog de getekende rommelkamer). `orkest-gemini.jpg` is een eerdere versie.
 `auto` en `sjaak` mogen meer vakjes hebben (postkantoor: twee oldtimers), zie `inVak`. Een nieuw level = regel in `LEVELS` en naam in `ZOEK` in `scores/index.html`.
 Sluipende Sjaak (inbreker met streepjestrui, oogmasker, platte pet en geldzak met $; staat in de Gemini-prompt): `sjaak: [x1, y1, x2, y2]`, niet op het
