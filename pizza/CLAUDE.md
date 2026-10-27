@@ -181,5 +181,4 @@ als Gerrit of Barrie je meeneemt telt dat ook als het bezoek van die dag. Onderi
 Vragen (27 okt): nu 66, o.a. kokjarig, tiktok, vegan, blinddate, haring, wielrenners, snurk, goochelaar, supermarkt, patat, schoolreis, kat,
 wachtwoord, aanzoek, bierfiets, nonna; meer praatwolkjes in `ZEG` en `LEKKER`. Gerrit komt ook zomaar langs ('gerritlangs', tip: bestelling
 +€50). Gravin Gloria van Glitterstein ('gravin', kunstverzamelaar, roze bontjas, hondje Fifi): als er een droge vervalsing ligt, biedt ze het
-dubbele van Gerrit, maar alleen bij q ≥ 0,7; anders "NEP!" (populariteit −4 en de kunstrechercheur komt: `S.verplicht`). Nog zonder
-plaatje (emoji 💎); met een Gemini-vel wordt ze een bezoeker (portret 6, rij 5).
+dubbele van Gerrit, maar alleen bij q ≥ 0,7; anders "NEP!" (populariteit −4 en de kunstrechercheur komt: `S.verplicht`). Bezoeker rij 5 in `pizza/bezoekers.png`, portret 6 (uit `pizza/gravin-gemini.jpg`).
