@@ -120,7 +120,7 @@ mee voor de tweede pizzeria (≥ 7).
 Meer pizzeria's (`S.zaken`, `S.zaak`, `ZAAKVELD`, `BUURT`): per zaak eigen spullen, ovens, obers, grote ovens, vloer, populariteit, manager,
 vuil, huur en buurt; van de zaak waar je bent staan die velden in S zelf (`bewaarZaak`, `wisselZaak`), de andere in `S.zaken[i]`. Geld, menu,
 leningen, belasting en de achterkamer (alleen in de eerste zaak: sleutel en deurtje) zijn gedeeld. Huren in de stad (pand `huur1-3`): kan als de
-manager van je huidige zaak ≥ 7 dagen in dienst is; borg €2000/€3000/€4500, huur €40/€70/€110 per dag. Wisselen in de stad, alleen 's ochtends
+manager van je huidige zaak ≥ 7 dagen in dienst is; borg €3500/€5500/€8000, huur €40/€70/€110 per dag. Wisselen in de stad, alleen 's ochtends
 (knop "Naar deze zaak"). Buurt: andere klanten (`BUURT[..].soort` in `kiesSoort`) en drukte (`aankomst`). Een zaak waar je niet bent rekent
 `simuleerZaak` 's avonds door (stoelen × populariteit × drukte, begrensd door ovens en obers; Kevin 80%); zonder manager dicht maar wel huur.
 In het dagoverzicht per andere zaak een regel. Getest 27 okt: toeristen kwamen naar het plein, Sandra's zaak gaf op zaterdag 52 klanten.
@@ -162,7 +162,7 @@ geflitst, punt opgegeten, verjaardag, start niet; samen ~1 op 7 ritten; `pech` =
 Dagoverzicht: aantal bezorgd, koud, voorvallen; loon bezorger bij de lonen. Figuur `pizza/bezorger.png` (`BEZVEL`, uit `pizza/bezorger-gemini.jpg`, vakjes 170: 0-6 opzij met dozen, 7-10 van achteren, 11 staan) en
 `pizza/scooter.png` (`SCOOTER`, rijdt over het balkje in `tekenRit`).
 Einde van het spel: drie avonden achter elkaar rood (`S.rood`, waarschuwing in het dagoverzicht) = failliet (`toonFailliet`, met `eindStand`);
-het doel = Pizzakoning (`toonKoning`, `S.koning`): 4 zaken (alle panden), de Toren van Pizza open en € 10.000; daarna kun je doorspelen. Opnieuw beginnen
+het doel = Pizzakoning (`toonKoning`, `S.koning`): 4 zaken (alle panden), de Toren van Pizza open en € 25.000 (contant + bank); daarna kun je doorspelen. Opnieuw beginnen
 (`herstart`: nieuwe opslag, alleen `torenBest` blijft) kan altijd via 📊 Gisteren.
 Tekenvolgorde (27 okt): spullen en mensen in één lijst van achter naar voor (`spulItems` + `alles` in `teken`, sleutel = onderkant; stoel onder
 de tafel net na de tafel, zittende klant `zitY` net na zijn stoel), zodat wie achter een tafel loopt niet over de tafel of de hoofden getekend
@@ -227,7 +227,7 @@ de 4 dagen tot het goede antwoord), Luigi op dag 5 (`S.luigiKwam`). Getest 30 da
 Te vrijgevig (`S.lief`): een antwoord dat geld kost en populariteit, gezelligheid of fooi oplevert telt +1 (in `toonVraag`); elke avond −0,3.
 Vanaf 3: kans op 'profiteurs' (willen gratis eten), 'personeelBoos' (ober en Mario willen ook wat) of 'boekhouder', via `S.verplicht`.
 Zo is het klantvriendelijkste antwoord niet altijd het beste.
-Manager-vragen (`zelf: true` = die regelt de manager niet als je weg bent; `wie` mag een functie zijn): 'manOpslag' (na 8 dagen bij > €900:
+Manager-vragen (`zelf: true` = die regelt de manager niet als je weg bent; `wie` mag een functie zijn): 'manOpslag' (na 4 dagen bij > €600:
 +€15, +€5, of nee = kans op ontslag of mopperen `S.manager.mopper`, dan ruimt hij/zij niet op), 'manVrij' (morgen vrij: `S.manVrij`,
 `manAanwezig()`; dan niet de stad in tijdens het werk), 'manLuigi' (na 12 dagen: Luigi biedt €25 meer; laten spioneren = gok). Bruno houdt zijn eigen 'opslag'.
 Diner voor de sterrenchef (vraag 'sterrenchef', vanaf populariteit 45, eens per 12 dagen `S.chefDag`; `toonDiner` in het `#achter`-scherm, `pauze`):

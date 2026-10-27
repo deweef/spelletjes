@@ -672,7 +672,7 @@ function eindeDag() {
   const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
   S.rood = S.geld + (S.bankSaldo || 0) < 0 ? (S.rood || 0) + 1 : 0; S.besteDag = Math.max(S.besteDag || 0, kl(tel.blij)); // 3 avonden achter elkaar rood = failliet
-  const koningNu = !S.koning && S.zaken.length >= 4 && torenOpen() && S.geld + (S.bankSaldo || 0) >= 10000; if (koningNu) S.koning = S.dag; // het grote doel
+  const koningNu = !S.koning && S.zaken.length >= 4 && torenOpen() && S.geld + (S.bankSaldo || 0) >= 25000; if (koningNu) S.koning = S.dag; // het grote doel
   const oud = S.dag; S.dag++; const maandag = weekdag() == 0; if (maandag) S.dag++; bewaar(); // maandag dicht: zes werkdagen per week
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
     ${maandag ? '<p class="buurt">📅 Morgen is het maandag: dan is de zaak dicht. Op naar dinsdag!</p>' : ''}${S.rood ? `<p style="color:#b33a1e"><b>⚠️ Je staat rood: − € ${Math.round(-S.geld)}. ${S.rood >= 3 ? 'Drie dagen achter elkaar…' : `Sta je nog ${3 - S.rood} avond${3 - S.rood > 1 ? 'en' : ''} rood, dan ben je failliet! Verkoop iets, leen geld of verdien het terug.`}</b></p>` : ''}
@@ -958,7 +958,7 @@ const VRAGEN = [
       ['Mag u houden, als excuus.', () => { rep(1); if (ovens[1]) ovens[1].traag = true; return 'Beppe is zijn trouwring kwijt en werkt de rest van de avond verdrietig (trager).'; }],
       ['Gefeliciteerd, u wint onze prijsvraag!', () => { rep(2); return 'De klant juicht. Beppe kijkt bedenkelijk.'; }] ] },
   // ---- de manager zelf (zelf: true = die vraag beantwoordt de manager niet voor je) ----
-  { id: 'manOpslag', ik: '📋', zelf: true, wie: () => S.manager ? MANAGER[S.manager.wie].n : 'Je manager', kans: 4, als: () => S.manager && S.manager.wie != 'bruno' && (S.manager.dagen || 0) >= 8 && S.geld > 900 && !(S.manager.opslagDag > S.dag - 10),
+  { id: 'manOpslag', ik: '📋', zelf: true, wie: () => S.manager ? MANAGER[S.manager.wie].n : 'Je manager', kans: 4, als: () => S.manager && S.manager.wie != 'bruno' && (S.manager.dagen || 0) >= 4 && S.geld > 600 && !(S.manager.opslagDag > S.dag - 10),
     vraag: () => S.manager.wie == 'kevin' ? 'Eh, baas… ik werk hier nu al best lang. Zeg maar een week. Kan ik meer geld krijgen? Voor een nieuwe telefoon.' : `Baas, ik run hier zo'n beetje alles. De kassa loopt als een trein. Ik vind dat ik best € 15 per dag meer mag verdienen.`,
     a: [['Je hebt gelijk, € 15 erbij.', () => { S.manager.opslag = (S.manager.opslag || 0) + 15; S.manager.opslagDag = S.dag; return 'Een stralende glimlach. "Je zult er geen spijt van krijgen!"'; }],
       ['€ 5 erbij, meer zit er niet in.', () => { S.manager.opslagDag = S.dag; if (kans(0.6)) { S.manager.opslag = (S.manager.opslag || 0) + 5; return '"Vooruit. Voor nu." Een beetje zuinig, maar akkoord.'; } S.manager.opslag = (S.manager.opslag || 0) + 5; S.manager.mopper = S.dag + 3; return '"Vijf euro?!" Je manager neemt het aan, maar werkt een paar dagen met de handrem erop.'; }],
@@ -2109,9 +2109,9 @@ const PLEK = {
   turk: { n: 'Shoarma Ahmet', ik: '🥙', x: 420, y: 290, b: 115, h: 110 },
   kunst: { n: 'Kunstuitleen', ik: '🖼️', x: 560, y: 490, b: 100, h: 110 },
   studenten: { n: 'Studentenhuis', ik: '🎓', x: 110, y: 520, b: 170, h: 170 },
-  huur1: { n: 'Te huur: klein pand', ik: '🏚️', x: 580, y: 40, b: 130, h: 115, huur: 40, borg: 2000, buurt: 'studenten' },
-  huur2: { n: 'Te huur: aan het plein', ik: '🏠', x: 715, y: 180, b: 110, h: 135, huur: 70, borg: 3000, buurt: 'toeristen' },
-  huur3: { n: 'Te huur: villa met tuin', ik: '🏡', x: 1100, y: 130, b: 200, h: 170, huur: 110, borg: 4500, buurt: 'villa' },
+  huur1: { n: 'Te huur: klein pand', ik: '🏚️', x: 580, y: 40, b: 130, h: 115, huur: 40, borg: 3500, buurt: 'studenten' },
+  huur2: { n: 'Te huur: aan het plein', ik: '🏠', x: 715, y: 180, b: 110, h: 135, huur: 70, borg: 5500, buurt: 'toeristen' },
+  huur3: { n: 'Te huur: villa met tuin', ik: '🏡', x: 1100, y: 130, b: 200, h: 170, huur: 110, borg: 8000, buurt: 'villa' },
   bouw: { n: 'Bouwplaats', ik: '🏗️', x: 1000, y: 440, b: 260, h: 220 },
   wissel: { n: 'Snelle Sjonnie', ik: '💱', x: 740, y: 470, b: 100, h: 100 },
 };
@@ -3398,7 +3398,7 @@ const DOELEN = [
   { id: 'bezorg', n: 'Start een bezorgdienst', geld: 40, ok: () => !!S.bezorg },
   { id: 'tweede', n: 'Open een tweede pizzeria', geld: 100, ok: () => S.zaken.length >= 2 },
   { id: 'torenbouw', n: 'Betaal mee aan de Toren van Pizza', geld: 50, ok: () => S.toren && (S.toren.fase || S.toren.bouwt) },
-  { id: 'vier', n: 'Word Pizzakoning: 4 pizzeria\'s, de toren open en € 10.000', geld: 0, ok: () => !!S.koning } ];
+  { id: 'vier', n: 'Word Pizzakoning: 4 pizzeria\'s, de toren open en € 25.000', geld: 0, ok: () => !!S.koning } ];
 function controleerDoelen() {
   if (TEGEL || !S) return; S.doelen = S.doelen || {}; const nu = DOELEN.filter((d) => !S.doelen[d.id] && d.ok());
   if (nu.length) { let geld = 0; for (const d of nu) { S.doelen[d.id] = S.dag; geld += d.geld; } S.geld += geld; bewaar(); kassa();
@@ -3413,7 +3413,7 @@ function toonDoelen() {
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen');
 }
 $('doelknop').onclick = () => { wekGeluid(); sluitMenu(); toonDoelen(); };
-// ---------- einde van het spel: failliet (3 avonden rood), of Pizzakoning (4 zaken, de toren open en € 10.000); opnieuw beginnen kan altijd ----------
+// ---------- einde van het spel: failliet (3 avonden rood), of Pizzakoning (4 zaken, de toren open en € 25.000); opnieuw beginnen kan altijd ----------
 function eindStand() { return `<table><tr><td>📅 Dagen gespeeld</td><td>${S.dag - 1}</td></tr><tr><td>🏪 Pizzeria's</td><td>${S.zaken.length}</td></tr><tr><td>🍕 Pizza's op de kaart</td><td>${S.menu.length}</td></tr>
   <tr><td>⭐ Populariteit</td><td>${Math.round(S.rep)}</td></tr>${S.torenBest ? `<tr><td>🗼 Hoogste pizzatoren</td><td>${S.torenBest}</td></tr>` : ''}</table>`; }
 function toonFailliet() {
@@ -3422,7 +3422,7 @@ function toonFailliet() {
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => herstart();
 }
 function toonKoning() {
-  $('eindkaart').innerHTML = `<h1>👑 Pizzakoning van de stad!</h1><p>Vier pizzeria's, in elke buurt van de stad één, de Toren van Pizza staat er dankzij jou, en € ${Math.round(S.geld)} op de bank. De burgemeester geeft je een gouden pizzaschep. Luigi verhuist naar een ander land.</p>
+  $('eindkaart').innerHTML = `<h1>👑 Pizzakoning van de stad!</h1><p>Vier pizzeria's, in elke buurt van de stad één, de Toren van Pizza staat er dankzij jou, en € ${Math.round(S.geld + (S.bankSaldo || 0))} in kas. De burgemeester geeft je een gouden pizzaschep. Luigi verhuist naar een ander land.</p>
     ${eindStand()}<p>Je hebt het spel uitgespeeld! Je kunt gewoon doorspelen (meer zaken, hogere torens), of opnieuw beginnen.</p><button class="groot" id="verder">Doorspelen</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); kassa(); setTimeout(kassa, 300);
 }
