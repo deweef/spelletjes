@@ -254,3 +254,8 @@ Vragen kunnen een eigen rusttijd hebben (`rust: () => dagen`, standaard 8); `bel
 Nieuwe vragen: `bedorven` (ingrediënt uit het menu, `bedorven`; dure markt / toch gebruiken / zonder), goede doelen `voetbalclub`, `voedselbank`,
 `sponsorloop` (`sponsor: true` = telt niet mee voor `S.lief`, te vrijgevig). Reclamebord bij de bouwplaats: € 150 (`RECLAME`), 7 dagen
 `S.reclame.tot`, rep +3 en 15% meer klanten in alle zaken (ook in `simuleerZaak`).
+Luigi is ook jaloers zonder uitlachen: een avond met meer dan € 300 winst geeft ruzie erbij (`totaal / 120`, max 8), het reclamebord +10 en de
+vraag `luigiBord` de dag erna (via `S.verplicht`). Sabotage blijft kans `S.ruzie / 300` per avond.
+Op de pof: `S.pof = [{ wie, bedrag, dag }]` (`opDePof`, vragen portemonnee A en gokverlies A); elke ochtend `pofBetalen` (kans 22%, gokker 8%,
++25% na de herinneringsbrief `S.pofBrief`); in het dagoverzicht "Nog op de pof". Vraag `debiteuren` (boekhouder, vanaf € 40 en iets ouder dan
+6 dagen): brief / incasso (60% terug, rep −2) / doorstrepen (`S.lief` +1).

@@ -302,3 +302,8 @@ rood-wit geruit kleed, dezelfde met wit kleed en kaarsje, dezelfde met wijnfles 
 terracotta pot, grote palm in pot, jukebox (felle kleuren, lampjes), wit bord met pizza. Effen felgroene achtergrond (#00FF00),
 geen schaduwen, geen tekst." (De schaduw naar rechtsonder tekent het spel zelf: een schaduw van Gemini knipt niet goed uit.)
 (Stoel = 1x1 tegel, tafel = 2x2 tegels, jukebox = 2x2.)
+
+## Idee: voorraad per zaak (nog niet gebouwd, eerst afspreken met Marcel)
+Per zaak een voorraad deeg en ingrediënten; elke pizza gebruikt wat. 's Ochtends bestellen bij de leverancier (knop "zelfde als gisteren" /
+voorstel op basis van wat gisteren verkocht is), de markt is duurder maar meteen. Te veel = bederft, te weinig = pizza niet te maken (boze klanten).
+De manager bestelt in de andere zaken (Sandra netjes, Kevin vergeet het soms).
