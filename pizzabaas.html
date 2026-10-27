@@ -791,7 +791,7 @@ const pak = (l) => l[Math.floor(Math.random() * l.length)];
 const kans = (p) => Math.random() < p;
 const ge = (n) => { S.geld += n; if (n < 0) tel.kosten += -n; else tel.omzet += n; }; // geld erbij of eraf, telt mee in het dagoverzicht
 // populariteit: omhoog gaat steeds moeilijker naarmate je hoger zit (boven 60 flink), omlaag gaat gewoon
-const repRem = (n) => n > 0 ? n * Math.max(0.05, Math.min(1, 1.6 - S.rep / 60) ** 2) : n;
+const repRem = (n) => n > 0 ? n * Math.max(0.15, Math.min(1, 1.25 - S.rep / 80)) : n; // 40 → 75%, 60 → 50%, 80 → 25%, 100 → 15%
 const rep = (n) => { S.rep = Math.max(0, Math.min(100, S.rep + repRem(n))); };
 const opDeKaart = () => [...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
 const besteOordeel = () => Math.max(...S.menu.map((p) => Object.keys(SOORT).reduce((a, k) => a + oordeel(p, k) * SOORT[k].kans, 0)));
@@ -1313,6 +1313,11 @@ const VRAGEN = [
     a: [['Vooruit dan maar.', () => { S.huurDag = S.dag; S.huur = (S.huur || HUUR) + 15; return `De huur wordt € ${S.huur} per dag.`; }],
       ['Laten we onderhandelen.', () => { S.huurDag = S.dag; S.huur = (S.huur || HUUR) + (kans(0.5) ? 5 : 10); return `Na een kwartier gepingpong: € ${S.huur} per dag.`; }],
       ['Dan verhuis ik naar het pand van Luigi!', () => { S.huurDag = S.dag; if (kans(0.5)) return '"Ho ho, dat hoeft niet!" De huur blijft gelijk.'; S.huur = (S.huur || HUUR) + 25; return '"Ga je gang." Je bluf werkt niet: € ' + S.huur + ' per dag.'; }] ] },
+  { id: 'sterrenchef', ik: '⭐', wie: 'Brief van de sterrenchef', kans: 4, als: () => S.rep >= 45 && S.menu.length >= 2 && !(S.chefDag > S.dag - 12),
+    vraag: 'Een envelop met een gouden randje: "Chef Hubert de Gourmand, bekend van de sterrengids, wil vanavond een menu van drie gangen bij u eten. Hij schrijft erover in de krant."',
+    a: [['Graag! Ik kook het menu zelf.', () => { S.chefDag = S.dag; naVraag = toonDiner; return 'Je trekt je mooiste schort aan. Hij zit al aan het tafeltje bij het raam…'; }],
+      ['Hij mag gewoon aanschuiven.', () => { S.chefDag = S.dag; const o = Math.max(...S.menu.map((p) => chefOordeel(p, [2, 1, 2, 1], 'hoofd'))); if (o >= 4.5) { rep(4); return 'Hij eet je beste pizza en knikt. In de krant: "Eerlijk en lekker." Twee sterren.'; } rep(-2); return 'Hij eet, zucht en schrijft: "Gewoon. Heel gewoon." Eén ster.'; }],
+      ['Nee, dat is me te spannend.', () => { S.chefDag = S.dag; return 'Hij gaat naar Luigi. Je hoopt maar dat Luigi zijn pizza laat aanbranden.'; }] ] },
   { id: 'gleufhoed', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
@@ -1787,6 +1792,54 @@ function bordLijst(onderdeel, el, eenheid, d) {
   const zet = (d) => { const l = (d && d[onderdeel + '_gewoon']) || []; el.innerHTML = l.length ? '<b>🏆 Scorebord</b><br>' + l.map((x, i) => `${i + 1}. ${esc(x.naam)}: ${x.score}`).join(' · ') : (speler ? '' : 'Kies je naam op de startpagina, dan komt je record op het scorebord.'); };
   if (d) return zet(d); try { zet(JSON.parse(localStorage.getItem('pizzabaas_bord') || 'null')); } catch (e) {}
   fetch(BORD_URL, { redirect: 'follow' }).then((r) => r.json()).then((d) => { try { localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} zet(d); }).catch(() => {});
+}
+
+// ---------- diner voor de sterrenchef (vraag 'sterrenchef'; S.chefDag = laatste keer, S.chefSterren = beste) ----------
+// Drie gangen; per gang kies je een pizza van je kaart en een wijn. Elke gang heeft een smaakdoel (`DINER`, [vet, zoet, zout, pittig]) en een
+// passende wijn. Score per gang = hoe dicht de pizza bij het doel zit (0-6) + 1 voor de goede wijn; samen 0-3 sterren voor al je zaken.
+const DINER = [
+  { n: 'Voorgerecht', hint: '"Om te beginnen iets lichts en fris. Met groente, graag. Niet te vet."', wil: [1, 1, 1, 0], groen: 1, wijn: 'wit' },
+  { n: 'Hoofdgerecht', hint: '', wil: null, wijn: 'rood' },
+  { n: 'Dessert', hint: '"En tot slot… iets zoets. Verras me maar."', wil: [1, 4, 0, 0], zoet: 1, wijn: 'zoet' } ];
+const CHEFSMAAK = [[[3, 1, 3, 1], '"Nu iets stevigs. Hartig en zout, met vlees. Ik heb honger!"'], [[2, 0, 2, 3], '"Nu wil ik vuur! Pittig, zodat mijn snor ervan krult."'], [[2, 1, 2, 0], '"Een klassieker voor de hoofdgang, eerlijk en Italiaans."']];
+const DINERWIJN = { wit: ['🥂', 'Witte wijn'], rood: ['🍷', 'Rode wijn'], bubbels: ['🍾', 'Champagne'], zoet: ['🍯', 'Zoete dessertwijn'] };
+function chefOordeel(p, wil, gang) {
+  const { f } = smaak(p), soorten = new Set(p.stukjes.map((s) => s.i)).size, heeft = (k) => p.stukjes.some((st) => ING[st.i].s.includes(k));
+  let o = 5 - 0.35 * f.reduce((a, v, j) => a + Math.abs(v - wil[j]), 0) + Math.min(1, soorten / 4);
+  if (gang == 'voor' && heeft('groen')) o += 0.7; if (gang != 'dessert' && heeft('gek')) o -= 1.5; if (gang == 'dessert' && heeft('vlees')) o -= 1.5;
+  return Math.max(0, Math.min(6, o));
+}
+let diner = null;
+function toonDiner() {
+  pauze = true; const [wil, hint] = pak(CHEFSMAAK); diner = { gang: 0, keus: [], wil: [DINER[0].wil, wil, DINER[2].wil], hint: [DINER[0].hint, hint, DINER[2].hint], p: null, w: null };
+  tekenDiner();
+}
+function tekenDiner() {
+  const d = diner, G = DINER[d.gang], k = $('achterkaart');
+  k.innerHTML = `<h1>⭐ Diner voor de sterrenchef</h1><p class="buurt">Chef Hubert de Gourmand zit met zijn servet in zijn kraag. <b>${G.n}</b> (${d.gang + 1} van 3).</p>
+    <p class="vraagtekst">${esc(d.hint[d.gang])}</p>
+    <p><b>Welke pizza?</b></p><div class="rij" style="flex-wrap:wrap">${S.menu.map((p, i) => { const f = kleinePizza(p); return `<button class="knop ${d.p === i ? 'rood' : ''}" data-dp="${i}" style="display:flex;align-items:center;gap:6px">${f ? `<img src="${f.toDataURL()}" width="34" height="34">` : '🍕'}${esc(p.naam)}</button>`; }).join('')}</div>
+    <p><b>Welke wijn erbij?</b></p><div class="rij">${Object.entries(DINERWIJN).map(([w, [ik, n]]) => `<button class="knop ${d.w == w ? 'rood' : ''}" data-dw="${w}">${ik} ${n}</button>`).join('')}</div>
+    <div class="rij"><button class="knop rood" id="dinerserveer" ${d.p == null || !d.w ? 'disabled' : ''}>🍽️ Serveren</button></div>`;
+  $('achter').classList.remove('verborgen');
+  k.querySelectorAll('[data-dp]').forEach((b) => b.onclick = () => { d.p = +b.dataset.dp; tekenDiner(); });
+  k.querySelectorAll('[data-dw]').forEach((b) => b.onclick = () => { d.w = b.dataset.dw; tekenDiner(); });
+  $('dinerserveer').onclick = () => { const p = S.menu[d.p], o = chefOordeel(p, d.wil[d.gang], ['voor', 'hoofd', 'dessert'][d.gang]), wijn = d.w == G.wijn ? 1 : d.w == 'bubbels' && d.gang != 1 ? 0.5 : 0;
+    d.keus.push({ p: p.naam, o, wijn }); const gez = GEZICHT[Math.round(o)];
+    const zin = o >= 5 ? pak(['"Sublime!" Hij sluit zijn ogen.', '"Dít is koken."', 'Hij likt zijn bord bijna af.']) : o >= 3.5 ? pak(['"Correct. Heel correct."', 'Hij knikt langzaam.', '"Niet slecht, chef."']) : pak(['Hij prikt erin met zijn vork en legt hem weer neer.', '"Is dit… een grap?"', 'Hij schrijft heel lang iets op.']);
+    const wzin = wijn >= 1 ? 'De wijn past perfect.' : wijn ? 'Bubbels? Gewaagd, maar het kan.' : `${DINERWIJN[d.w][1]} hierbij? Hij trekt één wenkbrauw op.`;
+    k.innerHTML = `<h1>${gez} ${esc(G.n)}: ${esc(p.naam)}</h1><p class="vraagtekst">${esc(zin)} ${esc(wzin)}</p><div class="rij"><button class="knop rood" id="dinerdoor">${d.gang < 2 ? 'Volgende gang' : 'De rekening, alstublieft'}</button></div>`;
+    $('dinerdoor').onclick = () => { if (d.gang < 2) { d.gang++; d.p = null; d.w = null; tekenDiner(); } else dinerKlaar(); }; };
+}
+function dinerKlaar() {
+  const d = diner, score = d.keus.reduce((a, g) => a + g.o + g.wijn, 0), ster = score >= 18 ? 3 : score >= 13.5 ? 2 : score >= 9 ? 1 : 0;
+  const bonus = [-5, 2, 5, 9][ster], geld = [0, 30, 80, 150][ster]; ge(-30); if (geld) ge(geld);
+  rep(bonus); for (const z of S.zaken) if (z && z.rep != null) z.rep = Math.max(0, Math.min(100, z.rep + bonus)); S.chefSterren = Math.max(S.chefSterren || 0, ster); bewaar(); kassa(); tekenKnoppen();
+  $('achterkaart').innerHTML = `<h1>${'⭐'.repeat(ster) || '💩'} ${['Geen ster…', 'Eén ster', 'Twee sterren!', 'Drie sterren!!!'][ster]}</h1>
+    <p class="vraagtekst">${esc(['De krant: "Laat deze tent maar links liggen." Au.', 'De krant: "Degelijk, zonder verrassingen."', 'De krant: "Een parel in de stad! Ga erheen."', 'De krant: "De beste pizzeria die ik ooit bezocht. Chapeau!"'][ster])}</p>
+    <p class="buurt">${d.keus.map((g, i) => `${DINER[i].n}: ${esc(g.p)} ${GEZICHT[Math.round(g.o)]}${g.wijn >= 1 ? ' 🍷✓' : ''}`).join(' · ')}<br>Populariteit ${bonus > 0 ? '+' : ''}${bonus} in al je zaken${geld ? `, € ${geld} van de krant voor de foto's` : ''} (ingrediënten € 30).</p>
+    <div class="rij"><button class="knop rood" id="dinerklaar">🍕 Terug naar de zaak</button></div>`;
+  $('dinerklaar').onclick = () => { $('achter').classList.add('verborgen'); pauze = false; diner = null; };
 }
 
 // ---------- de wijnkelder (achterkamer in de villawijk): Château Kraanwater ----------

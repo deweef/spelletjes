@@ -220,7 +220,7 @@ vanghoogte is (binnen 14 px = perfect, combo); per vangst geld (meer naarmate je
 Oud-pizzeria: stoelsoort `hout` (kale houten stoel met planken, bij de houten tafel) en kleed op de punt (`s.punt`, knop in het tafelmenu, niet
 voor ronde kleedjes `KLEED[..].rond`): eerst de kale tafel (hout of marmer), dan het kleed 45° gedraaid en kleiner erop.
 Tempo en tegenvallers (27 okt): maandag is de zaak dicht (`eindeDag` slaat hem over; `laatsteVanDeMaand` = laatste wérkdag, dus de inspecteur
-komt op tijd); populariteit stijgt steeds moeilijker (`repRem` in `rep`: boven 60 flink trager, max. 100). Tegenvallers met meer kans bij veel
+komt op tijd); populariteit stijgt steeds moeilijker (`repRem` in `rep`: 40 → 75%, 60 → 50%, 80 → 25%, 100 → 15% van de normale stijging; dalen gaat gewoon). Tegenvallers met meer kans bij veel
 geld: 'ovenkapot', 'energie', 'lekkage', 'huisbaas' (verhoogt `S.huur`, max. eens per 14 dagen). Luigi-ultimatum (`luigiUltimatum`, drie kwaden: € 150, keuringsdienst of een bord in je raam; via `S.verplicht` als `S.ruzie` ≥ 45). Jaloerse Luigi (`luigiJaloers`, via
 `S.verplicht` in `eindeDag` bij > €1000). Vaste bezoeken in `openDeuren`: Gerrit 1-2 dagen na het ophangen van een schilderij (`S.gerritNa`, daarna om
 de 4 dagen tot het goede antwoord), Luigi op dag 5 (`S.luigiKwam`). Getest 30 dagen: populariteit 30-58, Gerrit en Luigi komen langs.
@@ -230,3 +230,7 @@ Zo is het klantvriendelijkste antwoord niet altijd het beste.
 Manager-vragen (`zelf: true` = die regelt de manager niet als je weg bent; `wie` mag een functie zijn): 'manOpslag' (na 8 dagen bij > €900:
 +€15, +€5, of nee = kans op ontslag of mopperen `S.manager.mopper`, dan ruimt hij/zij niet op), 'manVrij' (morgen vrij: `S.manVrij`,
 `manAanwezig()`; dan niet de stad in tijdens het werk), 'manLuigi' (na 12 dagen: Luigi biedt €25 meer; laten spioneren = gok). Bruno houdt zijn eigen 'opslag'.
+Diner voor de sterrenchef (vraag 'sterrenchef', vanaf populariteit 45, eens per 12 dagen `S.chefDag`; `toonDiner` in het `#achter`-scherm, `pauze`):
+3 gangen (`DINER`; hoofdgerecht = willekeurige `CHEFSMAAK`), per gang een pizza van de kaart (`chefOordeel`: afstand tot het smaakdoel, variatie,
+groente bij het voorgerecht, geen gek/vlees waar het niet hoort) + wijn (`DINERWIJN`: wit, rood, zoet; champagne half goed). Totaal 0-21:
+≥ 18 = 3 sterren, ≥ 13,5 = 2, ≥ 9 = 1. Populariteit −5/+2/+5/+9 in al je zaken en €0/30/80/150; ingrediënten €30. `S.chefSterren` = beste.
