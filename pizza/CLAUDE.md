@@ -151,3 +151,10 @@ De Toren van Pizza als stadsproject (`S.toren` = { fase 0-4, bouwt: { tot }, ope
 bouwen per stuk): op de bouwplaats meebetalen; op de stadskaart staat de toren (`.torenkaart`, `pizza/toren.png` = 4 vakjes van 300x400 uit
 `pizza/toren-gemini.jpg`: fundering, een derde, twee derde, af). Na fase 4: "Lint doorknippen" = `toonToren(true)`, de openingswedstrijd:
 populariteit + min(15, 3 + score) in alle zaken, `S.toren.open`. Daarna (`torenOpen`) twee keer zoveel toeristen en 10% meer klanten.
+Bezorgdienst (`S.bezorg` = { sinds }, starten/stoppen via Personeel; scooter €300, bezorger €15 per dag, `BEZORG`): tijdens het werk
+telefoontjes (`nieuweBestelling`, vaker bij hogere populariteit en drukte; Barrie's klus 'scooter' = Luigi's banden lek: ×1,6) met 1-4 pizza's
+naar een adres (`STRATEN`). Ze staan in de `wachtrij` als { m: { pizza }, bezorg } (de keuken bakt ze tussen de tafels door; `weg` en `breng`
+in `stapOven` kennen ze). De bezorger (`bezorger`, `stapBezorg`, voorlopig het studentfiguur met rode pet en pizzadozen, `tekenBezorger`)
+haalt ze op, loopt de deur uit, is `ritT` weg (balkje linksboven: `tekenRit`), soms met een `VOORVAL` (lekke band, regen, verdwaald,
+geflitst, punt opgegeten, verjaardag), en rekent af: prijs × TELT − €2,5, plus fooi; later dan `KOUD` (55 s) = half geld en populariteit −1.
+Dagoverzicht: aantal bezorgd, koud, voorvallen; loon bezorger bij de lonen. Nog: eigen Gemini-figuur met scooter.

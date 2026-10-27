@@ -178,7 +178,8 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   (ruzie-meter, vrede sluiten met grappa). Effect: Luigi's klanten komen naar jou, Luigi's pand op de kaart stinkt/is dicht.
 - **Gedaan 27 okt**: Barrie de Bink met klusjesbord, ruzie-meter en vrede (limoncello/grappa); meer stoelsoorten; stadskaart op de telefoon.
   Crypto **gedaan 27 okt** (Bitkaas, Ethertje, MozzaMunt, DogePizza; laptop, Snelle Sjonnie wisselt met 10% commissie).
-  Nog: minispel bij de stinkbom (wegsluipen), bezorgdienst, stadskaart met ⭐ per zaak.
+  Bezorgdienst **gedaan 27 okt** (zie CLAUDE.md; nog een eigen bezorgfiguur van Gemini).
+  Nog: minispel bij de stinkbom (wegsluipen), stadskaart met ⭐ per zaak.
 - Afspraken Marcel (27 okt): Barrie de Bink (vel `pizza/barrie-gemini.jpg`, blauw trainingspak); vrede met Luigi tijdelijk, met grappa of
   limoncello. Verkoop van vervalste schilderijen wordt (soms) in crypto betaald: je kiest welke munt, de koers zie je dan niet (gokje).
   Crypto omwisselen naar echt geld: bij een wisselkantoor in de stad (met kosten) of op de laptop in de achterkamer.
