@@ -30,5 +30,10 @@
 - **Sjaak-plaat**: één plaat met ±20 Sjaakjes, gaat open als je Sjaak in alle levels hebt betrapt; een Sjaak-teller in het menu.
   Afgesproken: een geheim level, los van 21-30 en B1-B10, dat pas in het menu verschijnt als Sjaak overal betrapt is.
 - Orkest en strand hebben nog geen Sjaak (nieuwe Gemini-plaat of Sjaak erin plakken zoals de oldtimer bij het strand).
+- **Volgende gewone levels** (okt 2026): 24 muziekwinkel (elk gevonden instrument speelt zijn eigen geluidje), 25 brommerwerkplaats
+  (onderdelen van een brommer; idee: bij elk gevonden onderdeel komt de brommer een stukje verder in elkaar en aan het eind start hij).
+  We doen steeds 5 platen tegelijk. Reserve-ideeën van Marcel: naai-atelier, autorace, dromen.
+- **Afslag C: landen** (idee Marcel): een derde pad met per level een land (Frankrijk met de Franse kaart als puzzel en Franse spullen,
+  Griekenland met miniaturen van bekende gebouwen, ...), C10 als afsluiter: de wereldwonderen. Waar de afslag komt nog kiezen (voorstel: na level 25).
 - Meer levels: winterkermis, Orkenstorm-dorp, plaats delict (iemand onder een laken met een been eruit).
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.
