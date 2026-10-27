@@ -211,3 +211,5 @@ Stoel-knop opent ook een keuzelijstje (6 stoelsoorten, `S.stoelStijl`). Aanraken
 vallen en zet hem dan neer op de plek van het voorbeeld (op de iPhone ging het neerzetten anders vaak mis).
 Stoel tussen twee tafels: `stoelTafels(x, y)` = alle tafels ernaast, `s.bij` = 'x,y' van de gekozen tafel (knop "↔ Bij de andere tafel" in het
 stoelmenu; `kantVoor(x, y, bij)`). Vlekken vallen op de dichtstbijzijnde vrije vloer (`vrijBij` in `nieuweVlek`), niet meer onder een stoel.
+Groepjes (`nieuweGroep`): eerst de kleinste vrije tafel waar iedereen aan past; lukt dat niet, dan verdelen ze zich over meer vrije tafels (elk
+een eigen `groep`, "Dan zitten we wel apart!"); pas als er te weinig vrije stoelen zijn: vol. Een tafel is nog steeds van één groepje.
