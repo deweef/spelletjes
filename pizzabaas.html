@@ -214,7 +214,7 @@ const SPUL = {
   // meer tafels: geen eigen knop, de knop Tafel wisselt bij elke klik (TAFELSOORT); plaatjes in pizza/lange-tafels.png
   lang: { n: 'Lange tafel', ik: '🍽️', prijs: 80, w: 2, h: 4, onder: 'tafel', kleden: ['rood', 'wit'] },
   langL: { n: 'Lange tafel (liggend)', ik: '🍽️', prijs: 80, w: 4, h: 2, onder: 'tafel', kleden: ['rood', 'wit'] },
-  tafeltje: { n: 'Tafeltje voor 2', ik: '🍽️', prijs: 25, w: 1, h: 1, onder: 'tafel', kleden: [] },
+  tafeltje: { n: 'Tafeltje voor 2', ik: '🍽️', prijs: 25, w: 1, h: 1, onder: 'tafel' }, // alle kleedjes (sinds 27 okt; het kleed van de grote tafel, kleiner)
   // versiering: de knop Plant wisselt ook (VERSIERING); plaatjes in pizza/versiering.png (vakjes van 360, b = breedte, h = hoogte van het plaatje)
   kapstok: { n: 'Kapstok', ik: '🧥', prijs: 30, w: 1, h: 1, onder: 'plant', vak: 0, b: 126, hh: 301, tw: 0.9 },
   wijnrek: { n: 'Wijnrekje', ik: '🍷', prijs: 40, w: 1, h: 1, onder: 'plant', vak: 1, b: 117, hh: 184, tw: 1 },
@@ -2791,6 +2791,7 @@ function tekenSpul(s, nu, zitten) {
     const kl = kleedVan(s), v = kl == 'rood' ? 1 : kl == 'wit' ? 2 : 0;
     if (s.t == 'lang') metSchaduw(LANG, v * 192, 0, 192, 512, s.x * T - 2, s.y * T - 4, 2 * T + 4, 4 * T + 8);
     else if (s.t == 'langL') metSchaduw(LANG, v * 512, 512, 512, 192, s.x * T - 4, s.y * T - 2, 4 * T + 8, 2 * T + 4);
+    else if (kl && KLEDEN.complete && KLEDEN.naturalWidth) { const w = T + 10; metSchaduw(KLEDEN, KLEED[kl].i * 192, 0, 192, 192, s.x * T - 5, s.y * T - 3, w, w); }
     else { const w = T + 8, h = w * 204 / 192; metSchaduw(LANG, 0, 704, 192, 204, s.x * T - 4, s.y * T + T + 4 - h, w, h); }
   } else
   // tafelblad: lichtgrijs gemêleerd, of met een rood-wit kleed
