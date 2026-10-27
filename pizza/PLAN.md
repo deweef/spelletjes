@@ -163,7 +163,11 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   (er was er altijd een, maar hij was 's ochtends onzichtbaar) en je kunt een ober ontslaan; stoelen recht van bovenaf zoals in het
   origineel; borden voor de stoel op de tafel in plaats van op de rand; ingrediënten uit de voorraad, de groothandel rekent 's avonds af;
   inzoomen (🔍, knijpen, schuiven) voor de telefoon. Stoelen draaien vanzelf naar de tafel waar ze tegenaan staan.
-- Nog: een tweede ober, een echte Italiaanse dame (Gemini-vel); de zaak meer op het origineel laten lijken (zie hieronder).
+- Gedaan (27 okt): tweede ober = Italiaanse mamma; zaal 13x13 i.p.v. 15x15 (Marcel wil juist minder tafels), elk poppetje telt
+  als 1,5 klant (geld en telling); melding en knoppen onder het iPhone-randje.
+- Idee Marcel (27 okt): klapluik in de toonbank waar je doorheen kunt; Gerrit Gleufhoed (de man met de gleufhoed) loopt na het goede
+  antwoord door het luik en de keuken naar een deurtje achterin (nieuw), daarna naar het atelier. Later: de kok loopt de zaak in en vraagt
+  aan een klant of het smaakt. Nodig: Gemini-vel van Gerrit (lopen van voren/achteren + portret).
 
 ## Later: manager en de stad (Marcel, 26 okt) — manager pas samen met de stad bouwen (anders heeft hij geen nut)
 - Stadskaart: `pizza/stad-gemini.jpg` (16:9, plein met fontein en markt, bank, politiebureau, galerie, studentenhuis, bouwplaats,

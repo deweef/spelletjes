@@ -3,7 +3,7 @@
 Plan en afspraken: `pizza/PLAN.md`.
 
 Pizzabaas (`pizzabaas.html`, concept, idee van Pizza Tycoon maar met eigen naam en grappen): eigen pizzeria van bovenaf op een raster
-van 15x15 vloertegels zoals in het oude spel (`W`, `H`, `T` = 48; rij 0-2 keuken met ovens en koks, deur onderaan `DEUR`). Tafels en stoelen (1x1) los, zoals in het
+van 13x13 vloertegels (was 15x15; opslag `versie: 4`: wat bij het verkleinen niet meer past wordt terugbetaald, `S.verbouwd` = melding) zoals in het oude spel (`W`, `H`, `T` = 48; rij 0-2 keuken met ovens en koks, deur onderaan `DEUR`). Tafels en stoelen (1x1) los, zoals in het
 origineel; stijl per tafel/stoel `s.hout` (wisselen in het menu; nieuwe krijgen de laatst gekozen stijl `S.houtStoel`/`S.houtTafel`): houten caféstoel met rood kussen = tweede rij van `pizza/stoelen.png`, houten tafels `pizza/houten-tafels.png` (`HOUT`; met een kleed ligt het kleed erop); tafels (`TAFELSOORT`, de knop Tafel wisselt bij elke klik): `tafel` 2x2 (alle kleedjes), `lang` 2x4 en `langL` 4x2 (lange tafel, ↻ Draaien in het menu, kleedjes rood/wit: `SPUL.kleden`), `tafeltje` 1x1 (geen kleed); plaatjes `pizza/lange-tafels.png` (`LANG`, uit `pizza/lange-tafels-gemini.jpg`) (opslag `versie: 3`; versie 2 had vaste sets tafel2/tafel4, die `zetOm` omzet naar tafel + stoelen in een molentje): een stoel hoort bij de tafel waar hij tegenaan staat
 (`kantVoor`, `indeling` → `stoelPlekken(tafel)` = { sx, sy, kant, stoel }, kant 0 boven/1 onder/2 links/3 rechts, `RICHTING`); groepjes van 1-6 zoeken een tafel met genoeg vrije stoelen;
 de ober komt achter de stoel staan; tekenvolgorde: stoelen boven/naast, dan tafels en de rest, dan stoelen eronder; poppetjes ongeveer een tegel groot (`MENS`). Oude opslag zonder `versie: 2` krijgt zijn
@@ -88,3 +88,10 @@ Inzoomen (`zoom` 1-3, `zetZoom`, `zoomMidden`): knop 🔍 (`#zoomknop`, 1 ↔ 1,
 schuif je met een vinger over de lege vloer (`schuif`; tikken zonder schuiven = nog steeds vloer kiezen) en tijdens het werk overal.
 Ingrediënten komen uit de voorraad: de groothandel rekent 's avonds af (`tel.ing`, in `eindeDag`), dus het geld zakt niet meer tijdens de dag.
 Dagoverzicht: Ingrediënten (groothandel) en Andere kosten apart.
+Elk poppetje telt voor anderhalve klant (`TELT` = 1,5, `kl()`): pizzaprijs, fooi en inkoop × 1,5, en de aantallen in het dagoverzicht en op het
+schermpje (PIZZA'S) zijn `kl(n)`. Zo kan de zaal kleiner (minder tafels, zoals het origineel) zonder dat de omzet instort. Keuken en deur
+rekenen met `W` (`OVEN_X`, `BANK`, `UITGIFTE`, `DEUR`, `MAT`).
+iPhone: knoppen en de melding staan onder het randje bovenin (`env(safe-area-inset-top)`, `veiligBoven` in `maat`).
+De tweede ober (`o.dame`, obers[1]) is een Italiaanse mamma: `DAME` (`pizza/obera.png`, uit `pizza/obera-gemini.jpg`), `DAME_BORD`/`DAME_TWEE`
+(`pizza/obera-borden.png`, uit `pizza/obera-borden-gemini.jpg`; indeling staat bij `DAME` in de code). Opzij met twee borden tekent
+`tweedeBord` het tweede achter haar.
