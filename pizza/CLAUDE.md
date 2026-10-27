@@ -186,3 +186,10 @@ Vaste figuren (`FIGUUR`, na `VRAGEN`): elk ±5 vragen die hun `wie`, `rij` en `p
 influencer (7/8), Kees van de markt (8/9), Wethouder Wim (9/10), Zuster Zoë (10/11); plaatjes uit `pizza/henk|kimberley|kees|wim|zoe-gemini.jpg`
 (knippen: zelfde indeling als Gerrit: boven 4 rug, onder 4 voren, rechts portret). Zoë's griepprik = `S.griepvrij` (30 dagen geen zieke ober/Beppe).
 Nu 106 vragen.
+Achterkamer per zaak (`achterOpen()`: zaak 1 = `S.achterkamer` via Gerrit, andere zaken = `S.kamer`; `kamer` en `achterDag` staan in `ZAAKVELD`).
+Overal de laptop en Barrie (vraag 'barrie' kan in elke zaak met een achterkamer). Zaak 1: atelier (Gerrit, gravin), en de drukpers alleen als
+die al gekocht was; studentenbuurt: drukpers (open via vraag 'printer', antwoord C); plein: gokhal (vraag 'gokker': raad zwart/rood/groen,
+`gokRaad`, goed = open, groen = +€100). Villawijk: nog leeg (plan: wijnvervalsing). Gokhal (`toonGokhal`, `tekenGokhal`, `draaiWiel`,
+`klaarWiel`, Europese roulette `WIEL`, `FICHE` = €10): fiches kopen met contant of met al je munten van één crypto (−5%), inzet 1/2/5/10 op
+rood/zwart/even/oneven (×2) of groen (×36), drie rondes, daarna fiches automatisch terug in de kassa; 4% kans op een inval per draai
+(fiches weg, €100 boete, populariteit −3). In die zaak vragen 'gokwinst' en 'gokverlies'. Vraag 'pepperoni' (pepperoni-roulette) overal.

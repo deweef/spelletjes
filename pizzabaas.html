@@ -442,7 +442,9 @@ if (S.versie == 3) {
 // S.zaken = per zaak de eigen spullen, keuken, personeel, populariteit en manager (ZAAKVELD); van de zaak waar je nu bent (S.zaak) staan die
 // velden gewoon in S zelf (dan hoeft de rest van het spel niets te weten). Geld, pizza's, leningen en de achterkamer zijn van iedereen.
 // Wisselen kan 's ochtends via de stad (`wisselZaak`); de zaak waar je niet bent draait op zijn manager en wordt 's avonds doorgerekend (`simuleerZaak`).
-const ZAAKVELD = ['plek', 'buurt', 'huur', 'spullen', 'ovens', 'obers', 'groot', 'vloer', 'rep', 'manager', 'vuil', 'omzetGisteren'];
+const ZAAKVELD = ['plek', 'buurt', 'huur', 'spullen', 'ovens', 'obers', 'groot', 'vloer', 'rep', 'manager', 'vuil', 'omzetGisteren', 'kamer', 'achterDag'];
+// elke zaak een eigen achterkamer: in de eerste zaak open via Gerrit (S.achterkamer), in de andere via S.kamer (zie de vragen 'printer' en 'gokker')
+const achterOpen = () => S.zaak ? S.kamer : S.achterkamer;
 const BUURT = {
   oud: { n: 'De eerste zaak', aankomst: 1, soort: {}, rep: 20, uitleg: '' },
   studenten: { n: 'Studentenbuurt', kort: 'STUDENT', aankomst: 1.1, soort: { student: 3.5, villa: 0.3 }, rep: 25, uitleg: 'Hier wonen veel studenten: veel klanten, maar ze hebben weinig geld en houden van vet en zout.' },
@@ -929,7 +931,7 @@ const VRAGEN = [
     a: [['Natuurlijk, Bruno. Je verdient het.', () => { if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno kust je op beide wangen. "Grazie, signore!"'; }],
       ['Nee, daar is geen geld voor.', () => { if (Math.random() < 0.4 && S.manager) { S.manager = null; man = null; return 'Bruno zet zijn hoed op. "Dan ga ik naar Luigi." Weg is hij. (Je hebt geen manager meer.)'; } return 'Bruno zucht diep. "Va bene. Voorlopig."'; }],
       ['Hier, een fles van onze beste wijn.', () => { ge(-25); if (Math.random() < 0.6) return 'Bruno ruikt eraan. "Ah, een Barolo! Voor nu ben ik tevreden." (− € 25)'; if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno: "Wijn betaalt mijn huur niet." Hij krijgt de opslag toch. (− € 25, en € 15 per dag extra)'; }] ] },
-  { id: 'barrie', ik: '🕶️', portret: 5, rij: 4, wie: 'Barrie de Bink', kans: 6, als: () => !S.zaak && S.achterkamer && !S.barrie && S.gesaboteerd >= S.dag - 5,
+  { id: 'barrie', ik: '🕶️', portret: 5, rij: 4, wie: 'Barrie de Bink', kans: 6, als: () => achterOpen() && !S.barrie && S.gesaboteerd >= S.dag - 5,
     vraag: 'Een man in een blauw trainingspak schuift aan bij de toonbank en fluistert: "Ik hoorde dat er laatst wat… misging bij jou. Rat? Stinkbom? Toevallig van de overkant, hè?"',
     a: [['Ik ga naar de politie.', () => '"De politie. Ook goed." Hij tikt tegen zijn neus en eet rustig zijn pizza op.'],
       ['Dat zal wel toeval zijn.', () => '"Toeval, ja. Net als mijn Rolex." Hij grijnst en vertrekt.'],
@@ -1178,6 +1180,29 @@ const VRAGEN = [
     a: [['Graag!', () => { S.griepvrij = S.dag + 30; return 'Beppe valt flauw bij het zien van de naald. Maar de hele ploeg is beschermd!'; }],
       ['Mijn personeel wordt nooit ziek.', () => 'Op dat moment niest de ober over een pizza. Zoë kijkt je veelzeggend aan.'],
       ['Alleen als u er een pizza bij neemt.', () => { ge(PRIJS); S.griepvrij = S.dag + 30; return 'Ze prikt, eet en vertrekt met een knipoog. Iedereen beschermd.'; }] ] },
+  // ---- de achterkamers van de andere zaken ----
+  { id: 'printer', ik: '🎓', wie: 'Student met een rugzak', kans: 6, als: () => S.buurt == 'studenten' && !S.kamer,
+    vraag: 'Hé… heb jij toevallig ergens een printer? Ik moet wat… kortingsbonnen printen. Van een andere pizzeria. Voor een vriend.',
+    a: [['Nee, wij printen alleen menukaarten.', () => '"Oké, laat maar." Hij print ze dan wel in de bieb.'],
+      ['Dat klinkt niet echt legaal.', () => '"Legaal, illegaal… het is maar papier." Hij eet zijn pizza op.'],
+      ['Achter de keuken staat een oude drukpers…', () => { S.kamer = S.dag; rep(0.5); return 'Zijn ogen glimmen. "Laat zien!" Achter je keuken vind je een stoffig hok met een oude drukpers. 🗝️ Linksboven zit nu een sleuteltje.'; }] ] },
+  { id: 'gokker', ik: '🎲', wie: 'Gokker met een sigaar', kans: 6, als: () => S.buurt == 'toeristen' && !S.kamer,
+    vraag: 'Een man in een glimmend pak gooit een fiche op tafel. "Ik zoek een kamertje voor een potje roulette. Als je goed raadt, praten we verder. Zwart, rood… of groen?"',
+    a: [['Zwart.', () => gokRaad(0)], ['Rood.', () => gokRaad(1)], ['Groen!', () => gokRaad(2)] ] },
+  { id: 'gokwinst', ik: '🤑', wie: 'Blije gokker', kans: 3, als: () => S.buurt == 'toeristen' && S.kamer,
+    vraag: 'Een gokker komt juichend uit je achterkamer. "Drie keer op rood! Geef mij je duurste pizza. En hou het wisselgeld, chef!"',
+    a: [['Komt eraan!', () => { ge(PRIJS * 4); return 'Hij eet hem in vier happen en laat een flinke stapel geld achter. (+ € ' + PRIJS * 4 + ')'; }],
+      ['Doe er een fles champagne bij?', () => { ge(PRIJS * 4 + 30); vandaag.gezellig += 0.5; return 'Ploep! Hij trakteert de halve zaak. (+ € ' + (PRIJS * 4 + 30) + ')'; }],
+      ['Speel nog een rondje, het is je geluksdag!', () => { if (kans(0.5)) { ge(20); return 'Hij wint weer en gooit je een fiche van € 20 toe.'; } return 'Hij verliest alles. Hij eet zijn pizza zwijgend op en betaalt met kleingeld.'; }] ] },
+  { id: 'gokverlies', ik: '😩', wie: 'Gokker zonder geld', kans: 3, als: () => S.buurt == 'toeristen' && S.kamer,
+    vraag: 'Een gokker komt sip uit je achterkamer. "Alles kwijt… Mag ik een pizza op de pof? Volgende week betaal ik dubbel terug, erewoord!"',
+    a: [['Vooruit, één pizza.', () => { if (kans(0.4)) { ge(PRIJS * 2); return 'Ongelofelijk: hij komt meteen terug met geld van zijn moeder. Dubbel betaald!'; } return 'Je ziet hem nooit meer terug. Wel zijn erewoord.'; }],
+      ['Nee, ga maar naar huis.', () => 'Hij sloft naar buiten. "Morgen win ik alles terug…"'],
+      ['Als je de afwas doet.', () => { oberTempo(1.1); return 'Hij wast af als een bezetene. Hij heeft er duidelijk ervaring mee.'; }] ] },
+  { id: 'pepperoni', ik: '🌶️', wie: 'Groep vrienden', kans: 2, vraag: 'Zes punten pizza, en in één zit een gloeiend hete peper. "Pepperoni-roulette! Durft de baas mee te doen?"',
+    a: [['Natuurlijk, geef hier!', () => { vandaag.gezellig += 1; if (kans(1 / 6)) { rep(1); return '🔥 Raak! Je spuwt vuur, drinkt de waterkan leeg en huilt van het lachen. De hele zaak juicht.'; } return 'Gewone punt. Pfieuw. Een van de vrienden wordt knalrood en rent naar de wc. Iedereen ligt dubbel.'; }],
+      ['Nee, ik moet werken.', () => '"Saai!" roepen ze. Ze spelen het spelletje zelf. Er wordt flink gegild.'],
+      ['Laat Mario maar.', () => { if (kans(1 / 6)) { kokTraag(); return 'Mario pakt de hete! Hij bakt de rest van de avond met tranen in zijn ogen. Langzaam.'; } vandaag.fooi *= 1.05; return 'Mario kauwt cool en zegt: "In Napels eten we dit als ontbijt." Meer fooi!'; }] ] },
   { id: 'gleufhoed', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
@@ -1254,7 +1279,7 @@ function stapBezoeker(dt) {
   else if (b.st == 'luik' && loopNaar(b, [LUIK_X, KEUKEN + 0.7], 2.4, dt)) b.st = 'keuken';
   else if (b.st == 'keuken' && beweeg(b, [LUIK_X, 0.9], 1.8, dt)) { b.st = 'deur'; b.t = 0; ding(220, 0.15, 'square', 0.04); } // kriep
   else if (b.st == 'deur') { b.t += dt; deurOpen = Math.min(1, b.t * 2); if (b.t > 0.6) beweeg(b, [LUIK_X, -0.3], 1.5, dt);
-    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; achterPauze = true; S.achterDag = S.dag; tekenKnoppen(); meld((b.v.id == 'barrie' ? 'Barrie' : 'Gerrit') + ' wacht in de achterkamer…', 3000); toonAchterkamer(); } }
+    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; achterPauze = true; S.achterDag = S.dag; tekenKnoppen(); meld(b.v.wie.split(' ')[0] + ' wacht in de achterkamer…', 3000); toonAchterkamer(); } }
   luikOpen = b && b.y < KEUKEN + 1 && b.y > KEUKEN - 1.2 && Math.abs(b.x - LUIK_X) < 0.6 ? 1 : 0; // het luik klapt open als hij erdoor loopt
 }
 // het klapluik in de toonbank (midden, tussen de twee uitgiftes) en het geheime deurtje achter in de keuken (naar de achterkamer).
@@ -1273,7 +1298,7 @@ function tekenLuikEnDeur() {
     g.fillStyle = '#5a3216'; g.fillRect(x0 - 1, y0 - 2, 3, 24); g.fillRect(x0 + w - 2, y0 - 2, 3, 24);
     g.fillStyle = '#b07a44'; g.fillRect(x0, y0 - 20, w, 18); g.fillStyle = '#d9a46a'; g.fillRect(x0, y0 - 20, w, 2); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x0, y0 - 4, w, 2);
   }
-  if ((!S.achterkamer || S.zaak > 0) && !(bezoeker && bezoeker.achter)) return;
+  if (!achterOpen() && !(bezoeker && bezoeker.achter)) return;
   const dx = (LUIK_X - 0.45) * T, dw = 0.9 * T, dh = 1.05 * T; // deurtje bovenin de keuken, half in de muur
   g.fillStyle = '#3a2414'; g.fillRect(dx - 4, -6, dw + 8, dh + 6); // kozijn
   g.fillStyle = '#140a05'; g.fillRect(dx, -2, dw, dh); // donker erachter
@@ -1528,6 +1553,77 @@ function torenBord(d) { // top 10 van het online scorebord (of de laatst bekende
   fetch(BORD_URL, { redirect: 'follow' }).then((r) => r.json()).then((d) => { try { localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} zet(d); }).catch(() => {});
 }
 
+// ---------- de gokhal (achterkamer aan het plein): roulette met fiches van € 10 ----------
+// Europese roulette (0-36). Inzet op rood/zwart/even/oneven = x2, groen (0) = x36. Drie rondes, of eerder stoppen; daarna gaan de fiches
+// vanzelf terug naar je kassa. Fiches kopen met contant geld, of met al je munten van één crypto (koers van vandaag, 5% voor het huis).
+// Bij elke draai 4% kans op een politie-inval: de fiches op tafel kwijt, € 100 boete, populariteit −3.
+const WIEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+const ROOD = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]), FICHE = 10;
+const kleurVan = (n) => n == 0 ? 'groen' : ROOD.has(n) ? 'rood' : 'zwart';
+function gokRaad(k) { // de gokker laat een balletje rollen: goed geraden = de gokhal gaat open
+  const n = Math.floor(Math.random() * 37), kl = kleurVan(n), goed = ['zwart', 'rood', 'groen'][k] == kl;
+  if (!goed) return `Het balletje valt op ${n}, ${kl}. "Jammer, vriend." Hij tikt tegen zijn hoed en gaat een pizza eten.`;
+  S.kamer = S.dag; if (kl == 'groen') ge(100);
+  return `Het balletje valt op ${n}, ${kl}! ${kl == 'groen' ? 'Groen! Hij valt bijna van zijn stoel en geeft je € 100. ' : ''}"Jij hebt geluk, ik zie het." Samen richten jullie het kamertje achter de keuken in als gokhal. 🗝️ Linksboven zit nu een sleuteltje.`;
+}
+let gok = null;
+function toonGokhal() {
+  gok = { fiches: 0, ronde: 0, inzet: 1, op: 'rood', gekocht: 0, draait: false, hoek: 0, bal: 0, uit: null, tekst: 'Koop fiches en zet in. Je speelt drie rondes.' };
+  tekenGokhal();
+}
+function tekenGokhal() {
+  const c = crypto(), munten = Object.entries(MUNT).filter(([k]) => (c.bezit[k] || 0) * c.koers[k] >= FICHE), klaar = gok.ronde >= 3 || (gok.ronde > 0 && !gok.fiches);
+  $('achterkaart').innerHTML = `<h1>🎰 De gokhal</h1>
+    <canvas id="wiel" width="300" height="300" style="width:100%;max-width:260px;display:block;margin:0 auto"></canvas>
+    <p class="vraagtekst" style="text-align:center" id="goktekst">${esc(gok.tekst)}</p>
+    <p style="text-align:center"><b>🪙 ${gok.fiches} fiches</b> (€ ${gok.fiches * FICHE}) · ronde ${Math.min(3, gok.ronde + 1)} van 3 · in je kassa € ${Math.floor(S.geld)}</p>
+    ${klaar ? '' : `<div class="rij" style="justify-content:center">${[1, 5, 10].map((n) => `<button class="knop" data-fk="${n}" ${S.geld < n * FICHE || gok.draait ? 'disabled' : ''}>+${n} fiche${n > 1 ? 's' : ''} (€ ${n * FICHE})</button>`).join('')}
+      ${munten.map(([k, m]) => `<button class="knop" data-fm="${k}" ${gok.draait ? 'disabled' : ''}>${m.ik} Al je ${esc(m.n)} → fiches</button>`).join('')}</div>
+    <div class="rij" style="justify-content:center">${['rood', 'zwart', 'groen', 'even', 'oneven'].map((o) => `<button class="knop ${gok.op == o ? 'rood' : ''}" data-op="${o}">${{ rood: '🔴 Rood', zwart: '⚫ Zwart', groen: '🟢 Groen (×36)', even: 'Even', oneven: 'Oneven' }[o]}</button>`).join('')}</div>
+    <div class="rij" style="justify-content:center">Inzet: ${[1, 2, 5, 10].map((n) => `<button class="knop ${gok.inzet == n ? 'rood' : ''}" data-in="${n}">${n}</button>`).join('')}
+      <button class="knop rood" id="draai" ${gok.fiches < gok.inzet || gok.draait ? 'disabled' : ''}>🎯 Draaien!</button></div>`}
+    <div class="rij" style="justify-content:center"><button class="knop ${klaar ? 'rood' : ''}" id="gokstop" ${gok.draait ? 'disabled' : ''}>${klaar || !gok.fiches ? '🍕 Fiches wisselen en terug naar de zaak' : '🍕 Stoppen: fiches wisselen'}</button></div>`;
+  const k = $('achterkaart');
+  k.querySelectorAll('[data-fk]').forEach((b) => b.onclick = () => { const n = +b.dataset.fk; S.geld -= n * FICHE; gok.fiches += n; gok.gekocht += n * FICHE; kassa(); tekenGokhal(); });
+  k.querySelectorAll('[data-fm]').forEach((b) => b.onclick = () => { const id = b.dataset.fm, w = c.bezit[id] * c.koers[id] * 0.95, n = Math.floor(w / FICHE);
+    if (!confirm(`Al je ${MUNT[id].n} (${euro(c.bezit[id] * c.koers[id])}) inwisselen voor ${n} fiches?`)) return; c.bezit[id] = 0; gok.fiches += n; gok.gekocht += n * FICHE; bewaar(); tekenGokhal(); });
+  k.querySelectorAll('[data-op]').forEach((b) => b.onclick = () => { gok.op = b.dataset.op; tekenGokhal(); });
+  k.querySelectorAll('[data-in]').forEach((b) => b.onclick = () => { gok.inzet = +b.dataset.in; tekenGokhal(); });
+  if ($('draai')) $('draai').onclick = draaiWiel;
+  $('gokstop').onclick = () => { const terug = gok.fiches * FICHE; S.geld += terug; gok.fiches = 0; kassa(); bewaar(); tekenKnoppen(); $('achter').classList.add('verborgen');
+    meld(`De croupier wisselt je fiches: € ${terug} terug in je kassa.`, 3500); };
+  tekenWiel();
+}
+function tekenWiel() {
+  const cv = $('wiel'); if (!cv) return; const c = cv.getContext('2d'), m = 150, R = 140, st = Math.PI * 2 / 37;
+  c.clearRect(0, 0, 300, 300); c.fillStyle = '#5a3216'; c.beginPath(); c.arc(m, m, R + 8, 0, 7); c.fill();
+  WIEL.forEach((n, i) => { const a = gok.hoek + i * st; c.fillStyle = n == 0 ? '#1e8a3c' : ROOD.has(n) ? '#c0392b' : '#1b1b1b';
+    c.beginPath(); c.moveTo(m, m); c.arc(m, m, R, a, a + st); c.fill();
+    c.save(); c.translate(m, m); c.rotate(a + st / 2); c.fillStyle = '#fff'; c.font = 'bold 11px system-ui'; c.textAlign = 'center'; c.fillText(n, R - 14, 4); c.restore(); });
+  c.fillStyle = '#c9a227'; c.beginPath(); c.arc(m, m, R * 0.55, 0, 7); c.fill(); c.fillStyle = '#7a4a22'; c.beginPath(); c.arc(m, m, R * 0.45, 0, 7); c.fill();
+  c.fillStyle = '#e8c35a'; c.fillRect(m - 4, m - R * 0.4, 8, R * 0.8); c.fillRect(m - R * 0.4, m - 4, R * 0.8, 8);
+  const br = gok.draait ? R * 0.92 : R * 0.8; c.fillStyle = '#fff'; c.beginPath(); c.arc(m + Math.cos(gok.bal) * br, m + Math.sin(gok.bal) * br, 6, 0, 7); c.fill();
+}
+function draaiWiel() {
+  gok.fiches -= gok.inzet; gok.draait = true; const n = WIEL[Math.floor(Math.random() * 37)], st = Math.PI * 2 / 37, t0 = performance.now(), duur = 2800;
+  const h0 = gok.hoek, hEind = h0 + Math.PI * 6 + Math.random(); const i = WIEL.indexOf(n), bEind = hEind + i * st + st / 2 + Math.PI * 2 * -3; // het balletje eindigt in vak n
+  const b0 = gok.bal; tekenGokhal(); ding(600, 0.05, 'triangle', 0.03);
+  const stap = (nu) => { const f = Math.min(1, (nu - t0) / duur), e = 1 - Math.pow(1 - f, 3); gok.hoek = h0 + (hEind - h0) * e; gok.bal = b0 + (bEind - b0) * e;
+    if (Math.random() < 0.3 * (1 - f)) ding(1800 + Math.random() * 400, 0.01, 'square', 0.01); // tik tik tik
+    tekenWiel(); if (f < 1) return requestAnimationFrame(stap); klaarWiel(n); };
+  requestAnimationFrame(stap);
+}
+function klaarWiel(n) {
+  gok.draait = false; gok.ronde++;
+  if (kans(0.04)) { const kwijt = gok.fiches; gok.fiches = 0; ge(-100); rep(-3); gok.ronde = 3;
+    gok.tekst = `🚨 POLITIE! Een inval! Alle fiches op tafel (${kwijt}) worden in beslag genomen en je krijgt € 100 boete.`; ding(400, 0.4, 'sawtooth', 0.05); tekenGokhal(); return; }
+  const kl = kleurVan(n), op = gok.op, raak = op == kl || (n > 0 && ((op == 'even' && n % 2 == 0) || (op == 'oneven' && n % 2 == 1)));
+  const winst = raak ? gok.inzet * (op == 'groen' ? 36 : 2) : 0; gok.fiches += winst;
+  gok.tekst = `Het balletje valt op ${n}, ${kl}. ${raak ? `🎉 Gewonnen! ${winst} fiches.` : 'Helaas, je inzet is weg.'}${gok.ronde >= 3 ? ' Dat was de laatste ronde.' : ''}`;
+  if (raak) { kassa(); } else ding(200, 0.15, 'triangle', 0.04);
+  tekenGokhal();
+}
+
 // ---------- Barrie de Bink: Luigi dwarszitten (S.barrie = sinds wanneer; S.klus = { k, tot } loopt; S.ruzie 0-100 met Luigi) ----------
 // Een klus geeft een paar dagen meer klanten (Luigi's klanten komen naar jou), maar soms wordt Barrie gesnapt (boete) of ziet Luigi het
 // (morgen wraak). Hoe hoger de ruzie, hoe vaker Luigi uit zichzelf terugslaat (eindeDag). Vrede met een fles: S.luigiRust, ruzie weg.
@@ -1550,22 +1646,26 @@ const ruzieTekst = () => { const z = S.ruzie || 0; return z < 1 ? '😇 vrede' :
 function toonAchterkamer() {
   if (!S.opdracht || S.opdracht.tot < S.dag) nieuweOpdracht();
   const o = S.opdracht, klaar = (S.vervalsingen || []);
+  const eerste = !S.zaak, pers = eerste ? S.pers : S.buurt == 'studenten', gok = S.buurt == 'toeristen';
   $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1>
-    <p class="buurt">Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert. Niemand weet ervan… hopelijk.</p>
-    <div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van Gerrit Gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
+    <p class="buurt">${eerste ? 'Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert.' : gok ? 'Achter een zwaar gordijn: groen vilt, rook, en het geratel van een roulettebalnetje.' : pers ? 'Een benauwd hok vol oude posters en een stoffige machine in de hoek.' : 'Een kaal kamertje. Hier moet nog iets komen…'} Niemand weet ervan… hopelijk.</p>
+    ${gok ? `<div class="opdracht"><span style="font-size:60px">🎰</span><div><b>De gokhal</b><br>Fiches kopen, drie rondjes roulette, en wat je overhoudt gaat weer in je kassa.<br><small>Pas op: soms valt de politie binnen.</small></div></div>
+      <div class="rij"><button class="knop rood" id="gokken">🎰 Naar de roulettetafel</button></div>` : ''}
+    ${eerste ? `<div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van Gerrit Gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
       Hij betaalt tot <b>€ ${o.prijs}</b> (hoe echter, hoe meer).<br><small>Uiterlijk ${esc(datumLang(o.tot))}.</small></div></div>
     ${klaar.length ? `<p><b>Staan te drogen of klaar om op te halen:</b> ${klaar.map((f) => `${esc(SCHILDERIJEN[f.v])} (${Math.round(f.q * 100)}% echt${f.dag >= S.dag ? ', nog nat' : ''})`).join(', ')}</p>` : ''}
     <div class="rij"><button class="knop rood" id="schilder" ${S.geld < DOEK || (S.vervalsingen || []).some((f) => f.dag == S.dag) ? 'disabled' : ''}>🎨 ${(S.vervalsingen || []).some((f) => f.dag == S.dag) ? 'Vandaag al geschilderd: morgen weer' : `Schilderen (€ ${DOEK} verf en doek)`}</button></div>
-    <div class="opdracht"><span class="pers" style="background-position:0 0"></span><div><b>De drukpers</b><br>${!S.pers ? `Een oude drukpers in de hoek. Daarmee kun je… kortingsbonnen van Luigi drukken. Dan lopen zijn klanten naar jou.`
+    ` : ''}${pers ? `<div class="opdracht"><span class="pers" style="background-position:0 0"></span><div><b>De drukpers</b><br>${!S.pers ? `Een oude drukpers in de hoek. Daarmee kun je… kortingsbonnen van Luigi drukken. Dan lopen zijn klanten naar jou.`
       : S.bonnen && S.bonnen.tot >= S.dag ? `Er zijn bonnen in omloop (${Math.round(S.bonnen.q * 100)}% echt), nog tot ${esc(datumLang(S.bonnen.tot))}. Luigi's klanten komen naar jou!` : `Klaar om te drukken. Valse bonnen "50% korting bij Luigi" (die in jouw zaak gelden) lokken zijn klanten drie dagen naar jou.`}
       <br><small>Hoe slordiger gedrukt, hoe sneller Luigi het doorheeft.</small></div></div>
-    <div class="rij">${!S.pers ? `<button class="knop rood" id="perskoop" ${S.geld < PERS ? 'disabled' : ''}>🖨️ Drukpers opknappen (€ ${PERS})</button>` : `<button class="knop rood" id="druk" ${S.geld < INKT || (S.bonnen && S.bonnen.tot >= S.dag) ? 'disabled' : ''}>🖨️ Bonnen drukken (€ ${INKT} inkt)</button>`}<button class="knop" id="achterdicht">Deur dicht</button></div>
-    <div class="opdracht" style="display:block"><b>💻 De laptop</b> <small>(crypto: samen ${euro(cryptoWaarde())})</small>${cryptoBlok(false)}</div>
+    <div class="rij">${!S.pers ? `<button class="knop rood" id="perskoop" ${S.geld < PERS ? 'disabled' : ''}>🖨️ Drukpers opknappen (€ ${PERS})</button>` : `<button class="knop rood" id="druk" ${S.geld < INKT || (S.bonnen && S.bonnen.tot >= S.dag) ? 'disabled' : ''}>🖨️ Bonnen drukken (€ ${INKT} inkt)</button>`}</div>
+    ` : ''}<div class="opdracht" style="display:block"><b>💻 De laptop</b> <small>(crypto: samen ${euro(cryptoWaarde())})</small>${cryptoBlok(false)}</div>
     ${S.barrie ? `<div class="opdracht"><div class="portret" style="background-position:-425px 0;flex:none;margin:0"></div><div><b>Barrie de Bink</b><br>${barrieUit ? esc(barrieUit) : klusLoopt() ? '"Luigi heeft het even druk met… problemen. Hehe."' : '"Zeg het maar, baas. Wat mag het zijn?"'}
       <br><small>Ruzie met Luigi: <b>${ruzieTekst()}</b>${S.luigiRust > S.dag ? ' (wapenstilstand)' : ''}. Hoe meer ruzie, hoe vaker Luigi terugslaat.</small></div></div>
       <div class="rij">${Object.entries(KLUS).map(([k, d]) => `<button class="knop rood" data-klus="${k}" ${klusLoopt() || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} ${esc(d.n)} (€ ${d.prijs})</button>`).join('')}</div>
       <div class="rij">${Object.entries(VREDE).map(([k, d]) => `<button class="knop" data-vrede="${k}" ${!S.ruzie || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} Vrede: ${esc(d.n)} voor Luigi (€ ${d.prijs})</button>`).join('')}</div>` : ''}
-    <p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>`;
+    ${eerste ? '<p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>' : ''}<div class="rij"><button class="knop" id="achterdicht">Deur dicht</button></div>`;
+  if ($('gokken')) $('gokken').onclick = () => toonGokhal();
   $('achter').classList.remove('verborgen');
   $('achterdicht').onclick = () => { $('achter').classList.add('verborgen'); barrieUit = ''; };
   $('achterkaart').querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const c = crypto(), k = b.dataset.koop, max = Math.floor(S.bankSaldo || 0);
@@ -1579,7 +1679,7 @@ function toonAchterkamer() {
     barrieUit = `Barrie brengt Luigi een ${d.n.toLowerCase()}. Luigi snuift, drinkt hem in één keer leeg en mompelt: "Va bene. Even geen ruzie." (${d.dagen} dagen wapenstilstand)`; bewaar(); tekenKnoppen(); toonAchterkamer(); });
   if ($('perskoop')) $('perskoop').onclick = () => { S.geld -= PERS; S.pers = true; kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); };
   if ($('druk')) $('druk').onclick = () => { S.geld -= INKT; bewaar(); tekenKnoppen(); toonDrukken(); };
-  $('schilder').onclick = () => { S.geld -= DOEK; tel.kosten = (tel.kosten || 0) + DOEK; bewaar(); tekenKnoppen(); toonAtelier(o.v); };
+  if ($('schilder')) $('schilder').onclick = () => { S.geld -= DOEK; tel.kosten = (tel.kosten || 0) + DOEK; bewaar(); tekenKnoppen(); toonAtelier(o.v); };
 }
 // het minispel: het origineel links, rechts een doek van 6 x 7 vakjes; kies een kleur en tik op de vakjes. 45 seconden.
 function toonAtelier(v) {
@@ -2852,7 +2952,7 @@ function bewaarPizza() {
 
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
-  $('sleutel').classList.toggle('verborgen', !S.achterkamer || S.zaak > 0); // de achterkamer zit achter de eerste zaak
+  $('sleutel').classList.toggle('verborgen', !achterOpen()); // elke zaak zijn eigen achterkamer
   $('sleutel').style.opacity = S.achterDag == S.dag ? 0.35 : 1; // vandaag al geweest
   $('stadknop').disabled = modus != 'inrichten' && !S.manager; // zonder manager alleen 's ochtends de deur uit
   const k = $('raster'), open = modus != 'inrichten';

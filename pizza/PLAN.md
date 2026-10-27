@@ -190,7 +190,7 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   op de markt, met het online scorebord; (3) "Toren van Pizza" als speciaal gerecht of als versiering (scheef torentje) in de zaak.
 - Idee Marcel (27 okt): Pizzakoning pas met 4 pizzeria's (gedaan), en in elke zaak iets speciaals (nog uitwerken, zie voorstel in de chat:
   studentenbuurt = eetwedstrijd/studentenavond, plein = selfiemuur/straatmuzikant, villawijk = wijnkelder/sterrenchef).
-- **Achterkamers per zaak** (afspraak Marcel, 27 okt; nog bouwen): in élke zaak een achterkamer met Barrie (Luigi kan overal saboteren) en de
+- **Achterkamers per zaak** (afspraak Marcel, 27 okt; **gebouwd** behalve de villawijk = wijn): in élke zaak een achterkamer met Barrie (Luigi kan overal saboteren) en de
   laptop, plus één eigen ding: zaak 1 = atelier met Gerrit en de gravin; zaak 2 (studentenbuurt) = drukpers; zaak 3 (plein) = illegale gokhal
   met roulettetafel (minispel, inzetten tegen een gokker); zaak 4 (villawijk) = voorstel Claude: wijnvervalsing "Château Kraanwater"
   (goedkope wijn in dure flessen, etiketten namaken, een sommelier als rechercheur). Geen bontjassen (Marcel: zielig en niet ethisch).
