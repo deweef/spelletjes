@@ -101,3 +101,10 @@ antwoord ("Een échte Van Gogh"), dan krijgt de bezoeker `achter` en loopt hij n
 van de toonbank (`LUIK_X`, `luikOpen`) en de keuken naar het geheime deurtje achterin (`deurOpen`; het deurtje is er pas met `S.achterkamer`),
 daarna gaat de achterkamer open en staat de dag stil (`achterPauze`, tot je de achterkamer dichtdoet). Getekend in `tekenLuikEnDeur`.
 De uitgiftes staan links en rechts van het luik (`UITGIFTE`), de obers wachten ernaast (niet ervoor).
+De kok gaat de zaal in (`kokRust`, kok.st 'uit' → 'praat' → 'terug', `k.fase` luik/door/zaal/keuken): als hij niks te doen heeft, soms door het
+luik naar een etende klant: "Is het lekker?" (`ZEG.kok`, antwoord naar `m.oordeel`: `ZEG.lekker/gaat/vies`, populariteit ±). Eén kok tegelijk.
+Een leuke dame (`DAMES` = figuren 2, 4, 7, 8; 60% kans dat hij haar kiest) = 6-11 s kletsen met hartjes (`ZEG.dame`, `ZEG.charme`), zij geeft
+€3 extra fooi (`m.chef`). Ligt een klare pizza langer dan `VERBRAND` (9 s) in de oven, dan brandt hij aan: opnieuw in de `wachtrij`, opnieuw
+inkopen, zwarte rook (`o.rook`), `tel.aangebrand` in het dagoverzicht, en de kok rent terug (`k.schrik`, `k.haast`).
+Zonder werk staan koks en obers niet steeds op dezelfde plek: de kok loopt wat rond in de keuken (`k.plek`), de ober staat de helft van de
+tijd ergens in de zaak (`oberRust`, `ob.plek`).

@@ -307,6 +307,12 @@ const bewaar = () => { if (!TEGEL) schrijf(SLEUTEL, S); };
 // ---------- teksten ----------
 const R = (l) => l[Math.floor(Math.random() * l.length)];
 const ZEG = {
+  kok: ['Is het lekker?', 'Smaakt het, signori?', 'En? Goed gebakken?', 'Alles naar wens?'],
+  lekker: ['Heerlijk, chef!', 'De beste pizza van de stad!', 'Complimenti!', 'Mjam, perfetto!'],
+  gaat: ['Gaat wel.', 'Prima hoor.', 'Beetje zout, maar goed.'],
+  vies: ['Eerlijk gezegd… nee.', 'Mijn oma bakt beter.', 'Was dit expres zo?'],
+  dame: ['Oh, heeft ú hem gebakken? 😊', 'Wat heeft u sterke handen…', 'Kookt u ook thuis?', 'Wat een mooie schort!'],
+  charme: ['Bella, bellissima…', 'Uw ogen, als mozzarella…', 'Voor u bak ik elke dag!', 'Kent u Napels?'],
   binnen: ['Hmm, het ruikt hier lekker!', 'Tafeltje voor ons?', 'Is hier wifi?', 'Eén margherita graag!', 'Ik heb honger als een paard!'],
   eten: ['Mamma mia!', 'Heerlijk!', 'Net als bij oma in Napels!', 'Mjam!', 'Dit is de beste van de stad!'],
   boos: ['Ik wacht al een eeuwigheid!', 'Dan ga ik wel naar Luigi!', 'Laat maar, ik haal een kapsalon.', 'Ober?! OBER!'],
@@ -439,7 +445,21 @@ const OVEN_X = [1.5, W - 1.5];
 const KOK_HUIS = (i) => [OVEN_X[i], 2.1], BANK = (i) => [i ? W - 2.9 : 2.9, 2];
 const UITGIFTE = (i) => [i ? W / 2 + 1 : W / 2 - 2.55, 2.4]; // het midden van de toonbank blijft vrij voor het klapluik // per oven een eigen uitgifteblad naast zijn werkbank; de pizza's staan daar in rijtjes van 4 naar rechts
 const ruimte = (i) => S.groot && S.groot[i] ? 2 : 1; // pizza's tegelijk in oven i
-const DEEG = 1.6, BAKKEN = BAKTIJD - DEEG; // deeg maken, en zo lang zit een pizza in de oven
+const DEEG = 1.6, BAKKEN = BAKTIJD - DEEG, VERBRAND = 9; // VERBRAND: zo lang mag een klare pizza in de oven blijven liggen // deeg maken, en zo lang zit een pizza in de oven
+// de kok heeft even niks te doen: hij poetst, loopt een stukje, of gaat soms de zaal in om aan een klant te vragen of het smaakt.
+// Is dat een leuke dame (`DAMES`), dan blijft hij veel te lang hangen… en brandt de pizza in de oven aan (VERBRAND).
+const DAMES = [2, 4, 7, 8]; // figuren in pizza/klanten.png: villadame, Chinese dame, studente, Afrikaanse vrouw
+function kokRust(o, k, dt) {
+  k.rust = (k.rust || 0) + dt; k.poets = (k.poets || 0) + dt;
+  if (k.rust > 4 && modus == 'open' && !(bezoeker && bezoeker.achter) && Math.random() < dt * 0.12 && !ovens.some((x) => x.kok != k && ['uit', 'praat', 'terug'].includes(x.kok.st))) {
+    const eters = mensen.filter((m) => m.st == 'eet' && m.t < ETEN * 0.6 && m.tafel);
+    if (eters.length) { const dames = eters.filter((m) => DAMES.includes(m.fig)), m = dames.length && Math.random() < 0.6 ? R(dames) : R(eters);
+      k.klant = m; k.dame = DAMES.includes(m.fig); k.duur = k.dame ? 6 + Math.random() * 5 : 2.6; k.antw = false; k.st = 'uit'; k.fase = 'luik'; k.rust = 0; return; }
+  }
+  if (!k.plek || k.rust > k.plekT) { // af en toe ergens anders gaan staan in de keuken
+    const [hx, hy] = KOK_HUIS(o.i), [bx] = BANK(o.i); k.plek = R([[hx, hy], [hx, hy], [bx, 2.2], [(hx + LUIK_X) / 2, 2.3], [hx + (o.i ? -0.6 : 0.6), 1.9]]); k.plekT = k.rust + 3 + Math.random() * 5; }
+  beweeg(k, k.plek, 1.8, dt);
+}
 function maakOven(i) { const [x, y] = KOK_HUIS(i); return { i, x: OVEN_X[i], in: [], schep: 0, fase: 'leeg', kok: { x, y, kijk: Math.PI / 2, i, st: 'vrij', hand: [], t: 0 } }; }
 // De kok werkt door terwijl de oven bakt: deeg maken aan de werkbank, naar de oven; is daar een pizza klaar, dan haalt hij die
 // eruit en schuift de nieuwe er in één keer in, en brengt de klare pizza naar zijn uitgifte. o.in = [{ b, t }] = de pizza's in de oven
@@ -449,9 +469,14 @@ function stapOven(o, dt) {
   if (o.traag) dt *= 0.7;
   const k = o.kok, weg = (b) => b && (!mensen.includes(b.m) || b.m.st != 'wacht'); // klant al weg
   // bij stroomstoring bakt er even niets
-  for (const p of [...o.in]) { p.t += vandaag.ovenUit > 0 ? 0 : dt; if (p.t >= BAKKEN && !p.ding) { p.ding = true; ding(1200, 0.05); } if (weg(p.b)) o.in.splice(o.in.indexOf(p), 1); }
+  for (const p of [...o.in]) { p.t += vandaag.ovenUit > 0 ? 0 : dt; if (p.t >= BAKKEN && !p.ding) { p.ding = true; ding(1200, 0.05); } if (weg(p.b)) o.in.splice(o.in.indexOf(p), 1);
+    else if (p.t > BAKKEN + VERBRAND) { // te lang in de oven (de kok stond te kletsen): aangebrand, opnieuw bakken en opnieuw inkopen
+      o.in.splice(o.in.indexOf(p), 1); wachtrij.unshift(p.b); o.rook = 4; tel.aangebrand = (tel.aangebrand || 0) + 1;
+      const kost = smaak(p.b.m.pizza).k * TELT; tel.ing = (tel.ing || 0) + kost; tel.kosten += kost;
+      ding(140, 0.3, 'sawtooth', 0.06); muntjes.push({ x: o.x, y: 1.4, t: 2, tekst: '🔥 Aangebrand!' }); if (k.st == 'praat' || k.st == 'uit') k.schrik = true; } }
+  if (o.rook > 0) o.rook -= dt;
   // k.hand = lijst bestellingen die de kok bij zich heeft (deeg of klare pizza's): 1, of 2 bij een grote oven
-  k.hand = (k.hand || []).filter((b) => !weg(b)); if (!k.hand.length && k.st != 'vrij') { k.draagt = false; k.gooi = 0; k.st = 'vrij'; }
+  k.hand = (k.hand || []).filter((b) => !weg(b)); if (!k.hand.length && !['vrij', 'uit', 'praat', 'terug'].includes(k.st)) { k.draagt = false; k.gooi = 0; k.st = 'vrij'; }
   o.schep = Math.max(0, o.schep - dt);
   o.fase = o.schep > 0 ? 'inschuiven' : o.in.some((p) => p.t < BAKKEN) ? 'bak' : 'leeg'; // voor het tekenen
   const klareP = o.in.filter((p) => p.t >= BAKKEN), vrijePlek = ruimte(o.i) - o.in.length + klareP.length;
@@ -460,7 +485,25 @@ function stapOven(o, dt) {
     else { // nieuwe bestellingen: zoveel als er in de oven passen; ook als hij nog bakt: alvast deeg maken
       while (wachtrij.length && k.hand.length < ruimte(o.i)) { const b = wachtrij.shift(); k.hand.push(b);
         const kost = smaak(b.m.pizza).k - (S.korting && S.korting.tot > S.dag ? b.m.pizza.stukjes.filter((s) => s.i == S.korting.i).length * ING[S.korting.i].k / 2 : 0); tel.ing = (tel.ing || 0) + kost * TELT; tel.kosten += kost * TELT; } // ingrediënten uit de voorraad: de groothandel rekent 's avonds af (eindeDag)
-      if (k.hand.length) { k.t = 0; k.st = 'deeg'; } else { beweeg(k, KOK_HUIS(o.i), 2.2, dt); k.poets = (k.poets || 0) + dt; } }
+      if (k.hand.length) { k.t = 0; k.st = 'deeg'; } else kokRust(o, k, dt); }
+  } else if (k.st == 'uit') { // door het luik naar een klant die zit te eten: "Is het lekker?"
+    const m = k.klant; if (!m || !mensen.includes(m) || m.st != 'eet') { k.st = 'terug'; k.fase = k.fase == 'zaal' ? 'zaal' : 'keuken'; return; }
+    if (k.fase == 'luik') { if (beweeg(k, [LUIK_X, 2.25], 2.6, dt)) k.fase = 'door'; return; } // door de keuken naar het luik
+    if (k.fase == 'door') { if (beweeg(k, [LUIK_X, KEUKEN + 0.7], 2.6, dt)) k.fase = 'zaal'; return; }
+    const p = stoelPlekken(m.tafel)[m.stoel] || { sx: m.x, sy: m.y, kant: 0 }, [rx, ry] = RICHTING[p.kant];
+    if (loopNaar(k, [p.sx - rx * 0.8 + 0.35, p.sy - ry * 0.8], 2.6, dt)) { k.st = 'praat'; k.t = 0; zeg(k, R(ZEG.kok)); k.kijk = Math.atan2(m.y - k.y, m.x - k.x); }
+  } else if (k.st == 'praat') {
+    const m = k.klant; k.t += dt;
+    if (!m || !mensen.includes(m)) { k.st = 'terug'; k.fase = 'zaal'; return; }
+    if (k.t > 1.2 && !k.antw) { k.antw = true; const o2 = m.oordeel; zeg(m, k.dame ? R(ZEG.dame) : R(o2 >= 4 ? ZEG.lekker : o2 >= 2 ? ZEG.gaat : ZEG.vies));
+      if (!k.dame) S.rep = Math.max(0, Math.min(100, S.rep + (o2 >= 4 ? 0.6 : o2 < 2 ? -0.3 : 0.2))); }
+    if (k.dame && k.t > 2.6 && Math.floor(k.t / 1.6) != Math.floor((k.t - dt) / 1.6)) { muntjes.push({ x: k.x, y: k.y - 1.2, t: 1.2, tekst: '❤️' }); if (Math.random() < 0.4) zeg(k, R(ZEG.charme)); }
+    if (k.schrik || k.t > k.duur) { if (k.schrik) { zeg(k, 'Mamma mia! De oven!'); k.haast = true; } else if (k.dame) { m.chef = true; zeg(m, 'Ciao, bello! 😘'); }
+      k.st = 'terug'; k.fase = 'zaal'; k.schrik = false; }
+  } else if (k.st == 'terug') { // terug door het luik naar de keuken
+    const v = k.haast ? 4.2 : 2.8;
+    if (k.fase != 'keuken') { if (loopNaar(k, [LUIK_X, KEUKEN + 0.7], v, dt)) k.fase = 'keuken'; return; }
+    if (beweeg(k, [LUIK_X, 2.25], v, dt)) { k.st = 'vrij'; k.klant = null; k.rust = 0; k.haast = false; k.plek = null; }
   } else if (k.st == 'deeg') { // naar de werkbank, deeg uitrollen en opgooien (per pizza)
     if (beweeg(k, BANK(o.i), 2.6, dt)) { k.t += dt; k.gooi = k.t; if (k.t >= DEEG * k.hand.length) { k.st = 'oven'; k.gooi = 0; } }
   } else if (k.st == 'oven') { // met het deeg naar de oven; wacht daar als er nog niet genoeg plek is
@@ -552,6 +595,7 @@ function eindeDag() {
       <tr><td>🚪 Geen plek</td><td>${kl(tel.vol)}</td></tr>
       ${tel.opgeruimd || rommel ? `<tr><td>🧽 Opgeruimd / blijven liggen</td><td>${tel.opgeruimd || 0} / ${rommel}</td></tr>` : ''}
       ${tel.niks ? `<tr><td>🤷 Niks lekkers op de kaart</td><td>${kl(tel.niks)}</td></tr>` : ''}
+      ${tel.aangebrand ? `<tr><td>🔥 Aangebrand (de kok stond te kletsen)</td><td>${tel.aangebrand}</td></tr>` : ''}
       ${top ? `<tr><td>🏆 Meest besteld</td><td>${esc(top[0])} (${kl(top[1])}×)</td></tr>` : ''}
       ${soorten ? `<tr><td>Hoe smaakte het?</td><td>${soorten}</td></tr>` : ''}
       <tr><td>🍕 Pizza's verkocht</td><td>€ ${Math.round(tel.omzet)}</td></tr>
@@ -876,7 +920,7 @@ const BEZOEK = new Image(); BEZOEK.src = 'pizza/bezoekers.png';
 let bezoeker = null; // { rij, x, y, st: 'in' | 'praat' | 'uit', v, loopT }
 function laatBinnen(v) { bezoeker = { rij: v.rij ?? v.portret, x: DEUR.x + 0.5, y: H + 0.4, st: 'in', v, loopT: 0 }; }
 function stapBezoeker(dt) {
-  const b = bezoeker; if (!b) return;
+  luikOpen = 0; const b = bezoeker; if (!b) return;
   if (b.st == 'in' && loopNaar(b, [7.5, 8.5], 2.6, dt)) { b.st = 'praat'; b.loopT = 0; toonVraag(b.v); }
   else if (b.st == 'uit' && b.achter) b.st = 'luik'; // Gerrit gaat niet naar buiten maar de keuken in
   else if (b.st == 'uit' && loopNaar(b, [DEUR.x + 0.5, H + 0.6], 2.6, dt)) bezoeker = null;
@@ -1251,7 +1295,7 @@ function stap(dt) {
       bestel(m.groep);
     } else if (m.st == 'eet' && m.t > ETEN) {
       // hoe lekker (0-6) bepaalt de fooi en of ze het doorvertellen
-      const o = m.oordeel, prijs = m.pizza.prijs * TELT, fooi = Math.max(0, gezellig(m.tafel) * 0.4 + (o - 2) * 0.5 + (m.wacht < 18 ? 1 : 0)) * vandaag.fooi * TELT; // TELT: anderhalve klant
+      const o = m.oordeel, prijs = m.pizza.prijs * TELT, fooi = Math.max(0, gezellig(m.tafel) * 0.4 + (o - 2) * 0.5 + (m.wacht < 18 ? 1 : 0)) * vandaag.fooi * TELT + (m.chef ? 3 : 0); // TELT: anderhalve klant; m.chef: de kok kwam even flirten
       S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o;
       tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1;
       const s = tel.soort[m.soort] = tel.soort[m.soort] || [0, 0]; s[0]++; s[1] += o; // aantal, totaal oordeel
@@ -1276,13 +1320,14 @@ function stap(dt) {
   // ovens bakken wat er besteld is
   for (const o of ovens) stapOven(o, dt);
   stapBezoeker(dt); stapRat(dt);
+  if (!luikOpen) luikOpen = ovens.some((o) => Math.abs(o.kok.x - LUIK_X) < 0.6 && o.kok.y < KEUKEN + 1 && o.kok.y > KEUKEN - 1.2) ? 1 : 0; // ook de kok gaat door het luik
   if (vandaag.ovenUit > 0) vandaag.ovenUit -= dt;
   S.vuil = (S.vuil || 0) + mensen.filter((m) => m.st == 'eet').length * dt * 0.0006; // hoe meer er gegeten wordt, hoe viezer
   // obers brengen de pizza's rond
   for (const ob of obers) {
     if (ob.serveer > 0) { ob.serveer -= dt; continue; } // even de stolp optillen: "Prego!"
     if (!ob.taak && ritten.length) { ob.taak = ritten.shift(); ob.fase = 'halen'; ob.taak.groep.opgehaald = true; ob.draagt = 0; }
-    if (!ob.taak) { loopNaar(ob, ob.thuis, 3.4 * vandaag.oberSnel, dt); continue; }
+    if (!ob.taak) { oberRust(ob, dt); continue; } else ob.plek = null;
     const borden = ob.taak.borden = ob.taak.borden.filter((b) => mensen.includes(b.m) && b.m.st == 'wacht'); // wie er nog zit
     if (!borden.length) { ob.taak = null; ob.draagt = 0; continue; }
     if (ob.fase == 'halen') { // langs de uitgifte(s) waar zijn borden staan, de borden pakken (één in elke hand)
@@ -1308,6 +1353,17 @@ function stap(dt) {
   for (const c of [...muntjes]) if ((c.t -= dt) <= 0) muntjes.splice(muntjes.indexOf(c), 1);
 }
 let wachtrij = [];
+// een ober zonder werk staat niet steeds op dezelfde plek: meestal bij de toonbank, soms ergens in de zaak (kijken of alles goed gaat)
+function oberRust(ob, dt) {
+  ob.rust = (ob.rust || 0) + dt;
+  if (!ob.plek || ob.rust > ob.plekT) {
+    ob.plek = ob.thuis;
+    if (Math.random() < 0.5) for (let k = 0; k < 20; k++) { const x = Math.floor(Math.random() * W), y = KEUKEN + 1 + Math.floor(Math.random() * (H - KEUKEN - 2));
+      if (!op(x, y) && !(y == MAT.y && x >= MAT.x && x < MAT.x + MAT.w) && Math.abs(x + 0.5 - LUIK_X) > 0.6) { ob.plek = [x + 0.5, y + 0.5]; break; } }
+    ob.plekT = ob.rust + 4 + Math.random() * 6;
+  }
+  loopNaar(ob, ob.plek, 2.2 * vandaag.oberSnel, dt);
+}
 
 // ---------- tekenen ----------
 // In de stijl van het oude spel: van bovenaf, geblokte rood-geel-witte vloer, bakstenen muur, houten kader eromheen.
@@ -1588,6 +1644,9 @@ function teken(nu) {
   tekenLuikEnDeur();
   // ovens: stenen koepels met vuur
   const ovs = modus == 'inrichten' ? Array.from({ length: S.ovens }, (_, i) => maakOven(i)) : ovens;
+  for (const o of ovs) if (o.rook > 0) for (let k = 0; k < 6; k++) { // zwarte rook: aangebrande pizza
+    const f = (nu / 1400 + k / 6) % 1; g.fillStyle = `rgba(30,30,30,${0.55 * (1 - f) * Math.min(1, o.rook)})`;
+    g.beginPath(); g.arc(o.x * T + Math.sin(f * 7 + k) * 10, 1.2 * T - f * 60, 8 + f * 16, 0, 7); g.fill(); }
   for (const o of ovs) {
     if (OVENS.complete && OVENS.naturalWidth) { // Gemini-oven: 0 uit, 1 met vuur (bakken), 2 pizza op de schep (inschuiven)
       const w = 1.9 * T, x0 = o.x * T - w / 2, y0 = 1.95 * T - w, f = o.fase == 'bak' ? 1 : o.fase == 'inschuiven' ? 2 : 0, gr = ruimte(o.i) > 1 && GROTE.complete && GROTE.naturalWidth;
