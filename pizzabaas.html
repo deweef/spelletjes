@@ -2760,5 +2760,11 @@ function lus(nu) {
 requestAnimationFrame(lus);
 window.__test = { get S() { return S; }, get bezorger() { return bezorger; }, get bezorgingen() { return bezorgingen; }, get toren() { return toren; }, hangX, torenTik, get man() { return man; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
+<!-- TIJDELIJK (27 okt 2026, verzoek Marcel): na 10 seconden stoppen, Ben moet biologie leren. Gaat vanzelf uit na vandaag; daarna weghalen. -->
+<div id="stopbio" style="display:none;position:fixed;inset:0;z-index:99;background:rgba(20,10,4,.92);align-items:center;justify-content:center;text-align:center;padding:20px">
+  <div class="kaart" style="max-width:420px"><div style="font-size:64px">😉</div><h1>Genoeg voor vandaag!</h1><p style="font-size:18px">Nu tijd voor <b>biologie</b>. 🧬🐸🌱</p><p class="buurt">Mario bewaart je pizzeria wel even. Morgen weer verder!</p></div></div>
+<script>
+(() => { const d = new Date(); if (d.getFullYear() == 2026 && d.getMonth() == 9 && d.getDate() == 27) setTimeout(() => { const e = document.getElementById('stopbio'); e.style.display = 'flex'; }, 10000); })();
+</script>
 </body>
 </html>
