@@ -193,3 +193,7 @@ die al gekocht was; studentenbuurt: drukpers (open via vraag 'printer', antwoord
 `klaarWiel`, Europese roulette `WIEL`, `FICHE` = €10): fiches kopen met contant of met al je munten van één crypto (−5%), inzet 1/2/5/10 op
 rood/zwart/even/oneven (×2) of groen (×36), drie rondes, daarna fiches automatisch terug in de kassa; 4% kans op een inval per draai
 (fiches weg, €100 boete, populariteit −3). In die zaak vragen 'gokwinst' en 'gokverlies'. Vraag 'pepperoni' (pepperoni-roulette) overal.
+Stadskaart: eigen zaken tonen hun populariteit (⭐). Eetwedstrijd bij het studentenhuis (`toonEet`, `EET`, scherm `#eet`; één keer per dag
+`S.eetDag`, €10 inleg): 20 s tikken op je pizza (5 happen = 1 punt, na elke 6 punten eerst 🥤 slurpen) tegen Vreetzak Vincent (~1,6 punt/s, soms
+een boer); winnen = €60, populariteit +2, morgen meer studenten. Record `S.eetBest`, scorebord-onderdeel `eetwedstrijd` (`stuurRecord`, `bordLijst`).
+Getest: 6 tikken/s = gelijkspel, 8/s = winst.

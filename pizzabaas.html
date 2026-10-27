@@ -164,6 +164,13 @@
 <button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
 <button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
 <button id="zoomknop" title="Inzoomen (of knijp met twee vingers)">🔍</button>
+ <div class="scherm verborgen" id="eet" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
+  <h1 style="margin:0 0 4px">🍕 Eetwedstrijd</h1><div id="eettekst" class="buurt" style="margin:0 0 6px">Tik zo snel je kunt op je pizza: elke punt is vijf happen. Krijg je dorst, tik dan eerst op je drankje!</div>
+  <div style="display:flex;justify-content:space-around;align-items:flex-end;gap:8px"><div><b>Jij</b><canvas id="eetjij" width="200" height="200" style="width:150px;height:150px;display:block;touch-action:manipulation;cursor:pointer"></canvas><div id="eetjijn" style="font:700 22px system-ui">0</div></div>
+    <div><b>Vreetzak Vincent</b><canvas id="eethij" width="200" height="200" style="width:110px;height:110px;display:block"></canvas><div id="eethijn" style="font:700 22px system-ui">0</div></div></div>
+  <div style="height:56px;margin:4px 0"><button class="knop rood verborgen" id="eetdrink" style="font-size:22px">🥤 Slurp!</button></div>
+  <div id="eetklok" style="font:700 28px system-ui">20</div><div id="eetbord" class="buurt" style="margin:6px 0;text-align:left"></div>
+  <div class="rij" style="justify-content:center"><button class="knop" id="eetdicht">Sluiten</button></div></div></div>
 <div class="scherm verborgen" id="toren" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🍕 Toren van Pizza</h1><div id="torentekst" class="buurt" style="margin:0 0 6px">Tik op het goede moment: stapel de pizza's zo hoog mogelijk. Te scheef = omvallen!</div>
   <canvas id="torendoek" width="360" height="540" style="width:100%;max-width:360px;aspect-ratio:2/3;display:block;margin:0 auto;border-radius:12px;touch-action:none;cursor:pointer"></canvas>
@@ -1553,6 +1560,62 @@ function torenBord(d) { // top 10 van het online scorebord (of de laatst bekende
   fetch(BORD_URL, { redirect: 'follow' }).then((r) => r.json()).then((d) => { try { localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} zet(d); }).catch(() => {});
 }
 
+// ---------- eetwedstrijd bij het studentenhuis (S.eetBest = record in punten, online scorebord onderdeel 'eetwedstrijd') ----------
+// 20 seconden tikken op je pizza: 5 happen = 1 punt. Na elke 6 punten krijg je dorst: eerst op het drankje tikken. Vreetzak Vincent eet
+// ongeveer 1 punt per seconde (met af en toe een boer). Winnen = € 60, populariteit +2 en morgen meer studenten.
+const EET = { tijd: 20, happen: 5, dorst: 6, inleg: 10, prijs: 60 };
+let eet = null;
+function toonEet() {
+  eet = { jij: 0, hap: 0, hij: 0, hijHap: 0, t: EET.tijd, dorst: false, loopt: false, klaar: false, boer: 0, vorig: 0 };
+  $('eet').classList.remove('verborgen'); $('eettekst').textContent = 'Tik op je pizza om te beginnen! Elke punt is vijf happen. Dorst? Eerst slurpen!';
+  $('eetdicht').onclick = () => { $('eet').classList.add('verborgen'); eet = null; };
+  $('eetjij').onpointerdown = (e) => { e.preventDefault(); eetHap(); };
+  $('eetdrink').onclick = () => { if (!eet || !eet.dorst) return; eet.dorst = false; $('eetdrink').classList.add('verborgen'); ding(500, 0.08, 'sine', 0.05); };
+  bordLijst('eetwedstrijd', $('eetbord'), 'punten'); tekenEet(); }
+function eetHap() {
+  if (!eet || eet.klaar) return; if (!eet.loopt) { eet.loopt = true; eet.vorig = performance.now(); requestAnimationFrame(eetLus); }
+  if (eet.dorst) { ding(150, 0.05, 'square', 0.03); return; } // eerst drinken
+  eet.hap++; ding(300 + eet.hap * 60, 0.03, 'triangle', 0.04);
+  if (eet.hap >= EET.happen) { eet.hap = 0; eet.jij++; if (eet.jij % EET.dorst == 0) { eet.dorst = true; $('eetdrink').classList.remove('verborgen'); } }
+  tekenEet(); }
+function eetLus(nu) {
+  if (!eet || eet.klaar || $('eet').classList.contains('verborgen')) return;
+  const dt = Math.min(0.1, (nu - eet.vorig) / 1000); eet.vorig = nu; eet.t -= dt;
+  if (eet.boer > 0) eet.boer -= dt; else { eet.hijHap += dt * (EET.happen * (1.6 + Math.sin(nu / 900) * 0.3)); if (eet.hijHap >= EET.happen) { eet.hijHap = 0; eet.hij++; if (Math.random() < 0.12) { eet.boer = 1.2; $('eettekst').textContent = 'BOEEERRRP! Vincent moet even pauzeren…'; } } }
+  if (eet.t <= 0) return eetKlaar();
+  tekenEet(); requestAnimationFrame(eetLus); }
+function tekenEetPizza(cv, punten, hap) { // een pizza van 8 punten; wat op is, is weg; de punt waar je in hapt wordt kleiner
+  const c = cv.getContext('2d'), r = 90, m = 100; c.clearRect(0, 0, 200, 200); c.fillStyle = '#fff'; c.beginPath(); c.arc(m, m, r + 8, 0, 7); c.fill();
+  const over = 8 - (punten % 8), st = Math.PI / 4;
+  for (let i = 0; i < over; i++) { const a = -Math.PI / 2 + i * st, kl = i == over - 1 ? 1 - hap / EET.happen * 0.85 : 1;
+    c.save(); c.beginPath(); c.moveTo(m, m); c.arc(m, m, r * (i == over - 1 ? Math.max(0.3, kl) : 1), a, a + st); c.closePath(); c.clip();
+    if (BODEM_IMG.complete && BODEM_IMG.naturalWidth) c.drawImage(BODEM_IMG, m - r, m - r, r * 2, r * 2); else { c.fillStyle = '#e7b56f'; c.fill(); }
+    c.restore(); }
+  if (punten && punten % 8 == 0 && !hap) { c.fillStyle = '#3a2414'; c.font = 'bold 18px system-ui'; c.textAlign = 'center'; c.fillText('Nieuwe pizza!', m, m); }
+}
+function tekenEet() { if (!eet) return; tekenEetPizza($('eetjij'), eet.jij, eet.hap); tekenEetPizza($('eethij'), eet.hij, Math.floor(eet.hijHap));
+  $('eetjijn').textContent = eet.jij; $('eethijn').textContent = eet.hij; $('eetklok').textContent = Math.max(0, Math.ceil(eet.t)); }
+function eetKlaar() {
+  eet.klaar = true; eet.t = 0; tekenEet(); $('eetdrink').classList.add('verborgen');
+  const won = eet.jij > eet.hij, record = eet.jij > (S.eetBest || 0); if (record) S.eetBest = eet.jij;
+  if (won) { ge(EET.prijs); rep(2); S.studentenMorgen = true; kassa(); setTimeout(kassa, 250); }
+  $('eettekst').textContent = won ? `🏆 Gewonnen! ${eet.jij} tegen ${eet.hij}. € ${EET.prijs} prijzengeld, en morgen komen er extra studenten naar je pizzeria.${record ? ' Nieuw record!' : ''}`
+    : eet.jij == eet.hij ? `Gelijkspel, ${eet.jij} tegen ${eet.hij}! Vincent pakt toch de prijs: hij eet als toetje jouw korstjes op.` : `Vincent wint met ${eet.hij} tegen ${eet.jij}. Hij laat een boer van 4 seconden.${record ? ' Maar het is wel je nieuwe record!' : ''}`;
+  bewaar(); if (eet.jij > 0) stuurRecord('eetwedstrijd', S.eetBest, $('eetbord'), 'punten');
+}
+// online scorebord (zelfde script als Fladderfeest): alleen met een naam, en alleen een record dat beter is dan wat al ingestuurd is
+function stuurRecord(onderdeel, best, el, eenheid) {
+  if (!speler || !best) return; const lk = 'pizzabaas_ingestuurd_' + onderdeel + ':' + speler; let al = 0; try { al = +localStorage.getItem(lk) || 0; } catch (e) {}
+  if (best <= al) return;
+  fetch(BORD_URL + '?actie=opslaan&naam=' + encodeURIComponent(speler) + '&onderdeel=' + onderdeel + '&modus=gewoon&score=' + best, { redirect: 'follow' }).then((r) => r.json())
+    .then((d) => { try { localStorage.setItem(lk, best); localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} bordLijst(onderdeel, el, eenheid, d); }).catch(() => {});
+}
+function bordLijst(onderdeel, el, eenheid, d) {
+  const zet = (d) => { const l = (d && d[onderdeel + '_gewoon']) || []; el.innerHTML = l.length ? '<b>🏆 Scorebord</b><br>' + l.map((x, i) => `${i + 1}. ${esc(x.naam)}: ${x.score}`).join(' · ') : (speler ? '' : 'Kies je naam op de startpagina, dan komt je record op het scorebord.'); };
+  if (d) return zet(d); try { zet(JSON.parse(localStorage.getItem('pizzabaas_bord') || 'null')); } catch (e) {}
+  fetch(BORD_URL, { redirect: 'follow' }).then((r) => r.json()).then((d) => { try { localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} zet(d); }).catch(() => {});
+}
+
 // ---------- de gokhal (achterkamer aan het plein): roulette met fiches van € 10 ----------
 // Europese roulette (0-36). Inzet op rood/zwart/even/oneven = x2, groen (0) = x36. Drie rondes, of eerder stoppen; daarna gaan de fiches
 // vanzelf terug naar je kassa. Fiches kopen met contant geld, of met al je munten van één crypto (koers van vandaag, 5% voor het huis).
@@ -1795,7 +1858,7 @@ function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze ni
 function toonStad(plek) {
   const k = $('stadkaart');
   if (!plek) {
-    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%">${id == 'bouw' && torenBij().fase ? `<i class="torenkaart" style="background-position:${(torenBij().fase - 1) / 3 * 100}% 0"></i>` : ''}<span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
+    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%">${id == 'bouw' && torenBij().fase ? `<i class="torenkaart" style="background-position:${(torenBij().fase - 1) / 3 * 100}% 0"></i>` : ''}<span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') + ' ⭐' + Math.round(zaakVan(id) == S.zaak ? S.rep : S.zaken[zaakVan(id)].rep || 0) : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
       ${modus != 'inrichten' && S.manager ? `<p class="buurt" style="text-align:center">🕒 De zaak is open. ${esc(MANAGER[S.manager.wie].n)} past op de winkel${S.manager.wie == 'kevin' ? '… hopelijk' : ''}.</p>` : ''}
       <p class="buurt" style="text-align:center">Tik op een plek in de stad. <button class="knop" id="stadterug" style="margin-left:8px">🍕 Terug naar je zaak</button></p>`;
     k.querySelectorAll('[data-plek]').forEach((b) => b.onclick = () => toonStad(b.dataset.plek));
@@ -1819,7 +1882,8 @@ function toonStad(plek) {
   if (plek == 'luigi') h += `<p>Je gluurt door het raam van Pizzeria Luigi. ${klusLoopt() ? { stinkbom: 'Er hangt een groene walm voor de deur. Voorbijgangers knijpen hun neus dicht. Hehe.', ratten: 'Er staat een bord: "Tijdelijk gesloten wegens… dieren." Luigi staat met een bezem in de deuropening.', recensie: 'Luigi zit achter zijn laptop en typt woedend: "KARTON?!"', keuring: 'Er zit een rode sticker op de deur: GESLOTEN door de keuringsdienst.' }[S.klus.k] : pak(['Het is er vol met studenten. Hij verkoopt pizza\'s voor € 6!', 'Het is er stil. Luigi zit zelf aan een tafel, met zijn zonnebril op, binnen.', 'Luigi staat te telefoneren en kijkt boos naar jouw zaak aan de overkant.', 'Er staat een bord: "Pizza Kapsalon, NIEUW!" Hmm.'])}</p>`;
   if (plek == 'turk') h += `<p>Ahmet zwaait vanachter het draaiende spit. "${pak(['Hé buurman! Jij pizza, ik shoarma, samen houden we Luigi klein!', 'Probeer mijn knoflooksaus, daar krijg je haar op je borst van!', 'Kapsalon is eigenlijk ook een soort pizza, toch? Geintje!'])}"</p>`;
   if (plek == 'kunst') h += `<p>Een stille zaal vol schilderijen. Een mevrouw met een bril op het puntje van haar neus kijkt je streng aan. "Niet aankomen." ${S.achterkamer ? 'Je bekijkt de Van Goghs heel goed… voor later.' : ''}</p><p class="buurt">(Hier kun je later schilderijen lenen.)</p>`;
-  if (plek == 'studenten') { h += `<p>Fietsen tegen de gevel, muziek uit een open raam en een bank op het grasveld. "Pizza? Als het goedkoop is, zijn wij er!"</p>`; knoppen = `<button class="knop rood" id="flyers" ${S.geld < 15 || S.flyers == S.dag ? 'disabled' : ''}>📄 Flyers uitdelen (€ 15)</button>`; }
+  if (plek == 'studenten') { h += `<p>Fietsen tegen de gevel, muziek uit een open raam en een bank op het grasveld. "Pizza? Als het goedkoop is, zijn wij er!"</p>`; knoppen = `<button class="knop rood" id="flyers" ${S.geld < 15 || S.flyers == S.dag ? 'disabled' : ''}>📄 Flyers uitdelen (€ 15)</button><button class="knop rood" id="eetwed" ${S.geld < EET.inleg || S.eetDag == S.dag ? 'disabled' : ''}>🍕 ${S.eetDag == S.dag ? 'Eetwedstrijd: morgen weer' : `Eetwedstrijd (€ ${EET.inleg} inleg)`}</button>`;
+    h += `<p class="buurt">Op het grasveld staat een bord: <b>EETWEDSTRIJD! Wie verslaat Vreetzak Vincent?</b>${S.eetBest ? ` Jouw record: ${S.eetBest} punten.` : ''}</p>`; }
   if (plek == 'zaak' || p.huur) { const nr = zaakVan(plek);
     if (nr >= 0) { const z = nr == S.zaak ? S : S.zaken[nr];
       h += `<p>Dit is <b>jouw pizzeria</b>${nr ? ' (' + esc(BUURT[p.buurt].n.toLowerCase()) + ')' : ''}. ${nr == S.zaak ? 'Hier sta je vandaag zelf.' : z.manager ? esc(MANAGER[z.manager.wie].n) + ' runt hem voor je.' : 'Er is geen manager: als je er niet bent, blijft hij dicht.'}</p>`;
@@ -1859,6 +1923,7 @@ function toonStad(plek) {
   if ($('storten')) $('storten').onclick = () => { const n = bedrag(`Hoeveel contant geld wil je storten? (je hebt € ${Math.floor(S.geld)})`, S.geld); if (!n) return; S.geld -= n; S.bankSaldo = (S.bankSaldo || 0) + n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} op je bankrekening gezet.`); toonStad('bank'); };
   if ($('opnemen')) $('opnemen').onclick = () => { const n = bedrag(`Hoeveel wil je opnemen? (er staat € ${Math.floor(S.bankSaldo)} op de bank)`, S.bankSaldo); if (!n) return; S.bankSaldo -= n; S.geld += n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} opgenomen. Contant in de kassa.`); toonStad('bank'); };
   if ($('aangifte')) $('aangifte').onclick = () => { S.aangifte = S.dag; if (kans(0.6)) { S.luigiRust = S.dag + 10; ge(0); bewaar(); meld('De politie gaat met Luigi praten. Hij laat je voorlopig met rust.'); } else meld('"Zonder bewijs kunnen we weinig doen," zegt agent Jansen.'); bewaar(); toonStad('politie'); };
+  if ($('eetwed')) $('eetwed').onclick = () => { ge(-EET.inleg); S.eetDag = S.dag; bewaar(); kassa(); tekenKnoppen(); toonEet(); };
   if ($('flyers')) $('flyers').onclick = () => { ge(-15); S.flyers = S.dag; S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.15 }; S.studentenMorgen = true; bewaar(); tekenKnoppen(); meld('Flyers uitgedeeld! Morgen komen er meer studenten.'); toonStad('studenten'); };
   k2.querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const a = marktAanbod()[+b.dataset.koop]; ge(-a.prijs); S.korting = { i: a.i, tot: S.dag + a.dagen }; kassa(); bewaar(); tekenKnoppen(); meld(`${ING[a.i].n} voor de halve prijs, ${a.dagen} dagen lang!`); toonStad('markt'); });
 }
