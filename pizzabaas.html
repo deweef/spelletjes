@@ -76,6 +76,8 @@
   #sleutel.verborgen, #stadknop.verborgen { display: none; }
   #stadknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 108px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #stadknop:disabled { opacity: .35; }
+  #doelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 208px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
+  #doelknop b { position: absolute; right: -4px; top: -4px; background: #e74c3c; color: #fff; border-radius: 9px; font: 700 11px system-ui; padding: 1px 5px; }
   #zoomknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 158px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #kaartrol { width: min(100%, 1100px); max-width: calc(100vw - 28px); margin: 0 auto; border: 6px solid #7a4520; border-radius: 10px; overflow: auto; -webkit-overflow-scrolling: touch; }
   #kaartvak { position: relative; width: 100%; aspect-ratio: 1376 / 768; }
@@ -108,7 +110,7 @@
   .kaart .groot { display: block; width: 100%; margin-top: 12px; border: 0; border-radius: 14px; padding: 13px; background: #b5361f; color: #fff; font: 700 17px system-ui, sans-serif; cursor: pointer; }
   .verborgen { display: none !important; }
   #melding { position: absolute; left: 50%; top: calc(56px + env(safe-area-inset-top)); transform: translateX(-50%); background: rgba(0,0,0,.7); padding: 8px 14px; border-radius: 12px; font-size: 14px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity .3s; max-width: 90vw; text-align: center; }
-  body.tegel #paneel, body.tegel .terug, body.tegel #stadknop, body.tegel #zoomknop, body.tegel #sleutel { display: none; }
+  body.tegel #paneel, body.tegel .terug, body.tegel #stadknop, body.tegel #zoomknop, body.tegel #doelknop, body.tegel #sleutel { display: none; }
   /* pizza's samenstellen */
   .kaart.breed { max-width: 760px; padding: 16px; }
   .kaart .rij { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
@@ -165,6 +167,7 @@
 <button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
 <button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
 <button id="zoomknop" title="Inzoomen (of knijp met twee vingers)">🔍</button>
+<button id="doelknop" title="Doelen">🎯</button>
  <div class="scherm verborgen" id="eet" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🍕 Eetwedstrijd</h1><div id="eettekst" class="buurt" style="margin:0 0 6px">Tik zo snel je kunt op je pizza: elke punt is vijf happen. Krijg je dorst, tik dan eerst op je drankje!</div>
   <div style="display:flex;justify-content:space-around;align-items:flex-end;gap:8px"><div><b>Jij</b><canvas id="eetjij" width="200" height="200" style="width:150px;height:150px;display:block;touch-action:manipulation;cursor:pointer"></canvas><div id="eetjijn" style="font:700 22px system-ui">0</div></div>
@@ -650,7 +653,7 @@ function eindeDag() {
   const rommel = vlekken.length; S.vuil = (S.vuil || 0) + rommel * 0.5; vlekken = []; // wat er blijft liggen maakt de zaak viezer (keuringsdienst!)
   const top = Object.entries(tel.verkocht).sort((a, b) => b[1] - a[1])[0];
   const soorten = Object.entries(tel.soort).map(([k, [n, o]]) => `<span title="${esc(SOORT[k].n)}">${SOORT[k].ik}${GEZICHT[Math.round(o / n)]}</span>`).join(' ');
-  S.rood = S.geld + (S.bankSaldo || 0) < 0 ? (S.rood || 0) + 1 : 0; // 3 avonden achter elkaar rood = failliet
+  S.rood = S.geld + (S.bankSaldo || 0) < 0 ? (S.rood || 0) + 1 : 0; S.besteDag = Math.max(S.besteDag || 0, kl(tel.blij)); // 3 avonden achter elkaar rood = failliet
   const koningNu = !S.koning && S.zaken.length >= 4 && torenOpen() && S.geld + (S.bankSaldo || 0) >= 10000; if (koningNu) S.koning = S.dag; // het grote doel
   const oud = S.dag; S.dag++; bewaar();
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
@@ -1908,6 +1911,7 @@ function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze ni
   return [0, 1, 2].map(() => { const i = ings.splice(Math.floor(rnd() * ings.length), 1)[0]; return { i, prijs: 15 + Math.round(rnd() * 4) * 5, dagen: 5 + Math.floor(rnd() * 3) }; });
 }
 function toonStad(plek) {
+  if (!S.stad) { S.stad = S.dag; bewaar(); setTimeout(controleerDoelen, 300); }
   const k = $('stadkaart');
   if (!plek) {
     k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%">${id == 'bouw' && torenBij().fase ? `<i class="torenkaart" style="background-position:${(torenBij().fase - 1) / 3 * 100}% 0"></i>` : ''}<span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') + ' ⭐' + Math.round(zaakVan(id) == S.zaak ? S.rep : S.zaken[zaakVan(id)].rep || 0) : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
@@ -3071,6 +3075,7 @@ function bewaarPizza() {
 
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
+  setTimeout(controleerDoelen, 0);
   $('sleutel').classList.toggle('verborgen', !achterOpen()); // elke zaak zijn eigen achterkamer
   $('sleutel').style.opacity = S.achterDag == S.dag ? 0.35 : 1; // vandaag al geweest
   $('stadknop').disabled = modus != 'inrichten' && !S.manager; // zonder manager alleen 's ochtends de deur uit
@@ -3135,6 +3140,40 @@ function tekenKnoppen() {
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
 let laatsteDag = '';
+// ---------- doelen: aan de hand nemen in het begin (alleen de gewone kant van het spel; de schimmige wereld zoek je zelf uit) ----------
+// S.doelen = { id: dag gehaald }. controleerDoelen kijkt na elke actie (tekenKnoppen) en na elke dag; per gehaald doel een vinkje en wat geld.
+const DOELEN = [
+  { id: 'tafel4', n: 'Zet een tafel neer met 4 stoelen eromheen', geld: 20, ok: () => S.spullen.filter(isTafel).some((t) => stoelPlekken(t).length >= 4) },
+  { id: 'eerstedag', n: 'Open de deuren voor je eerste werkdag', geld: 20, ok: () => S.dag >= 2 },
+  { id: 'kleed', n: 'Leg een kleedje op een tafel', geld: 15, ok: () => S.spullen.some((t) => isTafel(t) && kleedVan(t)) },
+  { id: 'pizza', n: 'Verzin je eigen pizza (📖 Pizza\'s)', geld: 25, ok: () => S.menu.length >= 2 },
+  { id: 'plant', n: 'Zet een plant of andere versiering neer', geld: 15, ok: () => S.spullen.some((t) => VERSIERING.includes(t.t)) },
+  { id: 'dertig', n: 'Haal 30 tevreden klanten op één dag', geld: 40, ok: () => (S.besteDag || 0) >= 30 },
+  { id: 'stad', n: 'Ga een keer naar buiten, de stad in (🗺️)', geld: 15, ok: () => !!S.stad },
+  { id: 'schilderij', n: 'Hang een schilderij aan de muur', geld: 20, ok: () => S.spullen.some((t) => t.t == 'schilderij') },
+  { id: 'personeel', n: 'Neem een tweede ober of een tweede oven', geld: 30, ok: () => S.obers >= 2 || S.ovens >= 2 },
+  { id: 'drie', n: 'Zet 3 pizza\'s op de kaart', geld: 30, ok: () => S.menu.length >= 3 },
+  { id: 'rep40', n: 'Bereik populariteit 40', geld: 40, ok: () => S.rep >= 40 },
+  { id: 'toren', n: 'Stapel pizza\'s bij de bouwplaats in de stad', geld: 20, ok: () => (S.torenBest || 0) > 0 },
+  { id: 'manager', n: 'Neem een manager aan', geld: 50, ok: () => !!S.manager },
+  { id: 'bezorg', n: 'Start een bezorgdienst', geld: 40, ok: () => !!S.bezorg },
+  { id: 'tweede', n: 'Open een tweede pizzeria', geld: 100, ok: () => S.zaken.length >= 2 },
+  { id: 'torenbouw', n: 'Betaal mee aan de Toren van Pizza', geld: 50, ok: () => S.toren && (S.toren.fase || S.toren.bouwt) },
+  { id: 'vier', n: 'Word Pizzakoning: 4 pizzeria\'s, de toren open en € 10.000', geld: 0, ok: () => !!S.koning } ];
+function controleerDoelen() {
+  if (TEGEL || !S) return; S.doelen = S.doelen || {}; const nu = DOELEN.filter((d) => !S.doelen[d.id] && d.ok());
+  if (nu.length) { let geld = 0; for (const d of nu) { S.doelen[d.id] = S.dag; geld += d.geld; } S.geld += geld; bewaar(); kassa();
+    meld(`🎯 Doel gehaald: ${nu.map((d) => d.n).join(' · ')}${geld ? ` (+ € ${geld})` : ''}`, 4500, true); }
+  const open = DOELEN.filter((d) => !S.doelen[d.id]).length; $('doelknop').innerHTML = '🎯' + (open ? `<b>${DOELEN.length - open}/${DOELEN.length}</b>` : '');
+}
+function toonDoelen() {
+  S.doelen = S.doelen || {}; let eerstOpen = 0;
+  $('eindkaart').innerHTML = `<h1>🎯 Doelen</h1><p class="buurt">Haal ze een voor een: elk doel geeft een vinkje en wat extra geld.</p>
+    <table>${DOELEN.map((d) => { const af = S.doelen[d.id], toon = af || eerstOpen++ < 3; return `<tr style="${af ? 'opacity:.6' : toon ? 'font-weight:700' : 'opacity:.35'}"><td>${af ? '✅' : toon ? '⬜' : '🔒'} ${toon ? esc(d.n) : '…'}</td><td style="white-space:nowrap">${d.geld ? '€ ' + d.geld : '👑'}</td></tr>`; }).join('')}</table>
+    <button class="groot" id="verder">Verder</button>`;
+  $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen');
+}
+$('doelknop').onclick = () => { wekGeluid(); sluitMenu(); toonDoelen(); };
 // ---------- einde van het spel: failliet (3 avonden rood), of Pizzakoning (4 zaken, de toren open en € 10.000); opnieuw beginnen kan altijd ----------
 function eindStand() { return `<table><tr><td>📅 Dagen gespeeld</td><td>${S.dag - 1}</td></tr><tr><td>🏪 Pizzeria's</td><td>${S.zaken.length}</td></tr><tr><td>🍕 Pizza's op de kaart</td><td>${S.menu.length}</td></tr>
   <tr><td>⭐ Populariteit</td><td>${Math.round(S.rep)}</td></tr>${S.torenBest ? `<tr><td>🗼 Hoogste pizzatoren</td><td>${S.torenBest}</td></tr>` : ''}</table>`; }
@@ -3158,7 +3197,8 @@ $('stadknop').onclick = () => { wekGeluid(); sluitMenu(); if (modus != 'inrichte
 const isAanraak = matchMedia('(pointer: coarse)').matches;
 
 let meldT = 0;
-function meld(t, ms = 2600) { const m = $('melding'); m.textContent = t; m.style.opacity = 1; clearTimeout(meldT); meldT = setTimeout(() => m.style.opacity = 0, ms); }
+let doelMeldTot = 0; // een gehaald doel blijft even staan, ook als er intussen iets anders gemeld wordt
+function meld(t, ms = 2600, doel) { if (!doel && Date.now() < doelMeldTot) return; if (doel) doelMeldTot = Date.now() + ms; const m = $('melding'); m.textContent = t; m.style.opacity = 1; clearTimeout(meldT); meldT = setTimeout(() => m.style.opacity = 0, ms); }
 
 // ---------- geluid (zelfgemaakt, Web Audio) ----------
 let ac = null;

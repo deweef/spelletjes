@@ -203,3 +203,7 @@ achterkamer (`wijnBlok`); namaken in `toonWijn` uit je hoofd (fles, versieringen
 €20 + €70q (`tel.wijn` in het dagoverzicht). Sommelier Sébastien (vraag 'sommelier', bezoeker rij 11, portret 12, uit `pizza/sommelier-gemini.jpg`)
 proeft als er flessen liggen: q < 0,8 = betrapt (flessen weg, €150 boete, populariteit −5). Plaatjes `pizza/wijn.png` (13 vakjes van 160, uit
 `pizza/wijn-gemini.jpg`, volgorde staat bij `WIJNNAAM` in de code; `wijnDing`).
+Doelen (knop 🎯 `#doelknop` linksboven, `DOELEN`, `controleerDoelen` na elke `tekenKnoppen`, `toonDoelen` in het `#einde`-scherm): 17 doelen van
+"tafel met 4 stoelen" tot "Pizzakoning", alleen de gewone kant (de schimmige wereld zoek je zelf uit); `S.doelen` = { id: dag }, per doel wat geld.
+Lijst toont de gehaalde, de volgende 3, de rest op slot. `S.stad` (stad bezocht), `S.besteDag` (meeste klanten op één dag). Een doel-melding
+blijft 4,5 s staan (`doelMeldTot` in `meld`).
