@@ -227,3 +227,6 @@ de 4 dagen tot het goede antwoord), Luigi op dag 5 (`S.luigiKwam`). Getest 30 da
 Te vrijgevig (`S.lief`): een antwoord dat geld kost en populariteit, gezelligheid of fooi oplevert telt +1 (in `toonVraag`); elke avond −0,3.
 Vanaf 3: kans op 'profiteurs' (willen gratis eten), 'personeelBoos' (ober en Mario willen ook wat) of 'boekhouder', via `S.verplicht`.
 Zo is het klantvriendelijkste antwoord niet altijd het beste.
+Manager-vragen (`zelf: true` = die regelt de manager niet als je weg bent; `wie` mag een functie zijn): 'manOpslag' (na 8 dagen bij > €900:
++€15, +€5, of nee = kans op ontslag of mopperen `S.manager.mopper`, dan ruimt hij/zij niet op), 'manVrij' (morgen vrij: `S.manVrij`,
+`manAanwezig()`; dan niet de stad in tijdens het werk), 'manLuigi' (na 12 dagen: Luigi biedt €25 meer; laten spioneren = gok). Bruno houdt zijn eigen 'opslag'.
