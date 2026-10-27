@@ -1999,14 +1999,14 @@ function nieuweGroep() {
   const tafels = S.spullen.filter(isTafel).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => !mensen.some((m) => m.tafel == s && m.stoel == i)) }))
     .filter((t) => t.vrij.length >= n && !mensen.some((m) => m.tafel == t.s)).sort((a, b) => a.vrij.length - b.vrij.length);
   // past het groepje niet aan één tafel, dan verdelen ze zich over meer vrije tafels (de grootste eerst); pas als er te weinig plek is: vol
-  let keus = tafels.length ? [{ t: tafels[0], n }] : null;
-  if (!keus) { const vrije = S.spullen.filter(isTafel).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => !mensen.some((m) => m.tafel == s && m.stoel == i)) }))
+  let keus = tafels.length ? [{ t: tafels[0], n }] : null; const samen = n > 1 && Math.random() < 0.5; // de helft van de groepjes wil per se bij elkaar zitten
+  if (!keus && !samen) { const vrije = S.spullen.filter(isTafel).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => !mensen.some((m) => m.tafel == s && m.stoel == i)) }))
       .filter((t) => t.vrij.length && !mensen.some((m) => m.tafel == t.s)).sort((a, b) => b.vrij.length - a.vrij.length);
     let over = n; keus = []; for (const t of vrije) { if (over <= 0) break; const k = Math.min(over, t.vrij.length); keus.push({ t, n: k }); over -= k; }
     if (over > 0) keus = null; }
   if (!keus) {
     tel.vol++; S.rep = Math.max(0, S.rep - 1);
-    const m = maakMens(null, 0); m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; mensen.push(m); zeg(m, n > 1 && Math.random() < 0.6 ? `Geen plek voor ons ${['', '', 'tweeën', 'drieën', 'vieren', 'vijven', 'zessen'][n]}? Jammer.` : R(ZEG.vol)); return;
+    const m = maakMens(null, 0); m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; mensen.push(m); const wie = ['', '', 'twee', 'drie', 'vier', 'vijf', 'zes'][n]; zeg(m, samen ? R([`Een tafel voor ${wie}? Nee? Dan kijken we even verder.`, `Wij willen bij elkaar zitten. Jammer!`, `Geen tafel voor ${wie}? Dan gaan we naar Luigi.`]) : n > 1 && Math.random() < 0.6 ? `Geen plek voor ons ${['', '', 'tweeën', 'drieën', 'vieren', 'vijven', 'zessen'][n]}? Jammer.` : R(ZEG.vol)); return;
   }
   const soort = kiesSoort(); // een groepje is van dezelfde soort (studenten samen, werkers samen)
   keus.forEach(({ t, n: k }, gi) => {

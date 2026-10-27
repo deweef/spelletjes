@@ -212,4 +212,4 @@ vallen en zet hem dan neer op de plek van het voorbeeld (op de iPhone ging het n
 Stoel tussen twee tafels: `stoelTafels(x, y)` = alle tafels ernaast, `s.bij` = 'x,y' van de gekozen tafel (knop "↔ Bij de andere tafel" in het
 stoelmenu; `kantVoor(x, y, bij)`). Vlekken vallen op de dichtstbijzijnde vrije vloer (`vrijBij` in `nieuweVlek`), niet meer onder een stoel.
 Groepjes (`nieuweGroep`): eerst de kleinste vrije tafel waar iedereen aan past; lukt dat niet, dan verdelen ze zich over meer vrije tafels (elk
-een eigen `groep`, "Dan zitten we wel apart!"); pas als er te weinig vrije stoelen zijn: vol. Een tafel is nog steeds van één groepje.
+een eigen `groep`, "Dan zitten we wel apart!"), maar de helft van de groepjes (`samen`) wil per se bij elkaar en gaat anders weg; pas als er te weinig vrije stoelen zijn: vol. Een tafel is nog steeds van één groepje.
