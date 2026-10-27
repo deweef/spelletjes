@@ -2612,7 +2612,7 @@ function teken(nu) {
   }
   if (modus == 'inrichten' && kies && hover) {
     const d = SPUL[kies], ok = vrij(hover.x, hover.y, d.w, d.h) && S.geld >= d.prijs;
-    g.globalAlpha = 0.55; tekenSpul({ t: kies, x: hover.x, y: hover.y }, nu, []); g.globalAlpha = 1;
+    g.globalAlpha = 0.55; tekenSpul({ t: kies, x: hover.x, y: hover.y, ...(kies == 'stoel' ? { stijl: S.stoelStijl } : {}) }, nu, []); g.globalAlpha = 1;
     g.strokeStyle = ok ? '#2e9d52' : '#d63031'; g.lineWidth = 4; g.strokeRect(hover.x * T + 2, hover.y * T + 2, d.w * T - 4, d.h * T - 4);
   }
   if (gekozen) { g.strokeStyle = '#fff'; g.lineWidth = 4; g.setLineDash([8, 6]); g.strokeRect(gekozen.x * T + 2, gekozen.y * T + 2, SPUL[gekozen.t].w * T - 4, SPUL[gekozen.t].h * T - 4); g.setLineDash([]); }
@@ -2863,9 +2863,10 @@ doek.addEventListener('pointerdown', (e) => {
   }
   const v = naarVak(e);
   if (kies) {
-    const d = SPUL[kies]; const x = Math.max(0, Math.min(W - d.w, v.x - Math.floor(d.w / 2))), y = Math.max(KEUKEN, Math.min(H - d.h, v.y - Math.floor(d.h / 2)));
+    const d = SPUL[kies]; let x = Math.max(0, Math.min(W - d.w, v.x - Math.floor(d.w / 2))), y = Math.max(KEUKEN, Math.min(H - d.h, v.y - Math.floor(d.h / 2)));
     hover = { x, y };
-    if (e.pointerType != 'mouse' && (!laatsteTik || laatsteTik.x != x || laatsteTik.y != y)) { laatsteTik = { x, y }; return; } // aanraken: eerst de schaduw laten zien, tweede tik zet neer
+    // aanraken: eerst de schaduw laten zien, de tweede tik zet neer. Een vinger is groot: een tweede tik op of naast het voorbeeld telt ook
+    if (e.pointerType != 'mouse') { if (!laatsteTik || Math.abs(laatsteTik.x - x) > 1 || Math.abs(laatsteTik.y - y) > 1) { laatsteTik = { x, y }; return; } x = laatsteTik.x; y = laatsteTik.y; hover = { x, y }; }
     laatsteTik = null;
     if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
@@ -3100,6 +3101,11 @@ function tekenKnoppen() {
   h += open ? `<button class="open" disabled><span class="ik">🔔</span>Open</button>` : `<button class="open" id="open"><span class="ik">🔔</span>Open de deuren</button>`;
   k.innerHTML = h;
   k.querySelectorAll('[data-k]').forEach((b) => b.onclick = () => { wekGeluid(); const k = b.dataset.k, gr = GROEP[k];
+    if (k == 'stoel') { if ($('menu').style.display == 'block' && $('menu').dataset.knop == k) { sluitMenu(); return; } // keuzelijstje met de stoelsoorten
+      const nu = S.stoelStijl || (S.houtStoel ? 'kussen' : 'streep');
+      toonKeuze('🪑 Welke stoel?', Object.entries(STOELSOORT).map(([id, d]) => ({ ik: id == 'kruk' ? '⭕' : '🪑', n: d.n, pr: '€' + SPUL.stoel.prijs, uit: S.geld < SPUL.stoel.prijs, aan: kies == 'stoel' && nu == id,
+        doe: () => { kies = 'stoel'; S.stoelStijl = id; laatsteTik = null; hover = null; meld(d.n + ' (€' + SPUL.stoel.prijs + '). ' + (isAanraak ? 'Tik op een plek naast een tafel: je ziet hem eerst staan, tik nog een keer om neer te zetten.' : 'Klik op een plek naast een tafel.'), 3500); tekenKnoppen(); } })), b.getBoundingClientRect(), k);
+      return; }
     if (gr) { if ($('menu').style.display == 'block' && $('menu').dataset.knop == k) { sluitMenu(); return; } // nog eens = dicht
       const r = b.getBoundingClientRect(); // keuzelijstje met alle soorten en hun prijs
       toonKeuze(k == 'tafel' ? '🍽️ Welke tafel?' : '🪴 Welke versiering?', gr.map((t) => {

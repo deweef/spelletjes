@@ -207,3 +207,5 @@ Doelen (knop 🎯 `#doelknop` linksboven, `DOELEN`, `controleerDoelen` na elke `
 "tafel met 4 stoelen" tot "Pizzakoning", alleen de gewone kant (de schimmige wereld zoek je zelf uit); `S.doelen` = { id: dag }, per doel wat geld.
 Lijst toont de gehaalde, de volgende 3, de rest op slot. `S.stad` (stad bezocht), `S.besteDag` (meeste klanten op één dag). Een doel-melding
 blijft 4,5 s staan (`doelMeldTot` in `meld`).
+Stoel-knop opent ook een keuzelijstje (6 stoelsoorten, `S.stoelStijl`). Aanraken (telefoon): de tweede tik mag tot 1 vakje naast het voorbeeld
+vallen en zet hem dan neer op de plek van het voorbeeld (op de iPhone ging het neerzetten anders vaak mis).
