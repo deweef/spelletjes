@@ -213,3 +213,7 @@ Stoel tussen twee tafels: `stoelTafels(x, y)` = alle tafels ernaast, `s.bij` = '
 stoelmenu; `kantVoor(x, y, bij)`). Vlekken vallen op de dichtstbijzijnde vrije vloer (`vrijBij` in `nieuweVlek`), niet meer onder een stoel.
 Groepjes (`nieuweGroep`): eerst de kleinste vrije tafel waar iedereen aan past; lukt dat niet, dan verdelen ze zich over meer vrije tafels (elk
 een eigen `groep`, "Dan zitten we wel apart!"), maar de helft van de groepjes (`samen`) wil per se bij elkaar en gaat anders weg; pas als er te weinig vrije stoelen zijn: vol. Een tafel is nog steeds van één groepje.
+Pizza-acrobatiek op de markt (`toonAcro`, `ACRO`, scherm `#acrob`, één keer per dag `S.acroDag`): Mario gooit deeg op, tik als het vallend in de
+vanghoogte is (binnen 14 px = perfect, combo); per vangst geld (meer naarmate je langer volhoudt), elke 5 vangsten een kunstje +€5; 3 levens.
+≥ 10 keer = populariteit +1 en morgen wat meer klanten. Record `S.acroBest`, scorebord `acrobatiek`. Keuzelijstjes hebben een tip onderaan
+(`toonKeuze(…, voet)`): kleedje/kaarsje = tik op een tafel, stoel veranderen = tik op die stoel.

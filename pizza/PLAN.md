@@ -194,7 +194,7 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
   laptop, plus één eigen ding: zaak 1 = atelier met Gerrit en de gravin; zaak 2 (studentenbuurt) = drukpers; zaak 3 (plein) = illegale gokhal
   met roulettetafel (minispel, inzetten tegen een gokker); zaak 4 (villawijk) = voorstel Claude: wijnvervalsing "Château Kraanwater"
   (goedkope wijn in dure flessen, etiketten namaken, een sommelier als rechercheur). Geen bontjassen (Marcel: zielig en niet ethisch).
-- **Extra activiteit per buurt** (boven, legaal): studentenbuurt = eetwedstrijd (**gedaan**); voorstellen Claude: plein = pizza-acrobatiek op straat
+- **Extra activiteit per buurt** (boven, legaal): studentenbuurt = eetwedstrijd (**gedaan**); voorstellen Claude: plein = pizza-acrobatiek op straat (**gedaan**, op de markt)
   (deeg opgooien, minispel), villawijk = wijnproeverij/diner voor de sterrenchef. Vraag-idee Marcel "Russische roulette": voorstel om er
   "pepperoni-roulette" van te maken (één punt met een gloeiend hete peper) i.p.v. iets met wapens.
 - Meer ideeën (Claude, 27 okt): Gouden Pizzaschep (recensent incognito), pizzawedstrijd op de markt tegen Luigi, smokkeltruffel via Barrie
