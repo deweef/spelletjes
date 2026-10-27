@@ -243,3 +243,7 @@ Andere zaak: vraag `belZaak` (alleen als een andere zaak een manager heeft, `and
 (Luigi alleen bij zaak 1). Zelf gaan: zonder manager hier een zzp'er (€ 90) of de deur even dicht (`volgendeKlant += DAG * 0.12`, rep −1);
 laten oplossen = kans Sandra 50%, Bruno 40%, Kevin 20%, mislukt = `z.pech = S.dag` (die zaak 60% van de klanten in `simuleerZaak`) en rep −6.
 Het menu geldt voor de hele keten. Geen plek (vol) kost maar 0,2 populariteit per groepje (was 1: een nieuwe zaak met 4 stoelen zakte naar 0).
+Manager in de tweede, derde… zaak: meteen (`MAG_MANAGER`: populariteit 40 alleen in de eerste zaak). `belZaak` kiest elke dag een willekeurige
+andere zaak met manager (`belZ`), en de vraag komt hooguit eens per 8 dagen. Doelen voor later in het spel: manager2, zes, vijftig, rep80, chef,
+maand, derde, spaar (vóór Pizzakoning). Gerrit en de achterkamer via het schilderij horen alleen bij zaak 1; Gerrit wacht tot je daar weer staat.
+Belasting, boekhouder en inspecteur gaan over de hele keten en komen waar je die dag staat.
