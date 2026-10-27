@@ -221,7 +221,7 @@ Oud-pizzeria: stoelsoort `hout` (kale houten stoel met planken, bij de houten ta
 voor ronde kleedjes `KLEED[..].rond`): eerst de kale tafel (hout of marmer), dan het kleed 45° gedraaid en kleiner erop.
 Tempo en tegenvallers (27 okt): maandag is de zaak dicht (`eindeDag` slaat hem over; `laatsteVanDeMaand` = laatste wérkdag, dus de inspecteur
 komt op tijd); populariteit stijgt steeds moeilijker (`repRem` in `rep`: boven 60 flink trager, max. 100). Tegenvallers met meer kans bij veel
-geld: 'ovenkapot', 'energie', 'lekkage', 'huisbaas' (verhoogt `S.huur`, max. eens per 14 dagen). Jaloerse Luigi ('luigiJaloers', via
+geld: 'ovenkapot', 'energie', 'lekkage', 'huisbaas' (verhoogt `S.huur`, max. eens per 14 dagen). Luigi-ultimatum (`luigiUltimatum`, drie kwaden: € 150, keuringsdienst of een bord in je raam; via `S.verplicht` als `S.ruzie` ≥ 45). Jaloerse Luigi (`luigiJaloers`, via
 `S.verplicht` in `eindeDag` bij > €1000). Vaste bezoeken in `openDeuren`: Gerrit 1-2 dagen na het ophangen van een schilderij (`S.gerritNa`, daarna om
 de 4 dagen tot het goede antwoord), Luigi op dag 5 (`S.luigiKwam`). Getest 30 dagen: populariteit 30-58, Gerrit en Luigi komen langs.
 Te vrijgevig (`S.lief`): een antwoord dat geld kost en populariteit, gezelligheid of fooi oplevert telt +1 (in `toonVraag`); elke avond −0,3.

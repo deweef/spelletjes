@@ -661,6 +661,7 @@ function eindeDag() {
     if (S.geld < 0) { manWeg = `${M.n} is ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
     else if (S.manager.wie == 'bruno' && S.manager.dagen % 5 == 4) S.verplicht = [...(S.verplicht || []), 'opslag']; } // Bruno wil opslag
   maakPersoneel(); // omzet en fooi zijn al verrekend; de inkoop (tel.ing) nu pas
+  if (!S.zaak && (S.ruzie || 0) >= 45 && !(S.luigiRust > S.dag) && kans(0.3) && !(S.verplicht || []).includes('luigiUltimatum')) S.verplicht = [...(S.verplicht || []), 'luigiUltimatum']; // de ruzie loopt hoog op
   if ((S.lief || 0) >= 3 && kans(0.3 + S.lief * 0.08) && !(S.verplicht || []).some((v) => ['profiteurs', 'personeelBoos', 'boekhouder'].includes(v))) S.verplicht = [...(S.verplicht || []), pak(['profiteurs', 'personeelBoos', 'boekhouder'])]; // te vrijgevig
   S.lief = Math.max(0, (S.lief || 0) - 0.3);
   if (!S.zaak && S.geld > 1000 && !S.sabotage && !(S.luigiRust > S.dag) && !(S.verplicht || []).includes('luigiJaloers') && kans(Math.min(0.35, (S.geld - 1000) / 4000 + 0.08))) S.verplicht = [...(S.verplicht || []), 'luigiJaloers']; // het gaat te goed: Luigi wordt jaloers
@@ -1261,6 +1262,11 @@ const VRAGEN = [
       ['Gelukkige klanten komen terug!', () => { ge(-50); return '"Dat zal best. Mijn rekening komt ook terug." − € 50 voor het gesprek.'; }],
       ['Wil je een gratis pizza?', () => { ge(-PRIJS); S.lief = (S.lief || 0) + 1; return 'Hij zucht diep, eet de pizza op en schrijft "hopeloos" in zijn map.'; }] ] },
   // ---- tegenvallers: vaker naarmate er meer geld in de kassa zit ----
+  { id: 'luigiUltimatum', ik: '🕶️', portret: 3, rij: 2, wie: 'Luigi van de overkant', als: () => false, // via S.verplicht als de ruzie hoog oploopt
+    vraag: 'Luigi slaat met zijn vuist op je toonbank. "Basta! Ik geef je drie keuzes, en ze zijn allemaal slecht. Of je betaalt mij € 150. Of ik bel de keuringsdienst. Of er hangt morgen een bord in jouw raam: LUIGI BAKT BETERE PIZZA. Kies maar."',
+    a: [['Hier is je € 150, en wegwezen.', () => { ge(-150); S.ruzie = Math.max(0, (S.ruzie || 0) - 30); S.luigiRust = S.dag + 5; return 'Luigi steekt het geld grijnzend in zijn binnenzak. "Een verstandige keuze, vicino."'; }],
+      ['Bel die keuringsdienst maar.', () => { S.sabotage = 'keuring'; S.ruzie = Math.max(0, (S.ruzie || 0) - 15); return '"Zoals je wilt." Morgen komt de keuringsdienst. Hopelijk is je keuken schoon…'; }],
+      ['Dan hang ik dat bord wel op.', () => { rep(-6); morgenKl(0.8); S.ruzie = Math.max(0, (S.ruzie || 0) - 40); return 'Het bord hangt in je raam. Voorbijgangers lachen. Mario weigert ernaar te kijken. (Populariteit −6, morgen minder klanten.)'; }] ] },
   { id: 'luigiJaloers', ik: '🕶️', portret: 3, rij: 2, wie: 'Luigi van de overkant', als: () => false, // via S.verplicht (eindeDag: veel geld)
     vraag: 'Luigi leunt op je toonbank. "Ciao, vicino… Ik hoor jouw kassa de hele dag rinkelen. Dat is MIJN geld. Mijn klanten. Dat kan zo niet doorgaan."',
     a: [['Hier, € 100. Dan zijn we vrienden.', () => { ge(-100); S.luigiRust = S.dag + 6; return 'Luigi telt het na, knikt en vertrekt. "Voorlopig," zegt hij nog. (− € 100, een week rust)'; }],
