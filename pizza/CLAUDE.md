@@ -141,3 +141,9 @@ instorting). Erbij komen: Gerrit betaalt een vervalsing in 45% van de gevallen i
 `naVraag`, na Verder): je kiest de munt zonder de koers te zien. Laptop in de achterkamer (`cryptoBlok(false)`: koers, grafiekje `koersLijn`,
 bezit, munten kopen voor €50). Euro's ervan maken: alleen bij Snelle Sjonnie in de stad (`PLEK.wissel`, `cryptoBlok(true)`, 10% commissie).
 Het dagoverzicht toont het cryptonieuws als je munten hebt.
+Minispel Toren van Pizza (`toonToren`, `#toren` z-index 10, canvas `#torendoek` 360x540; via de bouwplaats in de stad, knop "Pizza's stapelen"):
+een pizza slingert (`hangX`, sneller en wijder naarmate de toren hoger wordt), tik = vallen (`torenTik`); landen naast de vorige maakt de
+toren scheef; na elke pizza: rust alles boven laag j nog op pizza j-1 (zwaartepunt binnen 0,95 × straal)? Zo niet: omvallen (`T.om`).
+Binnen 4 px = "Perfetto!" (precies erop). Pizza's zelf getekend (`tekenTorenPizza`). Record `S.torenBest`; online scorebord onderdeel
+`pizzatoren`, modus `gewoon` (zelfde `BORD_URL` als Fladderfeest; alleen met naam en alleen een beter record, `pizzabaas_ingestuurd:<naam>`,
+laatste lijst in `pizzabaas_bord`); de Scores-app kent het als "Pizzabaas / Toren van Pizza". Nog: de toren als stadsproject op de bouwplaats.

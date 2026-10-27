@@ -162,6 +162,11 @@
 <button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
 <button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
 <button id="zoomknop" title="Inzoomen (of knijp met twee vingers)">🔍</button>
+<div class="scherm verborgen" id="toren" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
+  <h1 style="margin:0 0 4px">🍕 Toren van Pizza</h1><div id="torentekst" class="buurt" style="margin:0 0 6px">Tik op het goede moment: stapel de pizza's zo hoog mogelijk. Te scheef = omvallen!</div>
+  <canvas id="torendoek" width="360" height="540" style="width:100%;max-width:360px;aspect-ratio:2/3;display:block;margin:0 auto;border-radius:12px;touch-action:none;cursor:pointer"></canvas>
+  <div id="torenbord" class="buurt" style="margin:6px 0;text-align:left"></div>
+  <div class="rij" style="justify-content:center"><button class="knop rood" id="torenstart">▶️ Opnieuw</button><button class="knop" id="torendicht">Sluiten</button></div></div></div>
 <div class="scherm verborgen" id="stad"><div id="stadkaart" style="margin:auto;width:100%"></div></div>
 <div class="scherm verborgen" id="bank"><div class="kaart" id="bankkaart"></div></div>
 <div class="scherm verborgen" id="pizzas"><div class="kaart breed" id="pizzakaart"></div></div>
@@ -1103,6 +1108,94 @@ function cryptoBlok(wissel) { // de lijst munten: op de laptop (kopen) of bij Sn
     ${c.nieuws.length ? `<p class="buurt">📰 ${c.nieuws.map(esc).join(' ')}</p>` : ''}`;
 }
 
+// ---------- minispel: de Toren van Pizza (pizza's stapelen; record S.torenBest, online scorebord onderdeel 'pizzatoren') ----------
+// Een pizza slingert boven de toren; tik = loslaten. Hoe verder hij naast de vorige landt, hoe schever de toren. Elke keer wordt gekeken of
+// het stuk erboven nog op zijn steun rust (zwaartepunt van alles boven laag j binnen de pizza eronder): zo niet, dan valt het om.
+const BORD_URL = 'https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
+const TR = 56, TD = 15, TW = 360, TH = 540; // straal en dikte van een pizza, maat van het veld
+let toren = null;
+function nieuweTorenPizza(i) { let z = i * 9301 + 49297; const rnd = () => (z = (z * 16807) % 2147483647) / 2147483647;
+  return { bel: Array.from({ length: 7 }, () => ({ a: rnd() * 6.28, d: 0.2 + rnd() * 0.6, s: Math.floor(rnd() * 3) })) }; }
+function toonToren() {
+  $('toren').classList.remove('verborgen'); startToren();
+  $('torenstart').onclick = () => { wekGeluid(); startToren(); }; $('torendicht').onclick = () => { $('toren').classList.add('verborgen'); toren = null; };
+  const c = $('torendoek'); c.onpointerdown = (e) => { e.preventDefault(); wekGeluid(); torenTik(); };
+  torenBord();
+}
+function startToren() {
+  toren = { stapel: [{ x: TW / 2, p: nieuweTorenPizza(0) }], hang: { t: 0, p: nieuweTorenPizza(1) }, val: null, om: null, cam: 0, wiebel: 0, perfect: 0, uit: false, tekst: '', tt: 0, vorig: performance.now() };
+  $('torentekst').textContent = 'Tik op het goede moment: stapel de pizza\'s zo hoog mogelijk. Te scheef = omvallen!';
+  requestAnimationFrame(torenLus);
+}
+const torenTop = () => TH - 56 - toren.stapel.length * TD; // y van de bovenkant van de stapel (in wereldpixels, voor de camera)
+function hangX() { const h = toren.hang, n = toren.stapel.length, A = Math.min(130, 70 + n * 4), w = Math.min(4.2, 1.8 + n * 0.09); return TW / 2 + A * Math.sin(h.t * w); }
+function torenTik() { if (!toren || toren.uit || toren.val || toren.om) { if (toren && toren.uit) startToren(); return; } toren.val = { x: hangX(), y: torenTop() - 150, v: 0, p: toren.hang.p }; }
+function torenLus(nu) {
+  if (!toren || $('toren').classList.contains('verborgen')) return;
+  const T = toren, dt = Math.min(0.05, (nu - T.vorig) / 1000); T.vorig = nu;
+  T.hang.t += dt; T.wiebel *= Math.pow(0.04, dt); T.tt -= dt;
+  const top = torenTop();
+  if (T.val) { T.val.v += 1400 * dt; T.val.y += T.val.v * dt;
+    const onder = T.stapel[T.stapel.length - 1];
+    if (T.val.y >= top - TD) { const dx = T.val.x - onder.x;
+      if (Math.abs(dx) > TR * 1.7) { T.om = { van: T.stapel.length, t: 0, los: T.val }; T.val = null; ding(150, 0.3, 'sawtooth', 0.05); } // ernaast
+      else { let x = T.val.x; if (Math.abs(dx) < 4) { x = onder.x; T.perfect++; T.tekst = T.perfect > 1 ? `Perfetto! ×${T.perfect}` : 'Perfetto!'; T.tt = 1; ding(1300, 0.1); setTimeout(() => ding(1700, 0.1), 80); } else { T.perfect = 0; ding(500 + T.stapel.length * 15, 0.08, 'triangle', 0.05); }
+        T.stapel.push({ x, p: T.val.p }); T.val = null; T.wiebel = Math.max(-1, Math.min(1, dx / TR)); T.hang = { t: Math.random() * 3, p: nieuweTorenPizza(T.stapel.length + 1) };
+        for (let j = T.stapel.length - 1; j >= 1; j--) { const boven = T.stapel.slice(j), com = boven.reduce((a, q) => a + q.x, 0) / boven.length; // rust alles boven j nog op pizza j-1?
+          if (Math.abs(com - T.stapel[j - 1].x) > TR * 0.95) { T.om = { van: j, t: 0, kant: Math.sign(com - T.stapel[j - 1].x) }; ding(120, 0.4, 'sawtooth', 0.06); break; } } } } }
+  if (T.om) { T.om.t += dt; if (T.om.t > 1.3 && !T.uit) torenKlaar(); }
+  const cam = Math.max(0, 330 - top); T.cam += (cam - T.cam) * Math.min(1, dt * 4);
+  tekenToren(); requestAnimationFrame(torenLus);
+}
+function tekenTorenPizza(g2, x, y, p, hoek) { // van opzij, iets van boven: korst, saus, kaas en wat beleg
+  g2.save(); g2.translate(x, y); if (hoek) g2.rotate(hoek);
+  g2.fillStyle = '#b97832'; g2.beginPath(); g2.ellipse(0, TD * 0.5, TR, TR * 0.32, 0, 0, Math.PI); g2.lineTo(-TR, 0); g2.fill(); g2.fillRect(-TR, 0, TR * 2, TD * 0.5);
+  g2.fillStyle = '#e0a552'; g2.beginPath(); g2.ellipse(0, 0, TR, TR * 0.32, 0, 0, 7); g2.fill();
+  g2.fillStyle = '#c0392b'; g2.beginPath(); g2.ellipse(0, 0, TR * 0.84, TR * 0.25, 0, 0, 7); g2.fill();
+  g2.fillStyle = '#f7e08a'; g2.beginPath(); g2.ellipse(-4, -1, TR * 0.7, TR * 0.19, 0, 0, 7); g2.fill();
+  for (const b of p.bel) { const bx = Math.cos(b.a) * b.d * TR * 0.75, by = Math.sin(b.a) * b.d * TR * 0.2; g2.fillStyle = ['#a8322a', '#222', '#3a8f3a'][b.s]; g2.beginPath(); g2.ellipse(bx, by, b.s == 0 ? 7 : 4, b.s == 0 ? 3 : 2, 0, 0, 7); g2.fill(); }
+  g2.restore();
+}
+function tekenToren() {
+  const T = toren, c = $('torendoek'), g2 = c.getContext('2d'), top = torenTop();
+  const lucht = g2.createLinearGradient(0, 0, 0, TH); lucht.addColorStop(0, '#7ec8f0'); lucht.addColorStop(1, '#dff3ff'); g2.fillStyle = lucht; g2.fillRect(0, 0, TW, TH);
+  g2.fillStyle = 'rgba(255,255,255,.8)'; for (const [x, y] of [[60, 80], [250, 140], [150, 40]]) { g2.beginPath(); g2.arc(x, y + T.cam * 0.3, 18, 0, 7); g2.arc(x + 20, y + 4 + T.cam * 0.3, 14, 0, 7); g2.arc(x - 18, y + 6 + T.cam * 0.3, 12, 0, 7); g2.fill(); }
+  g2.save(); g2.translate(0, T.cam);
+  g2.fillStyle = '#c9b48a'; g2.fillRect(0, TH - 40, TW, 400); g2.fillStyle = '#7a5a30'; g2.fillRect(TW / 2 - 80, TH - 62, 160, 22); // grond en tafel
+  const basis = T.stapel[0].x, n = T.stapel.length, com = T.stapel.reduce((a, q) => a + q.x, 0) / n;
+  const scheef = Math.max(-0.35, Math.min(0.35, (com - basis) / TR * 0.12)) + Math.sin(performance.now() / 70) * T.wiebel * 0.03; // de toren helt over (en wiebelt na)
+  g2.save(); g2.translate(basis, TH - 62); g2.rotate(scheef);
+  T.stapel.forEach((q, i) => { let x = q.x - basis, y = -(i + 1) * TD + 6, h = 0;
+    if (T.om && i >= T.om.van) { const t = T.om.t, k = T.om.kant || 1; x += k * t * t * 260; y += t * t * 900; h = k * t * 3; }
+    tekenTorenPizza(g2, x, y, q.p, h); });
+  g2.restore();
+  if (T.val) tekenTorenPizza(g2, T.val.x, T.val.y, T.val.p);
+  if (T.om && T.om.los) { const t = T.om.t; tekenTorenPizza(g2, T.om.los.x + Math.sign(T.om.los.x - basis) * t * 120, top - TD + t * t * 900, T.om.los.p, t * 2); }
+  if (!T.val && !T.om && !T.uit) { const x = hangX(), y = top - 150; g2.strokeStyle = '#555'; g2.lineWidth = 2; g2.beginPath(); g2.moveTo(TW / 2, y - 140); g2.lineTo(x, y - 6); g2.stroke(); tekenTorenPizza(g2, x, y, T.hang.p); }
+  g2.restore();
+  g2.fillStyle = '#3a2414'; g2.font = 'bold 30px system-ui'; g2.textAlign = 'center'; g2.fillText(String(T.om ? T.om.van - 1 : n - 1), TW / 2, 42);
+  g2.font = '13px system-ui'; g2.fillText(S.torenBest ? `record ${S.torenBest}` : 'pizza\'s', TW / 2, 60);
+  if (T.tt > 0) { g2.fillStyle = `rgba(46,157,82,${Math.min(1, T.tt * 2)})`; g2.font = 'bold 26px system-ui'; g2.fillText(T.tekst, TW / 2, 110); }
+  if (T.uit) { g2.fillStyle = 'rgba(255,247,232,.92)'; g2.fillRect(30, 170, TW - 60, 150); g2.fillStyle = '#b33a1e'; g2.font = 'bold 24px system-ui'; g2.fillText('Mamma mia, omgevallen!', TW / 2, 210);
+    g2.fillStyle = '#3a2414'; g2.font = 'bold 20px system-ui'; g2.fillText(`${T.score} pizza's hoog`, TW / 2, 245); g2.font = '15px system-ui'; g2.fillText(T.record ? '🏆 Nieuw record!' : `record: ${S.torenBest}`, TW / 2, 272); g2.fillText('Tik om opnieuw te beginnen', TW / 2, 300); }
+}
+function torenKlaar() {
+  const T = toren; T.uit = true; T.score = T.om.van - 1; T.record = T.score > (S.torenBest || 0);
+  if (T.record) { S.torenBest = T.score; bewaar(); kassa(); }
+  if (T.score > 0 && speler) { // online scorebord: alleen een record dat beter is dan wat al ingestuurd is
+    const lk = 'pizzabaas_ingestuurd:' + speler; let al = 0; try { al = +localStorage.getItem(lk) || 0; } catch (e) {}
+    if (S.torenBest > al) fetch(BORD_URL + '?actie=opslaan&naam=' + encodeURIComponent(speler) + '&onderdeel=pizzatoren&modus=gewoon&score=' + S.torenBest, { redirect: 'follow' })
+      .then((r) => r.json()).then((d) => { try { localStorage.setItem(lk, S.torenBest); localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} torenBord(d); }).catch(() => {});
+  }
+  $('torentekst').textContent = T.score ? `${T.score} pizza's! ${T.record ? 'Dat is een nieuw record.' : ''}` : 'Helemaal mis. Nog een keer!';
+}
+function torenBord(d) { // top 10 van het online scorebord (of de laatst bekende)
+  const zet = (d) => { const l = (d && d.pizzatoren_gewoon) || []; $('torenbord').innerHTML = l.length ? '<b>🏆 Scorebord</b><br>' + l.map((x, i) => `${i + 1}. ${esc(x.naam)}: ${x.score}`).join(' · ') : (speler ? '' : 'Kies je naam op de startpagina, dan komt je record op het scorebord.'); };
+  if (d) return zet(d);
+  try { zet(JSON.parse(localStorage.getItem('pizzabaas_bord') || 'null')); } catch (e) {}
+  fetch(BORD_URL, { redirect: 'follow' }).then((r) => r.json()).then((d) => { try { localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} zet(d); }).catch(() => {});
+}
+
 // ---------- Barrie de Bink: Luigi dwarszitten (S.barrie = sinds wanneer; S.klus = { k, tot } loopt; S.ruzie 0-100 met Luigi) ----------
 // Een klus geeft een paar dagen meer klanten (Luigi's klanten komen naar jou), maar soms wordt Barrie gesnapt (boete) of ziet Luigi het
 // (morgen wraak). Hoe hoger de ruzie, hoe vaker Luigi uit zichzelf terugslaat (eindeDag). Vrede met een fles: S.luigiRust, ruzie weg.
@@ -1301,11 +1394,13 @@ function toonStad(plek) {
   if (plek == 'wissel') { h += `<p>Een smal winkeltje met een knipperend bord: <b>CRYPTO → CASH. GEEN VRAGEN.</b> Achter de toonbank zit Snelle Sjonnie met drie telefoons.
       "${pak(['Wisselen? Tien procent voor mij, de rest voor jou. Eerlijk is eerlijk.', 'Ik vraag niks, jij vraagt niks. Zo houden we het gezellig.', 'DogePizza? Mooi spul. Ik heb er zelf ook nog een paar miljoen.'])}"</p>
       <p class="buurt">Je krijgt de koers van vandaag, min 10% voor Sjonnie.</p>${cryptoBlok(true)}`; }
-  if (plek == 'bouw') h += `<p>Een kraan, zand en een bord: "Hier komt binnenkort: ????". De bouwvakkers eten trouwens graag pizza…</p>`;
+  if (plek == 'bouw') { h += `<p>Een kraan, zand en een bord: "Hier komt binnenkort: ????". De bouwvakkers zitten te lunchen en stapelen hun pizzadozen… "Wedden dat jij niet hoger komt?"</p>${S.torenBest ? `<p class="buurt">Jouw hoogste toren: <b>${S.torenBest} pizza's</b>.</p>` : ''}`;
+    knoppen = `<button class="knop rood" id="stapel">🍕 Pizza's stapelen</button>`; }
   const k2 = $('stadkaart'); k2.innerHTML = `<div class="kaart" style="margin:auto">${h}<div class="rij">${knoppen}${terug}</div></div>`;
   $('plekterug').onclick = () => toonStad();
   k2.querySelectorAll('[data-verkoop]').forEach((b) => b.onclick = () => { const c = crypto(), id = b.dataset.verkoop, w = c.bezit[id] * c.koers[id] * 0.9; c.bezit[id] = 0; ge(Math.round(w * 100) / 100); kassa(); bewaar(); tekenKnoppen();
     meld(`Sjonnie telt ${euro(w)} uit op de toonbank. "Leuk zakendoen!"`, 3500); toonStad('wissel'); });
+  if ($('stapel')) $('stapel').onclick = () => toonToren();
   if ($('naarzaak')) $('naarzaak').onclick = () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); toonWegLog(); };
   if ($('wissel')) $('wissel').onclick = () => { wisselZaak(zaakVan(plek)); $('stad').classList.add('verborgen'); meld('Welkom in ' + zaakNaam() + '!', 3000); };
   if ($('huren')) $('huren').onclick = () => { if (!confirm(`Dit pand huren voor € ${p.borg} (en € ${p.huur} per dag)?`)) return;
@@ -2498,7 +2593,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, get man() { return man; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, get toren() { return toren; }, hangX, torenTik, get man() { return man; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>
