@@ -238,3 +238,7 @@ Tempo: na 21:30 (90% van `DAG`) geen nieuwe klanten of telefoontjes; na sluiting
 Ranglijst: `zaakWaarde()` = kas + bank + crypto + de helft van spullen, extra ovens en borg van de panden − leningen en aanslag. In het
 dagoverzicht met twee lijsten (`#dagbord`, `#dagbord2`): onderdeel `pizzawaarde` (record `S.waardeBest`) en `pizzamaand` (waarde na 30 dagen,
 `S.maandWaarde`, de eerlijke wedstrijd). Scores-app kent ze. Een manager die al in een andere zaak werkt, staat niet in het lijstje.
+Telefoonbestellingen stoppen om 21:00 (80% van `DAG`), zodat de scooter niet na sluitingstijd nog rijdt.
+Andere zaak: vraag `belZaak` (alleen als een andere zaak een manager heeft, `andereZaak()`): de manager belt met een probleem uit `BELPROB`
+(Luigi alleen bij zaak 1). Zelf gaan = opgelost, maar zonder manager hier rep −3; laten oplossen = kans Sandra 75%, Bruno 55%, Kevin 30%;
+mislukt of deur op slot = `z.pech = S.dag` (die zaak 60% van de klanten in `simuleerZaak`) en rep omlaag. Het menu geldt voor de hele keten.

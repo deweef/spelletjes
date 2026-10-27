@@ -488,7 +488,7 @@ function simuleerZaak(z, wd) { // een zaak waar je vandaag niet was: een schatti
   const M = MANAGER[z.manager.wie], stoelen = (z.spullen || []).filter((s) => s.t == 'stoel').length, rep = z.rep || 20;
   const keuken = (z.ovens || 1) * 30 * (1 + 0.5 * ((z.groot || []).filter(Boolean).length / Math.max(1, z.ovens || 1))), bediening = (z.obers || 1) * 30;
   const vraag = stoelen * 2.4 * (0.4 + rep / 100) * DRUKTE[wd] * B.aankomst * (M.gok ? 0.8 : 1);
-  const klanten = Math.round(Math.min(vraag, keuken, bediening) * (0.85 + Math.random() * 0.3));
+  const klanten = Math.round(Math.min(vraag, keuken, bediening) * (0.85 + Math.random() * 0.3) * (z.pech == S.dag ? 0.6 : 1)); // pech: telefoontje 'belZaak' niet goed afgelopen
   const prijs = S.menu.reduce((a, p) => a + p.prijs, 0) / S.menu.length, inkoop = S.menu.reduce((a, p) => a + smaak(p).k, 0) / S.menu.length;
   const omzet = Math.round(klanten * prijs), fooi = Math.round(klanten * 0.8 * (M.fooi || 1)), loon = ((z.obers || 1) - 1) * LOON + M.loon + (z.manager.opslag || 0);
   const winst = omzet + fooi - Math.round(klanten * inkoop) - loon - huur;
@@ -964,14 +964,24 @@ const VRAGEN = [
     a: [['Die is van Beppe! Teruggeven.', () => { rep(1); return 'Beppe is zo blij dat hij de hele avond zingt.'; }],
       ['Mag u houden, als excuus.', () => { rep(1); if (ovens[1]) ovens[1].traag = true; return 'Beppe is zijn trouwring kwijt en werkt de rest van de avond verdrietig (trager).'; }],
       ['Gefeliciteerd, u wint onze prijsvraag!', () => { rep(2); return 'De klant juicht. Beppe kijkt bedenkelijk.'; }] ] },
+  // de manager van je andere zaak belt: er is daar iets aan de hand (belZaak; belP = het probleem, gekozen bij het stellen van de vraag)
+  { id: 'belZaak', ik: '📞', zelf: true, wie: () => { const z = andereZaak(); return z ? MANAGER[z.manager.wie].n + ' (andere zaak)' : 'Je andere zaak'; }, kans: 4, als: () => modus == 'open' && !!andereZaak(),
+    vraag: () => { const z = andereZaak(), bij = S.zaken.indexOf(z) == 0; belP = pak(BELPROB.filter((b) => !b.luigi || bij)); return 'Baas! ' + belP.t + ' Kom je hierheen?'; },
+    a: [['Ik kom er meteen aan!', () => { const z = andereZaak(); z.rep = Math.min(100, (z.rep || 20) + 1);
+        if (manAanwezig()) return `Je springt op de fiets. ${belP.goed} ${MANAGER[S.manager.wie].n.split(' ').pop()} past ondertussen hier op de winkel.`;
+        rep(-3); morgenKl(0.97); return `Je springt op de fiets. ${belP.goed} Maar hier stond de zaak een uur zonder baas: klanten wachtten en een paar liepen boos weg.`; }],
+      ['Los jij het maar op, je kunt het!', () => { const z = andereZaak(), M = MANAGER[z.manager.wie], n = M.n.split(' ').pop();
+        if (kans(z.manager.wie == 'sandra' ? 0.75 : z.manager.wie == 'bruno' ? 0.55 : 0.3)) return `${n} regelt het. ${belP.goed} "Komt goed, baas!"`;
+        z.pech = S.dag; z.rep = Math.max(0, (z.rep || 20) - 5); return `${n} probeert het… ${belP.fout} Die zaak draait vandaag een stuk minder.`; }],
+      ['Doe maar even de deur op slot.', () => { const z = andereZaak(); z.pech = S.dag; z.rep = Math.max(0, (z.rep || 20) - 2); return 'Een uurtje dicht met een briefje "Even weg, ben zo terug". Het probleem waait over, maar er komt vandaag minder binnen.'; }] ] },
   // ---- de manager zelf (zelf: true = die vraag beantwoordt de manager niet voor je) ----
   { id: 'manOpslag', ik: '📋', zelf: true, wie: () => S.manager ? MANAGER[S.manager.wie].n : 'Je manager', kans: 4, als: () => S.manager && S.manager.wie != 'bruno' && (S.manager.dagen || 0) >= 4 && S.geld > 600 && !(S.manager.opslagDag > S.dag - 10),
-    vraag: () => S.manager.wie == 'kevin' ? 'Eh, baas… ik werk hier nu al best lang. Zeg maar een week. Kan ik meer geld krijgen? Voor een nieuwe telefoon.' : `Baas, ik run hier zo'n beetje alles. De kassa loopt als een trein. Ik vind dat ik best € 15 per dag meer mag verdienen.`,
+    vraag: () => (S.manager || {}).wie == 'kevin' ? 'Eh, baas… ik werk hier nu al best lang. Zeg maar een week. Kan ik meer geld krijgen? Voor een nieuwe telefoon.' : `Baas, ik run hier zo'n beetje alles. De kassa loopt als een trein. Ik vind dat ik best € 15 per dag meer mag verdienen.`,
     a: [['Je hebt gelijk, € 15 erbij.', () => { S.manager.opslag = (S.manager.opslag || 0) + 15; S.manager.opslagDag = S.dag; return 'Een stralende glimlach. "Je zult er geen spijt van krijgen!"'; }],
       ['€ 5 erbij, meer zit er niet in.', () => { S.manager.opslagDag = S.dag; if (kans(0.6)) { S.manager.opslag = (S.manager.opslag || 0) + 5; return '"Vooruit. Voor nu." Een beetje zuinig, maar akkoord.'; } S.manager.opslag = (S.manager.opslag || 0) + 5; S.manager.mopper = S.dag + 3; return '"Vijf euro?!" Je manager neemt het aan, maar werkt een paar dagen met de handrem erop.'; }],
       ['Nee, daar is geen geld voor.', () => { S.manager.opslagDag = S.dag; if (kans(0.25)) { const n = MANAGER[S.manager.wie].n; S.manager = null; maakManager(); return `"Geen geld? Ik zie de kassa toch!" ${n} pakt de spullen. Je hebt geen manager meer.`; } S.manager.mopper = S.dag + 5; return 'Je manager zegt niks, maar zucht heel hard. De komende dagen gebeurt precies wat moet, en geen gram meer.'; }] ] },
   { id: 'manVrij', ik: '🏖️', zelf: true, wie: () => S.manager ? MANAGER[S.manager.wie].n : 'Je manager', kans: 3, als: () => S.manager && (S.manager.dagen || 0) >= 4,
-    vraag: () => S.manager.wie == 'kevin' ? 'Baas, mag ik morgen vrij? Er is een gamingtoernooi. Heel belangrijk.' : S.manager.wie == 'bruno' ? 'Signore, morgen trouwt mijn nicht in Napels. Ik moet erbij zijn, capisce?' : 'Mag ik morgen een dagje vrij? Mijn zus trouwt.',
+    vraag: () => (S.manager || {}).wie == 'kevin' ? 'Baas, mag ik morgen vrij? Er is een gamingtoernooi. Heel belangrijk.' : S.manager.wie == 'bruno' ? 'Signore, morgen trouwt mijn nicht in Napels. Ik moet erbij zijn, capisce?' : 'Mag ik morgen een dagje vrij? Mijn zus trouwt.',
     a: [['Natuurlijk, veel plezier!', () => { S.manVrij = S.dag + 1; return 'Morgen is je manager er niet: dan moet je zelf op de zaak passen (niet de stad in tijdens het werk).'; }],
       ['Alleen als je volgende week een extra dag werkt.', () => { S.manVrij = S.dag + 1; return '"Deal." Morgen ben je zelf de baas op de vloer.'; }],
       ['Nee, ik heb je hier nodig.', () => { if (kans(0.3)) { S.manVrij = S.dag + 1; S.manager.mopper = S.dag + 3; return '"Dan meld ik me morgen ziek." Hatsjoe. Morgen is er niemand, en daarna een paar dagen chagrijnig.'; } S.manager.mopper = S.dag + 2; return 'Je manager blijft, met een gezicht als een oorwurm.'; }] ] },
@@ -1487,7 +1497,7 @@ function nieuweBestelling() {
 }
 function stapBezorg(dt) {
   if (!S.bezorg || !bezorger) return; const z = bezorger, snel = 3.2;
-  if (modus == 'open' && klok < DAG * 0.9) { volgendeBestelling -= dt; if (volgendeBestelling <= 0) { nieuweBestelling(); volgendeBestelling = (14 + Math.random() * 14) / ((0.5 + S.rep / 100) * vandaag.aankomst * (klusLoopt() && S.klus.k == 'scooter' ? 1.6 : 1)); } }
+  if (modus == 'open' && klok < DAG * 0.8) { volgendeBestelling -= dt; if (volgendeBestelling <= 0) { nieuweBestelling(); volgendeBestelling = (14 + Math.random() * 14) / ((0.5 + S.rep / 100) * vandaag.aankomst * (klusLoopt() && S.klus.k == 'scooter' ? 1.6 : 1)); } }
   if (z.st == 'thuis') { const b = bezorgingen.find((b) => !b.af && !b.weg && b.klaar >= b.n); loopNaar(z, vrijBij([W - 1.3, KEUKEN + 0.6]), 2, dt); if (b) { z.b = b; z.st = 'halen'; } }
   else if (z.st == 'halen') { const nog = klaar.filter((x) => x.bezorg == z.b); if (!nog.length) { z.st = 'deur'; z.draagt = z.b.n; z.b.weg = true; return; }
     const hier = nog[0].oven || 0, [ux] = UITGIFTE(hier); if (loopNaar(z, vrijBij([ux + 0.9, KEUKEN + 0.4]), snel, dt)) klaar = klaar.filter((x) => !(x.bezorg == z.b && (x.oven || 0) == hier)); }
@@ -2357,6 +2367,14 @@ const MANAGER = {
   sandra: { n: 'Sandra', ik: '📋', loon: 45, rij: 1, uitleg: 'Verstandig. Regelt vragen netjes en ruimt vlekken op.', belt: 0.12, poetst: true, poses: [12, 13, 14, 15] },
   bruno: { n: 'Signor Bruno', ik: '🎩', loon: 90, rij: 2, uitleg: 'Alles van Sandra, en de klanten geven meer fooi.', belt: 0.05, poetst: true, fooi: 1.12, poses: [12, 13, 14, 15, 16] } };
 const MAG_MANAGER = () => S.rep >= 40 && S.menu.length >= 3 && S.dag >= 7;
+const andereZaak = () => S.zaken.find((z, i) => i != S.zaak && z.manager); // een andere zaak die door een manager gerund wordt
+let belP = null;
+const BELPROB = [
+  { luigi: true, t: 'Luigi staat met een megafoon voor de deur te roepen dat onze pizza naar karton smaakt!', goed: 'Luigi druipt af met zijn megafoon.', fout: 'Luigi roept tot sluitingstijd door. De klanten lopen met een boog om de zaak heen.' },
+  { t: 'De oven maakt een raar piepgeluid en er komt blauwe rook uit.', goed: 'Een tik op de juiste plek en de oven snort weer.', fout: 'De oven valt twee uur uit. Er komen alleen salades en tosti\'s op tafel.' },
+  { t: 'Hier staat een inspecteur die de baas wil spreken. Hij kijkt heel streng naar de koelkast.', goed: 'De inspecteur knikt tevreden en vertrekt.', fout: 'De inspecteur schrijft een heel lang verslag. Halve zaak afgeplakt met lint.' },
+  { t: 'Er komt een vrijgezellenfeest van twintig man binnen, met opblaasflamingo! Ik heb maar twee handen!', goed: 'Het wordt een topavond, de flamingo krijgt een eigen stoel.', fout: 'De flamingo knapt, het feest gaat naar de kroeg ernaast. Met hun portemonnee.' },
+  { t: 'Iemand heeft de wc verstopt. Met… ik wil niet weten waarmee. Het water komt eronderdoor!', goed: 'Een plopper en flink wat moed: opgelost.', fout: 'Het stinkt de hele avond. Klanten houden hun neus dicht en blijven niet hangen.' } ];
 const MANLOON = () => S.manager ? MANAGER[S.manager.wie].loon + (S.manager.opslag || 0) : 0;
 const MANVEL = Object.assign(new Image(), { src: 'pizza/managers.png' });
 let man = null, wegLog = []; // man = de manager in de zaak { x, y, kijk, loopT, plek, pose }
