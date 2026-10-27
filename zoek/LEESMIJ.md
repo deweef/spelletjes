@@ -29,6 +29,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Kinderspelen (B2, Bruegel-lijn, `zoek/kinderspelen.jpg`): https://share.gemini.google/OaDav9QRH8uq
 - Jagers in de sneeuw / winterspelen (B3, wat hoort er niet bij, `zoek/jagers.jpg`): https://share.gemini.google/EQltclTI4uSA
 - Herfststorm (level 22, `zoek/herfst.jpg`): https://share.gemini.google/oA5r20yQiPnK
+- Boerenbruiloft (B4, `zoek/bruiloft.jpg`, nog niet in de repo): https://share.gemini.google/JbF3SmiAzZef
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
