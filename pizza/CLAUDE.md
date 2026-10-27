@@ -209,3 +209,5 @@ Lijst toont de gehaalde, de volgende 3, de rest op slot. `S.stad` (stad bezocht)
 blijft 4,5 s staan (`doelMeldTot` in `meld`).
 Stoel-knop opent ook een keuzelijstje (6 stoelsoorten, `S.stoelStijl`). Aanraken (telefoon): de tweede tik mag tot 1 vakje naast het voorbeeld
 vallen en zet hem dan neer op de plek van het voorbeeld (op de iPhone ging het neerzetten anders vaak mis).
+Stoel tussen twee tafels: `stoelTafels(x, y)` = alle tafels ernaast, `s.bij` = 'x,y' van de gekozen tafel (knop "↔ Bij de andere tafel" in het
+stoelmenu; `kantVoor(x, y, bij)`). Vlekken vallen op de dichtstbijzijnde vrije vloer (`vrijBij` in `nieuweVlek`), niet meer onder een stoel.

@@ -369,23 +369,28 @@ const VERSIERING = ['plant', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast', 's
 const aanDeMuur = (d, x) => !d.muur || x == 0 || x == W - d.w; // een schilderij hangt aan de muur
 const GROEP = { tafel: TAFELSOORT, plant: VERSIERING }; // knoppen die bij elke klik naar de volgende soort gaan
 // bij welke tafel hoort een stoel op (x, y), en aan welke kant: 0 boven de tafel, 1 eronder, 2 links, 3 rechts (de eerste tafel die ernaast staat)
-function kantVoor(x, y) {
+function stoelTafels(x, y) { // alle tafels waar een stoel op (x, y) tegenaan staat, met de kant
+  const uit = [];
   for (const t of S.spullen) {
     if (!isTafel(t)) continue; const w = SPUL[t.t].w, h = SPUL[t.t].h;
-    if (x >= t.x && x < t.x + w && y == t.y - 1) return { kant: 0, tafel: t };
-    if (x >= t.x && x < t.x + w && y == t.y + h) return { kant: 1, tafel: t };
-    if (y >= t.y && y < t.y + h && x == t.x - 1) return { kant: 2, tafel: t };
-    if (y >= t.y && y < t.y + h && x == t.x + w) return { kant: 3, tafel: t };
+    if (x >= t.x && x < t.x + w && y == t.y - 1) uit.push({ kant: 0, tafel: t });
+    else if (x >= t.x && x < t.x + w && y == t.y + h) uit.push({ kant: 1, tafel: t });
+    else if (y >= t.y && y < t.y + h && x == t.x - 1) uit.push({ kant: 2, tafel: t });
+    else if (y >= t.y && y < t.y + h && x == t.x + w) uit.push({ kant: 3, tafel: t });
   }
-  return { kant: 0, tafel: null };
+  return uit;
 }
+function kantVoor(x, y, bij) { // bij = 'x,y' van de tafel die de speler koos (stoel tussen twee tafels)
+  const l = stoelTafels(x, y); return l.find((k) => bij && k.tafel.x + ',' + k.tafel.y == bij) || l[0] || { kant: 0, tafel: null };
+}
+
 let indelingSleutel = '', indelingData = null;
 function indeling() { // per tafel de stoelen eromheen ({ sx, sy, kant, stoel }), en per stoel zijn kant; opnieuw als er iets verschoven is
-  const k = S.spullen.map((s) => s.t + s.x + ',' + s.y).join('|');
+  const k = S.spullen.map((s) => s.t + s.x + ',' + s.y + (s.bij || '')).join('|');
   if (k == indelingSleutel && indelingData) return indelingData;
   const per = new Map(), kantVan = new Map();
   for (const t of S.spullen) if (isTafel(t)) per.set(t, []);
-  for (const c of S.spullen) if (c.t == 'stoel') { const { kant, tafel } = kantVoor(c.x, c.y); kantVan.set(c, kant); if (tafel) per.get(tafel).push({ sx: c.x + 0.5, sy: c.y + 0.5, kant, stoel: c }); }
+  for (const c of S.spullen) if (c.t == 'stoel') { const { kant, tafel } = kantVoor(c.x, c.y, c.bij); kantVan.set(c, kant); if (tafel) per.get(tafel).push({ sx: c.x + 0.5, sy: c.y + 0.5, kant, stoel: c }); }
   const plekVan = new Map();
   for (const [t, ps] of per) { const [mx, my] = midden(t);
     for (const p of ps) { const zelfde = ps.filter((q) => q.kant == p.kant).length; // de enige stoel aan deze kant: recht voor het midden van de tafel
@@ -403,7 +408,7 @@ const VLEK = { saus: { n: 'tomatensaus', p: 0.45 }, scherven: { n: 'scherven', p
 let vlekken = [];
 function nieuweVlek(x, y, soort) {
   if (!soort) { let r = Math.random(); for (const [k, d] of Object.entries(VLEK)) if ((r -= d.p) < 0) { soort = k; break; } soort = soort || 'saus'; }
-  const [i, j] = cel(x, y); if (bezet && bezet[j * RW + i]) { x += 0.6; } // niet onder een tafel
+  { const p = vrijBij([x, y]); x = p[0] + (Math.random() - 0.5) * 0.3; y = p[1] + (Math.random() - 0.5) * 0.3; } // op de vrije vloer, niet onder een stoel of tafel (anders zie je hem niet)
   vlekken.push({ x, y, soort, t: 0, d: Math.random() * 6 });
   if (soort == 'scherven') ding(2400, 0.06, 'triangle', 0.05), setTimeout(() => ding(3100, 0.05, 'triangle', 0.04), 60);
 }
@@ -2762,7 +2767,7 @@ function tekenSpul(s, nu, zitten) {
   }
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
   if (s.t == 'stoel') { // losse stoel, met de leuning van zijn tafel af
-    const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y).kant;
+    const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y, s.bij).kant;
     const pl = indeling().plekVan.get(s); rechteStoel({ sx: pl ? pl.sx : s.x + 0.5, sy: pl ? pl.sy : s.y + 0.5, kant, stijl: stijlVan(s) }); if (false) stoel(x + T / 2, y + T / 2, [0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
     return;
   }
@@ -2913,6 +2918,7 @@ function toonMenu(s, cx, cy) {
   if (s.t == 'plant') h += `<button data-a="plant">🔄 Andere plant</button>`;
   if (s.t == 'schilderij') h += `<button data-a="schilderij">🔄 Ander schilderij (${SCHILDERIJEN[(s.v || 0) % 6]})</button>`;
   if (s.t == 'stoel') h += `<div class="kleden">${Object.entries(STOELSOORT).map(([k, d]) => `<button data-a="stijl:${k}" title="${esc(d.n)}" class="${stijlVan(s) == k ? 'aan' : ''}" style="background:${d.kl}">${k == 'kruk' ? '⭕' : ''}</button>`).join('')}</div><small style="display:block;padding:2px 6px 4px;opacity:.7">${esc(STOELSOORT[stijlVan(s)].n)}</small>`;
+  if (s.t == 'stoel' && stoelTafels(s.x, s.y).length > 1) h += `<button data-a="bij">↔ Bij de andere tafel</button>`;
   if (isTafel(s)) h += `<button data-a="hout">${s.hout ? (s.t == 'stoel' ? '🪑 Gestreepte stoel' : '⬜ Marmeren tafel') : (s.t == 'stoel' ? '🪵 Houten stoel met kussen' : '🪵 Houten tafel')}</button>`;
   h += `<button data-a="verkoop">💶 Verkopen (€${Math.floor(d.prijs / 2)})</button>`;
   h += `<small style="display:block;padding:6px 6px 0;opacity:.7">Verplaatsen: vasthouden en slepen.</small>`;
@@ -2926,6 +2932,7 @@ function toonMenu(s, cx, cy) {
     if (a == 'kleed-' || a == 'kaars-') s[a.slice(0, -1)] = false;
     if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
     if (a == 'schilderij') { s.v = ((s.v || 0) + 1) % 6; plof(); }
+    if (a == 'bij') { const l = stoelTafels(s.x, s.y), nu = kantVoor(s.x, s.y, s.bij).tafel, i = l.findIndex((k) => k.tafel == nu), v = l[(i + 1) % l.length].tafel; s.bij = v.x + ',' + v.y; plof(); }
     if (a.startsWith('stijl:')) { s.stijl = S.stoelStijl = a.slice(6); delete s.hout; plof(); }
     if (a == 'hout') { s.hout = s.hout ? 0 : 1; if (s.t == 'stoel') S.houtStoel = s.hout; else S.houtTafel = s.hout; plof(); } // nieuwe stoelen/tafels krijgen dezelfde stijl
     if (a == 'draai') { const n = s.t == 'lang' ? 'langL' : 'lang', nx = s.x + (SPUL[s.t].w - SPUL[n].w) / 2, ny = s.y + (SPUL[s.t].h - SPUL[n].h) / 2; // om het midden draaien
