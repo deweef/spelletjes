@@ -655,7 +655,7 @@ function eindeDag() {
   modus = 'inrichten';
   const huur = S.huur || HUUR, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
   const andereWinst = anderen.reduce((a, o) => a + o.winst, 0);
-  const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi - tel.kosten - huur - lonen + andereWinst;
+  const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon + (S.bezorg.abo ? BEZORG.abo : 0) : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi - tel.kosten - huur - lonen + andereWinst;
   S.geld += -huur - lonen - (tel.ing || 0) + andereWinst;
   let manWeg = ''; if (S.manager) { const M = MANAGER[S.manager.wie]; S.manager.dagen = (S.manager.dagen || 0) + 1;
     if (S.geld < 0) { manWeg = `${M.n} is ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
@@ -1452,15 +1452,16 @@ const schilderijPlaatje = (v, w) => `<span class="mini" style="width:${w}px;heig
 // bezorgingen = [{ adres, n, pizzas, prijs, t0, klaar, af }]; in de wachtrij staan ze als { m: { pizza }, bezorg } (b.bezorg = de bestelling).
 // De bezorger (`bezorger`) haalt de dozen bij de uitgifte(s), loopt de deur uit, is een tijdje weg (`rit`, met soms een voorval) en komt terug
 // met het geld. Te laat (> KOUD s na het bellen) = koude pizza: half geld, populariteit −1. Een bestelling telt, net als klanten, × TELT.
-const BEZORG = { scooter: 300, loon: 15, kosten: 2.5 }, KOUD = 55;
+const BEZORG = { scooter: 300, loon: 15, kosten: 2.5, abo: 8 }, KOUD = 55;
 const STRATEN = ['Kerkstraat', 'Molenweg', 'Dorpsplein', 'Bakkerstraat', 'Lindelaan', 'Havenkade', 'Schoolstraat', 'Kastanjelaan', 'Vismarkt', 'Torenstraat', 'Brugweg', 'Villapark'];
 const VOORVAL = [
-  { kans: 0.08, extra: 9, tekst: 'Lekke band! De bezorger loopt duwend terug.', fooi: 1 },
-  { kans: 0.08, extra: 4, tekst: 'Het regent pijpenstelen. De bezorger komt doorweekt aan.', fooi: 0.5 },
-  { kans: 0.07, extra: 7, tekst: 'De bezorger is verdwaald en belde aan bij de verkeerde deur.', fooi: 1 },
-  { kans: 0.05, extra: 0, tekst: 'Geflitst! € 30 boete voor te hard rijden.', boete: 30, fooi: 1 },
-  { kans: 0.06, extra: 0, tekst: 'De klant ziet dat er een punt mist… "Hij was al gesneden!" zegt de bezorger.', fooi: 0, maal: 0.8 },
-  { kans: 0.03, extra: 0, tekst: 'Bij het afleveren blijkt het een verjaardag: iedereen zingt, de bezorger krijgt taart én een dikke fooi!', fooi: 4 } ];
+  { kans: 0.035, extra: 9, tekst: 'Lekke band! De bezorger loopt duwend terug.', fooi: 1, pech: 1 },
+  { kans: 0.035, extra: 4, tekst: 'Het regent pijpenstelen. De bezorger komt doorweekt aan.', fooi: 0.5 },
+  { kans: 0.025, extra: 7, tekst: 'De bezorger is verdwaald en belde aan bij de verkeerde deur.', fooi: 1 },
+  { kans: 0.02, extra: 0, tekst: 'Geflitst! € 30 boete voor te hard rijden.', boete: 30, fooi: 1 },
+  { kans: 0.025, extra: 0, tekst: 'De klant ziet dat er een punt mist… "Hij was al gesneden!" zegt de bezorger.', fooi: 0, maal: 0.8 },
+  { kans: 0.02, extra: 0, tekst: 'Bij het afleveren blijkt het een verjaardag: iedereen zingt, de bezorger krijgt taart én een dikke fooi!', fooi: 4 },
+  { kans: 0.02, extra: 6, tekst: 'De scooter wil niet starten. Trappen, trappen, trappen… eindelijk!', fooi: 1, pech: 1 } ]; // pech = minder vaak met het onderhoudsabonnement (S.bezorg.abo)
 let bezorgingen = [], bezorger = null, volgendeBestelling = 8;
 function maakBezorger() { bezorger = S.bezorg ? { x: W - 1.3, y: KEUKEN + 0.6, kijk: Math.PI / 2, loopT: 0, st: 'thuis' } : null; bezorgingen = []; volgendeBestelling = 6 + Math.random() * 6; }
 function nieuweBestelling() {
@@ -1478,7 +1479,7 @@ function stapBezorg(dt) {
   if (z.st == 'thuis') { const b = bezorgingen.find((b) => !b.af && !b.weg && b.klaar >= b.n); loopNaar(z, vrijBij([W - 1.3, KEUKEN + 0.6]), 2, dt); if (b) { z.b = b; z.st = 'halen'; } }
   else if (z.st == 'halen') { const nog = klaar.filter((x) => x.bezorg == z.b); if (!nog.length) { z.st = 'deur'; z.draagt = z.b.n; z.b.weg = true; return; }
     const hier = nog[0].oven || 0, [ux] = UITGIFTE(hier); if (loopNaar(z, vrijBij([ux + 0.9, KEUKEN + 0.4]), snel, dt)) klaar = klaar.filter((x) => !(x.bezorg == z.b && (x.oven || 0) == hier)); }
-  else if (z.st == 'deur') { if (loopNaar(z, [DEUR.x + 0.5, H + 0.6], snel, dt)) { z.st = 'rit'; z.t = 0; z.v = VOORVAL.find((v) => Math.random() < v.kans) || null; z.ritT = 8 + Math.random() * 8 + (z.v ? z.v.extra : 0); ding(180, 0.25, 'sawtooth', 0.03); } }
+  else if (z.st == 'deur') { if (loopNaar(z, [DEUR.x + 0.5, H + 0.6], snel, dt)) { z.st = 'rit'; z.t = 0; z.v = VOORVAL.find((v) => Math.random() < v.kans * (v.pech && S.bezorg.abo ? 0.15 : 1)) || null; z.ritT = (8 + Math.random() * 8) * (S.bezorg.abo ? 0.9 : 1) + (z.v ? z.v.extra : 0); ding(180, 0.25, 'sawtooth', 0.03); } }
   else if (z.st == 'rit') { z.t += dt; z.x = -9; if (z.t >= z.ritT) { // afgeleverd: afrekenen bij de deur
     const b = z.b, koud = klok - b.t0 > KOUD, v = z.v; let geld = b.prijs * TELT * (koud ? 0.5 : 1) * (v && v.maal || 1), fooi = koud ? 0 : (1 + Math.random() * 2) * TELT * (v ? v.fooi : 1);
     geld -= BEZORG.kosten; if (v && v.boete) ge(-v.boete); S.geld += geld + fooi; tel.omzet += geld; tel.fooi += fooi; tel.bezorgd = (tel.bezorgd || 0) + 1; if (koud) { tel.koud = (tel.koud || 0) + 1; rep(-1); } else rep(0.3);
@@ -3304,6 +3305,7 @@ function tekenKnoppen() {
           S.geld -= d.prijs; S.obers++; maakPersoneel(); kassa(); bewaar(); tekenKnoppen(); meld('Een extra ober! Die kost wel ' + LOON + ' euro loon per dag.'); } },
         { ik: '👋', n: 'Ober ontslaan', pr: S.obers <= 1 ? 'je hebt er minstens één nodig' : 'scheelt €' + LOON + ' loon per dag', uit: S.obers <= 1, doe: () => {
           S.obers--; maakPersoneel(); bewaar(); tekenKnoppen(); meld('De ober krijgt een fles wijn mee en een zoen op elke wang. Arrivederci!'); } },
+        ...(S.bezorg ? [{ ik: '🔧', n: S.bezorg.abo ? 'Onderhoudsabonnement opzeggen' : 'Onderhoudsabonnement scooter', pr: S.bezorg.abo ? `scheelt € ${BEZORG.abo} per dag, maar weer meer pech` : `€ ${BEZORG.abo} per dag: bijna nooit meer een lekke band, en iets sneller`, doe: () => { S.bezorg.abo = !S.bezorg.abo; bewaar(); tekenKnoppen(); meld(S.bezorg.abo ? 'De monteur komt elke week langs. De scooter snort als een poes.' : 'Abonnement opgezegd. Hopelijk houden de banden het…', 3500); } }] : []),
         S.bezorg ? { ik: '🛵', n: 'Bezorgdienst stoppen', pr: `scooter terug voor € 100, scheelt € ${BEZORG.loon} loon per dag`, doe: () => { S.bezorg = null; S.geld += 100; maakPersoneel(); kassa(); bewaar(); tekenKnoppen(); meld('De scooter is verkocht. De bezorger zwaait nog één keer met zijn pet.', 3500); } }
           : { ik: '🛵', n: 'Bezorgdienst starten', pr: `scooter € ${BEZORG.scooter}, bezorger € ${BEZORG.loon} per dag. Telefoonbestellingen, los van je tafels.`, uit: S.geld < BEZORG.scooter, doe: () => { S.geld -= BEZORG.scooter; S.bezorg = { sinds: S.dag }; maakPersoneel(); kassa(); bewaar(); tekenKnoppen(); meld('Brrrm! Een rode scooter voor de deur. Vanaf nu gaat tijdens het werk de telefoon voor bestellingen.', 4500); } },
         ...(S.manager ? [{ ik: '👋', n: MANAGER[S.manager.wie].n + ' ontslaan', pr: `manager, €${MANLOON()} per dag, ${S.manager.dagen || 0} dagen in dienst`, doe: () => {

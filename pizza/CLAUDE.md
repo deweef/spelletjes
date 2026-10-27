@@ -158,7 +158,7 @@ telefoontjes (`nieuweBestelling`, vaker bij hogere populariteit en drukte; Barri
 naar een adres (`STRATEN`). Ze staan in de `wachtrij` als { m: { pizza }, bezorg } (de keuken bakt ze tussen de tafels door; `weg` en `breng`
 in `stapOven` kennen ze). De bezorger (`bezorger`, `stapBezorg`, voorlopig het studentfiguur met rode pet en pizzadozen, `tekenBezorger`)
 haalt ze op, loopt de deur uit, is `ritT` weg (balkje linksboven: `tekenRit`), soms met een `VOORVAL` (lekke band, regen, verdwaald,
-geflitst, punt opgegeten, verjaardag), en rekent af: prijs × TELT − €2,5, plus fooi; later dan `KOUD` (55 s) = half geld en populariteit −1.
+geflitst, punt opgegeten, verjaardag, start niet; samen ~1 op 7 ritten; `pech` = lekke band en starten: met het onderhoudsabonnement `S.bezorg.abo` (€8/dag, via Personeel) 85% minder en ritten 10% sneller), en rekent af: prijs × TELT − €2,5, plus fooi; later dan `KOUD` (55 s) = half geld en populariteit −1.
 Dagoverzicht: aantal bezorgd, koud, voorvallen; loon bezorger bij de lonen. Figuur `pizza/bezorger.png` (`BEZVEL`, uit `pizza/bezorger-gemini.jpg`, vakjes 170: 0-6 opzij met dozen, 7-10 van achteren, 11 staan) en
 `pizza/scooter.png` (`SCOOTER`, rijdt over het balkje in `tekenRit`).
 Einde van het spel: drie avonden achter elkaar rood (`S.rood`, waarschuwing in het dagoverzicht) = failliet (`toonFailliet`, met `eindStand`);
