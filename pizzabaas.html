@@ -967,13 +967,15 @@ const VRAGEN = [
   // de manager van je andere zaak belt: er is daar iets aan de hand (belZaak; belP = het probleem, gekozen bij het stellen van de vraag)
   { id: 'belZaak', ik: '📞', zelf: true, wie: () => { const z = andereZaak(); return z ? MANAGER[z.manager.wie].n + ' (andere zaak)' : 'Je andere zaak'; }, kans: 4, als: () => modus == 'open' && !!andereZaak(),
     vraag: () => { const z = andereZaak(), bij = S.zaken.indexOf(z) == 0; belP = pak(BELPROB.filter((b) => !b.luigi || bij)); return 'Baas! ' + belP.t + ' Kom je hierheen?'; },
-    a: [['Ik kom er meteen aan!', () => { const z = andereZaak(); z.rep = Math.min(100, (z.rep || 20) + 1);
-        if (manAanwezig()) return `Je springt op de fiets. ${belP.goed} ${MANAGER[S.manager.wie].n.split(' ').pop()} past ondertussen hier op de winkel.`;
-        rep(-3); morgenKl(0.97); return `Je springt op de fiets. ${belP.goed} Maar hier stond de zaak een uur zonder baas: klanten wachtten en een paar liepen boos weg.`; }],
-      ['Los jij het maar op, je kunt het!', () => { const z = andereZaak(), M = MANAGER[z.manager.wie], n = M.n.split(' ').pop();
-        if (kans(z.manager.wie == 'sandra' ? 0.75 : z.manager.wie == 'bruno' ? 0.55 : 0.3)) return `${n} regelt het. ${belP.goed} "Komt goed, baas!"`;
-        z.pech = S.dag; z.rep = Math.max(0, (z.rep || 20) - 5); return `${n} probeert het… ${belP.fout} Die zaak draait vandaag een stuk minder.`; }],
-      ['Doe maar even de deur op slot.', () => { const z = andereZaak(); z.pech = S.dag; z.rep = Math.max(0, (z.rep || 20) - 2); return 'Een uurtje dicht met een briefje "Even weg, ben zo terug". Het probleem waait over, maar er komt vandaag minder binnen.'; }] ] },
+    a: [['Ik kom eraan! Hier valt een zzp\'er in (€ 90).', () => { const z = andereZaak(); z.rep = Math.min(100, (z.rep || 20) + 1);
+        if (manAanwezig()) return `Je springt op de fiets. ${belP.goed} Een zzp'er is niet nodig: ${MANAGER[S.manager.wie].n.split(' ').pop()} past hier op de winkel.`;
+        ge(-90); return `Je belt Ronald, zzp-pizzabakker (€ 90 per middag, "plus reiskosten, plus parkeren"). Je springt op de fiets. ${belP.goed}`; }],
+      ['Ik kom eraan! Hier gaat de deur even dicht.', () => { const z = andereZaak(); z.rep = Math.min(100, (z.rep || 20) + 1);
+        if (manAanwezig()) return `Je springt op de fiets. ${belP.goed} ${MANAGER[S.manager.wie].n.split(' ').pop()} houdt hier gewoon open.`;
+        volgendeKlant += DAG * 0.12; rep(-1); return `Briefje op de deur: "Ben zo terug!" Je springt op de fiets. ${belP.goed} Hier komt een hele tijd niemand binnen.`; }],
+      ['Los jij het maar op, je kunt het!', () => { const z = andereZaak(), n = MANAGER[z.manager.wie].n.split(' ').pop();
+        if (kans(z.manager.wie == 'sandra' ? 0.5 : z.manager.wie == 'bruno' ? 0.4 : 0.2)) return `${n} regelt het. ${belP.goed} "Komt goed, baas!"`;
+        z.pech = S.dag; z.rep = Math.max(0, (z.rep || 20) - 6); return `${n} probeert het… ${belP.fout} Die zaak draait vandaag een stuk minder.`; }] ] },
   // ---- de manager zelf (zelf: true = die vraag beantwoordt de manager niet voor je) ----
   { id: 'manOpslag', ik: '📋', zelf: true, wie: () => S.manager ? MANAGER[S.manager.wie].n : 'Je manager', kans: 4, als: () => S.manager && S.manager.wie != 'bruno' && (S.manager.dagen || 0) >= 4 && S.geld > 600 && !(S.manager.opslagDag > S.dag - 10),
     vraag: () => (S.manager || {}).wie == 'kevin' ? 'Eh, baas… ik werk hier nu al best lang. Zeg maar een week. Kan ik meer geld krijgen? Voor een nieuwe telefoon.' : `Baas, ik run hier zo'n beetje alles. De kassa loopt als een trein. Ik vind dat ik best € 15 per dag meer mag verdienen.`,
@@ -2233,7 +2235,7 @@ function nieuweGroep() {
     let over = n; keus = []; for (const t of vrije) { if (over <= 0) break; const k = Math.min(over, t.vrij.length); keus.push({ t, n: k }); over -= k; }
     if (over > 0) keus = null; }
   if (!keus) {
-    tel.vol++; S.rep = Math.max(0, S.rep - 1);
+    tel.vol++; S.rep = Math.max(0, S.rep - 0.2); // vol is jammer, maar een volle zaak is ook reclame: maar een klein beetje eraf
     const m = maakMens(null, 0); m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; mensen.push(m); const wie = ['', '', 'twee', 'drie', 'vier', 'vijf', 'zes'][n]; zeg(m, samen ? R([`Een tafel voor ${wie}? Nee? Dan kijken we even verder.`, `Wij willen bij elkaar zitten. Jammer!`, `Geen tafel voor ${wie}? Dan gaan we naar Luigi.`]) : n > 1 && Math.random() < 0.6 ? `Geen plek voor ons ${['', '', 'tweeën', 'drieën', 'vieren', 'vijven', 'zessen'][n]}? Jammer.` : R(ZEG.vol)); return;
   }
   const soort = kiesSoort(); // een groepje is van dezelfde soort (studenten samen, werkers samen)

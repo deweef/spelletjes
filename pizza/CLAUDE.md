@@ -240,5 +240,6 @@ dagoverzicht met twee lijsten (`#dagbord`, `#dagbord2`): onderdeel `pizzawaarde`
 `S.maandWaarde`, de eerlijke wedstrijd). Scores-app kent ze. Een manager die al in een andere zaak werkt, staat niet in het lijstje.
 Telefoonbestellingen stoppen om 21:00 (80% van `DAG`), zodat de scooter niet na sluitingstijd nog rijdt.
 Andere zaak: vraag `belZaak` (alleen als een andere zaak een manager heeft, `andereZaak()`): de manager belt met een probleem uit `BELPROB`
-(Luigi alleen bij zaak 1). Zelf gaan = opgelost, maar zonder manager hier rep −3; laten oplossen = kans Sandra 75%, Bruno 55%, Kevin 30%;
-mislukt of deur op slot = `z.pech = S.dag` (die zaak 60% van de klanten in `simuleerZaak`) en rep omlaag. Het menu geldt voor de hele keten.
+(Luigi alleen bij zaak 1). Zelf gaan: zonder manager hier een zzp'er (€ 90) of de deur even dicht (`volgendeKlant += DAG * 0.12`, rep −1);
+laten oplossen = kans Sandra 50%, Bruno 40%, Kevin 20%, mislukt = `z.pech = S.dag` (die zaak 60% van de klanten in `simuleerZaak`) en rep −6.
+Het menu geldt voor de hele keten. Geen plek (vol) kost maar 0,2 populariteit per groepje (was 1: een nieuwe zaak met 4 stoelen zakte naar 0).
