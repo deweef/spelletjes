@@ -66,7 +66,7 @@
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
-  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 1020px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
+  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 1105px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
   .vraagwie { font-weight: 800; color: #b5381c; font-size: 15px; }
   .vraagtekst { font-size: 17px; margin: 8px 0 12px; }
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
@@ -86,6 +86,7 @@
   .torenkaart { position: absolute; left: 20%; bottom: 10%; width: 60%; height: 95%; background: url(pizza/toren.png) 0 0 / 400% 100% no-repeat; pointer-events: none; }
   .torenfoto { width: 120px; height: 160px; margin: 6px auto; background: url(pizza/toren.png) 0 0 / 480px 160px no-repeat; }
   .plek:hover, .plek:focus { background: rgba(255,230,120,.25); outline: 3px solid #ffd23f; }
+  .wijnding { display: inline-block; width: 56px; height: 56px; background: url(pizza/wijn.png) 0 0 / 728px 56px no-repeat; vertical-align: middle; } /* pizza/wijn.png: 13 vakjes (uit pizza/wijn-gemini.jpg) */
   .pers { display: inline-block; width: 100px; height: 100px; background: url(pizza/drukpers.png) 0 0 / 400px 100px no-repeat; flex: none; } /* pers, bon, vervalste bon, stapel (pizza/drukpers-gemini.jpg) */
   #drukbalk { position: relative; height: 28px; background: #e8d7b5; border-radius: 14px; margin: 14px 10px 4px; overflow: hidden; }
   #drukgroen { position: absolute; top: 0; bottom: 0; width: 12%; background: #2e9d52; }
@@ -662,7 +663,7 @@ function eindeDag() {
       <tr><td>🚪 Geen plek</td><td>${kl(tel.vol)}</td></tr>
       ${tel.opgeruimd || rommel ? `<tr><td>🧽 Opgeruimd / blijven liggen</td><td>${tel.opgeruimd || 0} / ${rommel}</td></tr>` : ''}
       ${tel.niks ? `<tr><td>🤷 Niks lekkers op de kaart</td><td>${kl(tel.niks)}</td></tr>` : ''}
-      ${tel.bezorgd ? `<tr><td>🛵 Bezorgd${tel.koud ? ` (waarvan ${tel.koud} koud)` : ''}</td><td>${tel.bezorgd}</td></tr>` : ''}${(tel.voorval || []).map((t) => `<tr><td colspan="2" style="font-size:.85em;opacity:.8">🛵 ${esc(t)}</td></tr>`).join('')}
+      ${tel.wijn ? `<tr><td>🍷 Flessen Château verkocht</td><td>${tel.wijn}</td></tr>` : ''}${tel.bezorgd ? `<tr><td>🛵 Bezorgd${tel.koud ? ` (waarvan ${tel.koud} koud)` : ''}</td><td>${tel.bezorgd}</td></tr>` : ''}${(tel.voorval || []).map((t) => `<tr><td colspan="2" style="font-size:.85em;opacity:.8">🛵 ${esc(t)}</td></tr>`).join('')}
       ${tel.aangebrand ? `<tr><td>🔥 Aangebrand (de kok stond te kletsen)</td><td>${tel.aangebrand}</td></tr>` : ''}
       ${top ? `<tr><td>🏆 Meest besteld</td><td>${esc(top[0])} (${kl(top[1])}×)</td></tr>` : ''}
       ${soorten ? `<tr><td>Hoe smaakte het?</td><td>${soorten}</td></tr>` : ''}
@@ -1210,6 +1211,17 @@ const VRAGEN = [
     a: [['Natuurlijk, geef hier!', () => { vandaag.gezellig += 1; if (kans(1 / 6)) { rep(1); return '🔥 Raak! Je spuwt vuur, drinkt de waterkan leeg en huilt van het lachen. De hele zaak juicht.'; } return 'Gewone punt. Pfieuw. Een van de vrienden wordt knalrood en rent naar de wc. Iedereen ligt dubbel.'; }],
       ['Nee, ik moet werken.', () => '"Saai!" roepen ze. Ze spelen het spelletje zelf. Er wordt flink gegild.'],
       ['Laat Mario maar.', () => { if (kans(1 / 6)) { kokTraag(); return 'Mario pakt de hete! Hij bakt de rest van de avond met tranen in zijn ogen. Langzaam.'; } vandaag.fooi *= 1.05; return 'Mario kauwt cool en zegt: "In Napels eten we dit als ontbijt." Meer fooi!'; }] ] },
+  { id: 'kelder', ik: '🧐', wie: 'Heer met een monocle', kans: 6, als: () => S.buurt == 'villa' && !S.kamer,
+    vraag: 'Ah, garçon. Heeft u in uw kelder nog een fles Château Lafitte van 1982? Ik betaal er graag voor. Héél graag.',
+    a: [['Wij hebben alleen huiswijn, meneer.', () => '"Huiswijn." Hij spreekt het uit alsof het een vies woord is.'],
+      ['Wij hebben helemaal geen kelder.', () => '"Geen kelder? Mon dieu." Hij laat een fooi van één cent achter.'],
+      ['Natuurlijk, ik haal hem even…', () => { S.kamer = S.dag; ge(80); return 'Je rent naar achteren. Geen kelder, geen Lafitte… alleen een doos wijn van € 3. Een fles, een trechter en een mooi etiket later krijgt de heer zijn "Lafitte". Hij betaalt € 80 en zucht van genot. 🗝️ Linksboven zit nu een sleuteltje: je wijnkelder!'; }] ] },
+  { id: 'sommelier', ik: '🍷', portret: 12, rij: 11, wie: 'Sommelier Sébastien', kans: () => S.wijn && S.wijn.n ? 6 : 0, als: () => S.buurt == 'villa' && S.wijn && S.wijn.n > 0,
+    vraag: () => `Een heer met een zilveren proefnapje snuift de lucht op. "Ik hoorde dat u een ${WIJNNAAM[(S.wijn || {}).naam] || 'Château'} van ${(S.wijn || {}).jaar || 'een goed jaar'} schenkt. Mag ik… proeven?"`,
+    a: [['Proeft u maar.', () => { if (!S.wijn || S.wijn.q >= 0.8) { rep(3); return 'Hij walst, snuift, slurpt en sluit zijn ogen. "Magnifique. Tonen van eikenhout en… nostalgie." Hij vertelt het overal rond!'; }
+        S.wijn = null; ge(-150); rep(-5); return '"Tonen van… kraanwater? En kartonnen pak!" Hij roept de keuringsdienst. Al je flessen in beslag en € 150 boete.'; }],
+      ['Helaas, net de laatste fles verkocht.', () => '"Dommage." Hij kijkt je lang aan en vertrekt.'],
+      ['Een glaasje van het huis, gratis?', () => { if (kans(0.5)) { rep(1); return 'Hij proeft de huiswijn, trekt een gezicht, maar vergeet de Château te vragen.'; } if (S.wijn) S.wijn.n = Math.max(0, S.wijn.n - 3); rep(-2); return 'Hij proeft toch stiekem van een "Château". Hij zegt niks, maar kijkt heel streng. Je gooit voor de zekerheid drie flessen weg.'; }] ] },
   { id: 'gleufhoed', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
@@ -1616,6 +1628,45 @@ function bordLijst(onderdeel, el, eenheid, d) {
   fetch(BORD_URL, { redirect: 'follow' }).then((r) => r.json()).then((d) => { try { localStorage.setItem('pizzabaas_bord', JSON.stringify(d)); } catch (e) {} zet(d); }).catch(() => {});
 }
 
+// ---------- de wijnkelder (achterkamer in de villawijk): Château Kraanwater ----------
+// Een villabewoner bestelt een fles (`S.wijnOrder` = { naam, jaar, fles, deco: [3 van de 5 versieringen] }); je maakt zo'n etiket na (fles, jaartal
+// en versieringen kiezen) en vult 6 flessen met wijn van € 3 (`WIJNBATCH`). Kwaliteit q = hoeveel er klopt. De flessen (`S.wijn` = { n, q, naam, jaar })
+// verkopen zich tijdens de werkdag aan villabewoners die klaar zijn met eten: € 20 + € 70 q per fles. De sommelier (vraag 'sommelier') proeft soms.
+// pizza/wijn.png: 0 groene fles, 1 elegante fles, 2 stoffige fles, 3 champagne, 4 kasteel, 5 wapen, 6 lakzegel, 7 druiven, 8 gouden lijst, 9 kist, 10 doos, 11 trechter, 12 glas
+const WIJNNAAM = { lafitte: 'Château Lafitte', margaux: 'Château Margaux', petrus: 'Château Pétrus', kraanwater: 'Château Kraanwater' };
+const WIJNDECO = [4, 5, 6, 7, 8], WIJNJAAR = [1961, 1975, 1982, 1990, 2005], WIJNBATCH = { n: 6, prijs: 18 };
+const wijnDing = (i, px = 56) => `<span class="wijnding" style="width:${px}px;height:${px}px;background-size:${13 * px}px ${px}px;background-position:${-i * px}px 0"></span>`;
+function nieuweWijnOrder() { const d = [...WIJNDECO].sort(() => Math.random() - 0.5).slice(0, 3).sort();
+  S.wijnOrder = { naam: pak(['lafitte', 'margaux', 'petrus']), jaar: pak(WIJNJAAR), fles: pak([1, 2]), deco: d }; }
+let wijnMaak = null;
+function wijnBlok() {
+  if (!S.wijnOrder) nieuweWijnOrder(); const o = S.wijnOrder, w = S.wijn;
+  return `<div class="opdracht"><div>${wijnDing(o.fles, 70)}</div><div><b>Bestelling uit de villawijk</b><br>"${esc(WIJNNAAM[o.naam])}, ${o.jaar}". Het echte etiket heeft: ${o.deco.map((i) => wijnDing(i, 34)).join('')}<br><small>Onthoud het goed: bij het namaken zie je het niet!</small><br>
+    <small>${w && w.n ? `In de kelder: ${w.n} flessen "${esc(WIJNNAAM[w.naam])}" (${Math.round(w.q * 100)}% echt). Ze worden verkocht aan villabewoners.` : 'Je kelder is leeg.'}</small></div></div>
+    <div class="rij"><button class="knop rood" id="wijnmaak" ${S.geld < WIJNBATCH.prijs || (w && w.n) ? 'disabled' : ''}>🍷 ${w && w.n ? 'Eerst de flessen verkopen' : `Wijn bottelen: ${WIJNBATCH.n} flessen (€ ${WIJNBATCH.prijs})`}</button></div>`;
+}
+function toonWijn() {
+  wijnMaak = wijnMaak || { fles: 0, jaar: WIJNJAAR[0], deco: [] }; const o = S.wijnOrder, m = wijnMaak;
+  $('achterkaart').innerHTML = `<h1>🍷 Château Kraanwater</h1>
+    <p class="buurt">Wijn uit een pak van € 3, een trechter en een mooi etiket. Bestelling: <b>${esc(WIJNNAAM[o.naam])}</b>. Weet je nog hoe de echte fles eruitzag? Welke fles, welke versieringen en welk jaar? (Kijk gerust nog eens met Terug.)</p>
+    <p><b>Welke fles?</b><br>${[0, 1, 2, 3].map((i) => `<button class="knop ${m.fles == i ? 'rood' : ''}" data-fles="${i}" style="padding:2px">${wijnDing(i, 54)}</button>`).join(' ')}</p>
+    <p><b>Wat komt er op het etiket?</b> (tik aan of uit)<br>${WIJNDECO.map((i) => `<button class="knop ${m.deco.includes(i) ? 'rood' : ''}" data-deco="${i}" style="padding:2px">${wijnDing(i, 46)}</button>`).join(' ')}</p>
+    <p><b>Jaartal</b><br>${WIJNJAAR.map((j) => `<button class="knop ${m.jaar == j ? 'rood' : ''}" data-jaar="${j}">${j}</button>`).join(' ')}</p>
+    <div class="rij"><button class="knop rood" id="wijnvul">🍾 Vullen en etiketten plakken</button><button class="knop" id="wijnterug">Terug</button></div>`;
+  const k = $('achterkaart');
+  k.querySelectorAll('[data-fles]').forEach((b) => b.onclick = () => { m.fles = +b.dataset.fles; toonWijn(); });
+  k.querySelectorAll('[data-jaar]').forEach((b) => b.onclick = () => { m.jaar = +b.dataset.jaar; toonWijn(); });
+  k.querySelectorAll('[data-deco]').forEach((b) => b.onclick = () => { const i = +b.dataset.deco; m.deco = m.deco.includes(i) ? m.deco.filter((x) => x != i) : [...m.deco, i]; toonWijn(); });
+  $('wijnterug').onclick = () => toonAchterkamer();
+  $('wijnvul').onclick = () => { const goedDeco = WIJNDECO.filter((i) => o.deco.includes(i) == m.deco.includes(i)).length / WIJNDECO.length;
+    const q = goedDeco * 0.6 + (m.jaar == o.jaar ? 0.25 : 0) + (m.fles == o.fles ? 0.15 : 0); S.geld -= WIJNBATCH.prijs; kassa();
+    S.wijn = { n: WIJNBATCH.n, q, naam: o.naam, jaar: o.jaar }; nieuweWijnOrder(); wijnMaak = null; bewaar(); tekenKnoppen(); ding(900, 0.06); setTimeout(() => ding(700, 0.06), 90);
+    $('achterkaart').innerHTML = `<h1>${q >= 0.8 ? '🤩 Niet van echt te onderscheiden!' : q >= 0.5 ? '🙂 Van een afstandje…' : '😬 Dat ziet er nep uit…'}</h1><p>${wijnDing(m.fles, 80)} Je ${WIJNBATCH.n} flessen "${esc(WIJNNAAM[S.wijn.naam])}" zijn voor <b>${Math.round(q * 100)}%</b> echt.
+      De villabewoners kopen ze tijdens het eten, voor € ${20 + Math.round(70 * q)} per fles.</p><p class="buurt">${q < 0.8 ? 'Pas op voor de sommelier: die proeft het verschil.' : 'Zelfs een sommelier zou erin trappen.'}</p>
+      <div class="rij"><button class="knop rood" id="achterterug">🍕 Terug naar de pizzeria</button></div>`;
+    $('achterterug').onclick = () => $('achter').classList.add('verborgen'); };
+}
+
 // ---------- de gokhal (achterkamer aan het plein): roulette met fiches van € 10 ----------
 // Europese roulette (0-36). Inzet op rood/zwart/even/oneven = x2, groen (0) = x36. Drie rondes, of eerder stoppen; daarna gaan de fiches
 // vanzelf terug naar je kassa. Fiches kopen met contant geld, of met al je munten van één crypto (koers van vandaag, 5% voor het huis).
@@ -1709,10 +1760,10 @@ const ruzieTekst = () => { const z = S.ruzie || 0; return z < 1 ? '😇 vrede' :
 function toonAchterkamer() {
   if (!S.opdracht || S.opdracht.tot < S.dag) nieuweOpdracht();
   const o = S.opdracht, klaar = (S.vervalsingen || []);
-  const eerste = !S.zaak, pers = eerste ? S.pers : S.buurt == 'studenten', gok = S.buurt == 'toeristen';
+  const eerste = !S.zaak, pers = eerste ? S.pers : S.buurt == 'studenten', gok = S.buurt == 'toeristen', wijn = S.buurt == 'villa';
   $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1>
-    <p class="buurt">${eerste ? 'Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert.' : gok ? 'Achter een zwaar gordijn: groen vilt, rook, en het geratel van een roulettebalnetje.' : pers ? 'Een benauwd hok vol oude posters en een stoffige machine in de hoek.' : 'Een kaal kamertje. Hier moet nog iets komen…'} Niemand weet ervan… hopelijk.</p>
-    ${gok ? `<div class="opdracht"><span style="font-size:60px">🎰</span><div><b>De gokhal</b><br>Fiches kopen, drie rondjes roulette, en wat je overhoudt gaat weer in je kassa.<br><small>Pas op: soms valt de politie binnen.</small></div></div>
+    <p class="buurt">${eerste ? 'Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert.' : gok ? 'Achter een zwaar gordijn: groen vilt, rook, en het geratel van een roulettebalnetje.' : pers ? 'Een benauwd hok vol oude posters en een stoffige machine in de hoek.' : wijn ? 'Een koele kelder vol lege flessen, een berg wijnpakken en een trechter.' : 'Een kaal kamertje.'} Niemand weet ervan… hopelijk.</p>
+    ${wijn ? wijnBlok() : ''}${gok ? `<div class="opdracht"><span style="font-size:60px">🎰</span><div><b>De gokhal</b><br>Fiches kopen, drie rondjes roulette, en wat je overhoudt gaat weer in je kassa.<br><small>Pas op: soms valt de politie binnen.</small></div></div>
       <div class="rij"><button class="knop rood" id="gokken">🎰 Naar de roulettetafel</button></div>` : ''}
     ${eerste ? `<div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van Gerrit Gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
       Hij betaalt tot <b>€ ${o.prijs}</b> (hoe echter, hoe meer).<br><small>Uiterlijk ${esc(datumLang(o.tot))}.</small></div></div>
@@ -1729,6 +1780,7 @@ function toonAchterkamer() {
       <div class="rij">${Object.entries(VREDE).map(([k, d]) => `<button class="knop" data-vrede="${k}" ${!S.ruzie || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} Vrede: ${esc(d.n)} voor Luigi (€ ${d.prijs})</button>`).join('')}</div>` : ''}
     ${eerste ? '<p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>' : ''}<div class="rij"><button class="knop" id="achterdicht">Deur dicht</button></div>`;
   if ($('gokken')) $('gokken').onclick = () => toonGokhal();
+  if ($('wijnmaak')) $('wijnmaak').onclick = () => toonWijn();
   $('achter').classList.remove('verborgen');
   $('achterdicht').onclick = () => { $('achter').classList.add('verborgen'); barrieUit = ''; };
   $('achterkaart').querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const c = crypto(), k = b.dataset.koop, max = Math.floor(S.bankSaldo || 0);
@@ -2146,6 +2198,8 @@ function stap(dt) {
       // hoe lekker (0-6) bepaalt de fooi en of ze het doorvertellen
       const o = m.oordeel, prijs = m.pizza.prijs * TELT, fooi = Math.max(0, gezellig(m.tafel) * 0.4 + (o - 2) * 0.5 + (m.wacht < 18 ? 1 : 0)) * vandaag.fooi * TELT + (m.chef ? 3 : 0); // TELT: anderhalve klant; m.chef: de kok kwam even flirten
       S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o;
+      if (S.wijn && S.wijn.n > 0 && S.buurt == 'villa' && (m.soort == 'villa' || kans(0.2)) && kans(0.6)) { const w = 20 + Math.round(70 * S.wijn.q); S.wijn.n--; ge(w); tel.wijn = (tel.wijn || 0) + 1; // een fles Château bij het eten
+        muntjes.push({ x: m.x, y: m.y - 0.6, t: 1.4, tekst: '🍷 +€' + w }); if (!S.wijn.n) S.wijn = null; }
       tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1;
       const s = tel.soort[m.soort] = tel.soort[m.soort] || [0, 0]; s[0]++; s[1] += o; // aantal, totaal oordeel
       S.rep = Math.max(0, Math.min(100, S.rep + (o - 2.5) * 0.4 + (m.wacht < 18 ? 0.4 : 0)));

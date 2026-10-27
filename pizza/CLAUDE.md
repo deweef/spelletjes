@@ -189,7 +189,7 @@ Nu 106 vragen.
 Achterkamer per zaak (`achterOpen()`: zaak 1 = `S.achterkamer` via Gerrit, andere zaken = `S.kamer`; `kamer` en `achterDag` staan in `ZAAKVELD`).
 Overal de laptop en Barrie (vraag 'barrie' kan in elke zaak met een achterkamer). Zaak 1: atelier (Gerrit, gravin), en de drukpers alleen als
 die al gekocht was; studentenbuurt: drukpers (open via vraag 'printer', antwoord C); plein: gokhal (vraag 'gokker': raad zwart/rood/groen,
-`gokRaad`, goed = open, groen = +€100). Villawijk: nog leeg (plan: wijnvervalsing). Gokhal (`toonGokhal`, `tekenGokhal`, `draaiWiel`,
+`gokRaad`, goed = open, groen = +€100). Villawijk: wijnkelder (vraag 'kelder', antwoord C). Gokhal (`toonGokhal`, `tekenGokhal`, `draaiWiel`,
 `klaarWiel`, Europese roulette `WIEL`, `FICHE` = €10): fiches kopen met contant of met al je munten van één crypto (−5%), inzet 1/2/5/10 op
 rood/zwart/even/oneven (×2) of groen (×36), drie rondes, daarna fiches automatisch terug in de kassa; 4% kans op een inval per draai
 (fiches weg, €100 boete, populariteit −3). In die zaak vragen 'gokwinst' en 'gokverlies'. Vraag 'pepperoni' (pepperoni-roulette) overal.
@@ -197,3 +197,9 @@ Stadskaart: eigen zaken tonen hun populariteit (⭐). Eetwedstrijd bij het stude
 `S.eetDag`, €10 inleg): 20 s tikken op je pizza (5 happen = 1 punt, na elke 6 punten eerst 🥤 slurpen) tegen Vreetzak Vincent (~1,6 punt/s, soms
 een boer); winnen = €60, populariteit +2, morgen meer studenten. Record `S.eetBest`, scorebord-onderdeel `eetwedstrijd` (`stuurRecord`, `bordLijst`).
 Getest: 6 tikken/s = gelijkspel, 8/s = winst.
+Wijnkelder "Château Kraanwater" (villawijk): bestelling `S.wijnOrder` (naam, jaar, fles, 3 van de 5 versieringen `WIJNDECO`), te zien in de
+achterkamer (`wijnBlok`); namaken in `toonWijn` uit je hoofd (fles, versieringen, jaar), 6 flessen voor €18 (`WIJNBATCH`), q = 0,6 versieringen
++ 0,25 jaar + 0,15 fles. `S.wijn` = { n, q, naam, jaar }: tijdens de dag kopen villabewoners (en soms anderen) bij het eten een fles voor
+€20 + €70q (`tel.wijn` in het dagoverzicht). Sommelier Sébastien (vraag 'sommelier', bezoeker rij 11, portret 12, uit `pizza/sommelier-gemini.jpg`)
+proeft als er flessen liggen: q < 0,8 = betrapt (flessen weg, €150 boete, populariteit −5). Plaatjes `pizza/wijn.png` (13 vakjes van 160, uit
+`pizza/wijn-gemini.jpg`, volgorde staat bij `WIJNNAAM` in de code; `wijnDing`).
