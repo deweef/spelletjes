@@ -79,7 +79,7 @@ kaartpixels). Zonder manager alleen tijdens het inrichten. Bank: lenen aan het l
 getter); markt: 3 aanbiedingen per dag (`marktAanbod`, vast per dag) = halve prijs op een ingrediënt (`S.korting`); politie: aangifte tegen
 Luigi na sabotage (`S.gesaboteerd`, `S.aangifte`; 60% = `S.luigiRust` 10 dagen geen sabotage); studentenhuis: flyers (€15, morgen meer klanten
 en 2x zoveel studenten: `S.studentenMorgen` → `vandaag.studenten`); Luigi, Shoarma Ahmet, kunstuitleen, bouwplaats: alleen een tekstje;
-drie panden te huur (`huur`, `buurt`) voor de tweede pizzeria (nog niet).
+drie panden te huur (`huur` per dag, `borg`, `buurt`) voor een tweede (en derde, vierde) pizzeria, zie hieronder.
 Plan en volgende stappen: `pizza/PLAN.md`.
 Paneel op de telefoon: de knoppen Tafel en Plant (versiering) en Obers openen een keuzelijstje met plaatje, naam en prijs (`toonKeuze` in `#menu`,
 `dataset.knop`; staand boven de knop, liggend links ervan), want in staande stand staan er geen prijzen op de knoppen. Obers: aannemen
@@ -117,3 +117,10 @@ een willekeurig antwoord (met gevolgen) en regelen Sandra/Bruno het zonder gevol
 bent. Kevin belt ook om onzin (`ONZIN`). Sandra en Bruno ruimen vlekken op. Bruno: fooi × 1,12, en elke 5 dagen vraag 'opslag' (via
 `S.verplicht`; nee = 40% kans dat hij vertrekt). Terug in de zaak: `toonWegLog` laat zien wat er gebeurde (`wegLog`). Dagen in dienst tellen
 mee voor de tweede pizzeria (≥ 7).
+Meer pizzeria's (`S.zaken`, `S.zaak`, `ZAAKVELD`, `BUURT`): per zaak eigen spullen, ovens, obers, grote ovens, vloer, populariteit, manager,
+vuil, huur en buurt; van de zaak waar je bent staan die velden in S zelf (`bewaarZaak`, `wisselZaak`), de andere in `S.zaken[i]`. Geld, menu,
+leningen, belasting en de achterkamer (alleen in de eerste zaak: sleutel en deurtje) zijn gedeeld. Huren in de stad (pand `huur1-3`): kan als de
+manager van je huidige zaak ≥ 7 dagen in dienst is; borg €2000/€3000/€4500, huur €40/€70/€110 per dag. Wisselen in de stad, alleen 's ochtends
+(knop "Naar deze zaak"). Buurt: andere klanten (`BUURT[..].soort` in `kiesSoort`) en drukte (`aankomst`). Een zaak waar je niet bent rekent
+`simuleerZaak` 's avonds door (stoelen × populariteit × drukte, begrensd door ovens en obers; Kevin 80%); zonder manager dicht maar wel huur.
+In het dagoverzicht per andere zaak een regel. Getest 27 okt: toeristen kwamen naar het plein, Sandra's zaak gaf op zaterdag 52 klanten.

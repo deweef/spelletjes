@@ -329,7 +329,7 @@ const LEKKER = { // per soort klant: [vond het heerlijk, vond het niks]
   opa: [['Net als vroeger!', 'Lekker zacht, voor mijn kunstgebit.', 'Dat hadden wij vroeger niet!'], ['Veel te heet! Water!', 'Vroeger was alles beter.', 'Daar kan ik niet op kauwen.']],
 };
 function kiesSoort() { // op zondag komen er meer opa's en oma's, op vrijdag meer werkers en studenten
-  const wd = modus == 'inrichten' ? 0 : weekdag(), w = Object.entries(SOORT).map(([k, d]) => [k, d.kans * (wd == 6 && k == 'opa' ? 2.5 : wd == 4 && (k == 'werker' || k == 'student') ? 1.4 : 1) * (k == 'student' && vandaag.studenten ? 2 : 1)]);
+  const wd = modus == 'inrichten' ? 0 : weekdag(), w = Object.entries(SOORT).map(([k, d]) => [k, d.kans * (wd == 6 && k == 'opa' ? 2.5 : wd == 4 && (k == 'werker' || k == 'student') ? 1.4 : 1) * (k == 'student' && vandaag.studenten ? 2 : 1) * ((BUURT[S.buurt] || BUURT.oud).soort[k] ?? 1)]);
   let r = Math.random() * w.reduce((a, [, v]) => a + v, 0); for (const [k, v] of w) if ((r -= v) < 0) return k; return 'werker'; }
 
 // ---------- spullen en stoelen ----------
@@ -423,6 +423,37 @@ if (S.versie == 3) {
   for (const j of [...S.spullen]) { const d = SPUL[j.t]; if (d && vrij(j.x, j.y, d.w, d.h, j) && aanDeMuur(d, j.x)) continue;
     S.spullen.splice(S.spullen.indexOf(j), 1); n++; terug += (d ? d.prijs : 0) + (kleedVan(j) ? KLEED[kleedVan(j)].prijs : 0) + (j.kaars ? EXTRA.kaars.prijs : 0); }
   S.geld += terug; S.versie = 4; if (n) S.verbouwd = { n, terug };
+}
+// ---------- meer pizzeria's ----------
+// S.zaken = per zaak de eigen spullen, keuken, personeel, populariteit en manager (ZAAKVELD); van de zaak waar je nu bent (S.zaak) staan die
+// velden gewoon in S zelf (dan hoeft de rest van het spel niets te weten). Geld, pizza's, leningen en de achterkamer zijn van iedereen.
+// Wisselen kan 's ochtends via de stad (`wisselZaak`); de zaak waar je niet bent draait op zijn manager en wordt 's avonds doorgerekend (`simuleerZaak`).
+const ZAAKVELD = ['plek', 'buurt', 'huur', 'spullen', 'ovens', 'obers', 'groot', 'vloer', 'rep', 'manager', 'vuil', 'omzetGisteren'];
+const BUURT = {
+  oud: { n: 'De eerste zaak', aankomst: 1, soort: {}, rep: 20, uitleg: '' },
+  studenten: { n: 'Studentenbuurt', kort: 'STUDENT', aankomst: 1.1, soort: { student: 3.5, villa: 0.3 }, rep: 25, uitleg: 'Hier wonen veel studenten: veel klanten, maar ze hebben weinig geld en houden van vet en zout.' },
+  toeristen: { n: 'Aan het plein', kort: 'PLEIN', aankomst: 1.15, soort: { toerist: 4 }, rep: 30, uitleg: 'Toeristen met een fototoestel: ze betalen goed en willen iets bijzonders proeven.' },
+  villa: { n: 'Villawijk', kort: 'VILLA', aankomst: 0.85, soort: { villa: 5, student: 0.2, werker: 0.4 }, rep: 30, uitleg: 'Rijke villabewoners: minder klanten, maar ze hebben het grootste budget (en willen het gezellig).' } };
+if (!S.zaken) { S.zaken = [{}]; S.zaak = 0; S.plek = 'zaak'; S.buurt = 'oud'; }
+const zaakVan = (plek) => S.zaken.findIndex((z, i) => (i == S.zaak ? S.plek : z.plek) == plek);
+const zaakNaam = () => 'Pizzeria ' + (speler || 'de baas') + (S.zaak ? ' (' + BUURT[S.buurt].n.toLowerCase() + ')' : '');
+function bewaarZaak() { const z = {}; for (const k of ZAAKVELD) z[k] = S[k]; S.zaken[S.zaak] = z; }
+function wisselZaak(n) {
+  bewaarZaak(); const z = S.zaken[n]; for (const k of ZAAKVELD) S[k] = z[k]; S.zaken[n] = {}; S.zaak = n;
+  repareer(); bezet = null; tekenAchter(); maakPersoneel(); bewaar(); tekenKnoppen();
+}
+function simuleerZaak(z, wd) { // een zaak waar je vandaag niet was: een schatting van de dag, als er een manager is
+  const B = BUURT[z.buurt] || BUURT.oud, huur = z.huur || HUUR;
+  if (!z.manager) return { winst: -huur, tekst: `dicht (geen manager), huur − € ${huur}` };
+  const M = MANAGER[z.manager.wie], stoelen = (z.spullen || []).filter((s) => s.t == 'stoel').length, rep = z.rep || 20;
+  const keuken = (z.ovens || 1) * 30 * (1 + 0.5 * ((z.groot || []).filter(Boolean).length / Math.max(1, z.ovens || 1))), bediening = (z.obers || 1) * 30;
+  const vraag = stoelen * 2.4 * (0.4 + rep / 100) * DRUKTE[wd] * B.aankomst * (M.gok ? 0.8 : 1);
+  const klanten = Math.round(Math.min(vraag, keuken, bediening) * (0.85 + Math.random() * 0.3));
+  const prijs = S.menu.reduce((a, p) => a + p.prijs, 0) / S.menu.length, inkoop = S.menu.reduce((a, p) => a + smaak(p).k, 0) / S.menu.length;
+  const omzet = Math.round(klanten * prijs), fooi = Math.round(klanten * 0.8 * (M.fooi || 1)), loon = ((z.obers || 1) - 1) * LOON + M.loon + (z.manager.opslag || 0);
+  const winst = omzet + fooi - Math.round(klanten * inkoop) - loon - huur;
+  z.rep = Math.max(0, Math.min(100, rep + (M.gok ? -0.5 : 0.4) + (vraag > Math.min(keuken, bediening) * 1.3 ? -0.5 : 0))); z.manager.dagen = (z.manager.dagen || 0) + 1; z.omzetGisteren = omzet;
+  return { winst, tekst: `${klanten} klanten, omzet € ${omzet} + fooi € ${fooi}, winst € ${winst} (${M.n})` };
 }
 repareer();
 const gemGezellig = () => { const t = S.spullen.filter(isTafel); return t.length ? t.reduce((a, s) => a + gezellig(s), 0) / t.length : 0; };
@@ -572,7 +603,7 @@ function openDeuren() {
   bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
   if (S.bonnen && S.bonnen.tot >= S.dag) { vandaag.aankomst *= 1 + 0.4 * S.bonnen.q; if (kans(0.12 + (1 - S.bonnen.q) * 0.4)) S.verplicht = [...(S.verplicht || []), 'luigiBoos']; } // valse bonnen
   sabotageVandaag(); if (S.studentenMorgen) { vandaag.studenten = true; S.studentenMorgen = false; } // flyers bij het studentenhuis
-  const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
+  vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (laatsteVanDeMaand() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen(); wegLog = [];
@@ -581,8 +612,10 @@ function openDeuren() {
 }
 function eindeDag() {
   modus = 'inrichten';
-  const manLoon = MANLOON(), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi - tel.kosten - HUUR - lonen;
-  S.geld += -HUUR - lonen - (tel.ing || 0);
+  const huur = S.huur || HUUR, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
+  const andereWinst = anderen.reduce((a, o) => a + o.winst, 0);
+  const manLoon = MANLOON(), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi - tel.kosten - huur - lonen + andereWinst;
+  S.geld += -huur - lonen - (tel.ing || 0) + andereWinst;
   let manWeg = ''; if (S.manager) { const M = MANAGER[S.manager.wie]; S.manager.dagen = (S.manager.dagen || 0) + 1;
     if (S.geld < 0) { manWeg = `${M.n} is ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
     else if (S.manager.wie == 'bruno' && S.manager.dagen % 5 == 4) S.verplicht = [...(S.verplicht || []), 'opslag']; } // Bruno wil opslag
@@ -607,7 +640,7 @@ function eindeDag() {
       <tr><td>🍕 Pizza's verkocht</td><td>€ ${Math.round(tel.omzet)}</td></tr>
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
       <tr><td>🧀 Ingrediënten (groothandel)</td><td>− € ${Math.round(tel.ing || 0)}</td></tr>${tel.kosten - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.ing || 0))}</td></tr>` : ''}
-      <tr><td>🏠 Huur</td><td>− € ${HUUR}</td></tr>
+      <tr><td>🏠 Huur</td><td>− € ${huur}</td></tr>${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${esc(o.tekst)}</td></tr>`).join('')}
       ${lonen - manLoon ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen - manLoon}</td></tr>` : ''}${manLoon ? `<tr><td>📋 Loon manager</td><td>− € ${manLoon}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
       ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
@@ -872,7 +905,7 @@ const VRAGEN = [
     vraag: () => `Signore, ik werk hier nu ${S.manager ? S.manager.dagen : 'al een paar'} dagen. De klanten houden van mij, de fooien stijgen… Een kleine opslag? Vijftien euro per dag.`,
     a: [['Natuurlijk, Bruno. Je verdient het.', () => { if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno kust je op beide wangen. "Grazie, signore!"'; }],
       ['Nee, daar is geen geld voor.', () => { if (Math.random() < 0.4 && S.manager) { S.manager = null; man = null; return 'Bruno zet zijn hoed op. "Dan ga ik naar Luigi." Weg is hij. (Je hebt geen manager meer.)'; } return 'Bruno zucht diep. "Va bene. Voorlopig."'; }],
-      ['Hier, een fles van onze beste wijn.', () => { ge(-25); if (Math.random() < 0.6) return 'Bruno ruikt eraan. "Ah, een Barolo! Voor nu ben ik tevreden." (− € 25)'; S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno: "Wijn betaalt mijn huur niet." Hij krijgt de opslag toch. (− € 25, en € 15 per dag extra)'; }] ] },
+      ['Hier, een fles van onze beste wijn.', () => { ge(-25); if (Math.random() < 0.6) return 'Bruno ruikt eraan. "Ah, een Barolo! Voor nu ben ik tevreden." (− € 25)'; if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno: "Wijn betaalt mijn huur niet." Hij krijgt de opslag toch. (− € 25, en € 15 per dag extra)'; }] ] },
   { id: 'gleufhoed', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 4, als: () => S.spullen.some((s) => s.t == 'schilderij') && !S.achterkamer,
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
@@ -957,7 +990,7 @@ function tekenLuikEnDeur() {
     g.fillStyle = '#5a3216'; g.fillRect(x0 - 1, y0 - 2, 3, 24); g.fillRect(x0 + w - 2, y0 - 2, 3, 24);
     g.fillStyle = '#b07a44'; g.fillRect(x0, y0 - 20, w, 18); g.fillStyle = '#d9a46a'; g.fillRect(x0, y0 - 20, w, 2); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x0, y0 - 4, w, 2);
   }
-  if (!S.achterkamer && !(bezoeker && bezoeker.achter)) return;
+  if ((!S.achterkamer || S.zaak > 0) && !(bezoeker && bezoeker.achter)) return;
   const dx = (LUIK_X - 0.45) * T, dw = 0.9 * T, dh = 1.05 * T; // deurtje bovenin de keuken, half in de muur
   g.fillStyle = '#3a2414'; g.fillRect(dx - 4, -6, dw + 8, dh + 6); // kozijn
   g.fillStyle = '#140a05'; g.fillRect(dx, -2, dw, dh); // donker erachter
@@ -1115,9 +1148,9 @@ const PLEK = {
   turk: { n: 'Shoarma Ahmet', ik: '🥙', x: 420, y: 290, b: 115, h: 110 },
   kunst: { n: 'Kunstuitleen', ik: '🖼️', x: 560, y: 490, b: 100, h: 110 },
   studenten: { n: 'Studentenhuis', ik: '🎓', x: 110, y: 520, b: 170, h: 170 },
-  huur1: { n: 'Te huur: klein pand', ik: '🏚️', x: 580, y: 40, b: 130, h: 115, huur: 600, buurt: 'studenten' },
-  huur2: { n: 'Te huur: aan het plein', ik: '🏠', x: 715, y: 180, b: 110, h: 135, huur: 1200, buurt: 'toeristen' },
-  huur3: { n: 'Te huur: villa met tuin', ik: '🏡', x: 1100, y: 130, b: 200, h: 170, huur: 2500, buurt: 'villa' },
+  huur1: { n: 'Te huur: klein pand', ik: '🏚️', x: 580, y: 40, b: 130, h: 115, huur: 40, borg: 2000, buurt: 'studenten' },
+  huur2: { n: 'Te huur: aan het plein', ik: '🏠', x: 715, y: 180, b: 110, h: 135, huur: 70, borg: 3000, buurt: 'toeristen' },
+  huur3: { n: 'Te huur: villa met tuin', ik: '🏡', x: 1100, y: 130, b: 200, h: 170, huur: 110, borg: 4500, buurt: 'villa' },
   bouw: { n: 'Bouwplaats', ik: '🏗️', x: 1000, y: 440, b: 260, h: 220 },
 };
 let aanBalie = false; // langs bij de bank: 1% minder rente
@@ -1129,7 +1162,7 @@ function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze ni
 function toonStad(plek) {
   const k = $('stadkaart');
   if (!plek) {
-    k.innerHTML = `<div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%"><span>${p.ik} ${esc(p.n)}</span></button>`).join('')}</div>
+    k.innerHTML = `<div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%"><span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div>
       ${modus != 'inrichten' && S.manager ? `<p class="buurt" style="text-align:center">🕒 De zaak is open. ${esc(MANAGER[S.manager.wie].n)} past op de winkel${S.manager.wie == 'kevin' ? '… hopelijk' : ''}.</p>` : ''}
       <p class="buurt" style="text-align:center">Tik op een plek in de stad. <button class="knop" id="stadterug" style="margin-left:8px">🍕 Terug naar je zaak</button></p>`;
     k.querySelectorAll('[data-plek]').forEach((b) => b.onclick = () => toonStad(b.dataset.plek));
@@ -1138,7 +1171,6 @@ function toonStad(plek) {
   }
   const p = PLEK[plek], terug = `<button class="knop" id="plekterug">🗺️ Terug naar de kaart</button>`;
   let h = `<h1>${p.ik} ${esc(p.n)}</h1>`, knoppen = '';
-  if (plek == 'zaak') { $('stad').classList.add('verborgen'); tekenKnoppen(); toonWegLog(); return; }
   if (plek == 'bank') { h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button>`; }
   if (plek == 'markt') {
     const aanbod = marktAanbod(), heb = S.korting && S.korting.tot > S.dag ? S.korting : null;
@@ -1154,11 +1186,24 @@ function toonStad(plek) {
   if (plek == 'turk') h += `<p>Ahmet zwaait vanachter het draaiende spit. "${pak(['Hé buurman! Jij pizza, ik shoarma, samen houden we Luigi klein!', 'Probeer mijn knoflooksaus, daar krijg je haar op je borst van!', 'Kapsalon is eigenlijk ook een soort pizza, toch? Geintje!'])}"</p>`;
   if (plek == 'kunst') h += `<p>Een stille zaal vol schilderijen. Een mevrouw met een bril op het puntje van haar neus kijkt je streng aan. "Niet aankomen." ${S.achterkamer ? 'Je bekijkt de Van Goghs heel goed… voor later.' : ''}</p><p class="buurt">(Hier kun je later schilderijen lenen.)</p>`;
   if (plek == 'studenten') { h += `<p>Fietsen tegen de gevel, muziek uit een open raam en een bank op het grasveld. "Pizza? Als het goedkoop is, zijn wij er!"</p>`; knoppen = `<button class="knop rood" id="flyers" ${S.geld < 15 || S.flyers == S.dag ? 'disabled' : ''}>📄 Flyers uitdelen (€ 15)</button>`; }
-  if (p.huur) h += `<p>Een leeg pand${p.buurt == 'studenten' ? ' in een smal straatje vol fietsen' : p.buurt == 'toeristen' ? ' aan het plein, vlak bij de fontein' : ' met een grote tuin, in de villawijk'}. Huur: <b>€ ${p.huur} per maand</b>.</p>
-    <p class="buurt">Een tweede pizzeria kan pas als je een manager hebt die minstens een week bij je werkt, en € 2000 voor de borg en de verbouwing. (Komt later.)</p>`;
+  if (plek == 'zaak' || p.huur) { const nr = zaakVan(plek);
+    if (nr >= 0) { const z = nr == S.zaak ? S : S.zaken[nr];
+      h += `<p>Dit is <b>jouw pizzeria</b>${nr ? ' (' + esc(BUURT[p.buurt].n.toLowerCase()) + ')' : ''}. ${nr == S.zaak ? 'Hier sta je vandaag zelf.' : z.manager ? esc(MANAGER[z.manager.wie].n) + ' runt hem voor je.' : 'Er is geen manager: als je er niet bent, blijft hij dicht.'}</p>`;
+      if (nr != S.zaak) knoppen = `<button class="knop rood" id="wissel" ${modus != 'inrichten' ? 'disabled' : ''}>🍕 Naar deze zaak${modus != 'inrichten' ? ' (morgenochtend)' : ''}</button>`;
+      else knoppen = `<button class="knop rood" id="naarzaak">🍕 Terug naar binnen</button>`; }
+    else { const B = BUURT[p.buurt], m = S.manager, mag = m && (m.dagen || 0) >= 7;
+      h += `<p>Een leeg pand${p.buurt == 'studenten' ? ' in een smal straatje vol fietsen' : p.buurt == 'toeristen' ? ' aan het plein, vlak bij de fontein' : ' met een grote tuin, in de villawijk'}. ${esc(B.uitleg)}</p>
+        <p>Borg en verbouwing: <b>€ ${p.borg}</b>, daarna <b>€ ${p.huur} huur per dag</b>.</p>
+        <p class="buurt">${mag ? `Je manager ${esc(MANAGER[m.wie].n)} kan je huidige zaak runnen terwijl jij hier begint.` : 'Een tweede pizzeria kan pas als je een manager hebt die minstens een week bij je werkt (Personeel): die runt dan je zaak als jij er niet bent.'}</p>`;
+      knoppen = `<button class="knop rood" id="huren" ${!mag || S.geld < p.borg ? 'disabled' : ''}>🔑 Huren (€ ${p.borg})</button>`; } }
   if (plek == 'bouw') h += `<p>Een kraan, zand en een bord: "Hier komt binnenkort: ????". De bouwvakkers eten trouwens graag pizza…</p>`;
   const k2 = $('stadkaart'); k2.innerHTML = `<div class="kaart" style="margin:auto">${h}<div class="rij">${knoppen}${terug}</div></div>`;
   $('plekterug').onclick = () => toonStad();
+  if ($('naarzaak')) $('naarzaak').onclick = () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); toonWegLog(); };
+  if ($('wissel')) $('wissel').onclick = () => { wisselZaak(zaakVan(plek)); $('stad').classList.add('verborgen'); meld('Welkom in ' + zaakNaam() + '!', 3000); };
+  if ($('huren')) $('huren').onclick = () => { if (!confirm(`Dit pand huren voor € ${p.borg} (en € ${p.huur} per dag)?`)) return;
+    ge(-p.borg); bewaarZaak(); S.zaken.push({ plek, buurt: p.buurt, huur: p.huur, spullen: BEGIN(), ovens: 1, obers: 1, groot: [], rep: BUURT[p.buurt].rep, manager: null, vuil: 0 });
+    kassa(); bewaar(); tekenKnoppen(); toonStad(plek); meld('Gefeliciteerd, je hebt een tweede pizzeria! Ga er \'s ochtends heen om hem in te richten.', 5000); };
   if ($('balie')) $('balie').onclick = () => { aanBalie = true; toonBank(); };
   if ($('aangifte')) $('aangifte').onclick = () => { S.aangifte = S.dag; if (kans(0.6)) { S.luigiRust = S.dag + 10; ge(0); bewaar(); meld('De politie gaat met Luigi praten. Hij laat je voorlopig met rust.'); } else meld('"Zonder bewijs kunnen we weinig doen," zegt agent Jansen.'); bewaar(); toonStad('politie'); };
   if ($('flyers')) $('flyers').onclick = () => { ge(-15); S.flyers = S.dag; S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.15 }; S.studentenMorgen = true; bewaar(); tekenKnoppen(); meld('Flyers uitgedeeld! Morgen komen er meer studenten.'); toonStad('studenten'); };
@@ -1755,7 +1800,7 @@ function teken(nu) {
   klaar.filter((b) => (b.oven || 0) == i).forEach((b, j) => { const x = (ux + 0.1 + (j % 4) * 0.48) * T, y = ty - Math.floor(j / 4) * 6; g.fillStyle = '#eee'; g.beginPath(); g.arc(x, y, 12, 0, 7); g.fill(); pizza(x, y, 9.5); });
   }
   g.fillStyle = '#fff'; g.font = 'bold 15px system-ui'; g.textAlign = 'center';
-  g.fillText('PIZZERIA' + (speler ? ' ' + speler.toUpperCase() : ''), WW / 2 - 170, H * T + 20); g.fillText('🍕', WW / 2 + 170, H * T + 21);
+  g.fillText('PIZZERIA' + (speler ? ' ' + speler.toUpperCase() : '') + (S.zaak && BUURT[S.buurt] ? ' · ' + BUURT[S.buurt].kort : ''), WW / 2 - 170, H * T + 20); g.fillText('🍕', WW / 2 + 170, H * T + 21);
 
   // spullen
   const zitten = mensen.filter((m) => m.st == 'wacht' || m.st == 'eet');
@@ -2196,7 +2241,7 @@ function bewaarPizza() {
 
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
-  $('sleutel').classList.toggle('verborgen', !S.achterkamer);
+  $('sleutel').classList.toggle('verborgen', !S.achterkamer || S.zaak > 0); // de achterkamer zit achter de eerste zaak
   $('stadknop').disabled = modus != 'inrichten' && !S.manager; // zonder manager alleen 's ochtends de deur uit
   const k = $('raster'), open = modus != 'inrichten';
   let h = '';
@@ -2291,7 +2336,7 @@ function balk(nu) {
   const f = modus == 'inrichten' ? 0 : Math.min(1, klok / DAG);
   const wacht = tel.wachtN ? Math.round(tel.wacht / tel.wachtN) : 0;
   const rij = (a, b) => a.padEnd(13, ' ') + String(b).padStart(5, ' ');
-  $('lcd').innerHTML = `<span class="kop">${datumKort()}  ${modus == 'inrichten' ? 'INRICHTEN' : uur(f)}</span><span class="kop">PIZZERIA ${esc((speler || 'DE BAAS').toUpperCase().slice(0, 10))}</span>` +
+  $('lcd').innerHTML = `<span class="kop">${datumKort()}  ${modus == 'inrichten' ? 'INRICHTEN' : uur(f)}</span><span class="kop">PIZZERIA ${esc((speler || 'DE BAAS').toUpperCase().slice(0, 10))}${S.zaak && BUURT[S.buurt] ? ' ' + BUURT[S.buurt].kort : ''}</span>` +
     [rij('POPULARITEIT', Math.round(S.rep)), rij('KOKS', S.ovens), rij('OBERS', S.obers), rij('MANAGER', S.manager ? 'JA' : 'NEE'), rij('TAFELS', S.spullen.filter(isTafel).length), rij('GEZELLIG', gemGezellig().toFixed(1)),
      rij("PIZZA'S", kl(tel.blij)), rij('WACHTTIJD', wacht + ' s')].join('\n') + `<span class="geld">€ ${Math.floor(S.geld)}</span>`;
 }
