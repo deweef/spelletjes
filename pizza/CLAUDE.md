@@ -128,3 +128,10 @@ Stoelsoorten (`STOELSOORT`, `s.stijl`, `stijlVan`; oud `s.hout` = kussen): blauw
 zonder leuning); kiezen in het stoelmenu met kleurknopjes, nieuwe stoelen krijgen de laatst gekozen soort (`S.stoelStijl`). Staat er maar één
 stoel aan een kant van een tafel, dan staat hij (en wie erop zit) recht voor het midden van die kant (`indeling().plekVan`, alleen getekend: de
 stoel bezet nog steeds zijn eigen tegel). Stadskaart op de telefoon: 920 px breed in `#kaartrol` (schuiven met een vinger), begint in het midden.
+Barrie de Bink (vraag 'barrie': komt in de eerste zaak als je de achterkamer hebt en Luigi je de laatste 5 dagen saboteerde; bezoeker rij 4 in
+`pizza/bezoekers.png`, portret 5 in `pizza/portretten.png`, uit `pizza/barrie-gemini.jpg`; zijn derde rugplaatje was eigenlijk van voren en is
+vervangen). Antwoord C ("Wraak is een gerecht…") = `S.barrie`, hij loopt net als Gerrit door het luik naar de achterkamer. Daar het klusjesbord
+`KLUS` (stinkbom, ratten, nep-recensie, keuringsdienst tippen): kost geld, geeft `dagen` lang meer klanten (`S.klus`, `bonus` in openDeuren),
+maar met kans `risico` gesnapt (€200 boete, populariteit −8) of ziet Luigi het (morgen sabotage). Elke klus verhoogt `S.ruzie` (0-100,
+`ruzieTekst`); elke avond kans ruzie/300 dat Luigi zelf saboteert, ruzie −5. Vrede (`VREDE`): limoncello (5 dagen) of grappa (8 dagen) =
+`S.luigiRust`, ruzie 0. Op de stadskaart zie je bij Luigi wat er aan de hand is.
