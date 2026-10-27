@@ -139,7 +139,9 @@ Crypto (`S.crypto` = { koers, hist (20 dagen), bezit, nieuws }, `crypto()` maakt
 `vol`), elke avond `cryptoAvond` (willekeurige sprong, 30% kans op `CRYPTONIEUWS` met een grote klap; MozzaMunt kan herstarten na een
 instorting). Erbij komen: Gerrit betaalt een vervalsing in 45% van de gevallen in crypto, en klant-vraag 'cryptoklant'; dan `kiesMunt` (via
 `naVraag`, na Verder): je kiest de munt zonder de koers te zien. Laptop in de achterkamer (`cryptoBlok(false)`: koers, grafiekje `koersLijn`,
-bezit, munten kopen voor €50). Euro's ervan maken: alleen bij Snelle Sjonnie in de stad (`PLEK.wissel`, `cryptoBlok(true)`, 10% commissie).
+bezit). Bankrekening `S.bankSaldo`: bij de bank in de stad contant storten en opnemen; op de laptop kopen (van de bank) en verkopen (naar de bank)
+met `PROVISIE` 3% (wisselen = verkopen + kopen = twee keer provisie). Crypto meteen contant: bij Snelle Sjonnie (`PLEK.wissel`, `cryptoBlok(true)`, 10%).
+Failliet en Pizzakoning tellen het bankgeld mee.
 Het dagoverzicht toont het cryptonieuws als je munten hebt.
 Minispel Toren van Pizza (`toonToren`, `#toren` z-index 10, canvas `#torendoek` 360x540; via de bouwplaats in de stad, knop "Pizza's stapelen"):
 een pizza slingert (`hangX`, sneller en wijder naarmate de toren hoger wordt), tik = vallen (`torenTik`); landen naast de vorige maakt de
