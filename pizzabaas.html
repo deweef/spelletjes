@@ -77,7 +77,9 @@
   #stadknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 108px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #stadknop:disabled { opacity: .35; }
   #zoomknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 158px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
-  #kaartvak { position: relative; width: min(100%, 1100px); margin: 0 auto; border: 6px solid #7a4520; border-radius: 10px; overflow: hidden; }
+  #kaartrol { width: min(100%, 1100px); max-width: calc(100vw - 28px); margin: 0 auto; border: 6px solid #7a4520; border-radius: 10px; overflow: auto; -webkit-overflow-scrolling: touch; }
+  #kaartvak { position: relative; width: 100%; aspect-ratio: 1376 / 768; }
+  @media (max-width: 760px) { #kaartvak { width: 920px; } .plek span { font-size: 11px; } } /* telefoon: kaart groter, schuiven met een vinger */
   #kaartvak img { display: block; width: 100%; image-rendering: pixelated; }
   .plek { position: absolute; border: 0; background: transparent; cursor: pointer; padding: 0; border-radius: 8px; }
   .plek span { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); white-space: nowrap; background: rgba(40,20,8,.85); color: #fff7e8; font: 700 12px system-ui; padding: 3px 7px; border-radius: 8px; pointer-events: none; }
@@ -366,7 +368,12 @@ function indeling() { // per tafel de stoelen eromheen ({ sx, sy, kant, stoel })
   const per = new Map(), kantVan = new Map();
   for (const t of S.spullen) if (isTafel(t)) per.set(t, []);
   for (const c of S.spullen) if (c.t == 'stoel') { const { kant, tafel } = kantVoor(c.x, c.y); kantVan.set(c, kant); if (tafel) per.get(tafel).push({ sx: c.x + 0.5, sy: c.y + 0.5, kant, stoel: c }); }
-  indelingSleutel = k; return indelingData = { per, kantVan };
+  const plekVan = new Map();
+  for (const [t, ps] of per) { const [mx, my] = midden(t);
+    for (const p of ps) { const zelfde = ps.filter((q) => q.kant == p.kant).length; // de enige stoel aan deze kant: recht voor het midden van de tafel
+      if (zelfde == 1) { if (p.kant < 2) p.sx = mx; else p.sy = my; }
+      p.sx += RICHTING[p.kant][0] * 0.06; p.sy += RICHTING[p.kant][1] * 0.06; plekVan.set(p.stoel, p); } }
+  indelingSleutel = k; return indelingData = { per, kantVan, plekVan };
 }
 const stoelPlekken = (t) => indeling().per.get(t) || [];
 const stoelen = (t) => stoelPlekken(t).map((p) => [p.sx, p.sy]); // plekken (in tegels, middelpunt) waar klanten zitten
@@ -1162,12 +1169,12 @@ function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze ni
 function toonStad(plek) {
   const k = $('stadkaart');
   if (!plek) {
-    k.innerHTML = `<div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%"><span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div>
+    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%"><span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
       ${modus != 'inrichten' && S.manager ? `<p class="buurt" style="text-align:center">🕒 De zaak is open. ${esc(MANAGER[S.manager.wie].n)} past op de winkel${S.manager.wie == 'kevin' ? '… hopelijk' : ''}.</p>` : ''}
       <p class="buurt" style="text-align:center">Tik op een plek in de stad. <button class="knop" id="stadterug" style="margin-left:8px">🍕 Terug naar je zaak</button></p>`;
     k.querySelectorAll('[data-plek]').forEach((b) => b.onclick = () => toonStad(b.dataset.plek));
     $('stadterug').onclick = () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); toonWegLog(); };
-    $('stad').classList.remove('verborgen'); return;
+    $('stad').classList.remove('verborgen'); requestAnimationFrame(() => { const rol = $('kaartrol'); if (rol) rol.scrollLeft = (rol.scrollWidth - rol.clientWidth) / 2; }); return; // telefoon: begin in het midden
   }
   const p = PLEK[plek], terug = `<button class="knop" id="plekterug">🗺️ Terug naar de kaart</button>`;
   let h = `<h1>${p.ik} ${esc(p.n)}</h1>`, knoppen = '';
@@ -1890,14 +1897,28 @@ const STOELEN = new Image(); STOELEN.src = 'pizza/stoelen.png';
 // stijl: s.hout = houten caféstoel met rood kussen (tweede rij in pizza/stoelen.png, uit pizza/stoelen5-gemini.jpg)
 // stoel recht van bovenaf, zoals in het origineel: houten frame, zitting (blauw-wit gestreept, of rood kussen bij hout) en de leuning
 // als dikke houten balk aan de kant van de tafel af. De schaduw valt altijd naar rechtsonder.
-function rechteStoel({ sx, sy, kant, hout }) {
+const STOELSOORT = { // s.stijl (oud: s.hout = kussen); nieuwe stoelen krijgen de laatst gekozen soort (S.stoelStijl)
+  streep: { n: 'Blauw gestreept', kl: '#3f6fb5' }, groen: { n: 'Groen gestreept', kl: '#2e8b57' }, kussen: { n: 'Rood kussen', kl: '#b52a22' },
+  leer: { n: 'Zwart leer', kl: '#222' }, riet: { n: 'Rieten stoel', kl: '#d9b26a' }, kruk: { n: 'Krukje', kl: '#8a5428' } };
+const stijlVan = (s) => STOELSOORT[s.stijl] ? s.stijl : s.hout ? 'kussen' : 'streep';
+function rechteStoel({ sx, sy, kant, stijl }) {
   const x = sx * T, y = sy * T, r = 21;
+  if (stijl == 'kruk') { // rond krukje zonder leuning
+    g.fillStyle = 'rgba(45,18,6,.4)'; g.beginPath(); g.arc(x + 6, y + 6, 17, 0, 7); g.fill();
+    g.fillStyle = '#4a2a12'; g.beginPath(); g.arc(x, y, 17, 0, 7); g.fill(); g.fillStyle = '#b52a22'; g.beginPath(); g.arc(x, y, 13, 0, 7); g.fill();
+    g.fillStyle = '#d94a3a'; g.beginPath(); g.arc(x - 4, y - 4, 6, 0, 7); g.fill(); g.fillStyle = '#c9a227'; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; g.fillRect(x + Math.cos(a) * 15 - 1, y + Math.sin(a) * 15 - 1, 2, 2); }
+    return;
+  }
+  const hout = stijl == 'kussen';
   g.fillStyle = 'rgba(45,18,6,.4)'; g.fillRect(x - r + 7, y - r + 6, 2 * r, 2 * r);
   g.save(); g.translate(x, y); g.rotate([0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
   g.fillStyle = '#4a2a12'; g.fillRect(-r, -r, 2 * r, 2 * r); // frame
-  g.fillStyle = hout ? '#8a5428' : '#9a6a3c'; g.fillRect(-r + 2, -r + 2, 2 * r - 4, 2 * r - 4);
+  const lijst = stijl == 'riet' ? '#c99a52' : stijl == 'leer' ? '#2a1a10' : hout ? '#8a5428' : '#9a6a3c';
+  g.fillStyle = lijst; g.fillRect(-r + 2, -r + 2, 2 * r - 4, 2 * r - 4);
   if (hout) { g.fillStyle = '#b52a22'; g.fillRect(-13, -8, 26, 22); g.fillStyle = '#d94a3a'; g.fillRect(-11, -6, 15, 8); }
-  else { g.fillStyle = '#eef3f8'; g.fillRect(-14, -8, 28, 23); g.fillStyle = '#3f6fb5'; for (let i = -12; i < 14; i += 5) g.fillRect(i, -8, 2.5, 23); }
+  else if (stijl == 'leer') { g.fillStyle = '#1b1b1b'; g.fillRect(-14, -8, 28, 23); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(-12, -6, 10, 6); g.fillStyle = '#555'; for (const [a, b] of [[-7, 0], [7, 0], [0, 8]]) g.fillRect(a - 1, b - 1, 2, 2); }
+  else if (stijl == 'riet') { g.fillStyle = '#e8c88a'; g.fillRect(-14, -8, 28, 23); g.fillStyle = 'rgba(120,80,30,.45)'; for (let i = -14; i < 14; i += 4) { g.fillRect(i, -8, 1, 23); } for (let j = -8; j < 15; j += 4) g.fillRect(-14, j, 28, 1); }
+  else { g.fillStyle = '#eef3f8'; g.fillRect(-14, -8, 28, 23); g.fillStyle = STOELSOORT[stijl].kl; for (let i = -12; i < 14; i += 5) g.fillRect(i, -8, 2.5, 23); }
   g.fillStyle = '#3a200c'; g.fillRect(-r - 1, -r - 2, 2 * r + 2, 10); // leuning
   g.fillStyle = '#7a4a22'; g.fillRect(-r + 1, -r, 2 * r - 2, 6); g.fillStyle = 'rgba(255,230,190,.35)'; g.fillRect(-r + 2, -r, 2 * r - 4, 2);
   g.fillStyle = '#3a200c'; for (const i of [-9, 0, 9]) g.fillRect(i - 1, -r + 8, 2.5, 3); // spijlen
@@ -1944,7 +1965,7 @@ function tekenSpul(s, nu, zitten) {
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
   if (s.t == 'stoel') { // losse stoel, met de leuning van zijn tafel af
     const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y).kant;
-    rechteStoel({ sx: s.x + 0.5, sy: s.y + 0.5, kant, hout: s.hout }); if (false) stoel(x + T / 2, y + T / 2, [0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
+    const pl = indeling().plekVan.get(s); rechteStoel({ sx: pl ? pl.sx : s.x + 0.5, sy: pl ? pl.sy : s.y + 0.5, kant, stijl: stijlVan(s) }); if (false) stoel(x + T / 2, y + T / 2, [0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
     return;
   }
   const cx = midden(s)[0] * T, cy = midden(s)[1] * T;
@@ -2050,7 +2071,7 @@ doek.addEventListener('pointerdown', (e) => {
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
     if (!aanDeMuur(d, x)) { meld('Een schilderij hangt aan de muur: zet hem tegen de linker- of rechtermuur.'); return; }
     if (d.een && S.spullen.some((s) => s.t == kies)) { meld('Je hebt al een ' + d.n.toLowerCase() + '.'); return; }
-    S.spullen.push({ t: kies, x, y, ...((kies == 'stoel' ? S.houtStoel : isTafel({ t: kies }) && S.houtTafel) ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
+    S.spullen.push({ t: kies, x, y, ...(kies == 'stoel' ? { stijl: S.stoelStijl || (S.houtStoel ? 'kussen' : 'streep') } : isTafel({ t: kies }) && S.houtTafel ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
     if (d.een) kies = null;
     tekenKnoppen(); return;
   }
@@ -2090,7 +2111,8 @@ function toonMenu(s, cx, cy) {
   }
   if (s.t == 'plant') h += `<button data-a="plant">🔄 Andere plant</button>`;
   if (s.t == 'schilderij') h += `<button data-a="schilderij">🔄 Ander schilderij (${SCHILDERIJEN[(s.v || 0) % 6]})</button>`;
-  if (s.t == 'stoel' || isTafel(s)) h += `<button data-a="hout">${s.hout ? (s.t == 'stoel' ? '🪑 Gestreepte stoel' : '⬜ Marmeren tafel') : (s.t == 'stoel' ? '🪵 Houten stoel met kussen' : '🪵 Houten tafel')}</button>`;
+  if (s.t == 'stoel') h += `<div class="kleden">${Object.entries(STOELSOORT).map(([k, d]) => `<button data-a="stijl:${k}" title="${esc(d.n)}" class="${stijlVan(s) == k ? 'aan' : ''}" style="background:${d.kl}">${k == 'kruk' ? '⭕' : ''}</button>`).join('')}</div><small style="display:block;padding:2px 6px 4px;opacity:.7">${esc(STOELSOORT[stijlVan(s)].n)}</small>`;
+  if (isTafel(s)) h += `<button data-a="hout">${s.hout ? (s.t == 'stoel' ? '🪑 Gestreepte stoel' : '⬜ Marmeren tafel') : (s.t == 'stoel' ? '🪵 Houten stoel met kussen' : '🪵 Houten tafel')}</button>`;
   h += `<button data-a="verkoop">💶 Verkopen (€${Math.floor(d.prijs / 2)})</button>`;
   h += `<small style="display:block;padding:6px 6px 0;opacity:.7">Verplaatsen: vasthouden en slepen.</small>`;
   m.innerHTML = h; m.style.display = 'block';
@@ -2103,6 +2125,7 @@ function toonMenu(s, cx, cy) {
     if (a == 'kleed-' || a == 'kaars-') s[a.slice(0, -1)] = false;
     if (a == 'plant') { s.v = ((s.v || 0) + 1) % 4; plof(); }
     if (a == 'schilderij') { s.v = ((s.v || 0) + 1) % 6; plof(); }
+    if (a.startsWith('stijl:')) { s.stijl = S.stoelStijl = a.slice(6); delete s.hout; plof(); }
     if (a == 'hout') { s.hout = s.hout ? 0 : 1; if (s.t == 'stoel') S.houtStoel = s.hout; else S.houtTafel = s.hout; plof(); } // nieuwe stoelen/tafels krijgen dezelfde stijl
     if (a == 'draai') { const n = s.t == 'lang' ? 'langL' : 'lang', nx = s.x + (SPUL[s.t].w - SPUL[n].w) / 2, ny = s.y + (SPUL[s.t].h - SPUL[n].h) / 2; // om het midden draaien
       if (nx >= 0 && nx + SPUL[n].w <= W && ny >= KEUKEN && ny + SPUL[n].h <= H && vrij(nx, ny, SPUL[n].w, SPUL[n].h, s)) { s.t = n; s.x = nx; s.y = ny; plof(); } else meld('Daar is geen plek om te draaien.'); }

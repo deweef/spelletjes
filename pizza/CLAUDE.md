@@ -124,3 +124,7 @@ manager van je huidige zaak ≥ 7 dagen in dienst is; borg €2000/€3000/€45
 (knop "Naar deze zaak"). Buurt: andere klanten (`BUURT[..].soort` in `kiesSoort`) en drukte (`aankomst`). Een zaak waar je niet bent rekent
 `simuleerZaak` 's avonds door (stoelen × populariteit × drukte, begrensd door ovens en obers; Kevin 80%); zonder manager dicht maar wel huur.
 In het dagoverzicht per andere zaak een regel. Getest 27 okt: toeristen kwamen naar het plein, Sandra's zaak gaf op zaterdag 52 klanten.
+Stoelsoorten (`STOELSOORT`, `s.stijl`, `stijlVan`; oud `s.hout` = kussen): blauw/groen gestreept, rood kussen, zwart leer, riet, krukje (rond,
+zonder leuning); kiezen in het stoelmenu met kleurknopjes, nieuwe stoelen krijgen de laatst gekozen soort (`S.stoelStijl`). Staat er maar één
+stoel aan een kant van een tafel, dan staat hij (en wie erop zit) recht voor het midden van die kant (`indeling().plekVan`, alleen getekend: de
+stoel bezet nog steeds zijn eigen tegel). Stadskaart op de telefoon: 920 px breed in `#kaartrol` (schuiven met een vinger), begint in het midden.

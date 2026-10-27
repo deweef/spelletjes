@@ -176,6 +176,11 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
 - Luigi een hak zetten: nieuwe dubieuze figuur (voorstel Barrie de Bink), komt pas na sabotage van Luigi; goed antwoord = hij in de achterkamer.
   Klusjesbord: stinkbom, ratten, nep-recensie, keuringsdienst tippen, (bezorgscooter van Luigi lek); kans op betrapt worden; Luigi neemt wraak
   (ruzie-meter, vrede sluiten met grappa). Effect: Luigi's klanten komen naar jou, Luigi's pand op de kaart stinkt/is dicht.
+- Afspraken Marcel (27 okt): Barrie de Bink (vel `pizza/barrie-gemini.jpg`, blauw trainingspak); vrede met Luigi tijdelijk, met grappa of
+  limoncello. Verkoop van vervalste schilderijen wordt (soms) in crypto betaald: je kiest welke munt, de koers zie je dan niet (gokje).
+  Crypto omwisselen naar echt geld: bij een wisselkantoor in de stad (met kosten) of op de laptop in de achterkamer.
+- Meer ideeën (Claude, 27 okt): Gouden Pizzaschep (recensent incognito), pizzawedstrijd op de markt tegen Luigi, smokkeltruffel via Barrie
+  (douane belt), ober verliefd op Luigi's dochter (romance of spion).
 - Crypto (nog niet gebouwd): Bitkaas, Ethertje, MozzaMunt, DogePizza; laptop in de achterkamer, koers per dag +40% / −60%, nieuws
   ("DogePizza-tweet +200%", "oprichter MozzaMunt met de kas verdwenen −95%"), klanten die met crypto of yuan willen betalen.
 
