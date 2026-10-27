@@ -182,6 +182,10 @@ Vellen klaar voor later (26 okt): managers `pizza/manager-kevin-gemini.jpg` (goe
 - Afspraken Marcel (27 okt): Barrie de Bink (vel `pizza/barrie-gemini.jpg`, blauw trainingspak); vrede met Luigi tijdelijk, met grappa of
   limoncello. Verkoop van vervalste schilderijen wordt (soms) in crypto betaald: je kiest welke munt, de koers zie je dan niet (gokje).
   Crypto omwisselen naar echt geld: bij een wisselkantoor in de stad (met kosten) of op de laptop in de achterkamer.
+- Idee Marcel (27 okt): **de Toren van Pizza** (woordgrap op de Toren van Pisa). Voorstellen: (1) de bouwplaats in de stad ("Hier komt
+  binnenkort: ????") wordt de Toren van Pizza, een stadsproject waar je in stukjes aan meebetaalt; klaar = veel meer toeristen, Luigi jaloers;
+  (2) minispel "pizza's stapelen" (slingerende pizza op het goede moment loslaten, scheve toren die omvalt), bij de opening of als wedstrijd
+  op de markt, met het online scorebord; (3) "Toren van Pizza" als speciaal gerecht of als versiering (scheef torentje) in de zaak.
 - Meer ideeën (Claude, 27 okt): Gouden Pizzaschep (recensent incognito), pizzawedstrijd op de markt tegen Luigi, smokkeltruffel via Barrie
   (douane belt), ober verliefd op Luigi's dochter (romance of spion).
 - Crypto (nog niet gebouwd): Bitkaas, Ethertje, MozzaMunt, DogePizza; laptop in de achterkamer, koers per dag +40% / −60%, nieuws
