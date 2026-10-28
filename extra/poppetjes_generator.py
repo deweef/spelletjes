@@ -88,3 +88,49 @@ for i in range(7):
     if f.size[0] > 111: f = f.resize((111, round(f.size[1] * 111 / f.size[0])), Image.LANCZOS)
     strip.alpha_composite(f, (i * 113 + (113 - f.size[0]) // 2, 188 - f.size[1]))
 strip.save(os.path.join(UIT, 'lopen-opzij.png'))
+
+# ---------- van voren en van achteren (vellen -voor-, -achter- en -benen-) ----------
+# per vel: nummers van de vormpjes (zie het overzicht in pizza/PLAN.md) en hun scharnierpunten in velcoördinaten
+def laadVel(pad):
+    v, l = lees(pad)
+    def d(n, schaal=1):
+        m = (l == n).astype(np.uint8) * 255; m = np.array(Image.fromarray(m).filter(__import__('PIL.ImageFilter', fromlist=['x']).MinFilter(3)))
+        a = np.array(v).copy(); g = a[..., 1].astype(int); mx = np.maximum(a[..., 0], a[..., 2]).astype(int); a[..., 1] = np.where(g > mx + 10, mx + 10, g); a[..., 3] = m
+        im = Image.fromarray(a); bb = im.getbbox(); im = im.crop(bb)
+        if schaal != 1: im = im.resize((round(im.size[0] * schaal), round(im.size[1] * schaal)), Image.LANCZOS)
+        return im, bb
+    return d
+dir_ = os.path.dirname(BRON) or '.'; basis = os.path.basename(BRON).replace('-gemini.jpg', '')
+VEL = {k: laadVel(os.path.join(dir_, f'{basis}-{k}-gemini.jpg')) for k in ('voor', 'achter', 'benen')}
+def onderdeel(kant, n, schaal=1):  # (plaatje, midden-boven) van vormpje n
+    im, bb = VEL[kant](n, schaal); return im
+# voor: 1 hoofd, 2 romp, 6/7 armen, 10 rok; achter: 1 hoofd, 2 romp, 3 rok, 5/6 armen; benen: 1/2 voor, 3/4 achter
+DELEN = {'voor': dict(hoofd=1, romp=2, rok=10, arm=(6, 7), been=(1, 2)), 'achter': dict(hoofd=1, romp=2, rok=3, arm=(5, 6), been=(3, 4))}
+def recht(kant, s):  # houding van voren/achteren; s = -1 … 1 (welk been vooruit)
+    D2 = DELEN[kant]; doek = Image.new('RGBA', (900, 1300)); ox, oy = 450, 650 - abs(s) * 8
+    def zet(im, cx, ty, hoek=0):  # plaatje met het midden van de bovenkant op (cx, ty)
+        if hoek: im = im.rotate(-hoek, center=(im.size[0] / 2, 0), resample=Image.BICUBIC, expand=False)
+        doek.alpha_composite(im, (round(ox + cx - im.size[0] / 2), round(oy + ty)))
+    romp = onderdeel(kant, D2['romp']); hoofd = onderdeel(kant, D2['hoofd']); rok = onderdeel(kant, D2['rok'])
+    rok = rok.resize((rok.size[0], round(rok.size[1] * 0.78)), Image.LANCZOS)  # net als opzij: tot over de knie
+    benen = [onderdeel('benen', n, 0.5) for n in D2['been']]; armen = [onderdeel(kant, n) for n in D2['arm']]
+    for i, b in enumerate(benen):  # het been dat naar voren stapt, gaat een stukje omhoog (knie buigt)
+        til = max(0, s if i == 0 else -s) * 22
+        if til: b = b.resize((b.size[0], round(b.size[1] - til)), Image.LANCZOS)
+        zet(b, (-48 if i == 0 else 48), 10)
+    zet(rok, 0, -10, hoek=2 * s)
+    zet(romp, 0, -romp.size[1] + 8)
+    for i, a in enumerate(armen): zet(a, (-1 if i == 0 else 1) * (romp.size[0] / 2 - 32), -romp.size[1] + 95, hoek=(6 if i == 0 else -6) * s)
+    zet(hoofd, 0, -romp.size[1] - hoofd.size[1] + 40)
+    return doek.crop(doek.getbbox())
+for kant, aantal in (('voor', 4), ('achter', 4)):
+    strip = Image.new('RGBA', (113 * aantal, 192)); toon = []
+    for i in range(aantal):
+        s = math.sin(i / aantal * 2 * math.pi); f = recht(kant, s); toon.append(f)
+        hh = 166; f = f.resize((round(f.size[0] * hh / f.size[1]), hh), Image.LANCZOS)
+        if f.size[0] > 111: f = f.resize((111, round(f.size[1] * 111 / f.size[0])), Image.LANCZOS)
+        strip.alpha_composite(f, (i * 113 + (113 - f.size[0]) // 2, 188 - f.size[1]))
+    strip.save(os.path.join(UIT, f'lopen-{kant}.png'))
+    o = Image.new('RGB', (sum(t.size[0] + 30 for t in toon) + 30, max(t.size[1] for t in toon) + 20), (250, 240, 220)); x = 15
+    for t in toon: o.paste(t, (x, 10), t); x += t.size[0] + 30
+    o.save(os.path.join(UIT, f'gen-{kant}.png'))

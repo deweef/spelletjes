@@ -308,4 +308,5 @@ zijn pak is zelf groen). Daarvoor stonden daar plaatjes van opzij lopen en gleed
 Oma loopt van opzij (klanten rij 10, vakjes 0-6) met plaatjes uit de poppetjes-generator (`extra/poppetjes_generator.py`, onderdelenvel
 `pizza/oma-onderdelen-gemini.jpg`; uitvoer `lopen-opzij.png`, 166 px hoog, voeten op 187). Andere vellen van oma: `oma-onderdelen-zit-gemini.jpg`
 (zittende rok, bovenbenen, schouderkapje, armen met pizza en glas), `oma-onderdelen-voor-gemini.jpg` en `-achter-` (de benen daarop zijn per
-ongeluk van opzij getekend; nog een vel met benen van voren/achteren nodig).
+ongeluk van opzij getekend: de benen komen van `oma-onderdelen-benen-gemini.jpg`, 1/2 voor, 3/4 achter). Oma loopt nu in alle richtingen met
+generatorplaatjes: opzij 0-6, achter 7-10, voor 18-21 (`pizza/klanten.png` is 22 vakjes breed; `VOORLOOP` in de code zegt welke rijen 18-21 hebben).

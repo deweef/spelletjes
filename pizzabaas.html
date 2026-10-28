@@ -2926,6 +2926,7 @@ function figuur(img, p, bijzonder, rug, achter, vel) {
   else if (p.loopT > 0) {
     const c = Math.cos(p.kijk ?? 0), s = Math.sin(p.kijk ?? 0), stap = Math.floor(p.loopT * v.fps);
     if (s < 0 && -s > Math.abs(c)) f = v.rugLoop[stap % v.rugLoop.length]; // weg van de kijker
+    else if (v.voorLoop && s > 0 && s > Math.abs(c)) f = v.voorLoop[stap % v.voorLoop.length]; // naar de kijker toe (alleen figuren uit de poppetjes-generator)
     else { // opzij, en ook naar voren (een loopcyclus naar de kijker toe is er nog niet): opzij in de richting waar hij heen gaat
       if (Math.abs(c) > 0.15) p.opzij = c > 0 ? 1 : -1;
       f = v.opzij[stap % v.opzij.length]; spiegel = (p.opzij || 1) > 0 != v.rechts;
@@ -2941,11 +2942,13 @@ function figuur(img, p, bijzonder, rug, achter, vel) {
 }
 // ---------- klanten als getekende figuren (Gemini) ----------
 // pizza/klanten.png: per figuur een rij van 18 plaatjes van 113 x 192: 0-6 lopen opzij (neus naar rechts), 7-10 lopen van achteren, 11 staan,
-// 12 zitten voor, 13 eten voor, 14 zitten achter, 15 eten achter, 16 zitten opzij, 17 eten opzij (zittend: op een onzichtbare stoel)
+// 12 zitten voor, 13 eten voor, 14 zitten achter, 15 eten achter, 16 zitten opzij, 17 eten opzij (zittend: op een onzichtbare stoel),
+// 18-21 lopen naar voren (alleen rijen in VOORLOOP)
 // rijen: 0 werker (pizza/werker2-gemini.jpg), 1 student (student2), 2 villadame, 3 Afrikaanse man (afrikaan), 4 Chinese dame (dame-china2), 5 Chinese toerist (toerist),
 // 6 opa (opa2), 7 studente, 8 Afrikaanse vrouw (afrikaanse-vrouw), 9 zakenman, 10 oma (oma2)
 const KLANTEN = new Image(); KLANTEN.src = 'pizza/klanten.png';
-const KLANTVEL = (rij) => ({ rij, staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], fps: 9 });
+const VOORLOOP = { 10: [18, 19, 20, 21] }; // vakjes 18-21: lopen naar de kijker toe (uit extra/poppetjes_generator.py); nu alleen oma
+const KLANTVEL = (rij) => ({ rij, staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], voorLoop: VOORLOOP[rij], fps: 9 });
 const FIGUREN = { werker: [0, 0, 3], student: [1, 7], villa: [2, 9], toerist: [5, 4, 3, 8], opa: [6, 10] };
 function tekenKlantFig(m, nu) { // in wereldcoördinaten (pixels van de zaak); zittend op zijn stoel, of lopend
   const zit = m.st == 'wacht' || m.st == 'eet', v = KLANTVEL(m.fig);
