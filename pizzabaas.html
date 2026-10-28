@@ -238,6 +238,12 @@ const SPUL = {
   servieskast: { n: 'Servieskast', ik: '🍽️', prijs: 120, w: 2, h: 1, onder: 'plant', vak: 3, b: 311, hh: 343, tw: 2 },
   schilderij: { n: 'Schilderij', ik: '🖼️', prijs: 60, w: 1, h: 1, onder: 'plant', muur: true }, // alleen tegen de linker- of rechtermuur; s.v = welk schilderij
   plant: { n: 'Plant', ik: '🪴', prijs: 20, w: 1, h: 1 },
+  // eigen kruiden (pizza/kruiden-gemini.jpg, vakjes 4-8 in pizza/versiering.png): na 2 dagen groeien (s.sinds) maken ze de pizza's lekkerder (kruidBonus)
+  basilicum: { n: 'Basilicum', ik: '🌿', prijs: 25, w: 1, h: 1, onder: 'plant', vak: 4, b: 203, hh: 144, tw: 1, kruid: true },
+  rozemarijn: { n: 'Rozemarijn', ik: '🌿', prijs: 25, w: 1, h: 1, onder: 'plant', vak: 5, b: 203, hh: 156, tw: 1, kruid: true },
+  oregano: { n: 'Oregano', ik: '🌿', prijs: 25, w: 1, h: 1, onder: 'plant', vak: 6, b: 208, hh: 138, tw: 1, kruid: true },
+  pepers: { n: 'Eigen pepers', ik: '🌶️', prijs: 40, w: 1, h: 1, onder: 'plant', vak: 7, b: 104, hh: 320, tw: 0.55, kruid: true, oogst: 'pepers' },
+  olijf: { n: 'Olijfboompje', ik: '🫒', prijs: 70, w: 1, h: 1, onder: 'plant', vak: 8, b: 221, hh: 335, tw: 1.05 },
   jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 2, h: 2, een: true, onder: 'plant' },
 };
 const EXTRA = { kleed: { n: 'Kleedje', ik: '🟥', prijs: 10 }, kaars: { n: 'Kaarsje', ik: '🕯️', prijs: 8 } };
@@ -361,7 +367,7 @@ const LEKKER = { // per soort klant: [vond het heerlijk, vond het niks]
   student: [['Vet goed, man!', 'Beter dan mijn tentamen!', 'Hier kom ik na het feest terug!', 'Ik ga mijn studiefinanciering hier uitgeven.', 'Deze is beter dan mijn scriptie.'], ['Saai, en dan ook nog zo duur.', 'Mijn tosti is lekkerder.']],
   villa: [['Voortreffelijk.', 'Dit vertel ik op de tennisclub!', 'Bijna zo goed als in Toscane.'], ['Hmpf. Ordinair.', 'Wat is dít nu weer?!', 'Ik bel mijn advocaat.']],
   toerist: [['Molto bene!', 'Just like in Italy!', 'Wunderbar, Pizza!'], ['This is no pizza…', 'Ik had beter een kroket genomen.']],
-  werker: [['Dat vult lekker!', 'Hier kan ik weer tegenaan!', 'Lekker pittig, top!', 'Nog eentje voor in de bus!', 'Hier bouw ik een huis van!'], ['Daar krijg ik geen honger van weg.', 'Is dat alles?', 'Waar is het vlees?']],
+  werker: [['Dat vult lekker!', 'Hier kan ik weer tegenaan!', 'Lekker pittig, top!', 'Nog eentje voor in de bus!', 'Hier bouw ik een huis van!'], ['Daar gaat mijn honger niet van weg.', 'Is dat alles?', 'Waar is het vlees?']],
   opa: [['Net als vroeger!', 'Lekker zacht, voor mijn kunstgebit.', 'Dat hadden wij vroeger niet!'], ['Veel te heet! Water!', 'Vroeger was alles beter.', 'Daar kan ik niet op kauwen.']],
 };
 function kiesSoort() { // op zondag komen er meer opa's en oma's, op vrijdag meer werkers en studenten
@@ -381,7 +387,9 @@ const vrij = (x, y, w, h, behalve) => {
 const op = (x, y) => S.spullen.find((s) => x >= s.x && x < s.x + SPUL[s.t].w && y >= s.y && y < s.y + SPUL[s.t].h);
 const TAFELSOORT = ['tafel', 'lang', 'langL', 'tafeltje'];
 const isTafel = (s) => TAFELSOORT.includes(s.t);
-const VERSIERING = ['plant', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast', 'schilderij', 'jukebox'];
+const VERSIERING = ['plant', 'basilicum', 'rozemarijn', 'oregano', 'pepers', 'olijf', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast', 'schilderij', 'jukebox'];
+const gegroeid = (t) => !t.sinds || S.dag - t.sinds >= 2; // een kruidenbak moet eerst 2 dagen groeien
+const kruidBonus = () => Math.min(3, S.spullen.filter((t) => SPUL[t.t] && SPUL[t.t].kruid && gegroeid(t)).length) * 0.2; // verse kruiden: elke pizza iets lekkerder (max 3 bakken)
 const aanDeMuur = (d, x) => !d.muur || x == 0 || x == W - d.w; // een schilderij hangt aan de muur
 const GROEP = { tafel: TAFELSOORT, plant: VERSIERING }; // knoppen die bij elke klik naar de volgende soort gaan
 // bij welke tafel hoort een stoel op (x, y), en aan welke kant: 0 boven de tafel, 1 eronder, 2 links, 3 rechts (de eerste tafel die ernaast staat)
@@ -624,7 +632,7 @@ function feestdag(d = S.dag) { // { n, aankomst, tekst, kaars? }
 // ---------- belasting (niet uitgelegd: S.belasting loopt stil op, laatste dag van de maand komt de inspecteur) ----------
 const BELASTING = 0.15; // deel van de winst
 const INSPECTEUR = { id: 'inspecteur', ik: '🕴️', portret: 1, wie: 'Belastinginspecteur', vraag: () => `Goedendag. Ik kom de belasting van de afgelopen twee weken innen: € ${S.belasting}.`,
-  a: [['Betalen.', () => { if (S.geld >= S.belasting) { ge(-S.belasting); const b = S.belasting; S.belasting = 0; return `Je betaalt € ${b}. "Tot volgende maand."`; }
+  a: [['Betalen.', () => { if (S.geld >= S.belasting) { ge(-S.belasting); const b = S.belasting; S.belasting = 0; return `Je betaalt € ${b}. "Tot over twee weken."`; }
       S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Je hebt niet genoeg geld! Je krijgt een dag uitstel, met 10% boete: morgenavond € ${S.aanslag}. Tip van de inspecteur: "Misschien moet u even naar de bank om geld te lenen."`; }],
     ['Kan ik het morgen betalen?', () => { S.aanslag = Math.round(S.belasting * 1.1); S.aanslagDag = S.dag + 1; S.belasting = 0; return `Vooruit. Morgenavond € ${S.aanslag}, met 10% boete.${S.geld < S.aanslag ? ' "En als u het niet heeft: de bank leent het u vast wel."' : ''}`; }],
     ['Belasting? Ik ben maar een kleine zaak…', () => { S.aanslag = Math.round(S.belasting * 1.25); S.aanslagDag = S.dag + 1; S.belasting = 0; rep(-1); return `"Dat zeggen ze allemaal." Morgenavond € ${S.aanslag}, met 25% boete. "Ga anders even langs de bank."`; }] ] };
@@ -652,7 +660,7 @@ function openDeuren() {
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
   tel = NIEUWTEL(); bezet = null; belZ = null; startVoorraad();
   { const dicht = S.spullen.filter((c) => c.t == 'stoel' && !stoelBereik(c)).length; if (dicht) setTimeout(() => meld(!toonbankVrij() ? '🚧 De obers kunnen niet weg bij de toonbank: alles ervoor staat vol. Laat een looppad vrij van de toonbank naar de deur!' : `🚧 Bij ${dicht} stoel${dicht > 1 ? 'en' : ''} kan niemand komen: daar gaat niemand zitten. Laat een looppad vrij vanaf de deur!`, 6000), 1200); } // de inrichting kan veranderd zijn: looproutes opnieuw
-  bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
+  bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); vandaag.trend = S.trendMorgen || null; S.trendMorgen = null; if (vandaag.trend) setTimeout(() => meld(`📈 Trend van vandaag: ${TREND[vandaag.trend].ik} ${TREND[vandaag.trend].n}! ${TREND[vandaag.trend].tekst}`, 4500), 600); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
   if (S.bonnen && S.bonnen.tot >= S.dag) { vandaag.aankomst *= 1 + 0.4 * S.bonnen.q; if (kans(0.12 + (1 - S.bonnen.q) * 0.4)) S.verplicht = [...(S.verplicht || []), 'luigiBoos']; } // valse bonnen
   sabotageVandaag(); pofBetalen(); if (S.studentenMorgen) { vandaag.studenten = true; S.studentenMorgen = false; } // flyers bij het studentenhuis
   // vaste bezoeken: Gerrit 1-2 dagen na het ophangen van een schilderij (en daarna om de 4 dagen tot je het goede antwoord geeft), Luigi rond dag 5
@@ -675,7 +683,7 @@ function eindeDag() {
   const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon + (S.bezorg.abo ? BEZORG.abo : 0) : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi - tel.kosten - huur - lonen + andereWinst;
   S.geld += -huur - lonen - (tel.ing || 0) + andereWinst;
   let manWeg = ''; if (S.manager) { const M = MANAGER[S.manager.wie]; S.manager.dagen = (S.manager.dagen || 0) + 1;
-    if (S.geld < 0) { manWeg = `${M.n} is ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
+    if (S.geld < 0) { manWeg = `${M.n} heeft ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
     else if (S.manager.wie == 'bruno' && S.manager.dagen % 5 == 4) S.verplicht = [...(S.verplicht || []), 'opslag']; } // Bruno wil opslag
   maakPersoneel(); // omzet en fooi zijn al verrekend; de inkoop (tel.ing) nu pas
   if ((S.ruzie || 0) >= 45 && !(S.luigiRust > S.dag) && kans(0.3) && !(S.verplicht || []).includes('luigiUltimatum')) S.verplicht = [...(S.verplicht || []), 'luigiUltimatum']; // de ruzie loopt hoog op
@@ -693,6 +701,7 @@ function eindeDag() {
   const koningNu = !S.koning && S.zaken.length >= 4 && torenOpen() && S.geld + (S.bankSaldo || 0) >= 25000; if (koningNu) S.koning = S.dag; // het grote doel
   const waarde = zaakWaarde(), nieuwRecord = waarde > (S.waardeBest || 0); if (nieuwRecord) S.waardeBest = waarde;
   const dertig = !S.maandWaarde && S.dag >= 30; if (dertig) S.maandWaarde = waarde; // de eerlijke wedstrijd: wat is je zaak waard na 30 dagen?
+  S.trendMorgen = kans(0.6) ? pak(Object.keys(TREND)) : null; // de trend van morgen (staat in het dagoverzicht)
   const oud = S.dag; S.dag++; const maandag = weekdag() == 0; if (maandag) S.dag++; bewaar(); // maandag dicht: zes werkdagen per week
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
     ${maandag ? '<p class="buurt">📅 Morgen is het maandag: dan is de zaak dicht. Op naar dinsdag!</p>' : ''}${S.rood ? `<p style="color:#b33a1e"><b>⚠️ Je staat rood: − € ${Math.round(-S.geld)}. ${S.rood >= 3 ? 'Drie dagen achter elkaar…' : `Sta je nog ${3 - S.rood} avond${3 - S.rood > 1 ? 'en' : ''} rood, dan ben je failliet! Verkoop iets, leen geld of verdien het terug.`}</b></p>` : ''}
@@ -716,6 +725,7 @@ function eindeDag() {
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
       ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
     </table>
+    ${S.trendMorgen ? `<p class="buurt" style="background:#fff3c4;border-radius:8px;padding:6px 8px">📈 <b>Trend van morgen: ${TREND[S.trendMorgen].ik} ${TREND[S.trendMorgen].n}.</b> ${esc(TREND[S.trendMorgen].tekst)} ${S.menu.some((p) => TREND[S.trendMorgen].ok(p)) ? `Op je kaart: ${S.menu.filter((p) => TREND[S.trendMorgen].ok(p)).map((p) => esc(p.naam)).join(', ')}.` : 'Je hebt er nog geen pizza voor: verzin er een (📖 Pizza\'s)!'}</p>` : ''}
     <p>${tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
       : tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
     <p style="margin:10px 0 2px"><b>🏆 Waarde van je pizzeria: € ${waarde}</b>${waarde >= (S.waardeBest || 0) ? ' (record!)' : ` (record € ${S.waardeBest})`}</p><div id="dagbord" class="buurt" style="text-align:left"></div><div id="dagbord2" class="buurt" style="text-align:left;margin-top:4px"></div>
@@ -844,7 +854,7 @@ const VRAGEN = [
       ['De duurste.', () => { const o = besteOordeel(); rep(Math.round((o - 3.5) * 3)); ge(5); return 'Krant: "Duur, maar ' + (o >= 4 ? 'het is het waard."' : 'dat smaak je niet."'); }],
       ['De Hawaii. Met extra ananas.', () => { rep(kans(0.5) ? 5 : -3); return 'Krant: "Ananas op pizza: SCHANDAAL!" Iedereen in de stad praat erover…'; }] ] },
   { id: 'oberziek', ik: '🤧', wie: 'Je ober', als: () => !(S.griepvrij > S.dag), vraag: 'Baas… ik voel me echt niet lekker. Hatsjoe!',
-    a: [['Ga maar naar huis, beterschap.', () => oberWeg() ? 'Je hebt vanavond een ober minder.' : (vandaag.oberSnel *= 0.7, 'Hij gaat naar huis. Jij springt zelf in, maar jij bent wat langzamer.')],
+    a: [['Ga maar naar huis, beterschap.', () => oberWeg() ? 'Je hebt vanavond een ober minder.' : (vandaag.oberSnel *= 0.7, 'Hij gaat naar huis. Jij springt zelf in, maar je bent wat langzamer.')],
       ['Doorwerken! Het is druk.', () => { if (kans(0.4)) { rep(-3); return 'Hij niest over een pizza. Twee klanten worden misselijk.'; } return 'Hij zet door. Snotterend, maar het gaat.'; }],
       ['Ik bel een uitzendkracht (€ 50).', () => { ge(-50); vandaag.oberSnel *= 0.85; return 'De uitzendkracht is er snel, maar moet nog even de weg zoeken.'; }] ] },
   { id: 'kokziek', ik: '🤒', wie: 'Beppe, de bakker', als: () => ovens.length > 1 && !(S.griepvrij > S.dag), vraag: 'Baas, ik heb koorts. Mag ik naar huis?',
@@ -853,9 +863,9 @@ const VRAGEN = [
       ['Uitzendbakker bellen (€ 60).', () => { ge(-60); ovens[1].traag = true; return 'De uitzendbakker is er, maar hij werkt wat langzamer.'; }] ] },
   { id: 'mozzarella', ik: '🚚', wie: 'Leverancier', vraag: 'Speciale aanbieding! Een week lang kaas voor de halve prijs, voor maar € 30.',
     a: [['Kopen!', () => { ge(-30); S.korting = { i: 'kaas', tot: S.dag + 7 }; return 'Een week lang goedkopere kaas.'; }],
-      ['Nee, dank je.', () => 'De leverancier rijdt verder.'],
-      ['Doe maar € 15.', () => { if (kans(0.5)) { ge(-15); S.korting = { i: 'kaas', tot: S.dag + 7 }; return '"Vooruit dan." Goedkope kaas voor € 15!'; } return '"Beledigend!" Hij rijdt weg.'; }] ] },
-  { id: 'op', ik: '😱', wie: 'Mario, de kok', als: () => opDeKaart().length > 0, vraag: () => `Baas! De ${ING[vandaag.opVraag = pak(opDeKaart())].n.toLowerCase()} is op!`,
+      ['Nee, dank je.', () => 'Hij gaat verder naar de volgende klant.'],
+      ['Doe maar € 15.', () => { if (kans(0.5)) { ge(-15); S.korting = { i: 'kaas', tot: S.dag + 7 }; return '"Vooruit dan." Goedkope kaas voor € 15!'; } return '"Beledigend!" Weg is hij.'; }] ] },
+  { id: 'op', ik: '😱', wie: 'Mario, de kok', als: () => opDeKaart().length > 0, vraag: () => `Baas! We hebben geen ${ING[vandaag.opVraag = pak(opDeKaart())].n.toLowerCase()} meer!`,
     a: [['Ik ren naar de markt (€ 25).', () => { ge(-25); return 'Op de markt is alles duurder, maar je bent snel terug.'; }],
       ['Dan halen we die pizza\'s vandaag van de kaart.', () => { vandaag.op = vandaag.opVraag; return 'Pizza\'s met ' + ING[vandaag.op].n.toLowerCase() + ' kunnen vandaag niet.'; }],
       ['Gebruik maar wat anders.', () => { vandaag.smaakMin = 1; return 'Mario improviseert. Niet iedereen vindt het lekker.'; }] ] },
@@ -940,7 +950,7 @@ const VRAGEN = [
       ['Gratis extra eiwitten, meneer.', () => { rep(kans(0.5) ? 1 : -2); return 'De werker lacht. De villabewoner aan de tafel ernaast niet.'; }],
       ['Ik sla hem wel dood!', () => { if (kans(0.5)) { vandaag.fooi *= 1.05; return 'Raak! Applaus van de hele zaak.'; } rep(-1); return 'Mis. Je slaat de pizza van tafel.'; }] ] },
   { id: 'busje', ik: '🚐', wie: 'Klant', vraag: 'Er staat een busje voor uw deur. Niemand kan erlangs!',
-    a: [['Ik bel de wegsleep.', () => 'Het busje wordt weggesleept. Het blijkt van Luigi te zijn.'],
+    a: [['Ik bel de sleepdienst.', () => 'Het busje wordt weggesleept. Het blijkt van Luigi te zijn.'],
       ['Laat maar staan.', () => { vandaag.aankomst *= 0.8; return 'Vanavond komen er minder klanten binnen.'; }],
       ['Ik duw hem zelf wel weg.', () => { vandaag.oberSnel *= 0.95; return 'Gelukt! Je bent wel een beetje moe.'; }] ] },
   { id: 'voetbal', ik: '⚽', wie: 'Werkers', vraag: 'Mag de voetbalwedstrijd aan? Nederland speelt!',
@@ -975,7 +985,7 @@ const VRAGEN = [
     a: [['Ja, jullie werken hard.', () => { vandaag.oberSnel *= 1.15; vandaag.fooi *= 0.5; return 'De obers rennen nu bijna. Jij krijgt minder fooi.'; }],
       ['Nee, die is voor de zaak.', () => { vandaag.oberSnel *= 0.9; return 'De obers sloffen een beetje.'; }],
       ['De helft.', () => 'Eerlijk is eerlijk.'] ] },
-  { id: 'ring', ik: '💍', wie: 'Klant', vraag: 'Ik vond een ring in mijn pizza!',
+  { id: 'ring', ik: '💍', wie: 'Klant', als: () => ovens.length > 1, vraag: 'Ik vond een ring in mijn pizza!',
     a: [['Die is van Beppe! Teruggeven.', () => { rep(1); return 'Beppe is zo blij dat hij de hele avond zingt.'; }],
       ['Mag u houden, als excuus.', () => { rep(1); if (ovens[1]) ovens[1].traag = true; return 'Beppe is zijn trouwring kwijt en werkt de rest van de avond verdrietig (trager).'; }],
       ['Gefeliciteerd, u wint onze prijsvraag!', () => { rep(2); return 'De klant juicht. Beppe kijkt bedenkelijk.'; }] ] },
@@ -992,8 +1002,8 @@ const VRAGEN = [
         if (kans(z.manager.wie == 'sandra' ? 0.5 : z.manager.wie == 'bruno' ? 0.4 : 0.2)) return `${n} regelt het. ${belP.goed} "Komt goed, baas!"`;
         z.pech = S.dag; z.rep = Math.max(0, (z.rep || 20) - 6); return `${n} probeert het… ${belP.fout} Die zaak draait vandaag een stuk minder.`; }] ] },
   // ---- bedorven ingrediënten en goede doelen (sponsor: true = telt niet als te vrijgevig) ----
-  { id: 'bedorven', ik: '🥬', wie: 'Mario de kok', kans: 4, als: () => S.menu.some((p) => p.stukjes.length),
-    vraag: () => { const l = [...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))]; bedorven = pak(l); return `Baas! De ${ING[bedorven].n.toLowerCase()} van de leverancier is bedorven. Het ruikt naar oude sokken. Wat nu?`; },
+  { id: 'bedorven', ik: '🥬', wie: 'Mario, de kok', kans: 4, als: () => S.menu.some((p) => p.stukjes.length),
+    vraag: () => { const l = [...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))]; bedorven = pak(l); return `Baas! Wat de leverancier aan ${ING[bedorven].n.toLowerCase()} bracht, is bedorven. Het ruikt naar oude sokken. Wat nu?`; },
     a: [['Ik ren naar de markt, ook al is het duur.', () => { ge(-45); return '"Spoed? Dan wordt het dubbel," zegt de marktkoopman. € 45 armer, maar alles is vers.'; }],
       ['Gebruik het toch, schraap het groene randje eraf.', () => { if (kans(0.5)) { rep(-4); return 'Twee klanten rennen naar de wc en komen er een tijd niet meer uit. Dat praat rond…'; } return 'Niemand merkt iets. Mario kijkt wel heel schuldig.'; }],
       ['Gooi het weg, vandaag maar zonder.', () => { rep(-1); vandaag.gezellig -= 0.5; if (S.voorraad) S.voorraad[bedorven] = 0; return `Mario bakt alles zonder ${ING[bedorven].n.toLowerCase()}. De klanten mopperen: "Dit is maar een halve pizza."`; }] ] },
@@ -1035,7 +1045,7 @@ const VRAGEN = [
       ['Alleen als u een fles koopt (€ 30).', () => { ge(30); naVraag = naarAchter; return '"Uiteraard." Hij betaalt, en jullie dalen af naar de kelder.'; }] ] },
   // ---- de manager zelf (zelf: true = die vraag beantwoordt de manager niet voor je) ----
   { id: 'manOpslag', ik: '📋', zelf: true, wie: () => S.manager ? MANAGER[S.manager.wie].n : 'Je manager', kans: 4, als: () => S.manager && S.manager.wie != 'bruno' && (S.manager.dagen || 0) >= 4 && S.geld > 600 && !(S.manager.opslagDag > S.dag - 10),
-    vraag: () => (S.manager || {}).wie == 'kevin' ? 'Eh, baas… ik werk hier nu al best lang. Zeg maar een week. Kan ik meer geld krijgen? Voor een nieuwe telefoon.' : `Baas, ik run hier zo'n beetje alles. De kassa loopt als een trein. Ik vind dat ik best € 15 per dag meer mag verdienen.`,
+    vraag: () => (S.manager || {}).wie == 'kevin' ? 'Eh, baas… ik werk hier nu al best lang. Zeg maar een week. Kan ik meer geld krijgen? Voor een nieuwe telefoon.' : `Baas, ik regel hier zo'n beetje alles. De kassa loopt als een trein. Ik vind dat ik best € 15 per dag meer mag verdienen.`,
     a: [['Je hebt gelijk, € 15 erbij.', () => { S.manager.opslag = (S.manager.opslag || 0) + 15; S.manager.opslagDag = S.dag; return 'Een stralende glimlach. "Je zult er geen spijt van krijgen!"'; }],
       ['€ 5 erbij, meer zit er niet in.', () => { S.manager.opslagDag = S.dag; if (kans(0.6)) { S.manager.opslag = (S.manager.opslag || 0) + 5; return '"Vooruit. Voor nu." Een beetje zuinig, maar akkoord.'; } S.manager.opslag = (S.manager.opslag || 0) + 5; S.manager.mopper = S.dag + 3; return '"Vijf euro?!" Je manager neemt het aan, maar werkt een paar dagen met de handrem erop.'; }],
       ['Nee, daar is geen geld voor.', () => { S.manager.opslagDag = S.dag; if (kans(0.25)) { const n = MANAGER[S.manager.wie].n; S.manager = null; maakManager(); return `"Geen geld? Ik zie de kassa toch!" ${n} pakt de spullen. Je hebt geen manager meer.`; } S.manager.mopper = S.dag + 5; return 'Je manager zegt niks, maar zucht heel hard. De komende dagen gebeurt precies wat moet, en geen gram meer.'; }] ] },
@@ -1074,12 +1084,12 @@ const VRAGEN = [
       ['Alleen als jullie eerst een pizza bestellen.', () => { ge(PRIJS * 2); return 'Ze bestellen er twee en dansen met de pizzadoos. Slim.'; }] ] },
   { id: 'vegan', ik: '🥦', wie: 'Klant', vraag: 'Is de kaas eigenlijk vegan?',
     a: [['Ja hoor, helemaal.', () => { if (kans(0.5)) { rep(-2); return 'Ze proeft en kijkt je aan. "Dit is gewoon mozzarella!" Ze vertelt het aan iedereen.'; } return 'Ze eet tevreden haar pizza. Je voelt je een beetje schuldig.'; }],
-      ['Nee, maar ik kan hem zonder kaas maken.', () => { rep(1); return '"Wat attent!" Ze geeft je een duim.'; }],
+      ['Nee, maar ik kan hem zonder kaas maken.', () => { rep(1); return '"Wat attent!" Ze steekt haar duim op.'; }],
       ['Kaas is toch een soort groente?', () => 'Ze denkt er even over na. "…Nee." Ze neemt een salade.'] ] },
   { id: 'blinddate', ik: '💘', wie: 'Zenuwachtige klant', vraag: 'Ik heb vanavond een blind date. Kunt u een kaarsje en een romantisch liedje regelen?',
     a: [['Komt in orde!', () => { vandaag.fooi *= 1.15; rep(1); return 'Het klikt meteen. Ze delen een pizza, net als in die film met de hondjes. Dikke fooi!'; }],
       ['Sorry, wij zijn een pizzeria, geen datingbureau.', () => 'Hij zucht. De date wordt… ongemakkelijk.'],
-      ['De ober zingt wel voor jullie.', () => { if (kans(0.5)) { vandaag.fooi *= 1.2; return 'De ober blijkt een prachtige stem te hebben. Applaus voor de hele zaak!'; } rep(-1); return 'De ober zingt vals. De date vlucht naar de wc en komt niet terug.'; }] ] },
+      ['De ober zingt wel voor jullie.', () => { if (kans(0.5)) { vandaag.fooi *= 1.2; return 'De ober blijkt een prachtige stem te hebben. Applaus van de hele zaak!'; } rep(-1); return 'De ober zingt vals. De date vlucht naar de wc en komt niet terug.'; }] ] },
   { id: 'haring', ik: '🐟', wie: 'Mario, de kok', vraag: 'Baas, ik heb een nieuwe pizza bedacht: haring met slagroom en hagelslag. Mag ik hem laten proeven?',
     a: [['Ja, laat maar proeven.', () => { if (kans(0.3)) { rep(2); return 'Ongelofelijk: de klanten vinden het heerlijk! "Typisch Hollands!"'; } rep(-1); return 'Een klant wordt groen en rent naar buiten. Mario: "Ze zijn er nog niet klaar voor."'; }],
       ['Nee, Mario. Gewoon nee.', () => 'Mario kijkt alsof je zijn hond hebt geschopt.'],
@@ -1163,7 +1173,7 @@ const VRAGEN = [
       ['Alleen binnen de korst graag.', () => { vandaag.gezellig += 0.5; return 'Het ziet eruit als een mislukte plaats delict, maar ze vindt het prachtig.'; }],
       ['Geen ketchup op onze pizza!', () => { rep(-1); return 'De tiener eet de pizza op met een diepe, diepe zucht.'; }] ] },
   { id: 'parkeren', ik: '🗳️', wie: 'Raadslid', vraag: 'De gemeente wil een parkeerverbod voor uw deur. Wat vindt u daarvan?',
-    a: [['Daar stoken we een stokje voor: gratis pizza voor de raad!', () => { ge(-60); morgenKl(1.1); return 'Na twee calzones is de raad om. Het verbod gaat niet door. (− € 60)'; }],
+    a: [['Daar steken we een stokje voor: gratis pizza voor de raad!', () => { ge(-60); morgenKl(1.1); return 'Na twee calzones is de raad om. Het verbod gaat niet door. (− € 60)'; }],
       ['Prima, dan komen ze op de fiets.', () => { vandaag.gezellig += 1; rep(-1); return 'Het stoepje staat vol fietsen en steps. Gezellig druk, wel wat chaos.'; }],
       ['Dan gaat mijn zaak voorgoed dicht!', () => { if (kans(0.6)) { rep(2); return 'Het raadslid schrikt en trekt het voorstel meteen in.'; } rep(-1); return '"Dramaqueen," mompelt hij. Het verbod komt er toch.'; }] ] },
   { id: 'rookwas', ik: '👵', wie: 'Boze buurvrouw', vraag: 'Die oven van u rookt mijn hele schone was onder! Wat gaat u eraan doen?',
@@ -1178,7 +1188,7 @@ const VRAGEN = [
     a: [['Mario heeft toch een prachtige snor?', () => { vandaag.gezellig += 0.5; return 'Mario draait trots aan zijn snor. Opa moet lachen.'; }],
       ['U heeft gelijk, we halen de oude recepten van zolder.', () => { rep(2); vandaag.fooi *= 1.05; return 'De stamgast knikt goedkeurend met een traan in zijn oog.'; }],
       ['Dan gaat u toch ergens anders heen?', () => { rep(-3); return 'Opa stampt boos weg met zijn wandelstok. Hij vertelt het aan iedereen.'; }] ] },
-  { id: 'terras', ik: '👔', wie: 'Wethouder', vraag: 'Zullen we de hele stoep voor uw deur vol zetten met extra tafeltjes?',
+  { id: 'terras', ik: '👔', wie: 'Wethouder', vraag: 'Zullen we de hele stoep voor uw deur volzetten met extra tafeltjes?',
     a: [['Graag! Meer stoelen, meer kassa.', () => { ge(60); rep(-1); return 'Klanten zitten zo krap dat ze bij elkaar op schoot eten. (+ € 60)'; }],
       ['Eerst een vergunning aanvragen.', () => { ge(-40); return 'Formulier A38 in drievoud. Het kost € 40 en duurt maanden.'; }],
       ['Nee, laat de stoep vrij voor de mensen.', () => { rep(1); vandaag.gezellig += 0.5; return 'Wandelaars en kinderwagens kunnen er gewoon langs.'; }] ] },
@@ -1327,10 +1337,10 @@ const VRAGEN = [
       ['Nee, ik moet werken.', () => '"Saai!" roepen ze. Ze spelen het spelletje zelf. Er wordt flink gegild.'],
       ['Laat Mario maar.', () => { if (kans(1 / 6)) { kokTraag(); return 'Mario pakt de hete! Hij bakt de rest van de avond met tranen in zijn ogen. Langzaam.'; } vandaag.fooi *= 1.05; return 'Mario kauwt cool en zegt: "In Napels eten we dit als ontbijt." Meer fooi!'; }] ] },
   { id: 'kelder', ik: '🧐', wie: 'Heer met een monocle', kans: 6, als: () => S.buurt == 'villa' && !S.kamer,
-    vraag: 'Ah, garçon. Heeft u in uw kelder nog een fles Château Lafitte van 1982? Ik betaal er graag voor. Héél graag.',
+    vraag: 'Ah, garçon. Heeft u in uw kelder nog een fles Château Lafite van 1982? Ik betaal er graag voor. Héél graag.',
     a: [['Wij hebben alleen huiswijn, meneer.', () => '"Huiswijn." Hij spreekt het uit alsof het een vies woord is.'],
       ['Wij hebben helemaal geen kelder.', () => '"Geen kelder? Mon dieu." Hij laat een fooi van één cent achter.'],
-      ['Natuurlijk, ik haal hem even…', () => { S.kamer = S.dag; ge(80); return 'Je rent naar achteren. Geen kelder, geen Lafitte… alleen een doos wijn van € 3. Een fles, een trechter en een mooi etiket later krijgt de heer zijn "Lafitte". Hij betaalt € 80 en zucht van genot. 🗝️ Linksboven zit nu een sleuteltje: je wijnkelder!'; }] ] },
+      ['Natuurlijk, ik haal hem even…', () => { S.kamer = S.dag; ge(80); return 'Je rent naar achteren. Geen kelder, geen Lafite… alleen een doos wijn van € 3. Een fles, een trechter en een mooi etiket later krijgt de heer zijn "Lafite". Hij betaalt € 80 en zucht van genot. 🗝️ Linksboven zit nu een sleuteltje: je wijnkelder!'; }] ] },
   { id: 'sommelier', ik: '🍷', portret: 12, rij: 11, wie: 'Sommelier Sébastien', kans: () => S.wijn && S.wijn.n ? 6 : 0, als: () => S.buurt == 'villa' && S.wijn && S.wijn.n > 0,
     vraag: () => `Een heer met een zilveren proefnapje snuift de lucht op. "Ik hoorde dat u een ${WIJNNAAM[(S.wijn || {}).naam] || 'Château'} van ${(S.wijn || {}).jaar || 'een goed jaar'} schenkt. Mag ik… proeven?"`,
     a: [['Proeft u maar.', () => { if (!S.wijn || S.wijn.q >= 0.8) { rep(3); return 'Hij walst, snuift, slurpt en sluit zijn ogen. "Magnifique. Tonen van eikenhout en… nostalgie." Hij vertelt het overal rond!'; }
@@ -1408,7 +1418,7 @@ const VRAGEN = [
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
       ['Van de kringloop, vijf euro.', () => '"Jammer," mompelt hij. "Jammer."'],
-      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); if (bezoeker) bezoeker.achter = true; return 'Hij kijkt om zich heen en fluistert: "Dan bent u de man die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken zit toch nog een kamertje? Kom maar mee." Hij geeft je een sleutel, klapt het luikje in de toonbank omhoog en loopt dwars door je keuken naar een deurtje dat je nog nooit gezien had… 🗝️ Linksboven zit nu een sleuteltje: de achterkamer!'; }] ] },
+      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); if (bezoeker) bezoeker.achter = true; return 'Hij kijkt om zich heen en fluistert: "Dan bent u degene die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken zit toch nog een kamertje? Kom maar mee." Hij geeft je een sleutel, klapt het luikje in de toonbank omhoog en loopt dwars door je keuken naar een deurtje dat je nog nooit gezien had… 🗝️ Linksboven zit nu een sleuteltje: de achterkamer!'; }] ] },
   { id: 'koper', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', als: () => false, // via kamerBezoek (er ligt een droge vervalsing)
     vraag: () => { const f = droog(); return `Hij buigt zich naar je toe en fluistert: "Is mijn… bestelling klaar? De ${SCHILDERIJEN[f.v]}?"`; },
     a: [['Ja, hier is hij.', () => { const f = droog(); S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f);
@@ -1429,7 +1439,7 @@ const VRAGEN = [
     vraag: 'HÉ! Iemand deelt valse kortingsbonnen van MIJN zaak uit. En al mijn klanten zitten hier! Dat ben jij, hè?!',
     a: [['Ik weet van niks, Luigi.', () => { if (kans(0.25 + (S.bonnen ? S.bonnen.q : 0) * 0.5)) return '"Hmpf." Hij gelooft je… voorlopig.'; S.sabotage = pak(['rat', 'stinkbom', 'keuring']); return '"Leugenaar!" Hij stormt weg. "Dit zal je berouwen!" (Morgen kun je iets verwachten…)'; }],
       ['Sorry, Luigi. Hier is € 150 voor de schrik.', () => { ge(-150); S.bonnen = null; return 'Hij telt het geld na en grijnst. "Afgesproken. Maar ik hou je in de gaten."'; }],
-      ['Wegwezen, Luigi! Mijn pizza is gewoon beter.', () => { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); rep(1); return 'De klanten applaudisseren. Luigi stampvoet naar buiten. "Wacht maar!" (Morgen kun je iets verwachten…)'; }] ] },
+      ['Wegwezen, Luigi! Mijn pizza is gewoon beter.', () => { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); rep(1); return 'De klanten applaudisseren. Luigi loopt stampvoetend naar buiten. "Wacht maar!" (Morgen kun je iets verwachten…)'; }] ] },
   { id: 'luigi', ik: '🕶️', portret: 2, rij: 2, wie: 'Luigi van de overkant', kans: 2, als: () => S.dag > 4,
     vraag: 'Zo, collega. Mooi zaakje heb je hier. Zou zonde zijn als er iets mee… gebeurde.',
     a: [['Is dat een dreigement, Luigi?', () => '"Ik? Nooit!" Hij lacht en loopt weg.'],
@@ -1560,7 +1570,7 @@ const STRATEN = ['Kerkstraat', 'Molenweg', 'Dorpsplein', 'Bakkerstraat', 'Lindel
 const VOORVAL = [
   { kans: 0.035, extra: 9, tekst: 'Lekke band! De bezorger loopt duwend terug.', fooi: 1, pech: 1 },
   { kans: 0.035, extra: 4, tekst: 'Het regent pijpenstelen. De bezorger komt doorweekt aan.', fooi: 0.5 },
-  { kans: 0.025, extra: 7, tekst: 'De bezorger is verdwaald en belde aan bij de verkeerde deur.', fooi: 1 },
+  { kans: 0.025, extra: 7, tekst: 'De bezorger is verdwaald en belt aan bij de verkeerde deur.', fooi: 1 },
   { kans: 0.02, extra: 0, tekst: 'Geflitst! € 30 boete voor te hard rijden.', boete: 30, fooi: 1 },
   { kans: 0.025, extra: 0, tekst: 'De klant ziet dat er een punt mist… "Hij was al gesneden!" zegt de bezorger.', fooi: 0, maal: 0.8 },
   { kans: 0.02, extra: 0, tekst: 'Bij het afleveren blijkt het een verjaardag: iedereen zingt, de bezorger krijgt taart én een dikke fooi!', fooi: 4 },
@@ -1953,7 +1963,7 @@ function dinerKlaar() {
 // en versieringen kiezen) en vult 6 flessen met wijn van € 3 (`WIJNBATCH`). Kwaliteit q = hoeveel er klopt. De flessen (`S.wijn` = { n, q, naam, jaar })
 // verkopen zich tijdens de werkdag aan villabewoners die klaar zijn met eten: € 20 + € 70 q per fles. De sommelier (vraag 'sommelier') proeft soms.
 // pizza/wijn.png: 0 groene fles, 1 elegante fles, 2 stoffige fles, 3 champagne, 4 kasteel, 5 wapen, 6 lakzegel, 7 druiven, 8 gouden lijst, 9 kist, 10 doos, 11 trechter, 12 glas
-const WIJNNAAM = { lafitte: 'Château Lafitte', margaux: 'Château Margaux', petrus: 'Château Pétrus', kraanwater: 'Château Kraanwater' };
+const WIJNNAAM = { lafitte: 'Château Lafite', margaux: 'Château Margaux', petrus: 'Château Pétrus', kraanwater: 'Château Kraanwater' };
 const WIJNDECO = [4, 5, 6, 7, 8], WIJNJAAR = [1961, 1975, 1982, 1990, 2005], WIJNBATCH = { n: 6, prijs: 18 };
 const wijnDing = (i, px = 56) => `<span class="wijnding" style="width:${px}px;height:${px}px;background-size:${13 * px}px ${px}px;background-position:${-i * px}px 0"></span>`;
 function nieuweWijnOrder() { const d = [...WIJNDECO].sort(() => Math.random() - 0.5).slice(0, 3).sort();
@@ -2082,7 +2092,7 @@ function toonAchterkamer() {
   const o = S.opdracht, klaar = (S.vervalsingen || []);
   const eerste = !S.zaak, pers = eerste ? S.pers : S.buurt == 'studenten', gok = S.buurt == 'toeristen', wijn = S.buurt == 'villa';
   $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1>
-    <p class="buurt">${eerste ? 'Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert.' : gok ? 'Achter een zwaar gordijn: groen vilt, rook, en het geratel van een roulettebalnetje.' : pers ? 'Een benauwd hok vol oude posters en een stoffige machine in de hoek.' : wijn ? 'Een koele kelder vol lege flessen, een berg wijnpakken en een trechter.' : 'Een kaal kamertje.'} Niemand weet ervan… hopelijk.</p>
+    <p class="buurt">${eerste ? 'Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert.' : gok ? 'Achter een zwaar gordijn: groen vilt, rook, en het geratel van een rouletteballetje.' : pers ? 'Een benauwd hok vol oude posters en een stoffige machine in de hoek.' : wijn ? 'Een koele kelder vol lege flessen, een berg wijnpakken en een trechter.' : 'Een kaal kamertje.'} Niemand weet ervan… hopelijk.</p>
     ${wijn ? wijnBlok() : ''}${gok ? `<div class="opdracht"><span style="font-size:60px">🎰</span><div><b>De gokhal</b><br>Fiches kopen, drie rondjes roulette, en wat je overhoudt gaat weer in je kassa.<br><small>Pas op: soms valt de politie binnen.</small></div></div>
       <div class="rij"><button class="knop rood" id="gokken" ${S.gokDag == S.dag && S.gokKeer >= 3 ? 'disabled' : ''}>🎰 ${S.gokDag == S.dag && S.gokKeer >= 3 ? 'Genoeg gegokt voor vandaag' : `Naar de roulettetafel${S.gokDag == S.dag ? ` (nog ${3 - S.gokKeer} keer)` : ' (3 keer)'}`}</button></div>` : ''}
     ${eerste ? `<div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van Gerrit Gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
@@ -2385,11 +2395,21 @@ function maakMens(tafel, stoel, soort = kiesSoort()) {
   return m;
 }
 // elke klant kiest de pizza van de kaart die hij het lekkerst vindt (met een beetje toeval); null = niks van zijn gading
+// trend van de dag (vandaag.trend, gekozen de avond ervoor: S.trendMorgen): klanten kiezen zo'n pizza liever en vinden hem lekkerder
+const telSoort = (p, soort) => new Set(p.stukjes.filter((s) => ING[s.i].s.includes(soort)).map((s) => s.i)).size;
+const TREND = {
+  pittig: { n: 'Pittig', ik: '🌶️', tekst: 'Iedereen wil vandaag iets pittigs!', ok: (p) => smaak(p).f[3] >= 1.5 },
+  zoet: { n: 'Zoet', ik: '🍯', tekst: 'Zoete trek in de stad: hoe zoeter, hoe beter!', ok: (p) => smaak(p).f[1] >= 2.5 },
+  groen: { n: 'Groente', ik: '🥦', tekst: 'Gezond is hip: pizza zonder vlees, met minstens twee soorten groente!', ok: (p) => !telSoort(p, 'vlees') && !telSoort(p, 'vis') && telSoort(p, 'groen') >= 2 },
+  vlees: { n: 'Vlees', ik: '🥓', tekst: 'Vleesdag! Pizza met minstens twee soorten vlees.', ok: (p) => telSoort(p, 'vlees') >= 2 },
+  kaas: { n: 'Kaas', ik: '🧀', tekst: 'Extra kaas is in! Minstens drie keer kaas op de pizza.', ok: (p) => p.stukjes.filter((s) => s.i == 'kaas').length >= 3 },
+  gek: { n: 'Gek', ik: '🤪', tekst: 'Op TikTok gaat een gekke pizza rond: klanten willen iets geks erop!', ok: (p) => telSoort(p, 'gek') >= 1 } };
+const trendOk = (p) => vandaag.trend && TREND[vandaag.trend].ok(p);
 const isNieuw = (p) => p.sinds && S.dag - p.sinds < 4; // de eerste 4 dagen
 function kiesPizza(m) { // kiesPizza.uitv = er was iets lekkers, maar dat was op
   let best = null, bo = -1; kiesPizza.uitv = false;
   for (const p of S.menu) { if (vandaag.op && p.stukjes.some((s) => s.i == vandaag.op)) continue; // ingrediënt op
-    const o = Math.max(0, oordeel(p, m.soort) - vandaag.smaakMin), r = o + Math.random() * 0.8 + (isNieuw(p) && o >= 2 ? 1.2 : 0); // nieuw: benieuwd
+    const o = Math.max(0, oordeel(p, m.soort) - vandaag.smaakMin + kruidBonus() + (trendOk(p) ? 0.5 : 0)), r = o + Math.random() * 0.8 + (isNieuw(p) && o >= 2 ? 1.2 : 0) + (trendOk(p) && o >= 1.5 ? 1 : 0); // nieuw: benieuwd; trend van de dag; verse kruiden
     if (!kanMaken(p)) { if (o >= 1) kiesPizza.uitv = true; continue; } // niet genoeg voorraad
     if (r > bo) { bo = r; best = { p, o }; } }
   if (best && best.o >= 1) { kiesPizza.uitv = false; return best; } return null;
@@ -2502,16 +2522,20 @@ function gebruik(p) { if (!S.voorraad) return; const n = nodig(p); for (const i 
 const voorraadSoorten = () => ['deeg', ...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
 function voorstel() { // gisteren + 25% (of een schatting van ~33 pizza's verdeeld over de kaart), min wat er nog ligt; per 5
   const uit = {}, gist = S.verbruik || {}, v = S.voorraad || {};
-  const nieuw = S.menu.filter(isNieuw), extra = (i) => nieuw.reduce((a, p) => a + (i == 'deeg' ? 1 : p.stukjes.filter((s) => s.i == i).length), 0) * 8 * TELT; // nieuwe pizza: klanten zijn benieuwd
+  const tr = S.trendMorgen || vandaag.trend, nieuw = [...S.menu.filter(isNieuw), ...(tr ? S.menu.filter((p) => TREND[tr].ok(p)) : [])], extra = (i) => nieuw.reduce((a, p) => a + (i == 'deeg' ? 1 : p.stukjes.filter((s) => s.i == i).length), 0) * 8 * TELT; // nieuwe pizza: klanten zijn benieuwd
   for (const i of voorraadSoorten()) { const n = extra(i) + (gist[i] || S.menu.reduce((a, p) => a + (i == 'deeg' ? 1 : p.stukjes.filter((s) => s.i == i).length), 0) * 22 * TELT / Math.max(1, S.menu.length));
     uit[i] = Math.max(0, Math.ceil((n * (S.opGeweest ? 1.6 : 1.25) - (v[i] || 0)) / 5) * 5); } // was er gisteren iets op: ruimer
   return uit; }
 const bestelPrijs = (l, spoed) => Object.entries(l).reduce((a, [i, n]) => a + n * prijsV(i) * (spoed ? 2 : 1), 0);
 function inkopen(l, spoed) { const k = Math.round(bestelPrijs(l, spoed) * 100) / 100; S.voorraad = S.voorraad || {}; for (const [i, n] of Object.entries(l)) S.voorraad[i] = (S.voorraad[i] || 0) + n;
   if (modus == 'inrichten') { S.geld -= k; S.inkoopVandaag = (S.inkoopVandaag || 0) + k; } else { ge(-k); tel.inkoop = (tel.inkoop || 0) + k; } return k; }
+function oogst() { // eigen pepers: elke ochtend gratis pepers in de voorraad
+  const n = S.spullen.filter((t) => SPUL[t.t] && SPUL[t.t].oogst && gegroeid(t)).length; if (!n || !S.voorraad) return;
+  S.voorraad.pepers = (S.voorraad.pepers || 0) + 12 * n; setTimeout(() => meld(`🌶️ Eigen oogst: ${12 * n} pepers uit je eigen plant${n > 1 ? 'en' : ''}, gratis!`, 3000), 2000);
+}
 function startVoorraad() { // bij het openen van de deuren
   verbruikt = {}; gewaarschuwd = new Set(); if (!S.voorraad) { S.voorraad = {}; for (const [i, n] of Object.entries(voorstel())) S.voorraad[i] = n; } // eerste keer (of de manager deed het): gratis gevuld
-  tel.inkoop = S.inkoopVandaag || 0; tel.kosten += tel.inkoop; S.inkoopVandaag = 0;
+  oogst(); tel.inkoop = S.inkoopVandaag || 0; tel.kosten += tel.inkoop; S.inkoopVandaag = 0;
   if (autoAan()) { const l = voorstel(), k = bestelPrijs(l); if (k > 0) { for (const [i, n] of Object.entries(l)) S.voorraad[i] = (S.voorraad[i] || 0) + n; S.geld -= k; tel.inkoop += k; tel.kosten += k; } }
   else { const krap = voorraadSoorten().filter((i) => (S.voorraad[i] || 0) < 8 * TELT); if (krap.length) setTimeout(() => meld(`📦 Bijna op: ${krap.map(VNAAM).join(', ')}! Bestel via 📦 Voorraad (overdag van de markt: dubbele prijs).`, 4500), 2500); }
 }
@@ -2523,6 +2547,7 @@ function toonVoorraad(l) {
   const spoed = modus != 'inrichten', soorten = voorraadSoorten(), v = S.voorraad || {}, gist = S.verbruik || {}; l = l || Object.fromEntries(soorten.map((i) => [i, 0]));
   const k = bestelPrijs(l, spoed);
   $('eindkaart').innerHTML = `<h1>📦 Voorraad</h1><p class="buurt">${spoed ? '🧺 De zaak is open: wat je nu bestelt, haalt iemand snel op de markt, voor <b>dubbele prijs</b>.' : 'Mario bestelt bij de leverancier, je hebt het meteen. Een pizza gebruikt deeg en zijn stukjes; elke nacht bederft er een beetje (10%).'}</p>
+    ${(S.trendMorgen || vandaag.trend) ? `<p class="buurt">📈 Trend ${spoed ? 'van vandaag' : 'van straks'}: ${TREND[S.trendMorgen || vandaag.trend].ik} ${TREND[S.trendMorgen || vandaag.trend].n}. Mario koopt wat extra in voor de pizza's die erbij passen.</p>` : ''}
     ${S.menu.some(isNieuw) ? `<p class="buurt">🆕 Nieuw op de kaart: ${S.menu.filter(isNieuw).map((p) => esc(p.naam)).join(', ')}. De klanten zijn benieuwd, dus die gaat de eerste dagen hard. Mario rekent er al wat extra voor.</p>` : ''}
     <table>${soorten.map((i) => `<tr><td>${VIK(i)} ${esc(VNAAM(i))}${S.korting && S.korting.tot > S.dag && S.korting.i == i ? ' 🏷️' : ''}<br><span style="font-size:.8em;opacity:.7">ligt er: ${Math.floor(v[i] || 0)}${gist[i] ? ` · gisteren op: ${Math.round(gist[i])}` : ''}</span></td>
       <td style="white-space:nowrap"><button class="knop" data-min="${i}">−</button> <b style="display:inline-block;min-width:2.2em;text-align:center">${l[i] || 0}</b> <button class="knop" data-plus="${i}">+</button></td></tr>`).join('')}</table>
@@ -2550,7 +2575,7 @@ const MAG_MANAGER = () => (S.zaak > 0 || S.rep >= 40) && /* in een volgende zaak
 const andereZaak = () => { const l = S.zaken.map((z, i) => i).filter((i) => i != S.zaak && S.zaken[i].manager); if (!l.length) return null; if (!l.includes(belZ)) belZ = pak(l); return S.zaken[belZ]; };
 let belP = null, belZ = null, bedorven = 'kaas', naFoto = null, belDoel = null; // belDoel = de andere zaak (of null = hier) voor het vervolg
 const belRep = (n) => { if (belDoel) belDoel.rep = Math.max(0, Math.min(100, (belDoel.rep || 20) + n)); else rep(n); };
-const daar = (p) => p.v ? `Als je aankomt, ${/^Twee/.test(p.v.wie) ? 'staan' : 'staat'} ${p.v.wie.replace(/ \(.*\)/, '').replace(/,.*$/, '').replace(/^De /, 'de ').replace(/^Twee /, 'twee ')} je al op te wachten…` : p.goed; // met een vervolg: nog niet opgelost
+const daar = (p) => p.v && /aan de telefoon/.test(p.v.wie) ? `Als je aankomt, gaat de telefoon al…` : p.v ? `Als je aankomt, ${/^Twee/.test(p.v.wie) ? 'staan' : 'staat'} ${p.v.wie.replace(/ \(.*\)/, '').replace(/,.*$/, '').replace(/^De /, 'de ').replace(/^Twee /, 'twee ')} je al op te wachten…` : p.goed; // met een vervolg: nog niet opgelost
 function belVervolg(p, doel) { // na "Ik kom eraan": wie er staat, stelt nog een vraag (p.v = { wie, ik, vraag, a })
   if (!p.v) return; belDoel = doel; naVraag = () => toonVraag({ id: 'belVervolg', ik: p.v.ik, wie: p.v.wie, vraag: p.v.vraag, a: p.v.a, zelf: true }); } // een willekeurige andere zaak met een manager (belZ, elke dag opnieuw gekozen)
 const BELPROB = [
@@ -2562,7 +2587,7 @@ const BELPROB = [
     ['Bel de monteur (€ 60).', () => { ge(-60); belRep(1); return 'De monteur draait aan één schroefje en rekent € 60. "Voorrijkosten."'; }],
     ['Ik geef hem een flinke schop.', () => { if (kans(0.5)) return 'BONK. De oven zucht… en doet het weer. Mario kijkt vol bewondering.'; ge(-20); return 'BONK. Au, je teen. En de oven doet nog steeds raar. (€ 20 voor de huisarts)'; }],
     ['Dan doen we vandaag koude pizza: carpaccio-style!', () => { belRep(-1); return 'Niemand snapt het. Twee mensen vinden het "hip".'; }] ] }},
-  { t: 'Hier staat een inspecteur die de baas wil spreken. Hij kijkt heel streng naar de koelkast.', goed: 'De inspecteur knikt tevreden en vertrekt.', fout: 'De inspecteur schrijft een heel lang verslag. Halve zaak afgeplakt met lint.', v: { ik: '🕵️', wie: 'De inspecteur', vraag: 'U bent de eigenaar? Ik zie hier een vlek op de koelkast. Wat heeft u daarop te zeggen?', a: [
+  { t: 'Hier staat een inspecteur die jou wil spreken. Hij kijkt heel streng naar de koelkast.', goed: 'De inspecteur knikt tevreden en vertrekt.', fout: 'De inspecteur schrijft een heel lang verslag. Halve zaak afgeplakt met lint.', v: { ik: '🕵️', wie: 'De inspecteur', vraag: 'U bent de eigenaar? Ik zie hier een vlek op de koelkast. Wat heeft u daarop te zeggen?', a: [
     ['Dat is geen vlek, dat is kunst.', () => { if (kans(0.4)) return 'Hij kijkt nog eens. "Hm. Abstract." Hij laat het gaan.'; ge(-50); return '"Kunst? Dan is dit ook kunst." Hij schrijft een boete van € 50.'; }],
     ['U heeft gelijk, ik maak het meteen schoon.', () => { S.vuil = Math.max(0, (S.vuil || 0) - 1); belRep(1); return 'Je poetst tot het glimt. De inspecteur knikt tevreden.'; }],
     ['Wilt u misschien een stukje pizza proeven?', () => { if (kans(0.5)) return 'Hij proeft. Hij glimlacht. "Alles in orde."'; ge(-75); return '"Probeert u mij om te kopen?!" Boete van € 75.'; }] ] }},
@@ -2572,7 +2597,7 @@ const BELPROB = [
     ['Nee, en die flamingo moet naar buiten.', () => { belRep(-2); return 'De flamingo wordt buiten vastgebonden aan een lantaarnpaal. De vrienden mopperen.'; }] ] }},
   { t: 'De leverancier heeft beschimmelde tomaten gebracht! Wat moet ik doen?', goed: 'Snel verse tomaten van de markt. Duur, maar goed.', fout: 'Er gingen toch een paar groene tomaten op de pizza. Twee klanten werden ook groen.', v: { ik: '🚚', wie: 'De leverancier (aan de telefoon)', vraag: 'Sorry, sorry, sorry! Wat kan ik doen om het goed te maken?', a: [
     ['Drie dagen tomaten voor de halve prijs.', () => { S.korting = { i: 'tomaat', tot: S.dag + 3 }; return '"Afgesproken!" Drie dagen goedkope tomaten.'; }],
-    ['Gratis € 20 korting op de rekening.', () => { ge(20); return 'Hij maakt € 20 over. "En nogmaals: sorry!"'; }],
+    ['€ 20 korting op de rekening.', () => { ge(20); return 'Hij maakt € 20 over. "En nogmaals: sorry!"'; }],
     ['Ik zoek een andere leverancier!', () => { ge(30); return 'Hij smeekt. Hij huilt bijna. Je krijgt € 30 als je blijft. Prima.'; }] ] }},
   { t: 'De ober is ziek naar huis gegaan. Ik sta hier helemaal alleen!', goed: 'Samen rennen jullie de avond door. Het lukt net!', fout: 'De klanten wachten een uur op hun pizza en lopen mopperend weg.', v: { ik: '🤧', wie: 'De zieke ober (aan de telefoon)', vraag: 'Hatsjoe! Baas, mag ik morgen ook thuisblijven?', a: [
     ['Beterschap, blijf maar lekker thuis.', () => { belRep(1); return '"Dank je, baas." Je hoort hem dankbaar snotteren.'; }],
@@ -3256,7 +3281,7 @@ function tekenSpul(s, nu, zitten) {
   const x = s.x * T, y = s.y * T;
   if (s.t == 'schilderij') { tekenSchilderij(s, x, y); return; }
   if (SPUL[s.t].vak != null && VERSIER.complete && VERSIER.naturalWidth) { // versiering staat op zijn vakje en steekt naar boven uit
-    const d = SPUL[s.t], w = d.tw * T, h = w * d.hh / d.b;
+    const d = SPUL[s.t], k = d.kruid && !gegroeid(s) ? 0.7 : 1, w = d.tw * T * k, h = w * d.hh / d.b; // nog aan het groeien: kleiner
     metSchaduw(VERSIER, d.vak * 360 + (360 - d.b) / 2, 360 - d.hh, d.b, d.hh, x + (d.w * T - w) / 2, y + T - h + 2, w, h);
     return;
   }
@@ -3377,7 +3402,7 @@ doek.addEventListener('pointerdown', (e) => {
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
     if (!aanDeMuur(d, x)) { meld('Een schilderij hangt aan de muur: zet hem tegen de linker- of rechtermuur.'); return; }
     if (d.een && S.spullen.some((s) => s.t == kies)) { meld('Je hebt al een ' + d.n.toLowerCase() + '.'); return; }
-    S.spullen.push({ t: kies, x, y, ...(kies == 'stoel' ? { stijl: S.stoelStijl || (S.houtStoel ? 'kussen' : 'streep') } : isTafel({ t: kies }) && S.houtTafel ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
+    S.spullen.push({ t: kies, x, y, ...(SPUL[kies].kruid ? { sinds: S.dag } : {}), ...(kies == 'stoel' ? { stijl: S.stoelStijl || (S.houtStoel ? 'kussen' : 'streep') } : isTafel({ t: kies }) && S.houtTafel ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
     if (d.een) kies = null;
     tekenKnoppen(); return;
   }
@@ -3639,7 +3664,7 @@ function tekenKnoppen() {
         S.bezorg ? { ik: '🛵', n: 'Bezorgdienst stoppen', pr: `scooter terug voor € 100, scheelt € ${BEZORG.loon} loon per dag`, doe: () => { S.bezorg = null; S.geld += 100; maakPersoneel(); kassa(); bewaar(); tekenKnoppen(); meld('De scooter is verkocht. De bezorger zwaait nog één keer met zijn pet.', 3500); } }
           : { ik: '🛵', n: 'Bezorgdienst starten', pr: `scooter € ${BEZORG.scooter}, bezorger € ${BEZORG.loon} per dag. Telefoonbestellingen, los van je tafels.`, uit: S.geld < BEZORG.scooter, doe: () => { S.geld -= BEZORG.scooter; S.bezorg = { sinds: S.dag }; maakPersoneel(); kassa(); bewaar(); tekenKnoppen(); meld('Brrrm! Een rode scooter voor de deur. Vanaf nu gaat tijdens het werk de telefoon voor bestellingen.', 4500); } },
         ...(S.manager ? [{ ik: '👋', n: MANAGER[S.manager.wie].n + ' ontslaan', pr: `manager, €${MANLOON()} per dag, ${S.manager.dagen || 0} dagen in dienst`, doe: () => {
-          const n = MANAGER[S.manager.wie].n; S.manager = null; maakPersoneel(); bewaar(); tekenKnoppen(); meld(n + ' pakt zijn spullen. Je moet nu weer zelf op de zaak passen.', 4000); } }]
+          const n = MANAGER[S.manager.wie].n; S.manager = null; maakPersoneel(); bewaar(); tekenKnoppen(); meld(n + ' vertrekt. Je moet nu weer zelf op de zaak passen.', 4000); } }]
         : Object.entries(MANAGER).filter(([k]) => !S.zaken.some((z, i) => i != S.zaak && z.manager && z.manager.wie == k)).map(([k, M]) => ({ ik: M.ik, n: 'Manager: ' + M.n, pr: MAG_MANAGER() ? `€${M.loon} per dag. ${M.uitleg}` : `pas vanaf populariteit 40, 3 pizza's op de kaart en dag 7`, uit: !MAG_MANAGER(), doe: () => {
           S.manager = { wie: k, sinds: S.dag, dagen: 0, opslag: 0 }; maakPersoneel(); bewaar(); tekenKnoppen(); meld(`${M.n} is je manager! Nu kun je ook overdag de stad in (🗺️); ${M.n.split(' ').pop()} past op de zaak.`, 5000); } }))) ],
         b.getBoundingClientRect(), 'ober'); return; }

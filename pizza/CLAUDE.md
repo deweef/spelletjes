@@ -315,3 +315,11 @@ Looppaden (28 okt, Ben zette de hele zaak vol): een stoel telt alleen als er een
 bij kan (`bereikSleutel`: na verschuiven opnieuw rekenen), en bij het openen een melding. Vroeger liepen obers en klanten dan dwars door de meubels.
 Ook: bezoekers lopen naar `vrijBij` van het midden en van het luik (niet meer door de meubels), obers en manager kiezen een rustplek die bereikbaar is
 (`vakBereik`), en staat de hele rij onder de toonbank vol (`toonbankVrij()` = false), dan telt geen enkele stoel: de ober kan niet weg (melding).
+Trend van de dag (`TREND`: pittig, zoet, groen, vlees, kaas, gek; elk met `ok(pizza)`): in `eindeDag` 60% kans op een trend voor morgen
+(`S.trendMorgen`, in het dagoverzicht met welke pizza's van je kaart passen); bij het openen `vandaag.trend` + melding. Passende pizza: +0,5 oordeel
+en +1 in de keuze (`trendOk` in `kiesPizza`); `voorstel()` koopt er extra voor in.
+Eigen kruiden (versiering, vakjes 4-8 van `pizza/versiering.png`, uit `pizza/kruiden-gemini.jpg`): basilicum, rozemarijn, oregano (€25),
+eigen pepers (€40, `oogst`: elke ochtend 12 pepers gratis in de voorraad), olijfboompje (€70, alleen gezellig). Kruiden moeten 2 dagen groeien
+(`s.sinds`, `gegroeid`, kleiner getekend); daarna elke pizza +0,2 oordeel per bak (`kruidBonus`, max 3 bakken).
+Tekstronde 28 okt (helper las ~1100 teksten na): 20 fouten verbeterd (lidwoorden bij ingrediënten, uitdrukkingen, Lafite, "heeft ontslag
+genomen" …); vraag 'ring' alleen met 2 ovens (Beppe); `daar()` zegt bij "(aan de telefoon)" dat de telefoon gaat.
