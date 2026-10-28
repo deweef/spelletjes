@@ -62,3 +62,5 @@ kronkelpad van level 1 (onder, bordje Start) naar boven; rij = `nrInPad` (B: 20 
 eigen strook (`kaartPlek`/`baan`; Bruegel rechts op een bruine strook, landen links op een blauwe). Paden lopen van elk level in `voor` naar het level
 (gestippeld als het nog dicht is). Schijfjes tonen `zoek/mini/<id>.jpg` (maken met `python3 zoek/maak_mini.py` na een nieuw level!), ⭐/🔒/🚗/🦹, en
 📍 + pulserende ring bij het level waar je bent (eerste open level zonder tijd op het pad van `zoek_laatst`). Tik = kaartje `#levelinfo` (`toonInfo`) met Spelen.
+Landenpad: C1 Frankrijk (`frankrijk`, `pad: 'C'`, `na: ['brommer']`, `puzzel: 1`: linksonder de legpuzzel van Frankrijk `tekenPuzzel`/`FRANKRIJK`,
+elk gevonden voorwerp legt stukjes, het laatste stukje komt pas als je Sjaak betrapt; Sjaak heeft hier een vakje voor zijn lijf en een voor het stukje in zijn hand).
