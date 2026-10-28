@@ -317,3 +317,9 @@ De manager bestelt in de andere zaken (Sandra netjes, Kevin vergeet het soms).
 - Kinderen (`pizza/kind-gemini.jpg`, `kind2`): kinderstoel, kinderfeestje, afhalen.
 - Duurdere moderne oven; toonbank/kassa uit de vellen; croupier-plaatje voor de gokhal.
 - Balans nakijken: een nieuwe zaak met 4 stoelen groeit traag (boze klant = −3).
+
+## Gemini-opdracht: zitten precies van opzij (28 okt, voor alle 11 klantfiguren)
+De zittende plaatjes opzij (vakjes 16/17 in `pizza/klanten.png`) zijn half van voren getekend, daardoor lijkt het of mensen schuin aan
+tafel zitten. Per figuur een nieuw vel (oude vel van die figuur meesturen). Tekst staat in de chat van 28 okt (zie ook hieronder):
+"Teken precies deze figuur opnieuw … 1 rij van 4 plaatjes, ZUIVER VAN OPZIJ (profiel, neus naar rechts) … zittend op een onzichtbare kruk …"
+Figuren: werker, student, villadame, Afrikaanse man, Chinese dame, Chinese toerist, opa, studente, Afrikaanse vrouw, zakenman, oma.
