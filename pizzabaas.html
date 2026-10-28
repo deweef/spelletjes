@@ -680,7 +680,7 @@ function eindeDag() {
   modus = 'inrichten'; eindeVoorraad();
   const huur = S.huur || HUUR, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
   const andereWinst = anderen.reduce((a, o) => a + o.winst, 0);
-  const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon + (S.bezorg.abo ? BEZORG.abo : 0) : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi - tel.kosten - huur - lonen + andereWinst;
+  const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon + (S.bezorg.abo ? BEZORG.abo : 0) : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi + extraTotaal() - tel.kosten - huur - lonen + andereWinst;
   S.geld += -huur - lonen - (tel.ing || 0) + andereWinst;
   let manWeg = ''; if (S.manager) { const M = MANAGER[S.manager.wie]; S.manager.dagen = (S.manager.dagen || 0) + 1;
     if (S.geld < 0) { manWeg = `${M.n} heeft ontslag genomen: "Geen loon, geen ${M.n.split(' ').pop()}."`; S.manager = null; }
@@ -717,7 +717,7 @@ function eindeDag() {
       ${tel.aangebrand ? `<tr><td>🔥 Aangebrand (de kok stond te kletsen)</td><td>${tel.aangebrand}</td></tr>` : ''}
       ${top ? `<tr><td>🏆 Meest besteld</td><td>${esc(top[0])} (${kl(top[1])}×)</td></tr>` : ''}
       ${soorten ? `<tr><td>Hoe smaakte het?</td><td>${soorten}</td></tr>` : ''}
-      <tr><td>🍕 Pizza's verkocht</td><td>€ ${Math.round(tel.omzet)}</td></tr>
+      <tr><td>🍕 Pizza's verkocht</td><td>€ ${Math.round(tel.omzet)}</td></tr>${Object.entries(tel.extra || {}).filter(([k, n]) => n >= 1).map(([k, n]) => `<tr><td>${EXTRANAAM[k] || EXTRANAAM.overig}</td><td>€ ${Math.round(n)}</td></tr>`).join('')}
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
       <tr><td>🧀 Ingrediënten ingekocht</td><td>− € ${Math.round((tel.inkoop || 0) + (tel.ing || 0))}</td></tr>${tel.kosten - (tel.inkoop || 0) - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.inkoop || 0) - (tel.ing || 0))}</td></tr>` : ''}${tel.bedorven >= 1 ? `<tr><td>🗑️ Bedorven en weggegooid</td><td>(€ ${Math.round(tel.bedorven)})</td></tr>` : ''}${tel.uitverkocht ? `<tr><td>🚫 Weg: hun pizza was op</td><td>${kl(tel.uitverkocht)}</td></tr>` : ''}
       <tr><td>🏠 Huur</td><td>− € ${huur}</td></tr>${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${esc(o.tekst)}</td></tr>`).join('')}
@@ -821,7 +821,9 @@ const VANDAAG = () => ({ fooi: 1, gezellig: 0, aankomst: 1, oberSnel: 1, ovenUit
 let vandaag = VANDAAG(), vraagTijden = [], pauze = false;
 const pak = (l) => l[Math.floor(Math.random() * l.length)];
 const kans = (p) => Math.random() < p;
-const ge = (n) => { S.geld += n; if (n < 0) tel.kosten += -n; else tel.omzet += n; }; // geld erbij of eraf, telt mee in het dagoverzicht
+const ge = (n, soort = 'overig') => { S.geld += n; if (n < 0) tel.kosten += -n; else { tel.extra = tel.extra || {}; tel.extra[soort] = (tel.extra[soort] || 0) + n; } }; // geld erbij of eraf; inkomsten per soort apart in het dagoverzicht (niet bij de pizza's)
+const EXTRANAAM = { overig: '💶 Andere inkomsten', kunst: '🖼️ Schilderij verkocht', wijn: '🍷 Château verkocht', spel: '🎲 Gewonnen' };
+const extraTotaal = () => Object.values(tel.extra || {}).reduce((a, n) => a + n, 0);
 // populariteit: omhoog gaat steeds moeilijker naarmate je hoger zit (boven 60 flink), omlaag gaat gewoon
 const repRem = (n) => n > 0 ? n * Math.max(0.15, Math.min(1, 1.25 - S.rep / 80)) : n; // 40 → 75%, 60 → 50%, 80 → 25%, 100 → 15%
 const rep = (n) => { S.rep = Math.max(0, Math.min(100, S.rep + repRem(n))); };
@@ -1147,7 +1149,7 @@ const VRAGEN = [
     vraag: () => `Een dame in een roze bontjas, met hondje Fifi onder haar arm, schrijdt binnen. "Daaarling! Ik hoorde dat u… kunst heeft. De ${SCHILDERIJEN[droog().v]}? Ik betaal het dubbele van die saaie Gerrit. Maar alleen voor échte kwaliteit!"`,
     a: [['Hij is voor u, gravin.', () => { const f = droog(); S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f);
         const besteld = S.opdracht && S.opdracht.v == f.v, prijs = Math.round((besteld ? S.opdracht.prijs : 150) * (0.25 + 0.75 * f.q) * 2);
-        if (f.q >= 0.7) { ge(prijs); if (bezoeker) bezoeker.achter = true; return `Ze houdt het schilderij tegen het licht, slaakt een gilletje en betaalt € ${prijs}. "Magnifique! Fifi, kijk eens! En nu wil ik zien waar de magie gebeurt." Ze pakt de sleutel van het haakje.`; }
+        if (f.q >= 0.7) { ge(prijs, 'kunst'); if (bezoeker) bezoeker.achter = true; return `Ze houdt het schilderij tegen het licht, slaakt een gilletje en betaalt € ${prijs}. "Magnifique! Fifi, kijk eens! En nu wil ik zien waar de magie gebeurt." Ze pakt de sleutel van het haakje.`; }
         rep(-4); S.verplicht = [...(S.verplicht || []), 'rechercheur']; return `"NEP! Dit is NEP! Dit heeft een kleuter gemaakt!" Ze gooit het doek op de grond en belt meteen haar vriend van de kunstrecherche…`; }],
       ['Sorry, die is al besteld door Gerrit.', () => '"Gerrit? Die man draagt een hoed uit 1952." Ze schrijdt weer weg.'],
       ['Wilt u een portret van Fifi?', () => { ge(50); vandaag.gezellig += 1; return 'Ze betaalt € 50 voorschot. Fifi poseert de hele avond op tafel 3. Alle klanten vinden het prachtig.'; }] ] },
@@ -1418,17 +1420,17 @@ const VRAGEN = [
     vraag: 'Hij staat al een tijdje naar je schilderij te kijken. "Wat een mooi schilderij… Wie is de schilder?"',
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
       ['Van de kringloop, vijf euro.', () => '"Jammer," mompelt hij. "Jammer."'],
-      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); if (bezoeker) bezoeker.achter = true; return 'Hij kijkt om zich heen en fluistert: "Dan bent u degene die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken zit toch nog een kamertje? Kom maar mee." Hij geeft je een sleutel, klapt het luikje in de toonbank omhoog en loopt dwars door je keuken naar een deurtje dat je nog nooit gezien had… 🗝️ Linksboven zit nu een sleuteltje: de achterkamer!'; }] ] },
+      ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); if (bezoeker) bezoeker.achter = true; return 'Hij kijkt om zich heen en fluistert: "Dan bent u degene die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken zit toch nog een kamertje? Kom maar mee." Hij hangt een sleuteltje aan een haakje naast je schilderij. "Op de dagen dat ik kom, hangt hij hier. Alleen ik pak hem." Dan pakt hij hem meteen, klapt het luikje in de toonbank omhoog en loopt naar een deurtje achter in je keuken dat je nog nooit gezien had… 🗝️'; }] ] },
   { id: 'koper', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', als: () => false, // via kamerBezoek (er ligt een droge vervalsing)
     vraag: () => { const f = droog(); return `Hij buigt zich naar je toe en fluistert: "Is mijn… bestelling klaar? De ${SCHILDERIJEN[f.v]}?"`; },
     a: [['Ja, hier is hij.', () => { const f = droog(); S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f);
         const besteld = S.opdracht && S.opdracht.v == f.v, prijs = Math.round((besteld ? S.opdracht.prijs : 150) * (0.25 + 0.75 * f.q)); if (besteld) nieuweOpdracht(); if (bezoeker) bezoeker.achter = true; // daarna mee naar de achterkamer
         if (kans(0.45)) { naVraag = () => kiesMunt(prijs, 'Gerrit Gleufhoed', `"Contant is zo… ouderwets. Ik betaal liever digitaal: € ${prijs} in crypto. Welke munt wilt u?"`); return `Hij bekijkt het met een vergrootglas en knikt. Dan pakt hij zijn telefoon in plaats van een envelop…`; }
-        ge(prijs);
-        return f.q < 0.5 ? `Hij trekt een vies gezicht. "Dit is rommel." Hij geeft je maar € ${prijs}.` : `Hij bekijkt het met een vergrootglas, knikt en schuift een envelop met € ${prijs} over tafel.${besteld ? '' : ' (Dit had hij niet besteld, dus minder geld.)'}`; }],
+        ge(prijs, 'kunst');
+        return f.q < 0.5 ? `Hij trekt een vies gezicht. "Dit is rommel." Hij geeft je maar € ${prijs}.` : `Hij bekijkt het met een vergrootglas, knikt en schuift een envelop met € ${prijs} over tafel.${besteld ? '' : ' (Dit had hij niet besteld, dus minder geld.)'} Dan pakt hij de sleutel van het haakje: "Even kijken wat u nog meer heeft."`; }],
       ['Nog niet, hij is nog niet goed genoeg.', () => '"Ik heb geduld," zegt hij. "Maar niet eeuwig."'],
       ['Hij kost het dubbele, anders geen deal.', () => { const f = droog();
-        if (kans(0.4)) { S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f); const prijs = Math.round((S.opdracht ? S.opdracht.prijs : 150) * 1.5 * (0.25 + 0.75 * f.q)); ge(prijs); nieuweOpdracht(); return `Hij zucht diep… en betaalt € ${prijs}. Wat een onderhandelaar ben jij!`; }
+        if (kans(0.4)) { S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f); const prijs = Math.round((S.opdracht ? S.opdracht.prijs : 150) * 1.5 * (0.25 + 0.75 * f.q)); ge(prijs, 'kunst'); nieuweOpdracht(); return `Hij zucht diep… en betaalt € ${prijs}. Wat een onderhandelaar ben jij!`; }
         S.opdracht = null; return '"Dan zoek ik wel een andere schilder." Hij is weg. Je zit met een vervalsing die niemand wil…'; }] ] },
   { id: 'rechercheur', ik: '🕵️‍♀️', wie: 'Kunstrechercheur', kans: () => (S.vervalsingen || []).length ? 3 : 0.5, als: () => S.achterkamer && S.dag > S.achterkamer,
     vraag: 'Inspecteur Van Dijk, kunstrecherche. Er gaan geruchten over vervalste schilderijen in deze buurt. Mag ik even achter rondkijken?',
@@ -1485,17 +1487,22 @@ function laatBinnen(v) { bezoeker = { rij: v.rij ?? v.portret, x: DEUR.x + 0.5, 
 function stapBezoeker(dt) {
   luikOpen = 0; const b = bezoeker; if (!b) return;
   if (b.st == 'in' && loopNaar(b, b.doel || (b.doel = vrijBij([7.5, 8.5])), 2.6, dt)) { /* naar het midden, of de dichtstbijzijnde vrije plek (niet door de meubels) */ b.st = 'praat'; b.loopT = 0; toonVraag(b.v); }
-  else if (b.st == 'uit' && b.achter) b.st = 'luik'; // Gerrit gaat niet naar buiten maar de keuken in
+  else if (b.st == 'uit' && b.achter) { b.st = haakPlek() ? 'haak' : 'luik'; b.cam = { zoom, mid: zoomMidden && [...zoomMidden] }; } // Gerrit gaat niet naar buiten maar de keuken in: eerst de sleutel pakken (het beeld loopt mee)
+  else if (b.st == 'haak' && loopNaar(b, b.haak || (b.haak = vrijBij(haakPlek())), 2.4, dt)) { b.st = 'pak'; b.t = 0; }
+  else if (b.st == 'pak') { b.t += dt; if (b.t > 0.5 && !b.sleutel) { b.sleutel = true; vandaag.sleutelWeg = true; ding(1500, 0.08, 'triangle', 0.05); setTimeout(() => ding(1900, 0.06, 'triangle', 0.04), 90); } if (b.t > 1.1) b.st = 'luik'; }
   else if (b.st == 'uit' && loopNaar(b, [DEUR.x + 0.5, H + 0.6], 2.6, dt)) bezoeker = null;
   else if (b.st == 'luik' && loopNaar(b, b.luik || (b.luik = vrijBij([LUIK_X, KEUKEN + 0.7])), 2.4, dt)) b.st = 'luikvoor'; // eerst om de meubels heen naar de toonbank
   else if (b.st == 'luikvoor' && beweeg(b, [LUIK_X, KEUKEN + 0.7], 2.4, dt)) b.st = 'keuken';
   else if (b.st == 'keuken' && beweeg(b, [LUIK_X, 0.9], 1.8, dt)) { b.st = 'deur'; b.t = 0; ding(220, 0.15, 'square', 0.04); } // kriep
   else if (b.st == 'deur') { b.t += dt; deurOpen = Math.min(1, b.t * 2); if (b.t > 0.6) beweeg(b, [LUIK_X, -0.3], 1.5, dt);
-    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; meld(b.v.wie.split(' ')[0] + ' wacht in de achterkamer…', 3000); naarAchter(); } }
+    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; if (b.cam) { zoom = b.cam.zoom; zoomMidden = b.cam.mid; zetZoom(); } meld(b.v.wie.split(' ')[0] + ' wacht in de achterkamer…', 3000); naarAchter(); } }
+  if (b.cam && bezoeker) { zoom = Math.min(1.8, zoom + dt * 1.5); zetZoom(b.x, b.y - 0.8); } // het beeld volgt hem
   luikOpen = b && b.y < KEUKEN + 1 && b.y > KEUKEN - 1.2 && Math.abs(b.x - LUIK_X) < 0.6 ? 1 : 0; // het luik klapt open als hij erdoor loopt
 }
 // het klapluik in de toonbank (midden, tussen de twee uitgiftes) en het geheime deurtje achter in de keuken (naar de achterkamer).
 // luikOpen / deurOpen = 0 (dicht) … 1 (open); het deurtje is er pas als je de achterkamer kent (of als Gerrit hem net laat zien)
+function haakPlek() { // waar je moet staan om de sleutel te pakken: naast het schilderij (zaak 1), of null (dan hangt hij bij het deurtje)
+  const s = !S.zaak && S.spullen.find((t) => t.t == 'schilderij'); return s ? [s.x == 0 ? 1 : W - 1, s.y + 0.6] : null; }
 function naarAchter() { achterPauze = true; S.achterDag = S.dag; vandaag.sleutelWeg = true; bewaar(); tekenKnoppen(); toonAchterkamer(); }
 function kamerBezoek() { // wie komt er vandaag voor de achterkamer (of niemand)? Een droge vervalsing wordt opgehaald
   const droogLigt = (S.vervalsingen || []).some((f) => f.dag < S.dag);
@@ -1534,6 +1541,9 @@ function tekenBezoeker() {
   const [x, y] = naarScherm(b.x, b.y), f = (b.st == 'in' ? 0 : 4) + (b.loopT > 0 ? Math.floor(b.loopT * 6) % 4 : 0), h = 1.85 * T * schaal, w = h * 113 / 192;
   g.fillStyle = 'rgba(40,15,5,.28)'; g.beginPath(); g.ellipse(x + 7 * schaal, y + 5 * schaal, w * 0.3, 7 * schaal, 0, 0, 7); g.fill();
   g.drawImage(BEZOEK, f * 113, b.rij * 192, 113, 192, x - w / 2, y - h + 6 * schaal, w, h);
+  if (b.sleutel) { const kx = x + w * 0.28, ky = y - h * 0.42 + Math.sin(performance.now() / 120) * 2 * schaal, k = schaal; // de sleutel in zijn hand
+    g.fillStyle = '#e8be3c'; g.beginPath(); g.arc(kx, ky, 5 * k, 0, 7); g.fill(); g.fillRect(kx - 1.5 * k, ky + 3 * k, 3 * k, 12 * k); g.fillRect(kx + 1.5 * k, ky + 10 * k, 4 * k, 2.5 * k);
+    g.fillStyle = '#7a5410'; g.beginPath(); g.arc(kx, ky, 2 * k, 0, 7); g.fill(); }
 }
 function toonVraag(v) {
   pauze = true; S.gehad = S.gehad || {}; S.gehad[v.id] = S.dag; ding(880, 0.1); setTimeout(() => ding(1100, 0.12), 120);
@@ -2322,7 +2332,7 @@ function toonStad(plek) {
   if ($('stapel')) $('stapel').onclick = () => toonToren();
   if ($('kunsthuur')) $('kunsthuur').onclick = () => { ge(-KUNSTHUUR); S.kunstHuur = { v: kunstVanDeWeek(), tot: S.dag + 7 }; kassa(); bewaar(); tekenKnoppen(); meld(`${SCHILDERIJEN[S.kunstHuur.v]} hangt nu bij jou aan de muur. Niet aankomen!`, 3500); toonStad(plek); };
   if ($('kunstverkoop')) $('kunstverkoop').onclick = () => { const w = lijstjeWens(), f = S.vervalsingen.find((x) => x.dag < S.dag && x.v == w.v); S.vervalsingen = S.vervalsingen.filter((x) => x != f); S.lijstje = null;
-    if (f.q >= 0.6) { const p = Math.round(w.prijs * f.q); ge(p); kassa(); meld(`Mevrouw Van Lijstje bekijkt het met een loep. "Wonderbaarlijk teruggevonden." Ze telt € ${p} uit. Niet aankomen.`, 5000); }
+    if (f.q >= 0.6) { const p = Math.round(w.prijs * f.q); ge(p, 'kunst'); kassa(); meld(`Mevrouw Van Lijstje bekijkt het met een loep. "Wonderbaarlijk teruggevonden." Ze telt € ${p} uit. Niet aankomen.`, 5000); }
     else { rep(-3); S.verplicht = [...(S.verplicht || []), 'rechercheur']; meld('"Dit is een NAMAAK!" Mevrouw Van Lijstje belt meteen de kunstrecherche…', 5000); }
     bewaar(); tekenKnoppen(); toonStad(plek); };
   if ($('reclame')) $('reclame').onclick = () => { ge(-RECLAME); S.reclame = { tot: S.dag + 7 }; rep(3); S.ruzie = Math.min(100, (S.ruzie || 0) + 10); if (!(S.verplicht || []).includes('luigiBord')) S.verplicht = [...(S.verplicht || []), 'luigiBord']; kassa(); bewaar(); tekenKnoppen(); meld('Een week lang je pizzeria op het grote bord! "Lekkerder dan Luigi" staat er. Klein. Onderaan.', 4000); toonStad(plek); };
@@ -2706,7 +2716,7 @@ function stap(dt) {
       // hoe lekker (0-6) bepaalt de fooi en of ze het doorvertellen
       const o = m.oordeel, prijs = m.pizza.prijs * TELT, fooi = Math.max(0, gezellig(m.tafel) * 0.4 + (o - 2) * 0.5 + (m.wacht < 18 ? 1 : 0)) * vandaag.fooi * TELT + (m.chef ? 3 : 0); // TELT: anderhalve klant; m.chef: de kok kwam even flirten
       S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o;
-      if (S.wijn && S.wijn.n > 0 && S.buurt == 'villa' && (m.soort == 'villa' || kans(0.2)) && kans(0.6)) { const w = 20 + Math.round(70 * S.wijn.q); S.wijn.n--; ge(w); tel.wijn = (tel.wijn || 0) + 1; // een fles Château bij het eten
+      if (S.wijn && S.wijn.n > 0 && S.buurt == 'villa' && (m.soort == 'villa' || kans(0.2)) && kans(0.6)) { const w = 20 + Math.round(70 * S.wijn.q); S.wijn.n--; ge(w, 'wijn'); tel.wijn = (tel.wijn || 0) + 1; // een fles Château bij het eten
         muntjes.push({ x: m.x, y: m.y - 0.6, t: 1.4, tekst: '🍷 +€' + w }); if (!S.wijn.n) S.wijn = null; }
       tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1;
       const s = tel.soort[m.soort] = tel.soort[m.soort] || [0, 0]; s[0]++; s[1] += o; // aantal, totaal oordeel
@@ -3257,7 +3267,7 @@ function tekenHaakje(x, y) { // het haakje; met sleutel als er vandaag iemand vo
   g.save(); g.translate(x, y); g.scale(1.7, 1.7); x = 0; y = 0; tekenHaakje2(); g.restore();
   function tekenHaakje2() {
   g.fillStyle = '#2a2a2a'; g.fillRect(x, y, 8, 3); g.fillRect(x + 6, y, 2, 7);
-  if (modus == 'inrichten' || !vandaag.sleutel || vandaag.sleutelWeg || (bezoeker && bezoeker.achter && bezoeker.st != 'praat')) return;
+  if (modus == 'inrichten' || !(vandaag.sleutel || (bezoeker && bezoeker.achter)) || vandaag.sleutelWeg || (bezoeker && bezoeker.sleutel)) return; // de sleutel hangt er tot iemand hem pakt
   const glim = 0.75 + 0.25 * Math.sin(performance.now() / 250);
   g.fillStyle = `rgba(232,190,60,${glim})`; g.beginPath(); g.arc(x + 7, y + 11, 4, 0, 7); g.fill(); g.fillRect(x + 6, y + 13, 2.5, 12); g.fillRect(x + 8, y + 20, 4, 2); g.fillRect(x + 8, y + 23, 3, 2);
   g.fillStyle = '#7a5410'; g.beginPath(); g.arc(x + 7, y + 11, 1.5, 0, 7); g.fill(); }

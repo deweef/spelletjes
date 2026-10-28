@@ -323,3 +323,8 @@ eigen pepers (€40, `oogst`: elke ochtend 12 pepers gratis in de voorraad), oli
 (`s.sinds`, `gegroeid`, kleiner getekend); daarna elke pizza +0,2 oordeel per bak (`kruidBonus`, max 3 bakken).
 Tekstronde 28 okt (helper las ~1100 teksten na): 20 fouten verbeterd (lidwoorden bij ingrediënten, uitdrukkingen, Lafite, "heeft ontslag
 genomen" …); vraag 'ring' alleen met 2 ovens (Beppe); `daar()` zegt bij "(aan de telefoon)" dat de telefoon gaat.
+Inkomsten apart (28 okt): `ge(n, soort)` telt plus-geld in `tel.extra[soort]` (niet meer bij "Pizza's verkocht"): 'kunst' (Gerrit, gravin,
+Van Lijstje), 'wijn', standaard 'overig' (vragen); in het dagoverzicht per soort een regel (`EXTRANAAM`), `extraTotaal()` in de winst.
+Filmpje bij de achterkamer: na het goede antwoord loopt de bezoeker eerst naar het haakje (`haakPlek`, zaak 1 naast het schilderij; st 'haak' →
+'pak'), pakt de sleutel (`b.sleutel`, in zijn hand getekend, belletje), dan door het luik naar het deurtje; het beeld zoomt in en loopt mee
+(`b.cam`, daarna terug naar de oude zoom). Gerrits eerste tekst ('gleufhoed' C) vertelt over het haakje; geen sleuteltje linksboven meer.
