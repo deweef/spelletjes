@@ -278,3 +278,11 @@ Crypto bijgesteld (28 okt, Marcel kreeg €50 MozzaMunt in één nacht → €20
 een herstart van MozzaMunt maakt de oude munten waardeloos (`bezit = 0`; vroeger sprong hij van de bodem naar 30% van de start), en elke
 nacht kans op een hack (2% + waarde/40.000, max 10%): één munt in je wallet weg; de bank is veilig. Gesimuleerd (400 × €100, 7 dagen):
 gemiddeld €80-110 terug, de helft houdt minder dan €40 (MozzaMunt/DogePizza), af en toe een uitschieter tot ~€3000.
+Achterkamer (afspraak Marcel 28 okt): geen sleutelknop meer (`#sleutel` altijd verborgen). In `openDeuren` kiest `kamerBezoek()` of er vandaag
+iemand voor de achterkamer komt (via `S.verplicht`; dan `vandaag.sleutel`: de sleutel hangt aan het haakje, `tekenHaakje`: in zaak 1 naast het
+schilderij, anders naast het deurtje). Zaak 1: droge vervalsing = 75% koper (Gerrit) of gravin, anders 40% 'gerritlangs'; andere zaken 40%
+'kamerStudent' / 'kamerGokker' / 'kamerHeer' (zonder figuur: `naVraag = naarAchter`); met `S.barrie` 20% 'barrieLangs'. Deze vragen komen alleen
+nog via kamerBezoek (`als: () => false`). Het goede antwoord = de bezoeker pakt de sleutel (`bezoeker.achter`, `naarAchter()`, `vandaag.sleutelWeg`).
+Binnen: één schilderij / één keer gokken (`S.gokDag`) / drukken / wijn; daarna "Terug naar de achterkamer" (laptop, Barrie), weg met "Deur dicht".
+Crypto (28 okt, Marcel): wildere koersen (vol 0,16/0,3/0,45/0,6), bewaarkosten 2% per nacht (`BEWAAR`, staat op de laptop), per munt 2% kans per
+nacht op een hack. Doel 'bank' (geld op de bank). Bank in de stad: rode banner "lenen ~~10%~~ 9%!".

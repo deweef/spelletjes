@@ -651,6 +651,8 @@ function openDeuren() {
   // vaste bezoeken: Gerrit 1-2 dagen na het ophangen van een schilderij (en daarna om de 4 dagen tot je het goede antwoord geeft), Luigi rond dag 5
   if (!S.zaak && !S.achterkamer && S.spullen.some((t) => t.t == 'schilderij')) { if (!S.gerritNa) S.gerritNa = S.dag + 1 + (Math.random() < 0.5 ? 1 : 0);
     if (S.dag >= S.gerritNa) { S.verplicht = [...(S.verplicht || []), 'gleufhoed']; S.gerritNa = S.dag + 4; } }
+  // de achterkamer: alleen als er vandaag iemand voor komt hangt de sleutel aan het haakje (vandaag.sleutel); die bezoeker neemt je mee
+  if (achterOpen()) { const id = kamerBezoek(); if (id && !(S.verplicht || []).includes(id)) { S.verplicht = [...(S.verplicht || []), id]; vandaag.sleutel = true; setTimeout(() => meld('🗝️ Er hangt een sleutel aan het haakje. Vandaag komt er iemand voor de achterkamer…', 4000), 3500); } }
   if (S.dag >= 5 && !S.luigiKwam) { S.luigiKwam = S.dag; S.verplicht = [...(S.verplicht || []), 'luigi']; }
   vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ if (torenOpen()) vandaag.aankomst *= 1.1; /* toeristen voor de toren */ if (reclameAan()) vandaag.aankomst *= 1.15; /* reclamebord */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (belastingDag() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
@@ -1003,6 +1005,27 @@ const VRAGEN = [
     a: [['€ 2 per rondje!', () => { const n = 25 + Math.floor(Math.random() * 20); ge(-2 * n); rep(3); return `Ze loopt er ${n}. Met de hond. Die loopt er nog meer. Dat wordt € ${2 * n}, maar het hele dorp praat over je.`; }],
       ['Gewoon een vast bedrag: € 20.', () => { ge(-20); rep(1); return 'Ze is er blij mee. De hond likt je hand.'; }],
       ['Nee, ik heb het te druk.', () => 'De hond kijkt je heel teleurgesteld aan.'] ] },
+  // ---- bezoekers voor de achterkamer (via kamerBezoek; de sleutel hangt aan het haakje). Zonder figuur: naVraag = naarAchter ----
+  { id: 'barrieLangs', ik: '🕶️', portret: 5, rij: 4, wie: 'Barrie de Bink', als: () => false,
+    vraag: 'Barrie schuift aan de bar en kijkt naar het haakje. "Baas. Ik heb wat… ideetjes over Luigi. Even naar achteren?"',
+    a: [['Kom maar mee, Barrie.', () => { if (bezoeker) bezoeker.achter = true; return 'Barrie pakt de sleutel van het haakje alsof hij hier woont.'; }],
+      ['Vandaag niet, Barrie.', () => '"Prima. Ik ben er als je me nodig hebt." Hij eet zwijgend een calzone.'],
+      ['Wat voor ideetjes?', () => { if (bezoeker) bezoeker.achter = true; return '"Dat bespreken we niet hier," fluistert hij, en hij pakt de sleutel.'; }] ] },
+  { id: 'kamerStudent', ik: '🎓', wie: 'Student met een rugzak', als: () => false,
+    vraag: 'Psst. Die drukpers achter staat er toch nog? Zullen we vanavond even… drukken?',
+    a: [['Kom mee, de sleutel hangt hier.', () => { naVraag = naarAchter; return 'Hij pakt de sleutel en jullie glippen door het luikje naar achteren.'; }],
+      ['Niet vandaag, het is te druk.', () => '"Jammer. Dan ga ik maar studeren." Hij gaat gamen.'],
+      ['Alleen als je eerst afwast.', () => { oberTempo(1.05); naVraag = naarAchter; return 'Hij wast af, mopperend. Daarna pakt hij de sleutel.'; }] ] },
+  { id: 'kamerGokker', ik: '🎲', wie: 'Gokker met een sigaar', als: () => false,
+    vraag: 'Is de tafel achter vanavond open? Ik voel me gelukkig.',
+    a: [['Ga je gang, ik pak de sleutel.', () => { naVraag = naarAchter; return 'Het gordijn gaat open. Het balletje rolt al.'; }],
+      ['Vandaag niet, er loopt politie rond.', () => '"Dan kom ik morgen." Hij steekt een nieuwe sigaar op. Buiten.'],
+      ['Alleen voor vaste klanten: € 10 entree.', () => { ge(10); naVraag = naarAchter; return 'Hij betaalt zonder te kijken. Jullie gaan naar achteren.'; }] ] },
+  { id: 'kamerHeer', ik: '🧐', wie: 'Heer met een monocle', als: () => false,
+    vraag: 'Goedenavond. Ik zou graag nog eens een kijkje nemen in uw… befaamde wijnkelder.',
+    a: [['Natuurlijk, volgt u mij.', () => { naVraag = naarAchter; return 'Je pakt de sleutel van het haakje. De heer poetst zijn monocle.'; }],
+      ['De kelder is vandaag gesloten.', () => '"Hoe jammer. Een andere keer." Hij drinkt zijn kraanwater.'],
+      ['Alleen als u een fles koopt (€ 30).', () => { ge(30); naVraag = naarAchter; return '"Uiteraard." Hij betaalt, en jullie dalen af naar de kelder.'; }] ] },
   // ---- de manager zelf (zelf: true = die vraag beantwoordt de manager niet voor je) ----
   { id: 'manOpslag', ik: '📋', zelf: true, wie: () => S.manager ? MANAGER[S.manager.wie].n : 'Je manager', kans: 4, als: () => S.manager && S.manager.wie != 'bruno' && (S.manager.dagen || 0) >= 4 && S.geld > 600 && !(S.manager.opslagDag > S.dag - 10),
     vraag: () => (S.manager || {}).wie == 'kevin' ? 'Eh, baas… ik werk hier nu al best lang. Zeg maar een week. Kan ik meer geld krijgen? Voor een nieuwe telefoon.' : `Baas, ik run hier zo'n beetje alles. De kassa loopt als een trein. Ik vind dat ik best € 15 per dag meer mag verdienen.`,
@@ -1098,16 +1121,16 @@ const VRAGEN = [
     a: [['Ga uw gang, nonna!', () => { vandaag.fooi *= 1.15; return 'Ze kneedt als een tornado. De pizza\'s zijn vanavond extra lekker!'; }],
       ['Mevrouw, u mag niet in de keuken.', () => 'Ze geeft je een tik met een houten lepel en gaat beledigd zitten.'],
       ['Wilt u bij ons komen werken?', () => { ge(-25); vandaag.fooi *= 1.1; return '"Voor € 25 en een glas wijn." Ze bakt de hele avond mee.'; }] ] },
-  { id: 'gerritlangs', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 2, als: () => !S.zaak && S.achterkamer && !(S.vervalsingen || []).some((f) => f.dag < S.dag),
+  { id: 'gerritlangs', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', als: () => false, // via kamerBezoek
     vraag: 'Hij komt gewoon een pizza eten en leunt naar je toe. "En, hoe gaat het met… de kunst? Ik heb klanten die graag kopen."',
-    a: [['Ik ben ermee bezig.', () => '"Uitstekend." Hij tikt tegen zijn hoed en eet zijn pizza.'],
+    a: [['Kom maar kijken, ik ben ermee bezig.', () => { if (bezoeker) bezoeker.achter = true; return '"Uitstekend." Hij pakt de sleutel van het haakje en loopt voor je uit naar het kamertje.'; }],
       ['Wat betalen ze het liefst?', () => { if (S.opdracht) S.opdracht.prijs += 50; return `"Voor de ${S.opdracht ? SCHILDERIJEN[S.opdracht.v] : 'Zonnebloemen'} betalen ze vijftig euro extra." (De bestelling is € 50 meer waard.)`; }],
-      ['Kunt u mij leren schilderen?', () => '"De kunst is: niet te netjes. Echte meesters trilden ook." Hij knipoogt.'] ] },
-  { id: 'gravin', ik: '💎', portret: 6, rij: 5, wie: 'Gravin Gloria van Glitterstein', kans: 5, als: () => !S.zaak && S.achterkamer && (S.vervalsingen || []).some((f) => f.dag < S.dag),
+      ['Kunt u mij leren schilderen?', () => { if (bezoeker) bezoeker.achter = true; return '"De kunst is: niet te netjes. Echte meesters trilden ook. Kom, ik laat het zien." Hij pakt de sleutel van het haakje.'; }] ] },
+  { id: 'gravin', ik: '💎', portret: 6, rij: 5, wie: 'Gravin Gloria van Glitterstein', als: () => false, // via kamerBezoek (er ligt een droge vervalsing)
     vraag: () => `Een dame in een roze bontjas, met hondje Fifi onder haar arm, schrijdt binnen. "Daaarling! Ik hoorde dat u… kunst heeft. De ${SCHILDERIJEN[droog().v]}? Ik betaal het dubbele van die saaie Gerrit. Maar alleen voor échte kwaliteit!"`,
     a: [['Hij is voor u, gravin.', () => { const f = droog(); S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f);
         const besteld = S.opdracht && S.opdracht.v == f.v, prijs = Math.round((besteld ? S.opdracht.prijs : 150) * (0.25 + 0.75 * f.q) * 2);
-        if (f.q >= 0.7) { ge(prijs); return `Ze houdt het schilderij tegen het licht, slaakt een gilletje en betaalt € ${prijs}. "Magnifique! Fifi, kijk eens!"`; }
+        if (f.q >= 0.7) { ge(prijs); if (bezoeker) bezoeker.achter = true; return `Ze houdt het schilderij tegen het licht, slaakt een gilletje en betaalt € ${prijs}. "Magnifique! Fifi, kijk eens! En nu wil ik zien waar de magie gebeurt." Ze pakt de sleutel van het haakje.`; }
         rep(-4); S.verplicht = [...(S.verplicht || []), 'rechercheur']; return `"NEP! Dit is NEP! Dit heeft een kleuter gemaakt!" Ze gooit het doek op de grond en belt meteen haar vriend van de kunstrecherche…`; }],
       ['Sorry, die is al besteld door Gerrit.', () => '"Gerrit? Die man draagt een hoed uit 1952." Ze schrijdt weer weg.'],
       ['Wilt u een portret van Fifi?', () => { ge(50); vandaag.gezellig += 1; return 'Ze betaalt € 50 voorschot. Fifi poseert de hele avond op tafel 3. Alle klanten vinden het prachtig.'; }] ] },
@@ -1379,10 +1402,10 @@ const VRAGEN = [
     a: [['Dat heeft mijn neefje gemaakt.', () => 'Hij knikt beleefd. "Talentvol neefje." Hij eet zijn pizza en vertrekt.'],
       ['Van de kringloop, vijf euro.', () => '"Jammer," mompelt hij. "Jammer."'],
       ['Een échte Van Gogh.', () => { S.achterkamer = S.dag; rep(1); if (bezoeker) bezoeker.achter = true; return 'Hij kijkt om zich heen en fluistert: "Dan bent u de man die ik zoek. Ik heb… klanten voor zulke schilderijen. Achter uw keuken zit toch nog een kamertje? Kom maar mee." Hij geeft je een sleutel, klapt het luikje in de toonbank omhoog en loopt dwars door je keuken naar een deurtje dat je nog nooit gezien had… 🗝️ Linksboven zit nu een sleuteltje: de achterkamer!'; }] ] },
-  { id: 'koper', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', kans: 10, als: () => (S.vervalsingen || []).some((f) => f.dag < S.dag),
+  { id: 'koper', ik: '🎩', portret: 4, rij: 3, wie: 'Gerrit Gleufhoed', als: () => false, // via kamerBezoek (er ligt een droge vervalsing)
     vraag: () => { const f = droog(); return `Hij buigt zich naar je toe en fluistert: "Is mijn… bestelling klaar? De ${SCHILDERIJEN[f.v]}?"`; },
     a: [['Ja, hier is hij.', () => { const f = droog(); S.vervalsingen = (S.vervalsingen || []).filter((x) => x != f);
-        const besteld = S.opdracht && S.opdracht.v == f.v, prijs = Math.round((besteld ? S.opdracht.prijs : 150) * (0.25 + 0.75 * f.q)); if (besteld) nieuweOpdracht();
+        const besteld = S.opdracht && S.opdracht.v == f.v, prijs = Math.round((besteld ? S.opdracht.prijs : 150) * (0.25 + 0.75 * f.q)); if (besteld) nieuweOpdracht(); if (bezoeker) bezoeker.achter = true; // daarna mee naar de achterkamer
         if (kans(0.45)) { naVraag = () => kiesMunt(prijs, 'Gerrit Gleufhoed', `"Contant is zo… ouderwets. Ik betaal liever digitaal: € ${prijs} in crypto. Welke munt wilt u?"`); return `Hij bekijkt het met een vergrootglas en knikt. Dan pakt hij zijn telefoon in plaats van een envelop…`; }
         ge(prijs);
         return f.q < 0.5 ? `Hij trekt een vies gezicht. "Dit is rommel." Hij geeft je maar € ${prijs}.` : `Hij bekijkt het met een vergrootglas, knikt en schuift een envelop met € ${prijs} over tafel.${besteld ? '' : ' (Dit had hij niet besteld, dus minder geld.)'}`; }],
@@ -1450,11 +1473,18 @@ function stapBezoeker(dt) {
   else if (b.st == 'luik' && loopNaar(b, [LUIK_X, KEUKEN + 0.7], 2.4, dt)) b.st = 'keuken';
   else if (b.st == 'keuken' && beweeg(b, [LUIK_X, 0.9], 1.8, dt)) { b.st = 'deur'; b.t = 0; ding(220, 0.15, 'square', 0.04); } // kriep
   else if (b.st == 'deur') { b.t += dt; deurOpen = Math.min(1, b.t * 2); if (b.t > 0.6) beweeg(b, [LUIK_X, -0.3], 1.5, dt);
-    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; achterPauze = true; S.achterDag = S.dag; tekenKnoppen(); meld(b.v.wie.split(' ')[0] + ' wacht in de achterkamer…', 3000); toonAchterkamer(); } }
+    if (b.t > 1.6) { bezoeker = null; deurOpen = 0; meld(b.v.wie.split(' ')[0] + ' wacht in de achterkamer…', 3000); naarAchter(); } }
   luikOpen = b && b.y < KEUKEN + 1 && b.y > KEUKEN - 1.2 && Math.abs(b.x - LUIK_X) < 0.6 ? 1 : 0; // het luik klapt open als hij erdoor loopt
 }
 // het klapluik in de toonbank (midden, tussen de twee uitgiftes) en het geheime deurtje achter in de keuken (naar de achterkamer).
 // luikOpen / deurOpen = 0 (dicht) … 1 (open); het deurtje is er pas als je de achterkamer kent (of als Gerrit hem net laat zien)
+function naarAchter() { achterPauze = true; S.achterDag = S.dag; vandaag.sleutelWeg = true; bewaar(); tekenKnoppen(); toonAchterkamer(); }
+function kamerBezoek() { // wie komt er vandaag voor de achterkamer (of niemand)? Een droge vervalsing wordt opgehaald
+  const droogLigt = (S.vervalsingen || []).some((f) => f.dag < S.dag);
+  if (S.barrie && kans(0.2)) return 'barrieLangs';
+  if (!S.zaak) return droogLigt ? (kans(0.75) ? (kans(0.35) ? 'gravin' : 'koper') : null) : kans(0.4) ? 'gerritlangs' : null;
+  return kans(0.4) ? { studenten: 'kamerStudent', toeristen: 'kamerGokker', villa: 'kamerHeer' }[S.buurt] || null : null;
+}
 let luikOpen = 0, deurOpen = 0, achterPauze = false; // achterPauze: de werkdag staat stil zolang je met Gerrit in de achterkamer bent
 const LUIK_X = W / 2;
 function tekenLuikEnDeur() {
@@ -1478,6 +1508,8 @@ function tekenLuikEnDeur() {
   if (dicht > 0.15) { g.fillStyle = '#4e2a12'; for (let k = 1; k < 4; k++) g.fillRect(dx + dw * dicht * k / 4, -2, 1.5, dh); // planken
     g.fillStyle = '#c9a227'; g.beginPath(); g.arc(dx + dw * dicht - 7, dh * 0.55, 3, 0, 7); g.fill(); }
   if (deurOpen > 0) { g.fillStyle = 'rgba(255,200,90,.25)'; g.fillRect(dx + dw * dicht, -2, dw * deurOpen, dh); } // flikkerende lamp in de achterkamer
+  if (!S.zaak && S.spullen.some((s) => s.t == 'schilderij')) return; // in de eerste zaak hangt het haakje naast het schilderij (tekenHaakje)
+  tekenHaakje(dx - 16, dh * 0.35);
 }
 function tekenBezoeker() {
   const b = bezoeker; if (!b || !BEZOEK.complete || !BEZOEK.naturalWidth) return;
@@ -1579,10 +1611,11 @@ function tekenRit() { // linksboven in de zaal: waar is de scooter?
 // op de laptop in de achterkamer. Weer euro's ervan maken kan alleen bij Snelle Sjonnie in de stad (PLEK.wissel, 10% commissie).
 const PROVISIE = 0.03; // kopen en verkopen op de laptop gaat via je bankrekening (S.bankSaldo), elke keer 3%
 const MUNT = {
-  bitkaas: { n: 'Bitkaas', ik: '🧀', start: 100, vol: 0.12, kl: '#f1c40f' },
-  ethertje: { n: 'Ethertje', ik: '💎', start: 40, vol: 0.22, kl: '#8e7cc3' },
-  mozzamunt: { n: 'MozzaMunt', ik: '🍕', start: 5, vol: 0.35, kl: '#e74c3c' },
-  dogepizza: { n: 'DogePizza', ik: '🐶', start: 0.5, vol: 0.5, kl: '#e67e22' } };
+  bitkaas: { n: 'Bitkaas', ik: '🧀', start: 100, vol: 0.16, kl: '#f1c40f' },
+  ethertje: { n: 'Ethertje', ik: '💎', start: 40, vol: 0.3, kl: '#8e7cc3' },
+  mozzamunt: { n: 'MozzaMunt', ik: '🍕', start: 5, vol: 0.45, kl: '#e74c3c' },
+  dogepizza: { n: 'DogePizza', ik: '🐶', start: 0.5, vol: 0.6, kl: '#e67e22' } };
+const BEWAAR = 0.02; // bewaarkosten van de wallet per nacht
 const CRYPTONIEUWS = [
   ['dogepizza', 3, 'Een beroemde miljardair tweet een pizza-emoji met een hondje. DogePizza schiet omhoog!'],
   ['dogepizza', 0.35, 'Iemand ontdekt dat DogePizza gewoon een plaatje van een hond is. Paniek!'],
@@ -1601,9 +1634,9 @@ function cryptoAvond() { // elke avond: nieuwe koersen
   if (kans(0.3)) { const [k, f, t] = pak(CRYPTONIEUWS); c.koers[k] *= f; c.nieuws.push(`${MUNT[k].ik} ${t} (${f > 1 ? '+' : ''}${Math.round((f - 1) * 100)}%)`); }
   if (c.koers.mozzamunt < MUNT.mozzamunt.start * 0.01 && kans(0.3)) { const had = c.bezit.mozzamunt > 0; c.koers.mozzamunt = MUNT.mozzamunt.start * 0.3; c.bezit.mozzamunt = 0; // herstart = een nieuwe munt: de oude munten zijn niks meer waard
     c.nieuws.push('🍕 MozzaMunt is herstart door een nieuwe "oprichter". Het is een gloednieuwe munt: de oude MozzaMunten zijn niks meer waard.' + (had ? ' Die van jou ook niet.' : '')); }
-  const w = cryptoWaarde(); // hackers: hoe meer er in je wallet zit, hoe groter de kans (de bank is veilig)
-  if (w > 50 && kans(Math.min(0.1, 0.02 + w / 40000))) { const l = Object.keys(MUNT).filter((k) => c.bezit[k] * c.koers[k] > 5), k = pak(l), weg = c.bezit[k] * c.koers[k]; c.bezit[k] = 0;
-    c.nieuws.push(`🏴‍☠️ Je wallet is gehackt! Al je ${MUNT[k].n} is weg (${euro(weg)}). "Wachtwoord: pizza123" was misschien niet zo slim.`); }
+  for (const k of Object.keys(MUNT)) { if (!(c.bezit[k] > 0)) continue; c.bezit[k] *= 1 - BEWAAR; // bewaarkosten van de wallet, elke nacht
+    if (c.bezit[k] * c.koers[k] > 5 && kans(0.02)) { const weg = c.bezit[k] * c.koers[k]; c.bezit[k] = 0; // per munt 2% kans op een hack (de bank is veilig)
+      c.nieuws.push(`🏴‍☠️ Je ${MUNT[k].n}-wallet is gehackt! Alles weg (${euro(weg)}). "Wachtwoord: pizza123" was misschien niet zo slim.`); } }
   for (const k of Object.keys(MUNT)) { c.hist[k].push(c.koers[k]); if (c.hist[k].length > 20) c.hist[k].shift(); }
 }
 let naVraag = null; // na Verder in een vraag nog iets laten zien
@@ -1629,6 +1662,7 @@ function cryptoBlok(wissel) { // de lijst munten: op de laptop (kopen) of bij Sn
       <td>${koersLijn(k)}</td><td style="text-align:right"><small>je hebt</small><br><b>${bez ? euro(bez * c.koers[k]) : '–'}</b></td>
       <td style="text-align:right;white-space:nowrap">${wissel ? `<button class="knop rood" data-verkoop="${k}" ${bez * c.koers[k] < 0.5 ? 'disabled' : ''}>Wisselen</button>`
         : `<button class="knop" data-koop="${k}" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>Koop</button> <button class="knop" data-verkoopbank="${k}" ${bez * c.koers[k] < 0.5 ? 'disabled' : ''}>Verkoop</button>`}</td></tr>`; }).join('')}</table>
+    <p class="buurt" style="margin:4px 0 0">💼 Bewaarkosten van je wallet: ${BEWAAR * 100}% per nacht. Hoe langer je ze hebt, hoe meer het kost.</p>
     ${wissel ? '' : `<p class="buurt">🏦 Op je bankrekening: <b>${euro(S.bankSaldo || 0)}</b>. Kopen gaat van je bankrekening af, verkopen komt erop, steeds met ${PROVISIE * 100}% provisie. Contant geld storten en opnemen doe je bij de bank in de stad.</p>`}
     ${c.nieuws.length ? `<p class="buurt">📰 ${c.nieuws.map(esc).join(' ')}</p>` : ''}`;
 }
@@ -1941,8 +1975,8 @@ function toonWijn() {
     S.wijn = { n: WIJNBATCH.n, q, naam: o.naam, jaar: o.jaar }; nieuweWijnOrder(); wijnMaak = null; bewaar(); tekenKnoppen(); ding(900, 0.06); setTimeout(() => ding(700, 0.06), 90);
     $('achterkaart').innerHTML = `<h1>${q >= 0.8 ? '🤩 Niet van echt te onderscheiden!' : q >= 0.5 ? '🙂 Van een afstandje…' : '😬 Dat ziet er nep uit…'}</h1><p>${wijnDing(m.fles, 80)} Je ${WIJNBATCH.n} flessen "${esc(WIJNNAAM[S.wijn.naam])}" zijn voor <b>${Math.round(q * 100)}%</b> echt.
       De villabewoners kopen ze tijdens het eten, voor € ${20 + Math.round(70 * q)} per fles.</p><p class="buurt">${q < 0.8 ? 'Pas op voor de sommelier: die proeft het verschil.' : 'Zelfs een sommelier zou erin trappen.'}</p>
-      <div class="rij"><button class="knop rood" id="achterterug">🍕 Terug naar de pizzeria</button></div>`;
-    $('achterterug').onclick = () => $('achter').classList.add('verborgen'); };
+      <div class="rij"><button class="knop rood" id="achterterug">🗝️ Terug naar de achterkamer</button></div>`;
+    $('achterterug').onclick = () => toonAchterkamer(); };
 }
 
 // ---------- de gokhal (achterkamer aan het plein): roulette met fiches van € 10 ----------
@@ -1959,7 +1993,7 @@ function gokRaad(k) { // de gokker laat een balletje rollen: goed geraden = de g
   return `Het balletje valt op ${n}, ${kl}! ${kl == 'groen' ? 'Groen! Hij valt bijna van zijn stoel en geeft je € 100. ' : ''}"Jij hebt geluk, ik zie het." Samen richten jullie het kamertje achter de keuken in als gokhal. 🗝️ Linksboven zit nu een sleuteltje.`;
 }
 let gok = null;
-function toonGokhal() {
+function toonGokhal() { S.gokDag = S.dag; // één keer per bezoek
   gok = { fiches: 0, ronde: 0, inzet: 1, op: 'rood', gekocht: 0, draait: false, hoek: 0, bal: 0, uit: null, tekst: 'Koop fiches en zet in. Je speelt drie rondes.' };
   tekenGokhal();
 }
@@ -1982,7 +2016,7 @@ function tekenGokhal() {
   k.querySelectorAll('[data-op]').forEach((b) => b.onclick = () => { gok.op = b.dataset.op; tekenGokhal(); });
   k.querySelectorAll('[data-in]').forEach((b) => b.onclick = () => { gok.inzet = +b.dataset.in; tekenGokhal(); });
   if ($('draai')) $('draai').onclick = draaiWiel;
-  $('gokstop').onclick = () => { const terug = gok.fiches * FICHE; S.geld += terug; gok.fiches = 0; kassa(); bewaar(); tekenKnoppen(); $('achter').classList.add('verborgen');
+  $('gokstop').onclick = () => { const terug = gok.fiches * FICHE; S.geld += terug; gok.fiches = 0; kassa(); bewaar(); tekenKnoppen(); toonAchterkamer();
     meld(`De croupier wisselt je fiches: € ${terug} terug in je kassa.`, 3500); };
   tekenWiel();
 }
@@ -2042,7 +2076,7 @@ function toonAchterkamer() {
   $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1>
     <p class="buurt">${eerste ? 'Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert.' : gok ? 'Achter een zwaar gordijn: groen vilt, rook, en het geratel van een roulettebalnetje.' : pers ? 'Een benauwd hok vol oude posters en een stoffige machine in de hoek.' : wijn ? 'Een koele kelder vol lege flessen, een berg wijnpakken en een trechter.' : 'Een kaal kamertje.'} Niemand weet ervan… hopelijk.</p>
     ${wijn ? wijnBlok() : ''}${gok ? `<div class="opdracht"><span style="font-size:60px">🎰</span><div><b>De gokhal</b><br>Fiches kopen, drie rondjes roulette, en wat je overhoudt gaat weer in je kassa.<br><small>Pas op: soms valt de politie binnen.</small></div></div>
-      <div class="rij"><button class="knop rood" id="gokken">🎰 Naar de roulettetafel</button></div>` : ''}
+      <div class="rij"><button class="knop rood" id="gokken" ${S.gokDag == S.dag ? 'disabled' : ''}>🎰 ${S.gokDag == S.dag ? 'Vandaag al gespeeld' : 'Naar de roulettetafel'}</button></div>` : ''}
     ${eerste ? `<div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van Gerrit Gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
       Hij betaalt tot <b>€ ${o.prijs}</b> (hoe echter, hoe meer).<br><small>Uiterlijk ${esc(datumLang(o.tot))}.</small></div></div>
     ${klaar.length ? `<p><b>Staan te drogen of klaar om op te halen:</b> ${klaar.map((f) => `${esc(SCHILDERIJEN[f.v])} (${Math.round(f.q * 100)}% echt${f.dag >= S.dag ? ', nog nat' : ''})`).join(', ')}</p>` : ''}
@@ -2109,8 +2143,8 @@ function toonAtelier(v) {
     S.vervalsingen = S.vervalsingen || []; S.vervalsingen.push({ v, q, dag: S.dag }); bewaar();
     $('achterkaart').innerHTML = `<h1>${q > 0.8 ? '🤩 Meesterlijk!' : q > 0.55 ? '🙂 Niet slecht' : '😬 Hmm…'}</h1><p>Je namaak lijkt voor <b>${Math.round(q * 100)}%</b> op het echte schilderij.
       ${q > 0.8 ? 'Zelfs Vincent zou twijfelen.' : q > 0.55 ? 'Van een afstandje gaat het wel.' : 'Ziet eruit alsof een kleuter het heeft gedaan. Met wanten aan.'}</p>
-      <p class="buurt">Het doek moet een nacht drogen. Daarna komt Gerrit Gleufhoed het ophalen. Snel, voor iemand iets merkt: terug naar je pizzeria!</p><div class="rij"><button class="knop rood" id="achterterug">🍕 Terug naar de pizzeria</button></div>`;
-    $('achterterug').onclick = () => $('achter').classList.add('verborgen'); // klaar = de achterkamer uit (één schilderij per dag, zie toonAchterkamer)
+      <p class="buurt">${tijd <= 0 ? '⏰ De tijd is om! ' : ''}Het doek moet een nacht drogen. Daarna komt Gerrit Gleufhoed het ophalen.</p><div class="rij"><button class="knop rood" id="achterterug">🗝️ Terug naar de achterkamer</button></div>`;
+    $('achterterug').onclick = () => toonAchterkamer(); // één schilderij per bezoek: de knop is daar nu grijs
   }
   $('ateliereklaar').onclick = klaar;
 }
@@ -2136,8 +2170,8 @@ function toonDrukken() {
     S.bonnen = { q: gem, tot: S.dag + 3 }; bewaar();
     $('achterkaart').innerHTML = `<h1>${gem > 0.75 ? '🤩 Niet van echt te onderscheiden!' : gem > 0.45 ? '🙂 Gaat wel' : '😬 Vol inktvlekken…'}</h1>
       <p>Je bonnen zijn voor <b>${Math.round(gem * 100)}%</b> echt. Een student deelt ze uit in de stad. Luigi's klanten komen drie dagen naar jou!</p>
-      <div class="rij"><button class="knop rood" id="achterterug">🍕 Terug naar de pizzeria</button></div>`;
-    $('achterterug').onclick = () => $('achter').classList.add('verborgen');
+      <div class="rij"><button class="knop rood" id="achterterug">🗝️ Terug naar de achterkamer</button></div>`;
+    $('achterterug').onclick = () => toonAchterkamer();
   };
 }
 // Luigi's sabotage (S.sabotage, de dag erna): rat in de zaak (tik erop om hem te vangen), stinkbom (minder klanten), keuringsdienst getipt
@@ -2208,7 +2242,8 @@ function toonStad(plek) {
   }
   const p = PLEK[plek], terug = `<button class="knop" id="plekterug">🗺️ Terug naar de kaart</button>`;
   let h = `<h1>${p.ik} ${esc(p.n)}</h1>`, knoppen = '';
-  if (plek == 'bank') { h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button><button class="knop" id="storten" ${S.geld < 1 ? 'disabled' : ''}>⬇️ Storten</button><button class="knop" id="opnemen" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>⬆️ Opnemen</button>`;
+  if (plek == 'bank') { h += `<div style="background:#c0392b;color:#fff;border-radius:8px;padding:8px 10px;margin:4px 0 8px;text-align:center;font-weight:700;transform:rotate(-1.5deg);box-shadow:0 3px 8px rgba(0,0,0,.25)">💸 LENEN BIJ BANCA FORTUNA: <s style="opacity:.75">10%</s> <span style="font-size:1.25em;color:#ffe08a">9%!</span><br><small style="font-weight:400">Alleen hier aan het loket: 1% minder rente</small></div>`;
+    h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button><button class="knop" id="storten" ${S.geld < 1 ? 'disabled' : ''}>⬇️ Storten</button><button class="knop" id="opnemen" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>⬆️ Opnemen</button>`;
     h += `<p class="buurt">🏦 Op je bankrekening: <b>${euro(S.bankSaldo || 0)}</b>. Contant in je kassa: <b>${euro(Math.max(0, S.geld))}</b>. (Met bankgeld kun je op de laptop in de achterkamer crypto kopen.)</p>`; }
   if (plek == 'markt') {
     const aanbod = marktAanbod(), heb = S.korting && S.korting.tot > S.dag ? S.korting : null;
@@ -3105,6 +3140,15 @@ const LANG = new Image(); LANG.src = 'pizza/lange-tafels.png';
 // 2 meisje met de parel, 3 glimlachende dame, 4 de schreeuw, 5 Hollandse molen (s.v); hangt tegen de linker- of rechtermuur
 const SCHILD = new Image(); SCHILD.src = 'pizza/schilderijen.png';
 const SCHILDERIJEN = ['Zonnebloemen', 'Sterrennacht', 'Meisje met de parel', 'Glimlachende dame', 'De schreeuw', 'Hollandse molen'];
+function tekenHaakje(x, y) { // het haakje; met sleutel als er vandaag iemand voor de achterkamer komt (en hij hem nog niet gepakt heeft)
+  g.save(); g.translate(x, y); g.scale(1.7, 1.7); x = 0; y = 0; tekenHaakje2(); g.restore();
+  function tekenHaakje2() {
+  g.fillStyle = '#2a2a2a'; g.fillRect(x, y, 8, 3); g.fillRect(x + 6, y, 2, 7);
+  if (modus == 'inrichten' || !vandaag.sleutel || vandaag.sleutelWeg || (bezoeker && bezoeker.achter && bezoeker.st != 'praat')) return;
+  const glim = 0.75 + 0.25 * Math.sin(performance.now() / 250);
+  g.fillStyle = `rgba(232,190,60,${glim})`; g.beginPath(); g.arc(x + 7, y + 11, 4, 0, 7); g.fill(); g.fillRect(x + 6, y + 13, 2.5, 12); g.fillRect(x + 8, y + 20, 4, 2); g.fillRect(x + 8, y + 23, 3, 2);
+  g.fillStyle = '#7a5410'; g.beginPath(); g.arc(x + 7, y + 11, 1.5, 0, 7); g.fill(); }
+}
 function tekenSchilderij(s, x, y) {
   // aan de zijmuur: van opzij gezien, dus smal en schuin (zoals de muur zelf), een stukje boven de vloer, met een schaduwtje op de muur
   const v = (s.v || 0) % 6, links = s.x == 0, h = 1.15 * T, by = y + T * 0.95 - h;
@@ -3113,6 +3157,7 @@ function tekenSchilderij(s, x, y) {
     g.fillStyle = 'rgba(40,15,5,.35)'; g.fillRect(8, 6, 160 * h / 160, h); // schaduw
     g.drawImage(SCHILD, v * 160, 0, 160, 160, 0, 0, h, h); g.restore();
     g.fillStyle = 'rgba(40,15,5,.18)'; g.fillRect(links ? 0 : WW - 10, y + T * 0.9, 10, 4); // schaduw op de vloer
+    if (!S.zaak && (achterOpen() || vandaag.sleutel) && s == S.spullen.find((t) => t.t == 'schilderij')) tekenHaakje(links ? 24 : WW - 40, by + h * 0.2); // haakje naast het schilderij
     return; }
   const bw = 0.55 * T, bx = x + (links ? 2 : T - bw - 2), bh = bw;
   g.fillStyle = '#b8892a'; g.fillRect(bx, by, bw, bh); g.fillStyle = '#d9b44a'; g.fillRect(bx + 5, by + 5, bw - 10, bh - 10);
@@ -3451,8 +3496,7 @@ function bewaarPizza() {
 // het knoppenraster in het paneel (3 x 3, zoals in het oude spel)
 function tekenKnoppen() {
   setTimeout(controleerDoelen, 0);
-  $('sleutel').classList.toggle('verborgen', !achterOpen()); // elke zaak zijn eigen achterkamer
-  $('sleutel').style.opacity = S.achterDag == S.dag ? 0.35 : 1; // vandaag al geweest
+  $('sleutel').classList.add('verborgen'); // geen sleutelknop meer: je komt alleen in de achterkamer met een bezoeker (de sleutel aan het haakje)
   $('stadknop').disabled = modus != 'inrichten' && !manAanwezig(); // zonder manager alleen 's ochtends de deur uit
   const k = $('raster'), open = modus != 'inrichten';
   let h = '';
@@ -3542,6 +3586,7 @@ const DOELEN = [
   { id: 'plant', n: 'Zet een plant of andere versiering neer', geld: 15, ok: () => S.spullen.some((t) => VERSIERING.includes(t.t)) },
   { id: 'dertig', n: 'Haal 30 tevreden klanten op één dag', geld: 40, ok: () => (S.besteDag || 0) >= 30 },
   { id: 'stad', n: 'Ga een keer naar buiten, de stad in (🗺️)', geld: 15, ok: () => !!S.stad },
+  { id: 'bank', n: 'Zet wat geld op de bank (🗺️ → Banca Fortuna)', geld: 20, ok: () => (S.bankSaldo || 0) >= 1 },
   { id: 'schilderij', n: 'Hang een schilderij aan de muur', geld: 20, ok: () => S.spullen.some((t) => t.t == 'schilderij') },
   { id: 'personeel', n: 'Neem een tweede ober of een tweede oven', geld: 30, ok: () => S.obers >= 2 || S.ovens >= 2 },
   { id: 'drie', n: 'Zet 3 pizza\'s op de kaart', geld: 30, ok: () => S.menu.length >= 3 },
