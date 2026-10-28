@@ -303,7 +303,17 @@ terracotta pot, grote palm in pot, jukebox (felle kleuren, lampjes), wit bord me
 geen schaduwen, geen tekst." (De schaduw naar rechtsonder tekent het spel zelf: een schaduw van Gemini knipt niet goed uit.)
 (Stoel = 1x1 tegel, tafel = 2x2 tegels, jukebox = 2x2.)
 
-## Idee: voorraad per zaak (nog niet gebouwd, eerst afspreken met Marcel)
+## Voorraad per zaak — **gebouwd 28 okt** (Mario bestelt vanzelf zolang je één zaak hebt, daarna zelf inkopen; zie CLAUDE.md)
 Per zaak een voorraad deeg en ingrediënten; elke pizza gebruikt wat. 's Ochtends bestellen bij de leverancier (knop "zelfde als gisteren" /
 voorstel op basis van wat gisteren verkocht is), de markt is duurder maar meteen. Te veel = bederft, te weinig = pizza niet te maken (boze klanten).
 De manager bestelt in de andere zaken (Sandra netjes, Kevin vergeet het soms).
+
+## Nog open (stand 28 okt)
+- Trend van de dag ("vandaag willen ze pittig!"), past bij de voorraad.
+- Eigen kruiden kweken (`pizza/kruiden-gemini.jpg`): goedkoper of lekkerder.
+- Minispel bij de stinkbom (wegsluipen bij Luigi).
+- Pizzawedstrijd op de markt tegen Luigi; Gouden Pizzaschep (recensent incognito); smokkeltruffel via Barrie; ober verliefd op Luigi's dochter.
+- Plein: selfiemuur of straatmuzikant.
+- Kinderen (`pizza/kind-gemini.jpg`, `kind2`): kinderstoel, kinderfeestje, afhalen.
+- Duurdere moderne oven; toonbank/kassa uit de vellen; croupier-plaatje voor de gokhal.
+- Balans nakijken: een nieuwe zaak met 4 stoelen groeit traag (boze klant = −3).
