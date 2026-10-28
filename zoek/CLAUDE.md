@@ -57,3 +57,8 @@ Level 4 Het strand gebruikt `zoek/strand.jpg` (Gemini, 1376x768) met `STRAND_BEE
 Vakjes nalopen: geen twee voorwerpen mogen elkaars midden raken, en voorwerpen die vaker voorkomen (koffiemok, tamboerijn, pizza) krijgen meer vakjes.
 In elk level staat de zilveren oldtimer (eigen ontwerp zonder merk; geen Lucky Luke of Mercedes-logo, dat is beschermd):
 `auto: [x, y, schaal, draai]` per level, staat niet op het lijstje; gevonden = toeter + "Oh jee, daar is hij weer!" en een 🚗 bij het level.
+Levelkaart (standaard in het levelmenu, `weergave`/`zoek_weergave`, knop "Toon als lijst" voor de oude lijst): `kaartSvg` tekent een SVG met een
+kronkelpad van level 1 (onder, bordje Start) naar boven; rij = `nrInPad` (B: 20 + nr, C: 25 + nr, `RIJ_START`), waar zijpaden lopen krijgt elk pad een
+eigen strook (`kaartPlek`/`baan`; Bruegel rechts op een bruine strook, landen links op een blauwe). Paden lopen van elk level in `voor` naar het level
+(gestippeld als het nog dicht is). Schijfjes tonen `zoek/mini/<id>.jpg` (maken met `python3 zoek/maak_mini.py` na een nieuw level!), ⭐/🔒/🚗/🦹, en
+📍 + pulserende ring bij het level waar je bent (eerste open level zonder tijd op het pad van `zoek_laatst`). Tik = kaartje `#levelinfo` (`toonInfo`) met Spelen.

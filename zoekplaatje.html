@@ -46,6 +46,13 @@ html,body{margin:0;height:100%;background:var(--bg);color:#fff;font:16px/1.3 "Tr
 .level .nr.b{font-size:20px}
 .splits{margin:18px 0 4px;padding:10px 12px;border-radius:14px;background:#f3ecff;font-size:14px;text-align:left}
 .pad{margin:14px 0 0;font-size:17px;text-align:left;color:var(--paars)}
+#kaartsvg{display:block;width:calc(100% + 24px);margin:8px -12px;border-radius:14px;height:auto}
+.knoop{cursor:pointer}.knoop.dicht image{filter:grayscale(1) brightness(.75)}
+.knoop .puls{animation:puls 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes puls{50%{transform:scale(1.18);opacity:.35}}
+#levelinfo{position:fixed;z-index:45;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(400px,calc(100% - 24px));background:#fff8e8;color:#2a1f3a;border-radius:16px;padding:14px 16px;box-shadow:0 8px 30px #000b;text-align:center;border:3px solid var(--geel)}
+#levelinfo b{font-size:19px;display:block;color:var(--paars)}#levelinfo .knoppen{display:flex;gap:8px}#levelinfo .knop{margin-top:10px}
+.wissel{background:none;border:0;color:var(--paars);font:700 14px inherit;font-family:inherit;text-decoration:underline;cursor:pointer;margin:2px 0 4px}
 [hidden]{display:none!important}
 </style></head><body>
 <a class="terug" href="./" id="terug">‹</a>
@@ -62,6 +69,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:#fff;font:16px/1.3 "Tr
     <button class="knop blauw" id="bordknop">🏆 Scorebord</button>
   </div>
 </div>
+<div id="levelinfo" hidden></div>
 <div class="scherm" id="bord" hidden>
   <div class="kaart">
     <h1>🏆 Scorebord</h1>
@@ -1608,7 +1616,7 @@ function startLevel(n) {
     $('levels').insertAdjacentHTML('beforeend', '<p class="zacht" id="laden">Plaatje laden…</p>');
     L.img = new Image(); L.img.onload = () => { const l = $('laden'); if (l) l.remove(); startLevel(n); }; L.img.onerror = () => { const l = $('laden'); if (l) l.textContent = 'Plaatje laden lukt niet (internet?).'; }; L.img.src = L.beeld; return;
   }
-  level = L; level.nr = n;
+  level = L; level.nr = n; opslag.set('zoek_laatst', L.id);
   if (L.autoBeeld && !L.autoImg) { L.autoImg = new Image(); L.autoImg.src = L.autoBeeld; }
   if (L.beeld) { L.w = L.img.naturalWidth; L.h = L.img.naturalHeight; }
   BW = level.w; BH = level.h;
@@ -1802,17 +1810,87 @@ cv.addEventListener('pointerup', los); cv.addEventListener('pointercancel', (e) 
 cv.addEventListener('wheel', (e) => { e.preventDefault(); const f = Math.exp(-e.deltaY * 0.0015), nz = Math.max(minZoom, Math.min(maxZoom, zoom * f)); const wx = (e.clientX - ox) / zoom, wy = (e.clientY - oy) / zoom; zoom = nz; ox = e.clientX - wx * nz; oy = e.clientY - wy * nz; begrens(); }, { passive: false });
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 
+// ---------- levelkaart: een kronkelpad van onder (level 1) naar boven, met zijpaden voor Bruegel (na 20, terug bij 31) en de landen (na 25, terug bij 36) ----------
+// rij = hoogte op de kaart: gewoon nrInPad, B-levels 20 + nr, C-levels 25 + nr. Waar zijpaden lopen, krijgt elk pad een eigen strook (baan).
+// Elk schijfje toont zoek/mini/<id>.jpg (128x128, midden van het plaatje). Tik = kaartje met naam en een knop Spelen.
+let weergave = 'kaart'; try { weergave = localStorage.getItem('zoek_weergave') || 'kaart'; } catch (e) {}
+const RIJ_START = { '': 0, B: 20, C: 25 }, KW_ = 400, RIJ = 92;
+function kaartPlek() {
+  const tel = (p) => LEVELS.filter((l) => (l.pad || '') == p).length, nB = tel('B'), nC = tel('C'), nG = tel('');
+  const rij = (l) => RIJ_START[l.pad || ''] + l.nrInPad, max = Math.max(...LEVELS.map(rij)), H = (max + 1) * RIJ + 70;
+  const baan = (p, r) => { const b = r > 20 && r <= 20 + nB, c = r > 25 && r <= 25 + nC, w = 16 * Math.sin(r * 1.3);
+    if (b && c) return { '': 200, B: 336, C: 64 }[p] + w * 0.6;
+    if (b) return { '': 115, B: 295 }[p] + w; if (c) return { '': 285, C: 115 }[p] + w;
+    return 200 + 115 * Math.sin(r * 0.75); };
+  const plek = LEVELS.map((l) => { const r = rij(l); return { x: baan(l.pad || '', r), y: H - 50 - r * RIJ + RIJ / 2, r }; });
+  return { plek, H, nG };
+}
+function kaartSvg() {
+  const { plek, H } = kaartPlek(), R = 28, deel = [], rnd = rng(7), heeftB = LEVELS.some((l) => l.pad == 'B'), heeftC = LEVELS.some((l) => l.pad == 'C');
+  const rijY = (r) => H - 50 - r * RIJ + RIJ / 2;
+  deel.push(`<defs><linearGradient id="gras" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fbf4e"/><stop offset="1" stop-color="#8fd468"/></linearGradient></defs><rect width="${KW_}" height="${H}" fill="url(#gras)"/>`);
+  if (heeftB) { const a = rijY(20.5 + LEVELS.filter((l) => l.pad == 'B').length) - 48, b = rijY(20.5); deel.push(`<rect x="215" y="${a}" width="185" height="${b - a}" rx="30" fill="#d9c08a" opacity=".55"/>`); }
+  if (heeftC) { const a = rijY(25.5 + LEVELS.filter((l) => l.pad == 'C').length) - 48, b = rijY(25.5); deel.push(`<rect x="0" y="${a}" width="185" height="${b - a}" rx="30" fill="#8cc8ec" opacity=".5"/>`); }
+  // paden
+  const lijnen = [];
+  LEVELS.forEach((l, i) => l.voor.forEach((id) => { const a = plek[LEVEL_ID[id]], b = plek[i]; if (!a) return; const my = (a.y + b.y) / 2; lijnen.push([a, b]);
+    const d = `M${a.x},${a.y} C${a.x},${my} ${b.x},${my} ${b.x},${b.y}`, open = isOpen(i);
+    deel.push(`<path d="${d}" fill="none" stroke="#a9834e" stroke-width="17" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${open ? '#f0d9a2' : '#d2c3a0'}" stroke-width="11" stroke-linecap="round" ${open ? '' : 'stroke-dasharray="2 9"'}/>`); }));
+  // versiering, niet op of vlak naast het pad
+  const afstand = (x, y, [a, b]) => { let m = 1e9; for (let t = 0; t <= 1; t += 0.1) { const yy = a.y + (b.y - a.y) * t, xx = t < 0.5 ? a.x + (b.x - a.x) * (t * t * 2) : b.x - (b.x - a.x) * ((1 - t) * (1 - t) * 2); m = Math.min(m, Math.hypot(x - xx, y - yy)); } return m; };
+  for (let y = 20; y < H - 10; y += 30) for (let k = 0; k < 2; k++) { const x = 15 + rnd() * (KW_ - 30), yy = y + rnd() * 20;
+    if (plek.some((p) => Math.hypot(p.x - x, p.y - yy) < 50) || lijnen.some((l) => afstand(x, yy, l) < 26)) continue;
+    const r = (H - 50 + RIJ / 2 - yy) / RIJ, inB = heeftB && x > 215 && r > 20.5 && r < 30.5, inC = heeftC && x < 185 && r > 25.5 && r < 35.5;
+    const set = inB ? ['🖼️', '🎨', '🌳', '🖌️'] : inC ? ['🗼', '🏛️', '⛵', '🌻', '🍷', '🗺️'] : ['🌳', '🌲', '🌳', '🌷', '🌼', '🏡', '🐄', '🐑', '🍄', '🌳'];
+    deel.push(`<text x="${x}" y="${yy}" font-size="${18 + rnd() * 8}" text-anchor="middle" opacity=".92">${set[Math.floor(rnd() * set.length)]}</text>`); }
+  // bordjes
+  const bord = (x, y, t, kl = '#7a4f2a') => deel.push(`<g><rect x="${x - t.length * 4.2 - 8}" y="${y - 15}" width="${t.length * 8.4 + 16}" height="24" rx="7" fill="${kl}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y + 2}" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">${t}</text></g>`);
+  bord(plek[0].x, plek[0].y + 64, 'Start');
+  const eerste = (p) => LEVELS.findIndex((l) => l.pad == p);
+  const nB = LEVELS.filter((l) => l.pad == 'B').length, nC = LEVELS.filter((l) => l.pad == 'C').length; // bordje bovenaan elke strook
+  if (heeftB) bord(307, rijY(20.5 + nB) - 22, '🎨 Bruegel-pad', '#8a5a2a');
+  if (heeftC) bord(93, rijY(25.5 + nC) - 22, '🌍 Landenpad', '#2a6a9a');
+  // schijfjes; het level waar je nu bent pulseert (laatste open level zonder tijd)
+  const laatst = LEVELS[LEVEL_ID[opslag.get('zoek_laatst')]], vrij = LEVELS.map((l, i) => i).filter((i) => isOpen(i) && !klaarMet(i)); // op het pad dat je het laatst speelde
+  const huidig = vrij.find((i) => (LEVELS[i].pad || '') == ((laatst && laatst.pad) || '')) ?? vrij[0];
+  LEVELS.forEach((l, i) => { const { x, y } = plek[i], open = isOpen(i), best = klaarMet(i);
+    deel.push(`<g class="knoop ${open ? '' : 'dicht'} ${i == huidig ? 'huidig' : ''}" data-l="${i + 1}"><clipPath id="kc${i}"><circle cx="${x}" cy="${y}" r="${R}"/></clipPath>`
+      + (i == huidig ? `<circle class="puls" cx="${x}" cy="${y}" r="${R + 7}" fill="none" stroke="#ffd34d" stroke-width="5"/>` : '')
+      + `<circle cx="${x}" cy="${y + 3}" r="${R + 5}" fill="#0004"/><circle cx="${x}" cy="${y}" r="${R + 5}" fill="${best ? '#ffd34d' : open ? '#fff' : '#a8a8a8'}"/>`
+      + `<image href="zoek/mini/${l.id}.jpg" x="${x - R}" y="${y - R}" width="${R * 2}" height="${R * 2}" clip-path="url(#kc${i})" preserveAspectRatio="xMidYMid slice"/>`
+      + (open ? '' : `<circle cx="${x}" cy="${y}" r="${R}" fill="#0005"/><text x="${x}" y="${y + 8}" font-size="22" text-anchor="middle">🔒</text>`)
+      + `<rect x="${x - 19}" y="${y + R - 2}" width="38" height="20" rx="10" fill="${l.pad == 'B' ? '#8a5a2a' : l.pad == 'C' ? '#2a6a9a' : '#5a3a8a'}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y + R + 13}" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">${l.label}</text>`
+      + (best ? `<text x="${x + R - 2}" y="${y - R + 8}" font-size="18" text-anchor="middle">⭐</text>` : '')
+      + (opslag.get('zoek_auto_' + l.id) ? `<text x="${x - R - 4}" y="${y + 6}" font-size="15" text-anchor="middle">🚗</text>` : '')
+      + (opslag.get('zoek_sjaak_' + l.id) ? `<text x="${x + R + 5}" y="${y + 6}" font-size="15" text-anchor="middle">🦹</text>` : '')
+      + (i == huidig ? `<text x="${x}" y="${y - R - 10}" font-size="24" text-anchor="middle">📍</text>` : '') + '</g>'); });
+  deel.push(`<text x="${KW_ / 2}" y="32" font-size="15" font-weight="700" fill="#fff" text-anchor="middle" stroke="#3a6a2a" stroke-width="3" paint-order="stroke">🚧 Binnenkort meer levels…</text>`);
+  return `<svg id="kaartsvg" viewBox="0 0 ${KW_} ${H}" xmlns="http://www.w3.org/2000/svg">${deel.join('')}</svg>`;
+}
+function toonInfo(i) {
+  const l = LEVELS[i], open = isOpen(i), best = +(opslag.get('zoek_tijd_' + l.id) || 0), d = $('levelinfo');
+  d.innerHTML = `<b>Level ${l.label}: ${l.naam}${opslag.get('zoek_auto_' + l.id) ? ' 🚗' : ''}${opslag.get('zoek_sjaak_' + l.id) ? ' 🦹' : ''}</b><div>${open ? l.uitleg : '🔒 Maak eerst level ' + l.voor.map((id) => LEVELS[LEVEL_ID[id]].label).join(' of ') + ' af'}</div>`
+    + (best ? `<div class="zacht">⭐ Snelste tijd ${tijd(best)}</div>` : '') + `<div class="knoppen">${open ? '<button class="knop" id="infospeel">▶ Spelen</button>' : ''}<button class="knop blauw" id="infoweg">Sluiten</button></div>`;
+  d.hidden = false; $('infoweg').onclick = () => { d.hidden = true; };
+  if (open) $('infospeel').onclick = () => { d.hidden = true; unlock(); startLevel(i + 1); };
+}
 function toonMenu() {
   level = null; $('boven').hidden = true; $('klaar').hidden = true; $('bord').hidden = true; $('menu').hidden = false; BW = KW; BH = KH; maat.klaar = false; maat();
   const tegel = (l, i) => { const open = isOpen(i), best = +(opslag.get('zoek_tijd_' + l.id) || 0);
     return `<div class="level ${open ? '' : 'dicht'}" data-l="${i + 1}"><div class="nr ${l.pad && open && !best ? 'b' : ''}">${open ? (best ? '⭐' : l.label) : '🔒'}</div><div><b>Level ${l.label}: ${l.naam}${opslag.get('zoek_auto_' + l.id) ? ' 🚗' : ''}${opslag.get('zoek_sjaak_' + l.id) ? ' 🦹' : ''}</b><span>${open ? l.uitleg + (best ? ' · snelste tijd ' + tijd(best) : '') : 'Maak eerst level ' + l.voor.map((id) => LEVELS[LEVEL_ID[id]].label).join(' of ') + ' af'}</span></div></div>`; };
   const lijst = (f) => LEVELS.map((l, i) => f(l) ? tegel(l, i) : '').join('');
   const gewoon = (l) => !l.pad;
-  $('levels').innerHTML = lijst((l) => gewoon(l) && l.nrInPad <= 20)
+  $('levelinfo').hidden = true;
+  const wissel = `<button class="wissel" id="wissel">${weergave == 'kaart' ? '📋 Toon als lijst' : '🗺️ Toon als kaart'}</button>`;
+  if (weergave == 'kaart') { $('levels').innerHTML = kaartSvg() + wissel; document.querySelectorAll('.knoop').forEach((el) => el.onclick = () => toonInfo(+el.dataset.l - 1));
+    $('wissel').onclick = () => { weergave = 'lijst'; try { localStorage.setItem('zoek_weergave', weergave); } catch (e) {} toonMenu(); };
+    const h = document.querySelector('.knoop.huidig'); if (h) requestAnimationFrame(() => h.scrollIntoView({ block: 'center' })); return; }
+  $('levels').innerHTML = wissel + lijst((l) => gewoon(l) && l.nrInPad <= 20)
     + (LEVELS.some((l) => l.pad || l.nrInPad > 20) ? '<div class="splits">🔀 Na level 20 splitst het pad. Ga gewoon door met level 21, of neem de zijweg langs de schilderijen van Pieter Bruegel (B1 t/m B10). Allebei mag, en ze komen weer samen bij level 31.</div>'
       + '<div class="pad">➡️ Het gewone pad</div>' + lijst((l) => gewoon(l) && l.nrInPad > 20 && l.nrInPad <= 30)
       + '<div class="pad">🎨 Het Bruegel-pad</div>' + lijst((l) => l.pad == 'B') : '')
     + lijst((l) => gewoon(l) && l.nrInPad > 30);
+  $('wissel').onclick = () => { weergave = 'kaart'; try { localStorage.setItem('zoek_weergave', weergave); } catch (e) {} toonMenu(); };
   document.querySelectorAll('.level').forEach((el) => el.onclick = () => { const n = +el.dataset.l; if (isOpen(n - 1)) { unlock(); startLevel(n); } });
 }
 
