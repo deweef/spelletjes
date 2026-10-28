@@ -41,6 +41,7 @@
 - C2 Griekenland: plaat gemaakt; effect-idee "Opa!": elk gevonden voorwerp gooit een bord kapot, met scherven en een sirtaki die steeds sneller gaat (goedgekeurd).
 - Levelkaart mooier maken: Gemini-vel met versiering (boompjes, huisjes, molen, schuur, ezel met schilderij, Eiffeltorentje) i.p.v. emoji.
 - **Sinterklaasavond**: plaat is gemaakt (link in LEESMIJ), geparkeerd tot eind november/begin december; effect-idee: af en toe een plens pepernoten over het scherm.
-- **Sint-Maarten (11 november)**: kinderen met lampions langs de deuren; effect-idee: het is avond, alleen het licht van de lampions (die rondlopen) en je eigen lampion laat iets zien.
+- **Level 27 Sint-Maarten (11 november)**, plaat gemaakt: kinderen met lampions langs de deuren; effect-idee: het is avond, alleen het licht van de lampions (die rondlopen) en je eigen lampion laat iets zien.
+- **C3 Italië (Venetië)**: effect-idee acqua alta, het water stijgt langzaam vanaf de onderkant, elk gevonden voorwerp laat het zakken.
 - Meer levels: winterkermis, Orkenstorm-dorp.
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.

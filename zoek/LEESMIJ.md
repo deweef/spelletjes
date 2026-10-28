@@ -39,6 +39,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Bouwplaat (level 26, `zoek/bouwplaat.jpg`, nog niet in de repo): https://share.gemini.google/nLv38m5A5bN6
 - Toren van Babel (B6, `zoek/babel.jpg`, nog niet in de repo): https://share.gemini.google/idM0fUVuM369
 - Sinterklaasavond (geparkeerd tot eind november, `zoek/sinterklaas.jpg`, nog niet in de repo): https://share.gemini.google/IrVGOiYyfmCI
+- Sint-Maarten (level 27, `zoek/sintmaarten.jpg`, nog niet in de repo): https://share.gemini.google/x8qKlVzW8qvB
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
