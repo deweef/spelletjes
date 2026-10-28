@@ -60,3 +60,86 @@ Volgorde van bouwen:
   (7 s per grap, vertaling in de wolkjes, verteller in het Nederlands, overval eindigt pas als de orks weg zijn) en repareren.
 - Deel 2 (later, eigen verhaal): zee met haven, scheepswerf, vis als grondstof, schepen, buskruit (kanontoren, springstof),
   vliegers, en uitgebreide upgrades (kasteel → burcht → vesting, smid in 3 stappen). Zie CLAUDE.md.
+
+# Deel 2: Over zee (VOORSTEL, nog niet afgesproken, nog niets gebouwd)
+
+Marcel beslist eerst over dit voorstel; daarna pas bouwen. Evenknie: Warcraft II (scheepswerf, olie, schepen, buskruit,
+griffioenen, stadhuis → burcht → kasteel; de mensen-campagne daar heeft 14 missies). We nemen alleen de spelregels als
+inspiratie en maken ons eigen verhaal, met eigen namen: de site is openbaar en deel 1 houdt zich daar ook aan.
+
+## Uitgangspunten
+- Deel 2 is een eigen keuze in het titelmenu ("Deel 2: Over zee") en gaat pas open als level 11 gewonnen is.
+  Levels heten 12 t/m 20, zodat `orkenstorm3d_lvl` en het scorebord (`ork3d_ver_*`, `ork3d_tijd_l<n>_*`) gewoon doortellen.
+- 9 levels (geen 14): elk nieuw onderdeel krijgt één of twee levels om te leren, het laatste level brengt alles samen.
+  Deel 1 kostte per level een kaart, modellen en een tussenstukje; 9 is te doen, 14 niet.
+- Alles uit deel 1 blijft werken (landen, rolstoel, tussenstukjes, repareren, scorebord). Nieuwe spelregels in `spel.js`,
+  nieuwe eenheden en gebouwen in `data.js`, modellen uit de bestaande pakketten plus pirate-kit (staat al in `bronnen/`:
+  schepen, kanonnen, kratten, palmbomen, steiger).
+
+## Nieuwe onderdelen (in de volgorde waarin de speler ze krijgt)
+1. **Zee en kust.** Watertegel `w` (diep, alleen schepen), `k` = ondiep/strand (lopen mag, bouwen niet; schepen niet).
+   Een haven moet met één kant aan het water staan. Golfjes en schuim langs de kust in 3D.
+2. **Haven** (3x3, 120 goud / 80 hout) en **vis** als derde grondstof. De haven bouwt **vissersbootjes** (werkers op zee):
+   die varen naar een visplek (`v` in de kaart, zichtbaar als springende visjes, raakt net als een mijn op) en brengen vis
+   naar de haven. Vis is nodig voor schepen en voor de nieuwe eenheden; een haven geeft ook 4 voedsel.
+   Landen op zee: de Nederlander vist het best (haring!), de Italiaan eet er onderweg zelf wat van.
+3. **Scheepswerf** (3x3, 200 goud / 150 hout, aan het water, vraagt een houtzagerij): **veerboot** (vervoert 6 mannetjes, 100 g /
+   80 h / 50 vis), **kogge** (oorlogsschip met kanon, 250 g / 120 h / 80 vis; vanaf level 15, vraagt buskruit) en de
+   **orkengalei** als vijand. Mannetjes aan boord: kiezen, op de veerboot klikken (ze lopen erheen en stappen in), dan de
+   veerboot op een strand klikken: iedereen stapt uit. Schepen vechten alleen tegen schepen en gebouwen aan de kust.
+4. **Buskruit.** **Kruithuis** (2x2, 150 g / 100 h, vraagt een smederij). Daarna: **kanontoren** (toren-upgrade, schiet met
+   spatschade, vooral tegen schepen en gebouwen) en de **sloper** (kazerne; mannetje met een vaatje, rent naar een
+   vijandelijk gebouw, grote knal, hij is zelf ook weg; en een rookwolkje als hij struikelt). Buskruit is ook wat de orks
+   willen stelen (verhaal, zie level 16).
+5. **Vliegers.** **Vliegernest** (3x3, 250 g / 150 h, alleen op bergtegels `^`): de **reuzenvogel** met een ruiter (vliegt over
+   alles heen, valt van boven aan; alleen boogschutters, torens en orkenschutters kunnen hem raken). Vijand: de
+   **orkenvleermuis** (kleine vliegende ork, komt in zwermen). Vliegen in 3D: eigen hoogte, geen padzoeken (rechte lijn).
+   Modellen: blokjesvogel zelf maken (zoals het paard), vleugels in main.js laten klappen.
+6. **Upgrades.** Kasteel → **burcht** (300 g / 200 h: meer levens, 2 pijlwerpers op de torens, werkers brengen 1 goud extra)
+   → **vesting** (600 g / 400 h: nog meer levens, ridders +25% levens, opent het vliegernest). Smederij in 3 stappen:
+   zwaarden (+2 schade), harnassen (+15 levens), **staal** (+4 schade, ook pijlen en kanonnen). Knop in het paneel van het
+   gebouw, de werkers hoeven er niet voor te lopen, wel een wachttijd met balkje. Het model krijgt er per stap iets bij
+   (banieren, hogere torens, een extra schoorsteen).
+
+## Verhaal en levels (eigen verhaal, zie "Open vragen" voor de keuzes)
+Na de val van Zwartvuist is er rust. Dan verschijnen er zwarte zeilen aan de kust: de orks zijn de zee opgegaan en halen
+versterking uit het Donkere Land aan de overkant. Jouw kasteel ligt op een paar dagen van zee; het koninkrijk heeft geen vloot.
+
+| Lvl | Naam | Nieuw | Doel | Tussenstukje erna |
+|---|---|---|---|---|
+| 12 | Het vissersdorp Zeewijk | zee, haven, vis | Bouw aan de kust een haven en vang 300 vis; de dorpelingen helpen (werkers) | de burgemeester van Zeewijk vertelt over zwarte zeilen; een werker verslikt zich in een haring |
+| 13 | Zwarte zeilen | orkengalei, strand-aanvallen | Orks landen 's nachts uit galeien: hou het dorp 15 minuten (golven van zee) | veerboten nodig: "Wij moeten óók de zee op" |
+| 14 | Het eiland Meeuwenrots | scheepswerf, veerboot | Bouw een scheepswerf, zet een leger over naar het eiland en maak het orkenkamp daar weg | op het eiland staat een verlaten dwergensmidse: een oude dwerg, Bram IJzerbaard, kent buskruit |
+| 15 | De smidse van IJzerbaard | kruithuis, kanontoren, sloper | Bescherm de smidse (keep) tegen vleermuizen en galeien; bouw de eerste kanontoren | Bram laat een vaatje proeven; de Duitser denkt dat het bier is |
+| 16 | De kogge Zeearend | kogge, zeeslag | Bouw 3 koggen en jaag de orkenvloot uit de baai (alle galeien weg); je thuishaven mag niet vallen | eerste echte zeeslag gewonnen; de Fransman is zeeziek |
+| 17 | De bergen van Grauwkam | vliegernest, reuzenvogel | Zoek het nest in de bergen (`^`), tem 2 reuzenvogels (werkers brengen vis als lokaas), versla de orkenvleermuizen | de eerste vlucht: de Engelsman neemt zijn thee mee omhoog |
+| 18 | Burcht en vesting | upgrades (burcht, vesting, smederij) | Lang opbouwlevel: bouw op tot vesting en sla 8 golven af (land, zee én lucht) | de koning stuurt een brief: "Nu naar de overkant" |
+| 19 | De overtocht | alles, geen basis | Alleen een vloot (veerboten, koggen, vogels): land op de kust van het Donkere Land en zet een bruggenhoofd op (haven + kasteel bouwen onder vuur) | het bruggenhoofd staat; een verkenner ziet de Zwarte Poort |
+| 20 | De Zwarte Poort | eindbaas | Vernietig de Zwarte Poort (reusachtig gebouw, 3000 levens, roept vleermuizen en galeien op) en versla de **Schaduwork Nachtklauw** (eindbaas, vliegt soms weg naar een andere plek) | aftiteling: het hele gezelschap terug op de boot, iedereen met zijn eigen grap; einde deel 2 |
+
+Moeilijkheid: zoals deel 1 (Makkelijk/Normaal/Moeilijk). Lengte per level 15-30 minuten, zoals deel 1.
+
+## Tussenstukjes
+Zelfde opzet als deel 1 (`tussen.js`): een groepje loopt weg, grappen onderweg. Nieuw: lopen naar een **boot** in plaats van
+de rand van de kaart (de boot vaart dan weg), en grappen op zee (zeeziek, haring, de Duitser en het buskruitvaatje, de
+Engelsman met thee op de vogel, de Nederlander die op een eiland "wilde kruiden" vindt). Elke grap hooguit één keer, zoals nu.
+
+## Bouwvolgorde (als het voorstel goed is)
+1. Zee, kust, haven, vis en vissersbootjes + level 12. (Grootste stap: nieuwe grondstof overal in het paneel en de teksten.)
+2. Orkengalei en aanvallen vanaf zee + level 13.
+3. Scheepswerf en veerboot (instappen/uitstappen) + level 14.
+4. Buskruit: kruithuis, kanontoren, sloper + level 15.
+5. Kogge en zeeslag + level 16.
+6. Vliegernest, reuzenvogel, orkenvleermuis + level 17.
+7. Upgrades + level 18.
+8. Levels 19 en 20, eindbaas, aftiteling.
+Per stap: bouwen, testen in de browser, op `main` zetten, familie laten meespelen (`"concept": true` blijft staan tot deel 2 af is?
+Liever: deel 2 in het titelmenu markeren als "in de maak", zodat deel 1 gewoon speelbaar blijft).
+
+## Open vragen voor Marcel
+1. Akkoord met 9 levels (12 t/m 20), of liever korter (bijvoorbeeld 6) om sneller een speelbaar deel 2 te hebben?
+2. Vis als derde grondstof (zoals olie in Warcraft II) of liever alleen goud en hout houden en de haven simpel laten?
+   Met vis wordt het paneel voller, maar de haven krijgt een echte reden.
+3. De sloper (mannetje dat zichzelf opblaast): grappig genoeg voor het gezin, of liever een "kanonnier" die blijft leven?
+4. Namen: Zeewijk, Meeuwenrots, Bram IJzerbaard, Grauwkam, het Donkere Land, de Zwarte Poort, Schaduwork Nachtklauw. Andere ideeën welkom.
+5. Beginnen met stap 1 (zee en haven, level 12) zodra dit is afgesproken?
