@@ -38,6 +38,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Griekenland (C2, `zoek/griekenland.jpg`, nog niet in de repo): https://share.gemini.google/5LPagwAF9TVP
 - Bouwplaat (level 26, `zoek/bouwplaat.jpg`, nog niet in de repo): https://share.gemini.google/nLv38m5A5bN6
 - Toren van Babel (B6, `zoek/babel.jpg`, nog niet in de repo): https://share.gemini.google/idM0fUVuM369
+- Sinterklaasavond (geparkeerd tot eind november, `zoek/sinterklaas.jpg`, nog niet in de repo): https://share.gemini.google/IrVGOiYyfmCI
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 

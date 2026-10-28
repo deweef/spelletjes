@@ -40,5 +40,7 @@
 - Level 26: de bouwplaat, een jongen op zijn kamer die kartonnen autootjes uitknipt en plakt (opdracht gegeven okt 2026). Effect-idee: een kartonnen autootje vouwt zich in een hoek in elkaar en rijdt aan het eind over het scherm (goedgekeurd).
 - C2 Griekenland: plaat gemaakt; effect-idee "Opa!": elk gevonden voorwerp gooit een bord kapot, met scherven en een sirtaki die steeds sneller gaat (goedgekeurd).
 - Levelkaart mooier maken: Gemini-vel met versiering (boompjes, huisjes, molen, schuur, ezel met schilderij, Eiffeltorentje) i.p.v. emoji.
+- **Sinterklaasavond**: plaat is gemaakt (link in LEESMIJ), geparkeerd tot eind november/begin december; effect-idee: af en toe een plens pepernoten over het scherm.
+- **Sint-Maarten (11 november)**: kinderen met lampions langs de deuren; effect-idee: het is avond, alleen het licht van de lampions (die rondlopen) en je eigen lampion laat iets zien.
 - Meer levels: winterkermis, Orkenstorm-dorp.
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.
