@@ -274,3 +274,7 @@ Reclamebord-plaatje `pizza/reclamebord.png` (uit `pizza/reclamebord-gemini.jpg`)
 iPhone: `touch-action: manipulation` = geen zoom bij dubbeltikken. Neerzetten stoppen: nog eens op dezelfde knop (Tafel/Stoel/Plant).
 Atelier: 60 s, en onder het origineel het doel als blokjes in de verfkleuren ("met je ogen half dicht"): vroeger moest je raden hoe het
 verkleinde schilderij eruitzag, daardoor haalde je bijna nooit de 70% voor de gravin.
+Crypto bijgesteld (28 okt, Marcel kreeg €50 MozzaMunt in één nacht → €2000): de koersstap is nu gemiddeld nul (`− vol²/2`, en −0,4%),
+een herstart van MozzaMunt maakt de oude munten waardeloos (`bezit = 0`; vroeger sprong hij van de bodem naar 30% van de start), en elke
+nacht kans op een hack (2% + waarde/40.000, max 10%): één munt in je wallet weg; de bank is veilig. Gesimuleerd (400 × €100, 7 dagen):
+gemiddeld €80-110 terug, de helft houdt minder dan €40 (MozzaMunt/DogePizza), af en toe een uitschieter tot ~€3000.

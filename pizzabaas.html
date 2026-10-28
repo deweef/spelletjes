@@ -1597,9 +1597,13 @@ const cryptoWaarde = () => { const c = crypto(); return Object.keys(MUNT).reduce
 const euro = (n) => '€ ' + (n >= 100 ? Math.round(n) : n >= 1 ? n.toFixed(2) : n.toFixed(3)).toString().replace('.', ',');
 function cryptoAvond() { // elke avond: nieuwe koersen
   const c = crypto(); c.nieuws = [];
-  for (const [k, m] of Object.entries(MUNT)) { const z = (Math.random() + Math.random() + Math.random() - 1.5) * 2; c.koers[k] = Math.max(m.start * 0.002, c.koers[k] * Math.exp(z * m.vol + 0.005)); }
+  for (const [k, m] of Object.entries(MUNT)) { const z = (Math.random() + Math.random() + Math.random() - 1.5) * 2; c.koers[k] = Math.max(m.start * 0.002, c.koers[k] * Math.exp(z * m.vol - m.vol * m.vol / 2 - 0.004)); } // gemiddeld geen winst (−vol²/2), een tikje omlaag
   if (kans(0.3)) { const [k, f, t] = pak(CRYPTONIEUWS); c.koers[k] *= f; c.nieuws.push(`${MUNT[k].ik} ${t} (${f > 1 ? '+' : ''}${Math.round((f - 1) * 100)}%)`); }
-  if (c.koers.mozzamunt < MUNT.mozzamunt.start * 0.01 && kans(0.3)) { c.koers.mozzamunt = MUNT.mozzamunt.start * 0.3; c.nieuws.push('🍕 MozzaMunt is herstart door een nieuwe "oprichter". Wie gelooft het nog?'); }
+  if (c.koers.mozzamunt < MUNT.mozzamunt.start * 0.01 && kans(0.3)) { const had = c.bezit.mozzamunt > 0; c.koers.mozzamunt = MUNT.mozzamunt.start * 0.3; c.bezit.mozzamunt = 0; // herstart = een nieuwe munt: de oude munten zijn niks meer waard
+    c.nieuws.push('🍕 MozzaMunt is herstart door een nieuwe "oprichter". Het is een gloednieuwe munt: de oude MozzaMunten zijn niks meer waard.' + (had ? ' Die van jou ook niet.' : '')); }
+  const w = cryptoWaarde(); // hackers: hoe meer er in je wallet zit, hoe groter de kans (de bank is veilig)
+  if (w > 50 && kans(Math.min(0.1, 0.02 + w / 40000))) { const l = Object.keys(MUNT).filter((k) => c.bezit[k] * c.koers[k] > 5), k = pak(l), weg = c.bezit[k] * c.koers[k]; c.bezit[k] = 0;
+    c.nieuws.push(`🏴‍☠️ Je wallet is gehackt! Al je ${MUNT[k].n} is weg (${euro(weg)}). "Wachtwoord: pizza123" was misschien niet zo slim.`); }
   for (const k of Object.keys(MUNT)) { c.hist[k].push(c.koers[k]); if (c.hist[k].length > 20) c.hist[k].shift(); }
 }
 let naVraag = null; // na Verder in een vraag nog iets laten zien
@@ -3667,7 +3671,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, belastingDag, datumLang, get acro() { return acro; }, acroTik, get bezorger() { return bezorger; }, get bezorgingen() { return bezorgingen; }, get toren() { return toren; }, hangX, torenTik, get man() { return man; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, belastingDag, cryptoAvond, crypto, datumLang, get acro() { return acro; }, acroTik, get bezorger() { return bezorger; }, get bezorgingen() { return bezorgingen; }, get toren() { return toren; }, hangX, torenTik, get man() { return man; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>
