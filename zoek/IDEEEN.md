@@ -31,9 +31,11 @@
 - We doen steeds 5 platen tegelijk. 23-25 en B4-B5 zijn gebouwd. Reserve-ideeën van Marcel: naai-atelier, autorace, dromen;
   woordenlijst om op te schieten: kapsalon, tandarts, bouwplaats, kringloop, bakkerij, dierenarts, sinterklaas, kerstmarkt, zwembad,
   bowling, festival, verhuisdag, meubelzaak, wasstraat, tuincentrum, trein, bioscoop, gevangenis (Sjaak in de cel), heksenhuis, ridderkasteel, dinomuseum.
+- **Levelkaart** (idee Marcel, okt 2026, voorbeeld: kaart met een kronkelend zandpad en genummerde schijfjes zoals in boerderijspelletjes):
+  het levelmenu als landkaart met een kronkelpad, aftakkingen naar het Bruegel-pad en het landenpad, per level een rond schijfje.
 - **Afslag C: landen** (idee Marcel, afgesproken okt 2026): derde pad C1 t/m C10, gaat open na level 25 (`na: ['brommer']`), C10 opent
   level 36 (dus 36 krijgt `na: [<id van 35>, <id van C10>]`). Wie het Bruegel-pad neemt, moet voor de landen toch eerst 21 t/m 25 doen.
   Per level een land (Frankrijk met de Franse kaart als puzzel en Franse spullen, Griekenland met miniaturen van bekende gebouwen, ...),
-  C10 als afsluiter: de wereldwonderen. Menu: na level 25 een tweede splitsing met het landenpad, net als bij 20.
+  C10 als afsluiter: de wereldwonderen. C1 Frankrijk: plaat is er; effect-idee: elk gevonden voorwerp legt een puzzelstukje op de kaart van Frankrijk, het laatste stukje heeft Sjaak. Menu: na level 25 een tweede splitsing met het landenpad, net als bij 20.
 - Meer levels: winterkermis, Orkenstorm-dorp.
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.
