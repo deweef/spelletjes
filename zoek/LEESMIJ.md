@@ -37,6 +37,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Frankrijk (C1, landenpad, `zoek/frankrijk.jpg`): https://share.gemini.google/438shHx7DoEm
 - Griekenland (C2, `zoek/griekenland.jpg`, nog niet in de repo): https://share.gemini.google/5LPagwAF9TVP
 - Bouwplaat (level 26, `zoek/bouwplaat.jpg`, nog niet in de repo): https://share.gemini.google/nLv38m5A5bN6
+- Toren van Babel (B6, `zoek/babel.jpg`, nog niet in de repo): https://share.gemini.google/idM0fUVuM369
 
 Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
