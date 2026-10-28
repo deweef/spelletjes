@@ -303,3 +303,6 @@ scherm rond de knop (tik op het lichte vak of Verder; Overslaan); opnieuw via de
 Zitten opzij, nieuwe stijl (28 okt): oma (rij 10) vakjes 16/17 uit `pizza/oma-opzij-gemini.jpg` (echt profiel; plaatjes 1 en 2 van de 4, op 172 px
 hoog, onderkant op 188). Voorbeeldplaatjes voor Gemini: `pizza/voorbeeld/figuur-1..11.png` (staan, zitten, lopen; nummer = rij + 1) en
 `pizza/voorbeeld-figuren.png`. De opdracht staat in `pizza/PLAN.md`.
+Luigi (bezoeker rij 2) had geen plaatjes van lopen naar voren (vakjes 4-7 waren opzij lopen: naar buiten leek hij zijwaarts te glijden). Nu staat
+in 4-7 zijn staande plaatje van voren (uit `pizza/luigi-gemini.jpg`, onderste rij, eerste vak; uitgeknipt met flood fill vanaf de rand, want zijn
+pak is zelf groen), en `tekenBezoeker` laat hem wippen tijdens het lopen. Beter: een Gemini-vel "Luigi loopt naar de kijker toe" (4 plaatjes).

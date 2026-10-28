@@ -1521,7 +1521,8 @@ function tekenBezoeker() {
   const b = bezoeker; if (!b || !BEZOEK.complete || !BEZOEK.naturalWidth) return;
   const [x, y] = naarScherm(b.x, b.y), f = (b.st == 'in' ? 0 : 4) + (b.loopT > 0 ? Math.floor(b.loopT * 6) % 4 : 0), h = 1.85 * T * schaal, w = h * 113 / 192;
   g.fillStyle = 'rgba(40,15,5,.28)'; g.beginPath(); g.ellipse(x + 7 * schaal, y + 5 * schaal, w * 0.3, 7 * schaal, 0, 0, 7); g.fill();
-  g.drawImage(BEZOEK, f * 113, b.rij * 192, 113, 192, x - w / 2, y - h + 6 * schaal, w, h);
+  const bob = b.rij == 2 && f >= 4 && b.loopT > 0 ? -Math.abs(Math.sin(b.loopT * 9)) * 4 * schaal : 0; // Luigi heeft geen loopplaatjes naar voren: hij wipt een beetje
+  g.drawImage(BEZOEK, f * 113, b.rij * 192, 113, 192, x - w / 2, y - h + 6 * schaal + bob, w, h);
 }
 function toonVraag(v) {
   pauze = true; S.gehad = S.gehad || {}; S.gehad[v.id] = S.dag; ding(880, 0.1); setTimeout(() => ding(1100, 0.12), 120);
