@@ -1489,6 +1489,20 @@ function tekenBrommer() { // balkje linksonder: hoeveel onderdelen al gevonden
   ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(x - 4, y - 4, w + 8, 50); ctx.font = 'bold 13px "Trebuchet MS",sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#fff';
   ctx.fillText(`🛵 Brommer: ${bromAl}/${bromN} onderdelen`, x + 2, y + 14); ctx.fillStyle = '#555'; ctx.fillRect(x, y + 24, w, 14); ctx.fillStyle = '#ffd34d'; ctx.fillRect(x, y + 24, w * bromAl / bromN, 14); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(x, y + 24, w, 14);
 }
+// landenpad Frankrijk (puzzel: 1): linksonder ligt de legpuzzel van Frankrijk; elk gevonden voorwerp legt een stukje, het laatste stukje heeft Sjaak
+const FRANKRIJK = [[.40, 0], [.62, .08], [.88, .17], [.95, .30], [.86, .52], [.95, .72], [.80, .85], [.60, .82], [.52, .95], [.40, 1], [.18, .92], [.22, .70], [.12, .48], [0, .30], [.20, .24], [.30, .12]];
+let puzzelStuk = null; // de stukjes: rastervakjes waarvan het midden in Frankrijk ligt, in een vaste volgorde
+function binnen(x, y, P) { let b = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) b = !b; } return b; }
+function tekenPuzzel() {
+  if (!puzzelStuk) { const r = rng(42); puzzelStuk = []; for (let j = 0; j < 7; j++) for (let i = 0; i < 7; i++) if (binnen((i + 0.5) / 7, (j + 0.5) / 7, FRANKRIJK)) puzzelStuk.push([i, j, r()]); puzzelStuk.sort((a, b) => a[2] - b[2]); }
+  const n = puzzelStuk.length, gelegd = Math.min(n - 1, Math.round(gevonden / totaal * (n - 1))) + (sjaakGevonden ? 1 : 0);
+  const Z = Math.min(130, innerWidth * 0.3), x0 = 12, y0 = innerHeight - Z - 34, c = Z / 7;
+  ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x0 - 6, y0 - 22, Z + 12, Z + 30); ctx.font = 'bold 12px "Trebuchet MS",sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.fillText(`🧩 Puzzel ${gelegd}/${n}`, x0, y0 - 7);
+  ctx.beginPath(); FRANKRIJK.forEach(([x, y], k) => ctx[k ? 'lineTo' : 'moveTo'](x0 + x * Z, y0 + y * Z)); ctx.closePath(); ctx.fillStyle = '#e8e0d0'; ctx.fill(); ctx.save(); ctx.clip();
+  puzzelStuk.forEach(([i, j], k) => { if (k >= gelegd) return; ctx.fillStyle = ['#3a6ad8', '#f4f4f4', '#e8384f'][Math.min(2, Math.floor(i / 7 * 3))]; ctx.fillRect(x0 + i * c, y0 + j * c, c + 0.5, c + 0.5); });
+  ctx.strokeStyle = 'rgba(60,40,20,.35)'; ctx.lineWidth = 1; for (let k = 1; k < 7; k++) { ctx.beginPath(); ctx.moveTo(x0 + k * c, y0); ctx.lineTo(x0 + k * c, y0 + Z); ctx.moveTo(x0, y0 + k * c); ctx.lineTo(x0 + Z, y0 + k * c); ctx.stroke(); }
+  ctx.restore(); ctx.strokeStyle = '#2a1f3a'; ctx.lineWidth = 2.5; ctx.stroke(); ctx.restore();
+}
 // plaats delict (wapens: [namen], verdachten: [...]): het laatst gevonden wapen bepaalt wie het gedaan heeft
 let laatsteWapen = null;
 const sDader = () => [[392, 0.25], [370, 0.25], [294, 1.1]].forEach(([f, d], i) => noot(f, d, 'sawtooth', 0.06, i * 0.3, 900, 0.02));
@@ -1705,6 +1719,7 @@ function klaar() {
   $('klaartekst').innerHTML = `Je vond alle ${totaal} ${level.wat || 'spullen'} in <b>${tijd(s)}</b>` + (hints ? ` met ${hints} hint${hints > 1 ? 's' : ''} (+${hints * HINT_STRAF} s), dat wordt <b>${tijd(stand)}</b>` : '') + '.'
     + (autoGevonden ? '<br>🚗 En de oldtimer had je ook gevonden!' : '<br>🚗 Maar de zilveren oldtimer heb je gemist…')
     + (level.onderdelen ? '<br>🛵 De brommer is weer heel: brrrrm!' : '')
+    + (level.puzzel ? (sjaakGevonden ? '<br>🧩 De puzzel van Frankrijk is af, ook het laatste stukje!' : '<br>🧩 De puzzel is bijna af… maar het laatste stukje heeft Sjaak meegenomen!') : '')
     + (level.wapens ? `<br>🔎 Opgelost! Het was <b>${dader()}</b> met de <b>${(laatsteWapen || level.wapens[0]).toLowerCase()}</b> in de bibliotheek.` : '')
     + (!level.sjaak ? '' : sjaakGevonden ? '<br>🦹 En Sluipende Sjaak heb je betrapt!' : '<br>🦹 Sluipende Sjaak is ongezien weggeslopen…') + (best && stand >= best ? `<br>Je snelste tijd: ${tijd(best)}` : best ? '<br>Nieuw record!' : '');
   $('volgende').hidden = volgendeVan(n - 1) < 0; $('klaar').hidden = false;
@@ -1762,6 +1777,7 @@ function teken() {
   if (level && level.winter && $('klaar').hidden) winter();
   if (level && level.slaap && $('klaar').hidden) dommel();
   if (level && level.onderdelen && $('klaar').hidden) tekenBrommer();
+  if (level && level.puzzel && $('klaar').hidden) tekenPuzzel();
   for (const e of effecten) if (e.scherm) { e.t++; e.x += e.vx; e.y += e.vy; ctx.fillStyle = e.k; ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.t * 0.1); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); }
   if (autoMelding && performance.now() - autoMelding < 2600) { const tx = innerWidth / 2, ty = innerHeight * 0.55; ctx.font = 'bold 22px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(42,31,58,.9)'; ctx.fillRect(tx - 170, ty - 34, 340, 62); ctx.fillStyle = '#ffd34d'; ctx.fillText('🚗 Oh jee, daar is hij weer!', tx, ty); ctx.font = 'bold 13px "Trebuchet MS",sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('Je vond de zilveren oldtimer', tx, ty + 20); }
@@ -1888,7 +1904,8 @@ function toonMenu() {
   $('levels').innerHTML = wissel + lijst((l) => gewoon(l) && l.nrInPad <= 20)
     + (LEVELS.some((l) => l.pad || l.nrInPad > 20) ? '<div class="splits">🔀 Na level 20 splitst het pad. Ga gewoon door met level 21, of neem de zijweg langs de schilderijen van Pieter Bruegel (B1 t/m B10). Allebei mag, en ze komen weer samen bij level 31.</div>'
       + '<div class="pad">➡️ Het gewone pad</div>' + lijst((l) => gewoon(l) && l.nrInPad > 20 && l.nrInPad <= 30)
-      + '<div class="pad">🎨 Het Bruegel-pad</div>' + lijst((l) => l.pad == 'B') : '')
+      + '<div class="pad">🎨 Het Bruegel-pad</div>' + lijst((l) => l.pad == 'B')
+      + (LEVELS.some((l) => l.pad == 'C') ? '<div class="splits">🌍 Na level 25 kun je ook het landenpad nemen (C1 t/m C10). Dat komt weer uit bij level 36.</div><div class="pad">🌍 Het landenpad</div>' + lijst((l) => l.pad == 'C') : '') : '')
     + lijst((l) => gewoon(l) && l.nrInPad > 30);
   $('wissel').onclick = () => { weergave = 'kaart'; try { localStorage.setItem('zoek_weergave', weergave); } catch (e) {} toonMenu(); };
   document.querySelectorAll('.level').forEach((el) => el.onclick = () => { const n = +el.dataset.l; if (isOpen(n - 1)) { unlock(); startLevel(n); } });
