@@ -37,5 +37,7 @@
   level 36 (dus 36 krijgt `na: [<id van 35>, <id van C10>]`). Wie het Bruegel-pad neemt, moet voor de landen toch eerst 21 t/m 25 doen.
   Per level een land (Frankrijk met de Franse kaart als puzzel en Franse spullen, Griekenland met miniaturen van bekende gebouwen, ...),
   C10 als afsluiter: de wereldwonderen. C1 Frankrijk: plaat is er; effect-idee: elk gevonden voorwerp legt een puzzelstukje op de kaart van Frankrijk, het laatste stukje heeft Sjaak. Menu: na level 25 een tweede splitsing met het landenpad, net als bij 20.
+- Idee Marcel: een kleine jongen die een ouderwetse autootjes-bouwplaat (karton, uitknippen en plakken) in elkaar zet.
+- Levelkaart mooier maken: Gemini-vel met versiering (boompjes, huisjes, molen, schuur, ezel met schilderij, Eiffeltorentje) i.p.v. emoji.
 - Meer levels: winterkermis, Orkenstorm-dorp.
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.
