@@ -292,3 +292,11 @@ kiezen hem vaker (+1,2 in `kiesPizza`), en `voorstel()` rekent 8 × TELT extra p
 ±3 pizza's): één melding per ingrediënt per dag (`gewaarschuwd`). In de stad met een manager: 30% van de vraagmomenten belt de manager met een
 probleem uit `BELPROB` (`belHier`): terugkomen (stad dicht), laten oplossen (Sandra 50% / Bruno 40% / Kevin 20%, mislukt = aankomst × 0,75 en
 rep −3) of deur even dicht.
+Vervolgvragen (28 okt): elk probleem in `BELPROB` heeft een `v` = { ik, wie, vraag, a }: kies je "Ik kom eraan" (belZaak A/B, belHier A), dan staat
+die persoon er na Verder (`belVervolg` via `naVraag`; `daar(p)` = "Als je aankomt, staat … je al op te wachten"); `belRep` werkt op die zaak (`belDoel`).
+Kunstuitleen (Mevrouw Van Lijstje, `PLEK.kunst`): elke week een ander meesterwerk te leen (`kunstVanDeWeek`, € 120 `KUNSTHUUR`, `S.kunstHuur` =
+{ v, tot }, alleen met een schilderij aan de muur: dat toont dan het geleende): gezellig +0,5, fooi ×1,1, en +10% in het atelier als je juist dat
+schilderij namaakt. Met de achterkamer: "verloren gewaand meesterwerk" (`lijstjeWens`, `S.lijstje` = { v, prijs, tot }): een droge vervalsing van
+dat schilderij verkopen, ≥ 60% = prijs × q, anders populariteit −3 en de rechercheur.
+Rondleiding (`RONDE`, `rondleiding(n)`, `#ronde`): op het welkomscherm "Mario laat je alles zien" of "Overslaan"; 9 stappen met een gat in een donker
+scherm rond de knop (tik op het lichte vak of Verder; Overslaan); opnieuw via de knop onder de doelen.
