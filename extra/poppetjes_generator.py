@@ -52,7 +52,7 @@ def houding(romp=0, nek=0, dij1=0, knie1=0, dij2=0, knie2=0, schouder=10, ellebo
     k1 = punt((0, 30), dij1, LEN['dij']); k2 = punt((-6, 30), dij2, LEN['dij'])
     plak(doek, 'dij2', dij2, (-6, 30), ox, oy); plak(doek, 'scheen2', dij2 + knie2, k2, ox, oy)
     plak(doek, 'dij1', dij1, (0, 30), ox, oy); plak(doek, 'scheen1', dij1 + knie1, k1, ox, oy)
-    plak(doek, 'rok', rok, (0, 45), ox, oy)
+    plak(doek, 'rok', rok, (0, 5), ox, oy)  # rok iets onder het vest, zodat er geen kier is
     plak(doek, 'romp', romp, heup, ox, oy)
     if stok: plak(doek, 'stok', stok[0], (stok[1], stok[2]), ox, oy)
     el = punt(sch, schouder, LEN['bovenarm'])
