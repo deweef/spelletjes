@@ -313,3 +313,5 @@ generatorplaatjes: opzij 0-6, achter 7-10, voor 18-21 (`pizza/klanten.png` is 22
 Looppaden (28 okt, Ben zette de hele zaak vol): een stoel telt alleen als er een vrij vakje naast ligt dat je vanaf de deur bereikt
 (`stoelBereik`, op `bereik` uit `maakBezet`); `nieuweGroep` kiest alleen zulke stoelen. In het inrichten een rood kruisje op stoelen waar niemand
 bij kan (`bereikSleutel`: na verschuiven opnieuw rekenen), en bij het openen een melding. Vroeger liepen obers en klanten dan dwars door de meubels.
+Ook: bezoekers lopen naar `vrijBij` van het midden en van het luik (niet meer door de meubels), obers en manager kiezen een rustplek die bereikbaar is
+(`vakBereik`), en staat de hele rij onder de toonbank vol (`toonbankVrij()` = false), dan telt geen enkele stoel: de ober kan niet weg (melding).
