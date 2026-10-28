@@ -323,3 +323,10 @@ De zittende plaatjes opzij (vakjes 16/17 in `pizza/klanten.png`) zijn half van v
 tafel zitten. Per figuur een nieuw vel (oude vel van die figuur meesturen). Tekst staat in de chat van 28 okt (zie ook hieronder):
 "Teken precies deze figuur opnieuw … 1 rij van 4 plaatjes, ZUIVER VAN OPZIJ (profiel, neus naar rechts) … zittend op een onzichtbare kruk …"
 Figuren: werker, student, villadame, Afrikaanse man, Chinese dame, Chinese toerist, opa, studente, Afrikaanse vrouw, zakenman, oma.
+
+## Poppetjes-generator (knipselpop, proef 28 okt)
+Idee Marcel: een eigen generator die met ónze figuren elke houding maakt. Werkwijze: Gemini tekent een onderdelenvel (hoofd, romp zonder armen,
+rok, bovenarm, onderarm, twee benen, stok; los, van opzij, met ronde scharnieren): `pizza/oma-onderdelen-gemini.jpg`. `extra/poppetjes_generator.py`
+knipt de losse vormpjes, hangt ze aan een skelet (heup, knie, schouder, elleboog, nek) en tekent houdingen: staan en 6 loopstappen werken goed;
+zitten nog niet (de rok wordt een blok; zitten van opzij hebben we al van Gemini). Nog te doen als we doorgaan: zelfde voor voor- en achteraanzicht
+(eigen onderdelenvel per richting), uitvoer direct in het vakjesformaat van `pizza/klanten.png`.
