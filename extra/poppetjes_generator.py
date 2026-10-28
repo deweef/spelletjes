@@ -79,3 +79,12 @@ for k in range(12):
     b = Image.new('RGB', (420, 240), (232, 190, 120)); d = ImageDraw.Draw(b); d.text((20, 8), 'nu (Gemini)', fill=(60, 30, 10)); d.text((230, 8), 'generator', fill=(60, 30, 10))
     b.paste(g, (40, 30), g); b.paste(f, (250, 30), f); beelden.append(b)
 beelden[0].save(os.path.join(UIT, 'loop.gif'), save_all=True, append_images=beelden[1:], duration=140, loop=0)
+# vakjes voor pizza/klanten.png: 7 loopstappen van opzij, 113 x 192, 166 px hoog, voeten op y = 187
+strip = Image.new('RGBA', (113 * 7, 192))
+for i in range(7):
+    s = math.sin(i / 7 * 2 * math.pi); c = math.cos(i / 7 * 2 * math.pi)
+    f = houding(romp=-3, dij1=-22 * s, knie1=max(0, 30 * c) if s < 0 else 8, dij2=22 * s, knie2=max(0, -30 * c) if s > 0 else 8, schouder=14 * s, elleboog=-25, zak=-abs(s) * 8, rok=-4 * s)
+    hh = 166; f = f.resize((round(f.size[0] * hh / f.size[1]), hh), Image.LANCZOS)
+    if f.size[0] > 111: f = f.resize((111, round(f.size[1] * 111 / f.size[0])), Image.LANCZOS)
+    strip.alpha_composite(f, (i * 113 + (113 - f.size[0]) // 2, 188 - f.size[1]))
+strip.save(os.path.join(UIT, 'lopen-opzij.png'))

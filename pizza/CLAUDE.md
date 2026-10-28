@@ -305,3 +305,7 @@ hoog, onderkant op 188). Voorbeeldplaatjes voor Gemini: `pizza/voorbeeld/figuur-
 `pizza/voorbeeld-figuren.png`. De opdracht staat in `pizza/PLAN.md`.
 Luigi (bezoeker rij 2): vakjes 4-7 = lopen naar voren, uit `pizza/luigi-voor-gemini.jpg` (28 okt; uitgeknipt met flood fill vanaf de rand, want
 zijn pak is zelf groen). Daarvoor stonden daar plaatjes van opzij lopen en gleed hij zijwaarts naar de deur.
+Oma loopt van opzij (klanten rij 10, vakjes 0-6) met plaatjes uit de poppetjes-generator (`extra/poppetjes_generator.py`, onderdelenvel
+`pizza/oma-onderdelen-gemini.jpg`; uitvoer `lopen-opzij.png`, 166 px hoog, voeten op 187). Andere vellen van oma: `oma-onderdelen-zit-gemini.jpg`
+(zittende rok, bovenbenen, schouderkapje, armen met pizza en glas), `oma-onderdelen-voor-gemini.jpg` en `-achter-` (de benen daarop zijn per
+ongeluk van opzij getekend; nog een vel met benen van voren/achteren nodig).
