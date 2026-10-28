@@ -286,3 +286,9 @@ nog via kamerBezoek (`als: () => false`). Het goede antwoord = de bezoeker pakt 
 Binnen: één schilderij / één keer gokken (`S.gokDag`) / drukken / wijn; daarna "Terug naar de achterkamer" (laptop, Barrie), weg met "Deur dicht".
 Crypto (28 okt, Marcel): wildere koersen (vol 0,16/0,3/0,45/0,6), bewaarkosten 2% per nacht (`BEWAAR`, staat op de laptop), per munt 2% kans per
 nacht op een hack. Doel 'bank' (geld op de bank). Bank in de stad: rode banner "lenen ~~10%~~ 9%!".
+28 okt (2): borden staan aan de rand van de tafel recht voor de klant (0,92 van de stoel, binnen het tafelblad), niet meer op elkaar in het midden.
+Roulette 3 keer per bezoek (`S.gokKeer`). Drukpers klapt bij elke druk (animate). Nieuwe pizza (`p.sinds`, `isNieuw` = eerste 4 dagen): klanten
+kiezen hem vaker (+1,2 in `kiesPizza`), en `voorstel()` rekent 8 × TELT extra per nieuwe pizza; melding in het voorraadscherm. Bijna op (voor nog
+±3 pizza's): één melding per ingrediënt per dag (`gewaarschuwd`). In de stad met een manager: 30% van de vraagmomenten belt de manager met een
+probleem uit `BELPROB` (`belHier`): terugkomen (stad dicht), laten oplossen (Sandra 50% / Bruno 40% / Kevin 20%, mislukt = aankomst × 0,75 en
+rep −3) of deur even dicht.

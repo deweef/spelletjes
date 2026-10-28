@@ -1993,7 +1993,7 @@ function gokRaad(k) { // de gokker laat een balletje rollen: goed geraden = de g
   return `Het balletje valt op ${n}, ${kl}! ${kl == 'groen' ? 'Groen! Hij valt bijna van zijn stoel en geeft je € 100. ' : ''}"Jij hebt geluk, ik zie het." Samen richten jullie het kamertje achter de keuken in als gokhal. 🗝️ Linksboven zit nu een sleuteltje.`;
 }
 let gok = null;
-function toonGokhal() { S.gokDag = S.dag; // één keer per bezoek
+function toonGokhal() { S.gokKeer = S.gokDag == S.dag ? (S.gokKeer || 0) + 1 : 1; S.gokDag = S.dag; // drie keer per bezoek
   gok = { fiches: 0, ronde: 0, inzet: 1, op: 'rood', gekocht: 0, draait: false, hoek: 0, bal: 0, uit: null, tekst: 'Koop fiches en zet in. Je speelt drie rondes.' };
   tekenGokhal();
 }
@@ -2076,7 +2076,7 @@ function toonAchterkamer() {
   $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1>
     <p class="buurt">${eerste ? 'Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert.' : gok ? 'Achter een zwaar gordijn: groen vilt, rook, en het geratel van een roulettebalnetje.' : pers ? 'Een benauwd hok vol oude posters en een stoffige machine in de hoek.' : wijn ? 'Een koele kelder vol lege flessen, een berg wijnpakken en een trechter.' : 'Een kaal kamertje.'} Niemand weet ervan… hopelijk.</p>
     ${wijn ? wijnBlok() : ''}${gok ? `<div class="opdracht"><span style="font-size:60px">🎰</span><div><b>De gokhal</b><br>Fiches kopen, drie rondjes roulette, en wat je overhoudt gaat weer in je kassa.<br><small>Pas op: soms valt de politie binnen.</small></div></div>
-      <div class="rij"><button class="knop rood" id="gokken" ${S.gokDag == S.dag ? 'disabled' : ''}>🎰 ${S.gokDag == S.dag ? 'Vandaag al gespeeld' : 'Naar de roulettetafel'}</button></div>` : ''}
+      <div class="rij"><button class="knop rood" id="gokken" ${S.gokDag == S.dag && S.gokKeer >= 3 ? 'disabled' : ''}>🎰 ${S.gokDag == S.dag && S.gokKeer >= 3 ? 'Genoeg gegokt voor vandaag' : `Naar de roulettetafel${S.gokDag == S.dag ? ` (nog ${3 - S.gokKeer} keer)` : ' (3 keer)'}`}</button></div>` : ''}
     ${eerste ? `<div class="opdracht">${schilderijPlaatje(o.v, 84)}<div><b>Bestelling van Gerrit Gleufhoed</b><br>"${esc(SCHILDERIJEN[o.v])}", zo echt mogelijk.<br>
       Hij betaalt tot <b>€ ${o.prijs}</b> (hoe echter, hoe meer).<br><small>Uiterlijk ${esc(datumLang(o.tot))}.</small></div></div>
     ${klaar.length ? `<p><b>Staan te drogen of klaar om op te halen:</b> ${klaar.map((f) => `${esc(SCHILDERIJEN[f.v])} (${Math.round(f.q * 100)}% echt${f.dag >= S.dag ? ', nog nat' : ''})`).join(', ')}</p>` : ''}
@@ -2164,6 +2164,7 @@ function toonDrukken() {
   requestAnimationFrame(tik);
   $('hendel').onclick = () => {
     const q = Math.max(0, 1 - Math.abs(pos - groen) / 0.3); score.push(q); if (ac) klak(ac.currentTime, 0.15, 400, 0.3);
+    const pe = document.querySelector('#achterkaart .pers'); if (pe && pe.animate) pe.animate([{ transform: 'none' }, { transform: 'translateY(7px) scaleY(.9)' }, { transform: 'translateY(-2px)' }, { transform: 'none' }], { duration: 260 }); // de pers klapt dicht
     $('bonplaatje').style.backgroundPosition = q > 0.6 ? '-100px 0' : '-200px 0'; ronde++;
     if (ronde < 3) { $('drukvel').textContent = ronde + 1; return; }
     loopt = false; const gem = score.reduce((a, v) => a + v, 0) / 3;
@@ -2361,10 +2362,11 @@ function maakMens(tafel, stoel, soort = kiesSoort()) {
   return m;
 }
 // elke klant kiest de pizza van de kaart die hij het lekkerst vindt (met een beetje toeval); null = niks van zijn gading
+const isNieuw = (p) => p.sinds && S.dag - p.sinds < 4; // de eerste 4 dagen
 function kiesPizza(m) { // kiesPizza.uitv = er was iets lekkers, maar dat was op
   let best = null, bo = -1; kiesPizza.uitv = false;
   for (const p of S.menu) { if (vandaag.op && p.stukjes.some((s) => s.i == vandaag.op)) continue; // ingrediënt op
-    const o = Math.max(0, oordeel(p, m.soort) - vandaag.smaakMin), r = o + Math.random() * 0.8;
+    const o = Math.max(0, oordeel(p, m.soort) - vandaag.smaakMin), r = o + Math.random() * 0.8 + (isNieuw(p) && o >= 2 ? 1.2 : 0); // nieuw: benieuwd
     if (!kanMaken(p)) { if (o >= 1) kiesPizza.uitv = true; continue; } // niet genoeg voorraad
     if (r > bo) { bo = r; best = { p, o }; } }
   if (best && best.o >= 1) { kiesPizza.uitv = false; return best; } return null;
@@ -2458,24 +2460,26 @@ function beweeg(o, doel, snel, dt) {
 // Een pizza neemt zijn deeg en stukjes (x TELT) mee zodra hij besteld wordt (gebruik); is iets op, dan kiest de klant een andere pizza of gaat
 // weg (tel.uitverkocht). 's Nachts bederft 10%. S.autoBestel (standaard aan): Mario vult elke ochtend aan tot zijn voorstel, zodat beginners er
 // geen omkijken naar hebben. Wie zelf bestelt, kan slimmer inkopen (minder weggooien, korting van de markt: S.korting = halve prijs).
-let verbruikt = {};
+let verbruikt = {}, gewaarschuwd = new Set();
 const autoAan = () => S.zaken.length < 2 && S.autoBestel !== false; // vanaf de tweede zaak koop je zelf in (de managers doen de andere zaken)
 const VNAAM = (i) => i == 'deeg' ? 'Deeg' : ING[i].n, VIK = (i) => i == 'deeg' ? '🫓' : '';
 const prijsV = (i) => i == 'deeg' ? BODEM.k : ING[i].k * (S.korting && S.korting.tot > S.dag && S.korting.i == i ? 0.5 : 1);
 const nodig = (p) => { const n = { deeg: TELT }; for (const s of p.stukjes) n[s.i] = (n[s.i] || 0) + TELT; return n; };
 const kanMaken = (p) => { const v = S.voorraad; if (!v) return true; const n = nodig(p); return Object.keys(n).every((i) => (v[i] || 0) >= n[i] - 0.01); };
-function gebruik(p) { if (!S.voorraad) return; const n = nodig(p); for (const i in n) { S.voorraad[i] = Math.max(0, (S.voorraad[i] || 0) - n[i]); verbruikt[i] = (verbruikt[i] || 0) + n[i]; } }
+function gebruik(p) { if (!S.voorraad) return; const n = nodig(p); for (const i in n) { S.voorraad[i] = Math.max(0, (S.voorraad[i] || 0) - n[i]); verbruikt[i] = (verbruikt[i] || 0) + n[i];
+    if (modus == 'open' && S.voorraad[i] < n[i] * 3 && !gewaarschuwd.has(i)) { gewaarschuwd.add(i); setTimeout(() => meld(`⚠️ ${VNAAM(i)} is bijna op! Via 📦 Voorraad haalt iemand snel wat op de markt (dubbele prijs).`, 4000), 400); } } } // nog voor ±3 pizza's
 const voorraadSoorten = () => ['deeg', ...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
 function voorstel() { // gisteren + 25% (of een schatting van ~33 pizza's verdeeld over de kaart), min wat er nog ligt; per 5
   const uit = {}, gist = S.verbruik || {}, v = S.voorraad || {};
-  for (const i of voorraadSoorten()) { const n = gist[i] || S.menu.reduce((a, p) => a + (i == 'deeg' ? 1 : p.stukjes.filter((s) => s.i == i).length), 0) * 22 * TELT / Math.max(1, S.menu.length);
+  const nieuw = S.menu.filter(isNieuw), extra = (i) => nieuw.reduce((a, p) => a + (i == 'deeg' ? 1 : p.stukjes.filter((s) => s.i == i).length), 0) * 8 * TELT; // nieuwe pizza: klanten zijn benieuwd
+  for (const i of voorraadSoorten()) { const n = extra(i) + (gist[i] || S.menu.reduce((a, p) => a + (i == 'deeg' ? 1 : p.stukjes.filter((s) => s.i == i).length), 0) * 22 * TELT / Math.max(1, S.menu.length));
     uit[i] = Math.max(0, Math.ceil((n * (S.opGeweest ? 1.6 : 1.25) - (v[i] || 0)) / 5) * 5); } // was er gisteren iets op: ruimer
   return uit; }
 const bestelPrijs = (l, spoed) => Object.entries(l).reduce((a, [i, n]) => a + n * prijsV(i) * (spoed ? 2 : 1), 0);
 function inkopen(l, spoed) { const k = Math.round(bestelPrijs(l, spoed) * 100) / 100; S.voorraad = S.voorraad || {}; for (const [i, n] of Object.entries(l)) S.voorraad[i] = (S.voorraad[i] || 0) + n;
   if (modus == 'inrichten') { S.geld -= k; S.inkoopVandaag = (S.inkoopVandaag || 0) + k; } else { ge(-k); tel.inkoop = (tel.inkoop || 0) + k; } return k; }
 function startVoorraad() { // bij het openen van de deuren
-  verbruikt = {}; if (!S.voorraad) { S.voorraad = {}; for (const [i, n] of Object.entries(voorstel())) S.voorraad[i] = n; } // eerste keer (of de manager deed het): gratis gevuld
+  verbruikt = {}; gewaarschuwd = new Set(); if (!S.voorraad) { S.voorraad = {}; for (const [i, n] of Object.entries(voorstel())) S.voorraad[i] = n; } // eerste keer (of de manager deed het): gratis gevuld
   tel.inkoop = S.inkoopVandaag || 0; tel.kosten += tel.inkoop; S.inkoopVandaag = 0;
   if (autoAan()) { const l = voorstel(), k = bestelPrijs(l); if (k > 0) { for (const [i, n] of Object.entries(l)) S.voorraad[i] = (S.voorraad[i] || 0) + n; S.geld -= k; tel.inkoop += k; tel.kosten += k; } }
   else { const krap = voorraadSoorten().filter((i) => (S.voorraad[i] || 0) < 8 * TELT); if (krap.length) setTimeout(() => meld(`📦 Bijna op: ${krap.map(VNAAM).join(', ')}! Bestel via 📦 Voorraad (overdag van de markt: dubbele prijs).`, 4500), 2500); }
@@ -2488,6 +2492,7 @@ function toonVoorraad(l) {
   const spoed = modus != 'inrichten', soorten = voorraadSoorten(), v = S.voorraad || {}, gist = S.verbruik || {}; l = l || Object.fromEntries(soorten.map((i) => [i, 0]));
   const k = bestelPrijs(l, spoed);
   $('eindkaart').innerHTML = `<h1>📦 Voorraad</h1><p class="buurt">${spoed ? '🧺 De zaak is open: wat je nu bestelt, haalt iemand snel op de markt, voor <b>dubbele prijs</b>.' : 'Mario bestelt bij de leverancier, je hebt het meteen. Een pizza gebruikt deeg en zijn stukjes; elke nacht bederft er een beetje (10%).'}</p>
+    ${S.menu.some(isNieuw) ? `<p class="buurt">🆕 Nieuw op de kaart: ${S.menu.filter(isNieuw).map((p) => esc(p.naam)).join(', ')}. De klanten zijn benieuwd, dus die gaat de eerste dagen hard. Mario rekent er al wat extra voor.</p>` : ''}
     <table>${soorten.map((i) => `<tr><td>${VIK(i)} ${esc(VNAAM(i))}${S.korting && S.korting.tot > S.dag && S.korting.i == i ? ' 🏷️' : ''}<br><span style="font-size:.8em;opacity:.7">ligt er: ${Math.floor(v[i] || 0)}${gist[i] ? ` · gisteren op: ${Math.round(gist[i])}` : ''}</span></td>
       <td style="white-space:nowrap"><button class="knop" data-min="${i}">−</button> <b style="display:inline-block;min-width:2.2em;text-align:center">${l[i] || 0}</b> <button class="knop" data-plus="${i}">+</button></td></tr>`).join('')}</table>
     <div class="rij"><button class="knop" id="vvoorstel">💡 Voorstel van Mario</button><button class="knop rood" id="vbestel" ${k <= 0 || S.geld < k ? 'disabled' : ''}>🛒 Bestellen (${euro(k)})</button></div>
@@ -2554,6 +2559,13 @@ function tekenManager() {
   g.restore();
 }
 const vraagKort = (v) => { const t = typeof v.vraag == 'function' ? v.vraag() : v.vraag; return t.length > 90 ? t.slice(0, 88) + '…' : t; };
+function belHier() { // jij bent in de stad en in je zaak gaat iets mis: de manager belt (een probleem uit BELPROB)
+  const M = MANAGER[S.manager.wie], n = M.n.split(' ').pop(), p = pak(BELPROB.filter((b) => !b.luigi || !S.zaak));
+  return { id: 'belHier', ik: '📞', wie: `📞 ${M.n} belt`, vraag: 'Baas! ' + p.t + ' Kom je terug?', a: [
+    ['Ik kom er meteen aan!', () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); return `Je rent terug naar je pizzeria. ${p.goed}`; }],
+    ['Los jij het maar op, je kunt het!', () => { if (kans(S.manager.wie == 'sandra' ? 0.5 : S.manager.wie == 'bruno' ? 0.4 : 0.2)) return `${n} regelt het. ${p.goed} "Komt goed, baas!"`; vandaag.aankomst *= 0.75; rep(-3); return `${n} probeert het… ${p.fout}`; }],
+    ['Doe de deur even op slot, ik kom zo.', () => { volgendeKlant += DAG * 0.12; rep(-1); return 'Briefje op de deur: "Ben zo terug!" Als je terug bent, is het probleem overgewaaid. Maar er kwam ook niemand binnen.'; }] ] };
+}
 function managerVraag(v) { // een gewone vraag terwijl jij de stad in bent
   const M = MANAGER[S.manager.wie];
   if (Math.random() < M.belt) { wegLog.push(`📞 ${M.n} belde je: ${v.wie}.`); toonVraag({ ...v, wie: `📞 ${M.n} belt: ${v.wie}` }); return; }
@@ -2580,7 +2592,8 @@ function stap(dt) {
     const stel = (v) => v.portret != null ? laatBinnen(v) : toonVraag(v); // met een figuur: eerst binnenlopen
     if (bezoeker) {} // wacht tot de vorige bezoeker weg is
     else if (isWeg() && manAanwezig()) { // jij bent de stad in: de manager regelt de gewone vragen, de rest wacht tot je terug bent
-      if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { const v = kiesVraag(); if (v.portret != null || v.zelf) vraagTijden[0] = klok + 8; else { vraagTijden.shift(); managerVraag(v); } } }
+      if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0] && kans(0.3)) { vraagTijden.shift(); const v = belHier(); wegLog.push(`📞 ${MANAGER[S.manager.wie].n} belde: er was iets aan de hand.`); toonVraag(v); }
+      else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { const v = kiesVraag(); if (v.portret != null || v.zelf) vraagTijden[0] = klok + 8; else { vraagTijden.shift(); managerVraag(v); } } }
     else if (S.verplicht && S.verplicht.length && klok > DAG * 0.25) { const id = S.verplicht.shift(); const v = VRAGEN.find((v) => v.id == id); if (v) stel(v); }
     else if (vraagTijden.includes(-1) && klok > DAG * 0.3) { vraagTijden = vraagTijden.filter((t) => t != -1); stel(INSPECTEUR); }
     else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { vraagTijden.shift(); stel(kiesVraag()); }
@@ -3216,7 +3229,8 @@ function tekenSpul(s, nu, zitten) {
       g.save(); g.translate(cx, cy - 4); g.rotate(Math.PI / 4); g.globalAlpha *= 0.97; g.drawImage(KLEDEN, KLEED[puntKleed].i * 192 + 18, 18, 156, 156, -z / 2, -z / 2, z, z); g.restore(); } }
   // borden: leeg (wachten) of met pizza (eten), op de tafel voor de stoel
   for (const m of zitten) if (m.tafel == s) {
-    const p = stoelPlekken(s)[m.stoel]; if (!p) continue; const px = p.sx + RICHTING[p.kant][0] * 1.15, py = p.sy + RICHTING[p.kant][1] * 1.15;
+    const p = stoelPlekken(s)[m.stoel]; if (!p) continue; const [dx, dy] = RICHTING[p.kant], tw = SPUL[s.t].w, th = SPUL[s.t].h; // aan de rand van de tafel, recht voor de klant (niet op elkaar in het midden)
+    const px = Math.max(s.x + 0.38, Math.min(s.x + tw - 0.38, p.sx + dx * 0.92)), py = Math.max(s.y + 0.36, Math.min(s.y + th - 0.36, p.sy + dy * 0.92));
     bord(px * T, py * T, m.st == 'eet', m.st == 'eet' && m.t > ETEN / 2, m.pizza);
   }
   if (s.kaars) {
@@ -3489,7 +3503,7 @@ function bewaarPizza() {
   if (!bewerk.stukjes.length) { meld('Er ligt nog niks op!'); return; }
   while (S.menu.some((p, i) => p.naam == naam && i != bewerkNr)) naam += '!';
   bewerk.naam = naam;
-  if (bewerkNr < 0) S.menu.push(bewerk); else S.menu[bewerkNr] = bewerk;
+  if (bewerkNr < 0) { bewerk.sinds = S.dag; S.menu.push(bewerk); } else S.menu[bewerkNr] = bewerk; // sinds: de eerste dagen zijn klanten benieuwd (kiesPizza)
   bewaar(); kassa(); toonKaart();
 }
 
