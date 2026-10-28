@@ -650,7 +650,8 @@ function openDeuren() {
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
   if (S.dicht) { tel = NIEUWTEL(); tel.dicht = S.dicht; S.dicht = null; mensen = []; eindeDag(); return; } // vandaag blijft de zaak dicht
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
-  tel = NIEUWTEL(); bezet = null; belZ = null; startVoorraad(); // de inrichting kan veranderd zijn: looproutes opnieuw
+  tel = NIEUWTEL(); bezet = null; belZ = null; startVoorraad();
+  { const dicht = S.spullen.filter((c) => c.t == 'stoel' && !stoelBereik(c)).length; if (dicht) setTimeout(() => meld(`🚧 Bij ${dicht} stoel${dicht > 1 ? 'en' : ''} kan niemand komen: daar gaat niemand zitten. Laat een looppad vrij vanaf de deur!`, 5000), 1200); } // de inrichting kan veranderd zijn: looproutes opnieuw
   bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
   if (S.bonnen && S.bonnen.tot >= S.dag) { vandaag.aankomst *= 1 + 0.4 * S.bonnen.q; if (kans(0.12 + (1 - S.bonnen.q) * 0.4)) S.verplicht = [...(S.verplicht || []), 'luigiBoos']; } // valse bonnen
   sabotageVandaag(); pofBetalen(); if (S.studentenMorgen) { vandaag.studenten = true; S.studentenMorgen = false; } // flyers bij het studentenhuis
@@ -2339,11 +2340,12 @@ const HAAR = ['#2b1b10', '#5a3a1e', '#c8a24a', '#a33c1c', '#888', '#111'];
 function nieuweGroep() {
   const k = Math.random(), n = k < 0.38 ? 1 : k < 0.68 ? 2 : k < 0.8 ? 3 : k < 0.92 ? 4 : k < 0.97 ? 5 : 6;
   // zoek een tafel met genoeg vrije stoelen (de kleinste die past)
-  const tafels = S.spullen.filter(isTafel).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => !mensen.some((m) => m.tafel == s && m.stoel == i)) }))
+  const kan = (s, i) => !mensen.some((m) => m.tafel == s && m.stoel == i) && stoelBereik(stoelPlekken(s)[i].stoel); // vrij, en je kunt erbij
+  const tafels = S.spullen.filter(isTafel).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => kan(s, i)) }))
     .filter((t) => t.vrij.length >= n && !mensen.some((m) => m.tafel == t.s)).sort((a, b) => a.vrij.length - b.vrij.length);
   // past het groepje niet aan één tafel, dan verdelen ze zich over meer vrije tafels (de grootste eerst); pas als er te weinig plek is: vol
   let keus = tafels.length ? [{ t: tafels[0], n }] : null; const samen = n > 1 && Math.random() < 0.5; // de helft van de groepjes wil per se bij elkaar zitten
-  if (!keus && !samen) { const vrije = S.spullen.filter(isTafel).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => !mensen.some((m) => m.tafel == s && m.stoel == i)) }))
+  if (!keus && !samen) { const vrije = S.spullen.filter(isTafel).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => kan(s, i)) }))
       .filter((t) => t.vrij.length && !mensen.some((m) => m.tafel == t.s)).sort((a, b) => b.vrij.length - a.vrij.length);
     let over = n; keus = []; for (const t of vrije) { if (over <= 0) break; const k = Math.min(over, t.vrij.length); keus.push({ t, n: k }); over -= k; }
     if (over > 0) keus = null; }
@@ -2410,7 +2412,13 @@ function maakBezet() {
   while (rij.length) { const c = rij.pop(), ci = c % RW, cj = Math.floor(c / RW);
     for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ni = ci + a, nj = cj + b, n = nj * RW + ni; if (ni < 0 || nj < 0 || ni >= RW || nj >= RH || bezet[n] || bereik[n]) continue; bereik[n] = 1; rij.push(n); } }
 }
-let bereik = null;
+let bereik = null, bereikSleutel = '';
+function stoelBereik(c) { // kan iemand bij deze stoel komen? (een vrij vakje ernaast dat vanaf de deur bereikbaar is)
+  if (!bezet) maakBezet(); const i0 = c.x * R2, j0 = c.y * R2;
+  for (let i = i0 - 1; i <= i0 + R2; i++) for (let j = j0 - 1; j <= j0 + R2; j++) {
+    if (i >= i0 && i < i0 + R2 && j >= j0 && j < j0 + R2) continue; if (i < 0 || j < 0 || i >= RW || j >= RH) continue; if (bereik[j * RW + i]) return true; }
+  return false;
+}
 const cel = (x, y) => [Math.max(0, Math.min(RW - 1, Math.floor(x * R2))), Math.max(KEUKEN * R2, Math.min(RH - 1, Math.floor(y * R2)))];
 function vrijeLijn(a, b, va, vb) { // kan je in een rechte lijn van a naar b zonder iets te raken? (va, vb = start- en eindcel mogen bezet zijn)
   const d = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.ceil(d / 0.15);
@@ -3093,6 +3101,10 @@ function teken(nu) {
   const koks = ovs.map((o) => ({ y: o.kok.y, f: () => kok(o.kok, nu) }));
   const alles = [...spulItems, ...koks, ...mensen.map((m) => ({ y: zitY(m), f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : []), ...(man ? [{ y: man.y, f: tekenManager }] : []), ...(bezorger && bezorger.st != 'rit' ? [{ y: bezorger.y, f: tekenBezorger }] : [])].sort((a, b) => a.y - b.y);
   for (const a of alles) a.f();
+  if (modus == 'inrichten') { const k = S.spullen.map((t) => t.t + t.x + ',' + t.y).join('|'); if (k != bereikSleutel) { bezet = null; bereikSleutel = k; } } // verschoven: looppaden opnieuw
+  if (modus == 'inrichten') for (const c of S.spullen) if (c.t == 'stoel' && !stoelBereik(c)) { // geen looppad naar deze stoel
+    const [x, y] = naarScherm(c.x + 0.5, c.y + 0.5), r = 11 * schaal; g.fillStyle = 'rgba(200,30,20,.75)'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+    g.strokeStyle = '#fff'; g.lineWidth = 3 * schaal; g.beginPath(); g.moveTo(x - r / 2, y - r / 2); g.lineTo(x + r / 2, y + r / 2); g.moveTo(x + r / 2, y - r / 2); g.lineTo(x - r / 2, y + r / 2); g.stroke(); g.lineWidth = 1; }
   bovenop(); // wat je versleept of neerzet, en de gekozen rand
   // muntjes en tekstwolkjes
   g.textAlign = 'center';

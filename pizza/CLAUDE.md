@@ -310,3 +310,6 @@ Oma loopt van opzij (klanten rij 10, vakjes 0-6) met plaatjes uit de poppetjes-g
 (zittende rok, bovenbenen, schouderkapje, armen met pizza en glas), `oma-onderdelen-voor-gemini.jpg` en `-achter-` (de benen daarop zijn per
 ongeluk van opzij getekend: de benen komen van `oma-onderdelen-benen-gemini.jpg`, 1/2 voor, 3/4 achter). Oma loopt nu in alle richtingen met
 generatorplaatjes: opzij 0-6, achter 7-10, voor 18-21 (`pizza/klanten.png` is 22 vakjes breed; `VOORLOOP` in de code zegt welke rijen 18-21 hebben).
+Looppaden (28 okt, Ben zette de hele zaak vol): een stoel telt alleen als er een vrij vakje naast ligt dat je vanaf de deur bereikt
+(`stoelBereik`, op `bereik` uit `maakBezet`); `nieuweGroep` kiest alleen zulke stoelen. In het inrichten een rood kruisje op stoelen waar niemand
+bij kan (`bereikSleutel`: na verschuiven opnieuw rekenen), en bij het openen een melding. Vroeger liepen obers en klanten dan dwars door de meubels.
