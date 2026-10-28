@@ -40,8 +40,9 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Toren van Babel (B6, `zoek/babel.jpg`, nog niet in de repo): https://share.gemini.google/idM0fUVuM369
 - Sinterklaasavond (geparkeerd tot eind november, `zoek/sinterklaas.jpg`, nog niet in de repo): https://share.gemini.google/IrVGOiYyfmCI
 - Sint-Maarten (level 27, `zoek/sintmaarten.jpg`, nog niet in de repo): https://share.gemini.google/x8qKlVzW8qvB
+- Italië / Venetië (C3, `zoek/italie.jpg`, nog niet in de repo): https://share.gemini.google/Z1dyr5DcMn7Q
 
-Werkwijze: plaatje downloaden op de computer, in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
+Werkwijze: plaatje downloaden op de computer (de volle maat, 1376x768; een in de chat geplakt plaatje is maar ±512 px breed en te klein), in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
 Vast blokje onderaan elke Gemini-opdracht (versie 2):
 1. Zet er minstens 40 losse voorwerpen in die passen bij de plek, elk duidelijk herkenbaar en goed los van elkaar
