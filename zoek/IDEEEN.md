@@ -43,5 +43,6 @@
 - **Sinterklaasavond**: plaat is gemaakt (link in LEESMIJ), geparkeerd tot eind november/begin december; effect-idee: af en toe een plens pepernoten over het scherm.
 - **Level 27 Sint-Maarten (11 november)**, plaat gemaakt: kinderen met lampions langs de deuren; effect-idee: het is avond, alleen het licht van de lampions (die rondlopen) en je eigen lampion laat iets zien.
 - **C3 Italië (Venetië)**: effect-idee acqua alta, het water stijgt langzaam vanaf de onderkant, elk gevonden voorwerp laat het zakken.
-- Meer levels: winterkermis, Orkenstorm-dorp.
+- **Orkenstorm-dorp** (level 28): Gemini-opdracht met voorbeeldplaatje `zoek/voorbeeld/orkenstorm-voorbeeld.jpg` (schermafbeeldingen uit Orkenstorm 3D: kasteel met blauwe daken, boerderijen, mijn, werkers met strohoed, ridders met pluim).
+- Meer levels: winterkermis.
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.
