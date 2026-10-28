@@ -267,3 +267,10 @@ op het moment van bestellen (`gebruik`, ook bezorgingen; aangebrand = nog eens).
 (standaard aan, `autoAan()`): Mario bestelt bij het openen vanzelf het voorstel, zodat het voor beginners niet moeilijker wordt; vanaf de tweede zaak niet meer (afspraak met Marcel: dan moet je zelf inkopen). `S.korting` (markt) = halve
 prijs bij het inkopen. Na het wisselen van zaak is `S.voorraad` null: die wordt gratis gevuld (de manager kocht in, betaald in `simuleerZaak`;
 Kevin vergeet dat soms: 60% van de klanten). De knop Open staat nu over de hele breedte (10 knoppen).
+Portretten 13-18 in `pizza/portretten.png` (nu 19 vakjes; css-breedte 1615px), uit `pizza/figuren2-gemini.jpg`: 13 boekhouder, 14 de twee
+kleerkasten (incasso), 15 voetbaltrainer, 16 vrijwilliger voedselbank, 17 meisje met hond, 18 knalrode Luigi (vraag `luigiBord`). Nieuw veld
+`foto` = alleen het portret, de figuur loopt niet binnen (er is geen bezoekersrij voor); `naFoto` = ander portret bij het antwoord.
+Reclamebord-plaatje `pizza/reclamebord.png` (uit `pizza/reclamebord-gemini.jpg`) bij de bouwplaats, grijs als het niet hangt.
+iPhone: `touch-action: manipulation` = geen zoom bij dubbeltikken. Neerzetten stoppen: nog eens op dezelfde knop (Tafel/Stoel/Plant).
+Atelier: 60 s, en onder het origineel het doel als blokjes in de verfkleuren ("met je ogen half dicht"): vroeger moest je raden hoe het
+verkleinde schilderij eruitzag, daardoor haalde je bijna nooit de 70% voor de gravin.
