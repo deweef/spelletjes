@@ -2993,7 +2993,7 @@ function figuur(img, p, bijzonder, rug, achter, vel) {
 // rijen: 0 werker (pizza/werker2-gemini.jpg), 1 student (student2), 2 villadame, 3 Afrikaanse man (afrikaan), 4 Chinese dame (dame-china2), 5 Chinese toerist (toerist),
 // 6 opa (opa2), 7 studente, 8 Afrikaanse vrouw (afrikaanse-vrouw), 9 zakenman, 10 oma (oma2)
 const KLANTEN = new Image(); KLANTEN.src = 'pizza/klanten.png';
-const VOORLOOP = { 10: [18, 19, 20, 21] }; // vakjes 18-21: lopen naar de kijker toe (uit extra/poppetjes_generator.py); nu alleen oma
+const VOORLOOP = { 6: [18, 19, 20, 21], 10: [18, 19, 20, 21] }; // vakjes 18-21: lopen naar de kijker toe (uit extra/poppetjes_generator.py en extra/poppetjes_voor.py); nu opa en oma
 const KLANTVEL = (rij) => ({ rij, staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], voorLoop: VOORLOOP[rij], fps: 9 });
 const FIGUREN = { werker: [0, 0, 3], student: [1, 7], villa: [2, 9], toerist: [5, 4, 3, 8], opa: [6, 10] };
 function tekenKlantFig(m, nu) { // in wereldcoördinaten (pixels van de zaak); zittend op zijn stoel, of lopend

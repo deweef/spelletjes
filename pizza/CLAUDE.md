@@ -330,3 +330,6 @@ Filmpje bij de achterkamer: na het goede antwoord loopt de bezoeker eerst naar h
 (`b.cam`, daarna terug naar de oude zoom). Gerrits eerste tekst ('gleufhoed' C) vertelt over het haakje; geen sleuteltje linksboven meer.
 Balans nieuwe zaak (29 okt): boos weglopen kost 1,5 populariteit per poppetje (was 3), en in een 2e/3e/4e zaak groeit populariteit onder 35 met
 ×1,4 (`repRem`). Getest: zaak 2 met 4 stoelen gaat in een week van 20 naar ~37 (was: zakte naar 4).
+Opa loopt naar voren (rij 6, vakjes 18-21) uit `extra/poppetjes_voor.py opa` (figuren in een broek: vel `-voor-` + vel `-benen-`, instellingen
+per figuur in `FIG`; Gemini gaf blote armen, `mouw` kleurt ze tot de pols in de kleur van het jasje). Nieuwe figuur: vellen bewaren als
+`pizza/<naam>-onderdelen-voor-gemini.jpg` en `-benen-`, nummers opzoeken, regel in `FIG`, uitvoer in vakjes 18-21 van de rij, rij in `VOORLOOP`.
