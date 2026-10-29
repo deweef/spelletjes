@@ -11,7 +11,9 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
   'student': dict(voor='pizza/student-onderdelen-chatgpt.png', benen='pizza/student-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 3), been=(8, 9),
                   beenschaal=0.95, achter=(6, 7)),
   'villa': dict(voor='pizza/villa-onderdelen-chatgpt.png', benen='pizza/villa-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 5), been=(7, 8),
-                beenschaal=0.62, achter=(9, 10), jurk=True, vlak=True),  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
+                beenschaal=0.62, achter=(9, 10), jurk=True, vlak=True),
+  'afrikaan': dict(voor='pizza/afrikaan-onderdelen-chatgpt.png', benen='pizza/afrikaan-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 3), been=(5, 6),
+                   beenschaal=0.95, achter=(7, 8)),  # groen shirt: alleen de rand ontgroenen  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }
 def lees(pad):
     a = np.array(Image.open(pad).convert('RGB')).astype(int); H, W, _ = a.shape; bg = np.median(a[2:8, 2:8].reshape(-1, 3), 0)
@@ -27,7 +29,9 @@ def lees(pad):
     return a, lab
 def deel(vel, n, schaal=1):
     a, lab = vel; m = (lab == n).astype(np.uint8) * 255; m = np.array(Image.fromarray(m).filter(ImageFilter.MinFilter(3)))
-    b = a.copy(); g = b[..., 1]; mx = np.maximum(b[..., 0], b[..., 2]); b[..., 1] = np.where(g > mx + 10, mx + 10, g)
+    b = a.copy(); g = b[..., 1]; mx = np.maximum(b[..., 0], b[..., 2])
+    rand = m.astype(bool) & ~np.array(Image.fromarray(m).filter(ImageFilter.MinFilter(5))).astype(bool)  # alleen de buitenrand ontgroenen (groene kleren blijven groen)
+    b[..., 1] = np.where(rand & (g > mx + 10), mx + 10, g)
     im = Image.fromarray(np.dstack([b, m]).astype(np.uint8)); im = im.crop(im.getbbox())
     return im.resize((round(im.size[0] * schaal), round(im.size[1] * schaal)), Image.LANCZOS) if schaal != 1 else im
 def mouw(im, kleur, pols):  # blote arm: alles boven de pols in de kleur van het jasje (met dezelfde schaduw)
