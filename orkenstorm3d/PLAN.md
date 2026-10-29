@@ -61,9 +61,9 @@ Volgorde van bouwen:
 - Deel 2 (later, eigen verhaal): zee met haven, scheepswerf, vis als grondstof, schepen, buskruit (kanontoren, springstof),
   vliegers, en uitgebreide upgrades (kasteel → burcht → vesting, smid in 3 stappen). Zie CLAUDE.md.
 
-# Deel 2: Over zee (VOORSTEL, nog niet afgesproken, nog niets gebouwd)
+# Deel 2: Over zee (afgesproken met Marcel, in aanbouw)
 
-Marcel beslist eerst over dit voorstel; daarna pas bouwen. Evenknie: Warcraft II (scheepswerf, olie, schepen, buskruit,
+Afgesproken op 28 oktober: 9 levels (12 t/m 20), vis als derde grondstof, de sloper, en de namen hieronder. Evenknie: Warcraft II (scheepswerf, olie, schepen, buskruit,
 griffioenen, stadhuis → burcht → kasteel; de mensen-campagne daar heeft 14 missies). We nemen alleen de spelregels als
 inspiratie en maken ons eigen verhaal, met eigen namen: de site is openbaar en deel 1 houdt zich daar ook aan.
 
@@ -124,8 +124,8 @@ Zelfde opzet als deel 1 (`tussen.js`): een groepje loopt weg, grappen onderweg. 
 de rand van de kaart (de boot vaart dan weg), en grappen op zee (zeeziek, haring, de Duitser en het buskruitvaatje, de
 Engelsman met thee op de vogel, de Nederlander die op een eiland "wilde kruiden" vindt). Elke grap hooguit één keer, zoals nu.
 
-## Bouwvolgorde (als het voorstel goed is)
-1. Zee, kust, haven, vis en vissersbootjes + level 12. (Grootste stap: nieuwe grondstof overal in het paneel en de teksten.)
+## Bouwvolgorde
+1. Zee, kust, haven, vis en vissersbootjes + level 12 — KLAAR (met tussenstukje 11 → 12; het tussenstukje 12 → 13 komt met level 13).
 2. Orkengalei en aanvallen vanaf zee + level 13.
 3. Scheepswerf en veerboot (instappen/uitstappen) + level 14.
 4. Buskruit: kruithuis, kanontoren, sloper + level 15.
@@ -136,10 +136,13 @@ Engelsman met thee op de vogel, de Nederlander die op een eiland "wilde kruiden"
 Per stap: bouwen, testen in de browser, op `main` zetten, familie laten meespelen (`"concept": true` blijft staan tot deel 2 af is?
 Liever: deel 2 in het titelmenu markeren als "in de maak", zodat deel 1 gewoon speelbaar blijft).
 
-## Open vragen voor Marcel
-1. Akkoord met 9 levels (12 t/m 20), of liever korter (bijvoorbeeld 6) om sneller een speelbaar deel 2 te hebben?
-2. Vis als derde grondstof (zoals olie in Warcraft II) of liever alleen goud en hout houden en de haven simpel laten?
-   Met vis wordt het paneel voller, maar de haven krijgt een echte reden.
-3. De sloper (mannetje dat zichzelf opblaast): grappig genoeg voor het gezin, of liever een "kanonnier" die blijft leven?
-4. Namen: Zeewijk, Meeuwenrots, Bram IJzerbaard, Grauwkam, het Donkere Land, de Zwarte Poort, Schaduwork Nachtklauw. Andere ideeën welkom.
-5. Beginnen met stap 1 (zee en haven, level 12) zodra dit is afgesproken?
+## Beslissingen van Marcel (28 oktober)
+1. 9 levels (12 t/m 20).
+2. Vis als derde grondstof: ja.
+3. De sloper (mannetje met een vaatje dat zichzelf opblaast): ja.
+4. Namen akkoord: Zeewijk, Meeuwenrots, Bram IJzerbaard, Grauwkam, het Donkere Land, de Zwarte Poort, Schaduwork Nachtklauw.
+5. Gestart met stap 1.
+
+## Nu (deel 2)
+- Level 12 is speelbaar; Marcel test het en noteert verbeterpunten. Volgende stap: orkengaleien en aanvallen vanaf zee + level 13
+  (met het tussenstukje 12 → 13: de burgemeester van Zeewijk, een werker verslikt zich in een haring).

@@ -61,6 +61,7 @@ const KLEDING = {
 
 export function maakMannetje(k, side, land, rolstoel) {
   if (k == 'katapult' || k == 'orkkatapult') return maakKatapult(k == 'orkkatapult');
+  if (k == 'vissersboot') return maakBoot(land);
   if (K.klaar) return kenneyMannetje(k, side, land, rolstoel);
   if (k == 'ridder') { const m = maakMannetje('soldaat', side, land, false); return opPaard(m, false); }
   const kl = KLEDING[k] || KLEDING.werker;
@@ -450,6 +451,14 @@ const MODEL = {
   },
   orkmuur() { const g = new THREE.Group(); for (let i = -2; i <= 2; i++) g.add(kegel(0.09, 1.1, '#6b4a2b', i * 0.2, 0.55, 0, 6)); return g; },
   magiertoren() { const g = new THREE.Group(); g.add(cil(0.45, 0.55, 2.0, STEEN, 0, 1.0, 0, 8)); g.add(kegel(0.65, 0.9, '#6a3fa8', 0, 2.45, 0, 8)); return g; },
+  haven() { // pakhuis achteraan, steiger naar voren (+z = de waterkant), tonnen en een vlag
+    const g = new THREE.Group();
+    g.add(doos(1.6, 0.7, 1.0, '#c9a97a', -0.3, 0.35, -0.8)); g.add(dak(1.75, 0.5, 1.15, '#5a6f8a', -0.3, 0.7, -0.8));
+    g.add(doos(0.8, 0.08, 2.0, '#8b6a40', 0.5, 0.2, 0.6)); for (const z of [-0.3, 0.3, 0.9, 1.5]) for (const x of [0.15, 0.85]) g.add(cil(0.05, 0.05, 0.3, '#6b4226', x, 0.1, z, 6));
+    g.add(cil(0.14, 0.14, 0.3, HOUT, -1.0, 0.15, 0.3, 8)); g.add(cil(0.14, 0.14, 0.3, HOUT, -0.7, 0.15, 0.55, 8));
+    g.add(vlag('#2f7fb3', 1.2, 0.2, -1.2));
+    return g;
+  },
   orkhut() {
     const g = new THREE.Group();
     g.add(kegel(0.9, 1.2, '#7a5a38', 0, 0.6, 0, 7));
@@ -695,7 +704,71 @@ function kenneyMagiertoren() {
 // Palissade (1x1): een stuk houten orkenmuur met puntige palen
 function kenneyPalissade() { const g = new THREE.Group(); const m = zetIn(g, 'survival/fence-fortified', 0, 0, 0, 0, 2); m.scale.z = 5; m.position.z = 1.11; return g; } // het hek staat in het model achteraan: dikker maken en centreren
 
-const BOUW = { magiertoren: kenneyMagiertoren, orkmuur: kenneyPalissade, tempel: kenneyTempel, abdij: kenneyAbdij, roverkamp: kenneyRoverkamp, stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
+// Haven (3x3, deel 2): pakhuis achteraan, een houten steiger die naar het water (+z) loopt, kisten, tonnen, een
+// visrek en een aangemeerd roeibootje. De weergave draait het model zo dat de steiger naar het water wijst (main.js).
+const ZILVER = '#cfe0ea';
+function visje(kleur = ZILVER) {
+  const g = new THREE.Group();
+  const lijf = bol(0.05, kleur, 0, 0, 0, 1); lijf.scale.set(0.7, 0.6, 1.5); g.add(lijf);
+  const staart = kegel(0.035, 0.06, kleur, 0, 0, -0.09, 4); staart.rotation.x = -Math.PI / 2; g.add(staart);
+  return g;
+}
+function kenneyHaven() {
+  const g = new THREE.Group();
+  zetIn(g, 'forest/building-roof', -0.45, 0, -0.7, 0, 1.25); // pakhuis
+  const st = zetIn(g, 'pirate/structure-platform-dock-small', 0.65, 0, 1.3, 0, 0.5); st.scale.y = 0.4; // steiger, steekt over het water (lager, zodat hij bij een roeiboot past)
+  zetIn(g, 'pirate/platform-planks', 0.65, 0, 0.1, 0, 0.5); zetIn(g, 'pirate/platform-planks', 0.65, 0, -1.0, 0, 0.5);
+  zetIn(g, 'pirate/crate', 0.95, 0.52, 1.35, 0.3, 0.42); zetIn(g, 'pirate/crate', 0.95, 0.52, 0.9, -0.2, 0.42); zetIn(g, 'pirate/crate', 0.95, 0.84, 1.1, 0.5, 0.38);
+  zetIn(g, 'pirate/barrel', -1.2, 0, -0.1, 0, 0.4); zetIn(g, 'pirate/barrel', 0.2, 0, 0.75, 0.6, 0.4);
+  const boot = zetIn(g, 'pirate/boat-row-small', -0.75, 0.02, 1.05, -Math.PI / 2 + 0.35, 0.36); boot.rotation.z = 0.12; // een bootje op het strand getrokken
+  zetIn(g, 'pirate/tool-paddle', -0.35, 0, -0.08, 0.3, 0.42).rotation.z = 0.35;
+  zetIn(g, 'pirate/flag', 1.2, 0, -1.2, 0, 0.45);
+  for (const [x, z] of [[-1.25, 0.3], [-0.65, 0.3]]) g.add(cil(0.03, 0.03, 0.9, '#6b4226', x, 0.45, z, 5)); // visrek: vissen te drogen aan een lijn
+  g.add(doos(0.62, 0.02, 0.02, '#3a2a1c', -0.95, 0.85, 0.3));
+  for (let i = 0; i < 4; i++) { const v = visje(); v.position.set(-1.2 + i * 0.16, 0.74, 0.3); v.rotation.x = Math.PI / 2; g.add(v); }
+  g.add(cil(0.12, 0.14, 0.26, '#6b4226', -0.1, 0.13, 0.7, 8)); for (let i = 0; i < 3; i++) { const v = visje('#9fc8e0'); v.position.set(-0.14 + i * 0.05, 0.28, 0.65 + (i % 2) * 0.06); v.rotation.y = i; g.add(v); } // emmer vol vis
+  return g;
+}
+
+// Vissersboot (deel 2): roeibootje met een visser erin, een hengel en een berg vis als er gevangen is. Een voertuig: geen botten
+// voor het bootje zelf, maar het mannetje dat erin zit heeft wel een animatie (zitten), vandaar de mixer.
+function maakBoot(land) {
+  const g = new THREE.Group(), lijf = new THREE.Group(); g.add(lijf);
+  const p = { ring: keuzering('h') }; p.ring.scale.setScalar(1.5); g.add(p.ring);
+  let mixer = null, acties = null;
+  if (K.klaar) {
+    const b = K.stuk('pirate/boat-row-small'); b.scale.setScalar(0.36); b.rotation.y = -Math.PI / 2; lijf.add(b);
+    const f = K.figuur('werker'); f.model.scale.setScalar(1.1); f.model.position.set(0, 0.2, -0.05); f.model.rotation.y = 0; lijf.add(f.model);
+    const hoed = kegel(0.26, 0.13, '#e0c068', 0, 0.42, 0, 10); hoed.scale.set(1, 1, 0.9); f.bot('head').add(hoed); // strohoed, net als een werker
+    if (LANDDING[land]) { const d = LANDDING[land](); d.scale.setScalar(1.7); const h = new THREE.Group(); h.position.set(0.23, -0.01, 0.02); d.rotation.x = Math.PI / 2; h.add(d); f.bot('arm-left').add(h); }
+    mixer = f.mixer; acties = f.acties; acties.sit.play();
+  } else {
+    lijf.add(doos(0.5, 0.18, 0.95, '#8b5a2b', 0, 0.12, 0)); lijf.add(doos(0.42, 0.06, 0.85, '#c9a26b', 0, 0.22, 0));
+    const boeg = kegel(0.25, 0.3, '#8b5a2b', 0, 0.12, 0.6, 4); boeg.rotation.x = Math.PI / 2; boeg.rotation.y = Math.PI / 4; lijf.add(boeg);
+    lijf.add(bol(0.1, HUID, 0, 0.42, -0.05, 1)); lijf.add(doos(0.22, 0.22, 0.16, '#a0703c', 0, 0.3, -0.05));
+  }
+  // hengel: hangt naar voren over het water, en gaat omlaag bij het vissen
+  const hengel = new THREE.Group(); hengel.position.set(0.12, 0.3, 0.3);
+  const stok = cil(0.012, 0.016, 0.8, '#5a3b20', 0, 0.4, 0, 5); hengel.add(stok);
+  const lijn = cil(0.004, 0.004, 0.5, '#f4f1e6', 0, 0.55, 0, 3); lijn.position.set(0, 0.55, 0); hengel.add(lijn); lijn.userData.lijn = 1;
+  hengel.rotation.x = 1.1; lijf.add(hengel); p.hengel = hengel; p.lijn = lijn;
+  p.vis = new THREE.Group(); for (let i = 0; i < 5; i++) { const v = visje(i % 2 ? '#9fc8e0' : ZILVER); v.position.set((i % 3 - 1) * 0.08, 0.22 + Math.floor(i / 3) * 0.05, -0.32 + (i % 2) * 0.06); v.rotation.y = i * 1.1; p.vis.add(v); }
+  p.vis.visible = false; lijf.add(p.vis);
+  return { g, lijf, p, voertuig: true, boot: true, mixer, acties };
+}
+
+// Visplek in zee: een paar visjes die om de beurt uit het water springen (bewegen in main.js, syncWereld)
+export function maakVisplek() {
+  const g = new THREE.Group(), vissen = [];
+  for (let i = 0; i < 3; i++) {
+    const v = visje(i == 1 ? '#9fc8e0' : ZILVER); v.scale.setScalar(1.3);
+    v.position.set((i - 1) * 0.28, 0, (i % 2) * 0.2 - 0.1); v.rotation.y = i * 2.1; v.userData.fase = i * 2.1;
+    g.add(v); vissen.push(v);
+  }
+  return { g, vissen };
+}
+
+const BOUW = { haven: kenneyHaven, magiertoren: kenneyMagiertoren, orkmuur: kenneyPalissade, tempel: kenneyTempel, abdij: kenneyAbdij, roverkamp: kenneyRoverkamp, stal: kenneyStal, orktoren: kenneyOrktoren, kasteel: kenneyKasteel, boerderij: kenneyBoerderij, kazerne: kenneyKazerne, toren: kenneyToren, orkhut: kenneyOrkhut, kooi: kenneyKooi,
   muur: kenneyMuur, smederij: kenneySmederij, houtzagerij: kenneyHoutzagerij };
 
 // Katapult: een voertuig, geen mannetje. Bij een schot zwiept hij even naar achteren.

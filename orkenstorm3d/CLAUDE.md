@@ -5,7 +5,7 @@ startpagina, level 5 en 6) staat in `orkenstorm3d/PLAN.md`. Lees dat eerst.
 De pc-versie van Orkenstorm, in 3D. Level 1 (Het nieuwe dorp), 2 (De orks komen eraan), 3 (De gevangen
 werkers), 4 (De Donkere Mijnen), 5 (Het Woud van Wilgendaal), 6 (De belegerde abdij), 7 (De toren van Morvan), 8 (Het Zwarte Moeras), 9 (De Tempel der Verdoemden), 10 (De twee orkensteden) en 11 (De Zwarte Rots) zijn speelbaar: alle levels uit
 `orkenstorm.html` zitten erin (`BINNENKORT` is leeg; na level 11 zegt het eindscherm dat je het spel hebt uitgespeeld).
-Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
+Deel 2 (Over zee) begint bij level 12; zie onderaan. Een level gaat pas open als het vorige gewonnen is (`orkenstorm3d_lvl` in localStorage). Elk level in
 `LEVELS` heeft een `voortgang(S)` voor de doeltekst in de bovenbalk.
 
 Opbouw:
@@ -161,11 +161,34 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   punthoed en gifstaf, vuurballen) roepen elke 13 s een demon en elke 10 s een gifwolk op je mannetjes binnen 7 vakjes (`G.gif`, 3 s, 4 schade
   per halve seconde, groene bollen in `syncGif`). Opperork Zwartvuist (`zwartvuist`, 750 levens: grote ork met gouden hoornkroon, rode cape,
   reuzenbijl). Palissade rond zijn vesting (`ob`). Winnen: Zwartvuist verslagen en alle hutten weg. Tussenstukje 10 → 11.
+- **Deel 2: Over zee** (vanaf level 12, `deel: 2` in LEVELS; het titelmenu zet er een kopje "Deel 2" boven, `BINNENKORT` = de
+  levels die nog komen). Nieuwe kaarttegels: `W` is ook zee, `k` = strand (lopen mag; bouwen alleen een haven), `v` = visplek in zee
+  (blokkeert, `G.visG[key]` = vis die er nog zit, `visCap` per level, anders 500). Bij `zee: 1` loopt de zee buiten de kaart door waar de
+  rand water is (stroken in `bouwWereld`), en ontbreken daar de sierbomen. Vis is de derde grondstof (`G.res.vis`, vak in de bovenbalk
+  alleen bij `zee`; prijzen zijn `[goud, hout, vis]`, `canAfford`/`pay`/`prijs` kennen het derde getal). `G.visTotaal` = alles wat in
+  dit level gevangen is (doel van level 12, `S.vis()`).
+  - Haven (BLD `haven`, 3x3, `kust: 1`): `canPlace` eist dat minstens één buurvakje water is (`aanWater`); de weergave draait het model
+    met de steiger naar het water (`havenRichting` in main.js). Geeft 4 voedsel, traint vissersboten. Model: forest-schuurtje, pirate-kit
+    steiger (`structure-platform-dock-small`, over het water), kisten, tonnen, visrek, een bootje op het strand.
+  - Vissersboot (UNIT `vissersboot`, `zee: 1`): vaart alleen over `W`/`v` (`blocked(x, y, zee)`, `astar`/`ringAround`/`goTo` geven dat
+    door via `u.zee`), komt uit de haven op een watervakje (`vrijePlek(b, zee)`), vecht niet en wordt door bijl-orks genegeerd
+    (`nearestEnemy`); torens en speerwerpers raken hem wel, dan zinkt hij (`m.zinkt` in main.js). Klik met boten op een visplek:
+    `st: 'vis'`, `tg` = key; de boot vaart tot naast de plek, vist 200 beeldjes (`u.vist`, hengel omlaag, ringetjes op het water), vaart met
+    10 vis (`carry: 'vis'`) naar de dichtstbijzijnde haven (`bootBrain` in spel.js). Lege plek: vanzelf naar de volgende bekende plek.
+    Nederlander aan het roer: 12 vis (haring), Italiaan: 8 (eet onderweg). Teksten in `LANDBOOT` (data.js). Model: pirate `boat-row-small`
+    met een zittend Kenney-werker (strohoed, ding uit zijn land), hengel, en een bergje vis als er gevangen is (`maakBoot` in modellen.js).
+    Knop "Alle boten" in het paneel. Stemmen: `boot` en `vis` in VOICES.
+  - Visplek: drie springende visjes (`maakVisplek`, bewegen in `syncWereld`) met een bordje met de resterende vis (`tekenBordje(…, vis)`),
+    aanklikbaar (`pick.vis`). Zonder boten: melding met hoeveel vis er nog zit.
+  - Level 12 (Het vissersdorp Zeewijk, kaart 36x32): zee aan de oostkant met een baai, negen visplekken, twee orkenhutten in het bos
+    linksboven met langzame golven. Winnen: een haven en 500 vis gevangen. Tussenstukje 11 → 12 (bij level 11): naar huis, dan de bode
+    uit Zeewijk met de zwarte zeilen.
+  - Modellen uit de pirate-kit staan in `assets/pirate/` (zelfde pakketstijl, maar ±2,5x zo groot als de andere pakketten: schaal 0,36–0,5).
 - Repareren: werkers kiezen en op een beschadigd eigen gebouw klikken (`teDoen` in spel.js: niet af óf beschadigd). Half zo snel als
   bouwen, kost samen 40% van de bouwprijs (`HERSTEL`, betaald per stukje; kasteel en abdij zonder prijs: max/4 goud, max/8 hout).
   Geen geld meer = de werker stopt. Status "repareert", tip in het paneel bij een beschadigd gebouw.
-- Plan deel 2 (nog niet bouwen, eerst deel 1 uitspelen): over zee met haven, scheepswerf, vis als grondstof, schepen, buskruit
-  (kanontoren, springstof), vliegers, en uitgebreide upgrades (kasteel → burcht → vesting, smid in 3 stappen). Eigen namen gebruiken.
+- Deel 2 wordt gebouwd in de volgorde van `PLAN.md` (haven en vis ✓, dan orkengaleien, scheepswerf en veerboot, buskruit, kogge,
+  vliegers, upgrades, de overtocht en de Zwarte Poort). Eigen namen gebruiken.
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
 - Blocky Characters en animated-characters-protagonists: moderne figuurtjes, passen niet.

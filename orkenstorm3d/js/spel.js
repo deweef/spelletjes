@@ -3,13 +3,13 @@
 // gebouwen staan op tegels (x, y = linkerbovenhoek). De 3D-weergave rekent dat om.
 
 import { UNIT, BLD, DIFF, LEVELS } from './data.js';
-import { unitSay, speak, pick, nieuweStem, nieuweZak, snd, sHorn, sDone, sChop, sGold, sHout, sHit, sArrow, sBuild, sClick, sNee, sWin, noise } from './geluid.js';
+import { unitSay, speak, pick, nieuweStem, nieuweZak, snd, sHorn, sDone, sChop, sGold, sHout, sHit, sArrow, sBuild, sClick, sNee, sWin, sVis, noise } from './geluid.js';
 
 export const T = 32;
 
 export const G = {
   state: 'titel', lvl: 0, L: null, map: null, MW: 0, MH: 0, trees: {}, mineG: {}, units: [], blds: [], explored: null,
-  res: { goud: 0, hout: 0 }, sel: [], selB: null, place: null, msg: '', msgT: 0, t: 0, fx: [], nextWave: 0, waveN: 0,
+  res: { goud: 0, hout: 0, vis: 0 }, visG: {}, visTotaal: 0, sel: [], selB: null, place: null, msg: '', msgT: 0, t: 0, fx: [], nextWave: 0, waveN: 0,
   lastAlert: -999, poke: { id: -1, n: 0, t: 0 }, multi: false, unlocked: 1, paused: false, diff: 1, lostMsg: '', uid: 1,
   levelVersie: 0, mapVersie: 0, freed: true, saved: true,
 };
@@ -44,6 +44,7 @@ export const S = {
   priesters: () => G.units.filter((u) => u.k == 'orkpriester').length,
   tempel: () => G.blds.find((b) => b.k == 'tempel'),
   zwartvuist: () => G.units.find((u) => u.k == 'zwartvuist'),
+  vis: () => G.visTotaal, // deel 2: hoeveel vis er in dit level gevangen is
   verdieping: () => Math.max(1, ...G.units.filter((u) => u.side == 'h' && u.k != 'watergeest').map((u) => verdieping(u))), // level 7: de hoogste verdieping waar iemand van jou is
   start: () => G.start || {},
   // voor de voortgang in procenten (level 4): hoe dicht je bij Sir Lodewijk bent, en hij bij de trap
@@ -80,16 +81,17 @@ const zelfde = (a, b) => !G.L.tower || verdieping(a) == verdieping(b);
 export function loadLevel(i) {
   const L = LEVELS[i];
   G.lvl = i; G.L = L; G.MH = L.map.length; G.MW = L.map[0].length;
-  G.map = L.map.map((r) => r.split('')); G.trees = {}; G.mineG = {};
+  G.map = L.map.map((r) => r.split('')); G.trees = {}; G.mineG = {}; G.visG = {};
   for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) {
     if (G.map[y][x] == 'T') G.trees[x + ',' + y] = 30;
     if (G.map[y][x] == 'M') { const k = minesKey(x, y); if (!(k in G.mineG)) G.mineG[k] = (L.mineCap && L.mineCap[k]) || 2000; }
+    if (G.map[y][x] == 'v') G.visG[x + ',' + y] = (L.visCap && L.visCap[x + ',' + y]) || 500; // visplek in zee (deel 2)
   }
-  G.mineMax = { ...G.mineG }; G.bijnaLeeg = {};
+  G.mineMax = { ...G.mineG }; G.bijnaLeeg = {}; G.visTotaal = 0;
   const D = DIFF[G.diff];
   G.units = []; G.blds = []; G.sel = []; G.selB = null; G.place = null; G.fx = []; G.multi = false; G.tussen = false; G.regens = []; G.gif = []; G.cast = null; G.trapSprong = null;
   nieuweZak();
-  G.res = { goud: Math.round(L.goud * D.res / 10) * 10, hout: Math.round(L.hout * D.res / 10) * 10 };
+  G.res = { goud: Math.round(L.goud * D.res / 10) * 10, hout: Math.round(L.hout * D.res / 10) * 10, vis: 0 };
   G.t = 0; G.waveN = 0; G.nextWave = L.waves ? Math.round(L.waves.first * D.wave) : 0; G.paused = false;
   G.explored = Array.from({ length: G.MH }, () => Array(G.MW).fill(false));
   for (const [k, x, y] of L.b) addBld(k, x, y, 1);
@@ -118,7 +120,8 @@ function addUnit(k, tx, ty) {
   const d = UNIT[k], hm = d.side == 'o' ? DIFF[G.diff].hp : 1;
   const u = { id: G.uid++, voice: d.side == 'h' ? nieuweStem(k) : null, k, side: d.side, x: tx * T + T / 2, y: ty * T + T / 2,
     hp: Math.round(d.hp * hm), max: Math.round(d.hp * hm), st: 'idle', path: null, cd: 0, carry: null, swing: 0 };
-  if (d.side == 'h' && k != 'genezer' && k != 'held' && k != 'ridder' && k != 'watergeest' && Math.random() < 1 / 6) u.rolstoel = true;
+  if (d.zee) u.zee = 1; // een boot: vaart alleen over water
+  if (d.side == 'h' && k != 'genezer' && k != 'held' && k != 'ridder' && k != 'watergeest' && !d.zee && Math.random() < 1 / 6) u.rolstoel = true;
   if (k == 'magier') u.mana = 50; // toverkracht, groeit langzaam tot 100 // af en toe rijdt er iemand in een rolstoel
   G.units.push(u); return u;
 }
@@ -138,16 +141,17 @@ export function food() {
 }
 
 // ---------- kaart ----------
-export function blocked(x, y) {
+export function blocked(x, y, zee) { // zee: voor een boot (alleen water is vrij)
   if (x < 0 || y < 0 || x >= G.MW || y >= G.MH) return true;
   const c = G.map[y][x];
-  if (c == 'W' || c == 'M' || c == '#' || c == 't' || c == 'L') return true; // L = lava
+  if (zee) return !(c == 'W' || c == 'v');
+  if (c == 'W' || c == 'v' || c == 'M' || c == '#' || c == 't' || c == 'L') return true; // L = lava, v = visplek in zee
   if (c == 'T' && G.trees[x + ',' + y] > 0) return true;
   const b = bldAt(x, y); return !!b && b.k != 'weg'; // over een weg in aanbouw kun je gewoon lopen
 }
 export function bldAt(x, y) { return G.blds.find((b) => x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h); }
 
-function astar(sx, sy, goals) { // goals: set van "x,y"
+function astar(sx, sy, goals, zee) { // goals: set van "x,y"; zee: een boot, alleen over water
   if (!goals.size) return null;
   const key = (x, y) => x + ',' + y;
   const open = [[sx, sy]], g = {}, f = {}, from = {};
@@ -165,8 +169,8 @@ function astar(sx, sy, goals) { // goals: set van "x,y"
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
       const nx = x + dx, ny = y + dy, nk = key(nx, ny);
       if (closed.has(nk)) continue;
-      if (blocked(nx, ny) && !goals.has(nk)) continue;
-      if (dx && dy && (blocked(x + dx, y) || blocked(x, y + dy))) continue;
+      if (blocked(nx, ny, zee) && !goals.has(nk)) continue;
+      if (dx && dy && (blocked(x + dx, y, zee) || blocked(x, y + dy, zee))) continue;
       const ng = g[k] + (dx && dy ? 1.41 : 1);
       if (g[nk] === undefined || ng < g[nk]) {
         g[nk] = ng; f[nk] = ng + h(nx, ny); from[nk] = k;
@@ -178,25 +182,25 @@ function astar(sx, sy, goals) { // goals: set van "x,y"
 }
 
 export const tileOf = (u) => [Math.floor(u.x / T), Math.floor(u.y / T)];
-function ringAround(x, y, w, h) {
+function ringAround(x, y, w, h, zee) { // zee: alleen de watervakjes eromheen (voor boten)
   const s = new Set();
   for (let i = x - 1; i <= x + w; i++) for (let j = y - 1; j <= y + h; j++) {
     if (i >= x && i < x + w && j >= y && j < y + h) continue;
-    if (!blocked(i, j)) s.add(i + ',' + j);
+    if (!blocked(i, j, zee)) s.add(i + ',' + j);
   }
   return s;
 }
 function goTo(u, goals) {
   const [sx, sy] = tileOf(u);
   if (goals.has(sx + ',' + sy)) { u.path = []; return true; }
-  const p = astar(sx, sy, goals); u.path = p; return !!p;
+  const p = astar(sx, sy, goals, u.zee); u.path = p; return !!p;
 }
 function moveAlong(u) {
   if (!u.path || !u.path.length) return true;
   const [tx, ty] = u.path[0], gx = tx * T + T / 2, gy = ty * T + T / 2, dx = gx - u.x, dy = gy - u.y, d = Math.hypot(dx, dy);
   const onder = G.map[Math.floor(u.y / T)] && G.map[Math.floor(u.y / T)][Math.floor(u.x / T)]; // moeras: half zo snel, weg: sneller
   const sp = UNIT[u.k].spd * (u.tempo || 1) * (onder == 'r' ? 1.45 : onder == 'm' ? 0.55 : 1);
-  if (blocked(tx, ty) && u.path.length > 1) { u.path = null; return false; }
+  if (blocked(tx, ty, u.zee) && u.path.length > 1) { u.path = null; return false; }
   if (d <= sp) { u.x = gx; u.y = gy; u.path.shift(); return !u.path.length; }
   u.x += dx / d * sp; u.y += dy / d * sp; return false;
 }
@@ -284,13 +288,16 @@ function bevrijd(b) {
 
 function nearestEnemy(u, range) {
   let best = null, bd = range;
-  for (const e of G.units) if (e.side != u.side && e.side != 'n' && zelfde(u, e)) { const d = dist(u, e); if (d < bd && (u.side == 'o' || isExp(...tileOf(e)))) { bd = d; best = e; } }
+  for (const e of G.units) if (e.side != u.side && e.side != 'n' && zelfde(u, e)) {
+    if (!!e.zee != !!u.zee && UNIT[u.k].rng < 40) continue; // met een bijl kom je niet bij een boot (en andersom)
+    const d = dist(u, e); if (d < bd && (u.side == 'o' || isExp(...tileOf(e)))) { bd = d; best = e; }
+  }
   for (const b of G.blds) if (b.side != u.side && b.k != 'weg') { const d = targetDist(u, b); if (d < bd) { bd = d; best = b; } }
   return best;
 }
 function attackGoals(tg) { if (tg.w) return ringAround(tg.x, tg.y, tg.w, tg.h); const [x, y] = tileOf(tg); return new Set([x + ',' + y]); }
 function cmdAttack(u, tg) { u.st = 'attack'; u.tg = tg; u.path = null; u.repath = 0; }
-function cmdMove(u, tx, ty) { u.st = 'move'; u.tg = null; if (blocked(tx, ty)) { u.path = null; goTo(u, ringAround(tx, ty, 1, 1)); } else goTo(u, new Set([tx + ',' + ty])); }
+function cmdMove(u, tx, ty) { u.st = 'move'; u.tg = null; if (blocked(tx, ty, u.zee)) { u.path = null; goTo(u, ringAround(tx, ty, 1, 1, u.zee)); } else goTo(u, new Set([tx + ',' + ty])); }
 function nearestTree(x, y) {
   let best = null, bd = 1e9;
   for (const k in G.trees) if (G.trees[k] > 0) {
@@ -302,9 +309,9 @@ function nearestTree(x, y) {
   return best;
 }
 // Nieuwe mannetjes komen op het vakje naast het gebouw waar nog het minst staat (liefst aan de voorkant)
-function vrijePlek(b) {
+function vrijePlek(b, zee) {
   let best = null, bs = 1e9;
-  for (const k of ringAround(b.x, b.y, b.w, b.h)) {
+  for (const k of ringAround(b.x, b.y, b.w, b.h, zee)) {
     const [x, y] = k.split(',').map(Number);
     const n = G.units.filter((u) => tileOf(u)[0] == x && tileOf(u)[1] == y).length;
     const score = n * 10 + (y >= b.y + b.h ? 0 : 1) + Math.abs(x - (b.x + (b.w - 1) / 2)) * 0.1;
@@ -326,7 +333,7 @@ function uitElkaar() {
       for (const [u, f] of [[a, -1], [b, 1]]) {
         if (u.st != 'idle' || (u.path && u.path.length)) continue; // alleen wie niets te doen heeft schuift opzij
         const x = u.x + nx * duw * f, y = u.y + ny * duw * f;
-        if (!blocked(Math.floor(x / T), Math.floor(y / T))) { u.x = x; u.y = y; }
+        if (!blocked(Math.floor(x / T), Math.floor(y / T), u.zee)) { u.x = x; u.y = y; }
       }
     }
   }
@@ -380,7 +387,7 @@ export function update() {
     if (b.q.length) {
       b.qp++; const k = b.q[0];
       if (b.qp >= UNIT[k].time) {
-        const plek = vrijePlek(b);
+        const plek = vrijePlek(b, UNIT[k].zee);
         if (plek) { addUnit(k, plek[0], plek[1]); sDone(); say(UNIT[k].n + ' is klaar!', 90); }
         b.q.shift(); b.qp = 0;
       }
@@ -411,7 +418,7 @@ export function update() {
     else if (u.side == 'n') { gevangenRidder(u); continue; }
     else if (u.k == 'werker' && land(u) == 'it') pizzaPauze(u);
     else if (u.k == 'genezer') genezen(u);
-    if (u.side == 'h' && !G.tussen && u.st == 'idle' && u.k != 'werker' && u.k != 'genezer') {
+    if (u.side == 'h' && !G.tussen && u.st == 'idle' && u.k != 'werker' && u.k != 'genezer' && !u.zee) {
       const e = (u.k == 'katapult' && G.blds.find((b) => b.side == 'o' && targetDist(u, b) < d.sight * T && isExp(b.x, b.y))) || nearestEnemy(u, d.sight * T);
       if (e) cmdAttack(u, e);
     }
@@ -453,6 +460,7 @@ export function update() {
         }
       }
     } else if (u.st == 'wood' || u.st == 'gold' || u.st == 'build') workerBrain(u);
+    else if (u.st == 'vis') bootBrain(u);
     if (u.swing > 0) u.swing--;
   }
   uitElkaar();
@@ -588,11 +596,12 @@ function workerBrain(u) {
   const h = hall();
   if (u.st == 'build') {
     const b = u.tg;
-    if (!b || !teDoen(b)) { if (b && b.done && u.bezig == b) say(BLD[b.k].n + ' is weer helemaal heel!', 100); nextBuild(u); return; }
+    if (!b || !teDoen(b)) { if (b && b.done && u.herstel == b) say(BLD[b.k].n + ' is weer helemaal heel!', 100); u.herstel = null; nextBuild(u); return; }
     if (targetDist(u, b) > T * 0.8) { if (!u.path || !u.path.length) { if (!goTo(u, ringAround(b.x, b.y, b.w, b.h))) { u.st = 'idle'; return; } } moveAlong(u); return; }
     u.path = null; u.bezig = b;
     const tempo = land(u) == 'de' ? 1.3 : 1;
     if (b.done) { // repareren: half zo snel als bouwen, en het kost een beetje goud en hout
+      u.herstel = b;
       const erbij = Math.min(b.max - b.hp, tempo * b.max / (BLD[b.k].time || 600) / 2), c = BLD[b.k].cost || [b.max / 4, b.max / 8]; // kasteel en abdij hebben geen prijs
       const k = b.herstelKost = b.herstelKost || [0, 0];
       k[0] += c[0] * HERSTEL * erbij / b.max; k[1] += c[1] * HERSTEL * erbij / b.max;
@@ -675,9 +684,45 @@ function workerBrain(u) {
   }
 }
 
+// Vissersboot (deel 2): naar een visplek (v) varen, vissen, en de vis naar de dichtstbijzijnde haven brengen
+function haven(u) { return G.blds.filter((b) => b.k == 'haven' && b.done).sort((a, b) => targetDist(u, a) - targetDist(u, b))[0]; }
+function bootBrain(u) {
+  if (u.carry) { // vis naar de haven brengen
+    const h = haven(u);
+    if (!h) { u.st = 'idle'; say('Er is geen haven om de vis af te leveren.', 120); return; }
+    if (targetDist(u, h) > T * 0.8) { if (!u.path || !u.path.length) { if (!goTo(u, ringAround(h.x, h.y, h.w, h.h, 1))) { u.st = 'idle'; return; } } moveAlong(u); return; }
+    const n = land(u) == 'nl' ? 12 : land(u) == 'it' ? 8 : 10; // Nederlander: haring!; Italiaan eet onderweg wat op
+    G.res.vis += n; G.visTotaal += n; sVis();
+    if (land(u) == 'nl' && Math.random() < 0.15) unitSay(u, 'extra');
+    u.carry = null; u.path = null; u.vist = 0; return;
+  }
+  let k = u.tg;
+  if (!(G.visG[k] > 0)) { // visplek leeg: naar de dichtstbijzijnde plek waar nog vis zit
+    const [ux, uy] = tileOf(u);
+    const nk = Object.keys(G.visG).filter((m) => G.visG[m] > 0 && isExp(...m.split(',').map(Number)))
+      .sort((a, b) => { const [ax, ay] = a.split(',').map(Number), [bx, by] = b.split(',').map(Number); return (ax - ux) ** 2 + (ay - uy) ** 2 - ((bx - ux) ** 2 + (by - uy) ** 2); })[0];
+    if (!nk) { u.st = 'idle'; u.vist = 0; say('Alle bekende visplekken zijn leeg. Zoek nieuwe plekken op zee, onder de wolken!', 200); return; }
+    u.tg = k = nk; u.path = null;
+    if (G.t - (G.visMelding || -999) > 300) { G.visMelding = G.t; say('De visplek is leeg: de boten varen naar de volgende.', 180); }
+  }
+  const [vx, vy] = k.split(',').map(Number);
+  if (Math.max(Math.abs(Math.floor(u.x / T) - vx), Math.abs(Math.floor(u.y / T) - vy)) > 1) { // ernaartoe varen (tot naast de plek)
+    u.vist = 0;
+    if (!u.path || !u.path.length) { if (!goTo(u, new Set([k, ...ringAround(vx, vy, 1, 1, 1)]))) { u.st = 'idle'; say('De boot kan daar niet komen.', 120); return; } }
+    moveAlong(u); return;
+  }
+  u.path = null; u.kijk = { x: vx * T + T / 2, y: vy * T + T / 2 }; u.vist = (u.vist || 0) + 1;
+  if (u.vist % 40 == 0) { u.swing = 12; G.fx.push({ x: u.kijk.x + (Math.random() - 0.5) * 16, y: u.kijk.y + (Math.random() - 0.5) * 16, l: 18, ring: '#cfe9ff' }); }
+  if (u.vist >= 200) {
+    u.vist = 0; G.visG[k] -= 10; u.carry = 'vis'; snd(900, 0.08, 'sine', 0.03, 1300);
+    if (G.visG[k] <= 0) { say('Een visplek is leeggevist.', 150); }
+  }
+}
+
 // ---------- opdrachten van de speler ----------
-export function canAfford(c) { return G.res.goud >= c[0] && G.res.hout >= c[1]; }
-function pay(c) { G.res.goud -= c[0]; G.res.hout -= c[1]; }
+export function canAfford(c) { return G.res.goud >= c[0] && G.res.hout >= c[1] && G.res.vis >= (c[2] || 0); }
+function pay(c) { G.res.goud -= c[0]; G.res.hout -= c[1]; G.res.vis -= c[2] || 0; }
+const teWeinig = (c) => (c[2] ? 'Niet genoeg goud, hout of vis.' : 'Niet genoeg goud of hout.');
 
 export function train(b, k) {
   const c = UNIT[k].cost;
@@ -685,7 +730,7 @@ export function train(b, k) {
   if (b.k == 'abdij' && !G.saved) { say('De abdij wordt belegerd: verjaag eerst de rovers!'); sNee(); return; }
   if (k == 'werker' && !G.freed) { say('Er zijn geen werkers meer in het dorp: bevrijd eerst de gevangenen!'); sNee(); return; }
   if (b.q.length >= 5) { say('De wachtrij is vol (5).'); return; }
-  if (!canAfford(c)) { say('Niet genoeg goud of hout.'); sNee(); return; }
+  if (!canAfford(c)) { say(teWeinig(c)); sNee(); return; }
   const f = food();
   if (f.use >= f.cap) { say('Te weinig voedsel: bouw eerst een boerderij.'); sNee(); return; }
   pay(c); b.q.push(k); sClick();
@@ -694,7 +739,7 @@ export function train(b, k) {
 
 export function startPlace(k, touch) {
   const c = BLD[k].cost;
-  if (!canAfford(c)) { say('Niet genoeg goud of hout voor een ' + BLD[k].n.toLowerCase() + '.'); sNee(); return; }
+  if (!canAfford(c)) { say(teWeinig(c).slice(0, -1) + ' voor een ' + BLD[k].n.toLowerCase() + '.'); sNee(); return; }
   G.place = { k, x: -1, y: -1 }; G.vorigeMuur = null;
   const w = G.sel.find((u) => u.k == 'werker');
   if (touch && w) { G.place.x = Math.floor(w.x / T) + 1; G.place.y = Math.floor(w.y / T) - 1; }
@@ -706,10 +751,17 @@ export function canPlace(k, x, y) {
   for (let j = y; j < y + d.h; j++) for (let i = x; i < x + d.w; i++) {
     if (!isExp(i, j) || blocked(i, j) || bldAt(i, j) || G.map[j][i] == '=') return false;
     const c = G.map[j][i];
-    if (k == 'weg' ? !'.ms'.includes(c) : c == 'm' || c == 'b') return false; // in het moeras alleen wegen; op de zwarte rots niets
+    if (k == 'weg' ? !'.ms'.includes(c) : c == 'm' || c == 'b' || (c == 'k' && !d.kust)) return false; // in het moeras alleen wegen; op de zwarte rots niets; op het strand alleen een haven
     if (G.units.some((u) => u.side == 'o' && tileOf(u)[0] == i && tileOf(u)[1] == j)) return false;
   }
+  if (d.kust && !aanWater(x, y, d.w, d.h)) return false; // de haven moet met één kant aan het water staan
   return true;
+}
+export function aanWater(x, y, w, h) {
+  for (let i = x; i < x + w; i++) for (let j = y; j < y + h; j++) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    const c = G.map[j + dy] && G.map[j + dy][i + dx]; if (c == 'W' || c == 'v') return true;
+  }
+  return false;
 }
 
 // muis beweegt tijdens het bouwen: schaduw volgt
@@ -741,8 +793,8 @@ export function stopKeuze() { G.cast = null; G.place = null; G.sel = []; G.selB 
 export function kiesAlle(soldaten) {
   if (G.state != 'spel') return;
   G.selB = null; G.place = null;
-  G.sel = G.units.filter((u) => u.side == 'h' && (soldaten == 'groep' || (soldaten ? u.k != 'werker' : u.k == 'werker')));
-  if (G.sel.length) { sClick(); unitSay(G.sel[0], 'samen'); } else say(soldaten ? 'Je hebt nog geen soldaten. Bouw een kazerne!' : 'Je hebt geen werkers. Train ze in het kasteel.');
+  G.sel = G.units.filter((u) => u.side == 'h' && (soldaten == 'groep' || soldaten == 'boten' ? u.zee : soldaten ? u.k != 'werker' && !u.zee : u.k == 'werker'));
+  if (G.sel.length) { sClick(); unitSay(G.sel[0], 'samen'); } else say(soldaten == 'boten' ? 'Je hebt nog geen boten. Train ze in de haven!' : soldaten ? 'Je hebt nog geen soldaten. Bouw een kazerne!' : 'Je hebt geen werkers. Train ze in het kasteel.');
 }
 // een rechthoek over de mannetjes getrokken
 export function kiesGroep(lijst, erbij) {
@@ -767,7 +819,7 @@ function selectUnit(u) {
   if (p.id == u.id && G.t - p.t < 120) p.n++; else p.n = 1;
   p.id = u.id; p.t = G.t;
   if (p.n >= 5) { unitSay(u, 'prik'); p.n = 0; return; }
-  unitSay(u, u.k == 'werker' ? 'werker' : u.k == 'boog' ? 'boog' : 'krijger');
+  unitSay(u, u.zee ? 'boot' : u.k == 'werker' ? 'werker' : u.k == 'boog' ? 'boog' : 'krijger');
 }
 
 // Een klik/tik in de wereld. p = { unit, bld, tx, ty (wat er geraakt is), gx, gy (tegel op de grond), mod, touch }
@@ -820,7 +872,7 @@ export function klik(p) {
   const enemy = hitU && hitU.side == 'o' ? hitU : (hitB && hitB.side == 'o' ? hitB : null);
   if (enemy) {
     if (G.sel.length) {
-      for (const u of G.sel) cmdAttack(u, enemy);
+      for (const u of G.sel) if (!u.zee) cmdAttack(u, enemy); // boten vechten niet
       sClick(); unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerAanval' : 'aanval');
       G.fx.push({ x: enemy.w ? center(enemy).x : enemy.x, y: enemy.w ? center(enemy).y : enemy.y, l: 20, ring: '#e0574c' });
     } else { G.selB = null; G.sel = []; say(enemy.k == 'zwartvuist' ? 'Opperork Zwartvuist! Val hem met je hele leger tegelijk aan.' : enemy.k == 'orkheks' ? 'Een orkenheks: zij roept demonen en gifwolken op. Pak haar eerst!' : enemy.k == 'orkmuur' ? 'Een palissade. Sla er een gat in, of neem de poort!' : enemy.k == 'orkkatapult' ? 'Een orkenkatapult! Die schiet op je gebouwen: pak hem snel.' : enemy.k == 'tempel' ? 'De Tempel der Verdoemden! Je katapult doet daar veel schade.' : enemy.k == 'orkpriester' ? 'Een orkpriester: hij wekt de doden op. Pak hem snel!' : enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
@@ -851,6 +903,16 @@ export function klik(p) {
     const k = minesKey(p.tx, p.ty); G.selB = null;
     say(G.mineG[k] > 0 ? 'Goudmijn: nog ' + G.mineG[k] + ' goud' : 'Deze goudmijn is leeg.', 150); sClick(); return;
   }
+  // klik op een visplek: boten gaan vissen, zonder boten zie je hoeveel vis er nog zit
+  const boten = G.sel.filter((u) => u.zee);
+  if (p.tx >= 0 && G.map[p.ty][p.tx] == 'v' && isExp(p.tx, p.ty)) {
+    const k = p.tx + ',' + p.ty;
+    if (boten.length) {
+      for (const b of boten) { b.st = 'vis'; b.tg = k; b.path = null; b.vist = 0; }
+      unitSay(boten[0], 'vis'); G.fx.push({ x: p.tx * T + T / 2, y: p.ty * T + T / 2, l: 20, ring: '#9fd8ff' }); sClick(); return;
+    }
+    G.selB = null; G.sel = []; say(G.visG[k] > 0 ? 'Visplek: nog ' + G.visG[k] + ' vis. Stuur er een vissersboot heen!' : 'Deze visplek is leeggevist.', 150); sClick(); return;
+  }
   if (!G.sel.length) { G.selB = null; return; }
   const { tx, ty } = p;
   if (tx < 0) return;
@@ -871,18 +933,19 @@ export function klik(p) {
   [...G.sel].sort((a, b) => (b.k == 'held') - (a.k == 'held')).forEach((u, i) => { // Sir Lodewijk krijgt het vakje waar je klikt
     const ox = [0, 1, -1, 0, 0, 1, -1, 1, -1][i % 9], oy = [0, 0, 0, 1, -1, 1, 1, -1, -1][i % 9];
     let ax = gx + ox, ay = gy + oy;
-    if (blocked(ax, ay)) { ax = gx; ay = gy; }
-    cmdMove(u, ax, ay); u.job = null; u.hidden = false; u.inMine = 0;
+    if (blocked(ax, ay, u.zee)) { ax = gx; ay = gy; }
+    cmdMove(u, ax, ay); u.job = null; u.hidden = false; u.inMine = 0; u.vist = 0;
   });
   sClick(); G.fx.push({ x: wx, y: wy, l: 20, ring: '#f6dfa8' });
-  if (Math.random() < 0.5) unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerGo' : 'krijgerGo');
+  if (Math.random() < 0.5) unitSay(G.sel[0], G.sel[0].k == 'werker' || G.sel[0].zee ? 'werkerGo' : 'krijgerGo');
 }
 
 export function statusTekst(u) {
   if (u.captive) return 'zit gevangen';
   if (u.thee > 0) return 'drinkt een kopje thee';
   if (u.hidden) return 'is in de mijn';
-  if (u.carry) return u.carry == 'goud' ? 'brengt goud naar het kasteel' : 'brengt hout naar het kasteel';
+  if (u.carry) return u.carry == 'goud' ? 'brengt goud naar het kasteel' : u.carry == 'vis' ? 'brengt vis naar de haven' : 'brengt hout naar het kasteel';
+  if (u.st == 'vis') return u.vist > 0 ? 'is aan het vissen' : 'vaart naar de visplek';
   if (u.st == 'build' && u.tg && u.tg.done) return 'repareert';
   return { idle: 'staat te wachten', move: 'loopt', wood: 'hakt hout', gold: 'gaat goud halen', build: 'bouwt', attack: 'valt aan', raid: 'valt aan' }[u.st] || '';
 }

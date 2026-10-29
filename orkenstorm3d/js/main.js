@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from '../lib/OrbitControls.js';
-import { UNIT, BLD, DIFF, LEVELS, BINNENKORT, LAND } from './data.js';
+import { UNIT, BLD, DIFF, LEVELS, BINNENKORT, LAND, LANDBOOT } from './data.js';
 import { G, T, loadLevel, update, klik, muisBouw, train, startPlace, stopKeuze, bouwHier, canPlace, canAfford, food, isExp, tileOf, center, statusTekst, zetMoeilijkheid, S, kiesAlle, kiesGroep, haalWeg, speler, introGezien, zetIntroGezien, tovenaar, vuurregen, roepWater } from './spel.js';
 import * as M from './modellen.js';
 import { unlock, primeVoice, stemAan, zetStem, sClick, loadVoices, VOX } from './geluid.js';
@@ -53,6 +53,7 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
+const isWater = (x, y) => G.map[y] && 'Wv'.includes(G.map[y][x] || '');
 // tegel (x, y) in het spel -> midden van de tegel in 3D (x, z)
 const wx = (px) => px / T, wz = (py) => py / T;
 
@@ -62,6 +63,7 @@ let grond = null, grondCanvas = null, grondTex = null;
 let bomen = null; // { keys, basis, lagen (per soort de InstancedMeshes), stronken, weg, schud }
 let wolken = null; // { mesh, schaal: Float32Array, pos: [] }
 const mijnen = []; // { key, goud }
+const visplekken = []; // { key, g, vissen, bord } (deel 2)
 const pickables = [];
 
 function gooiWeg(obj) {
@@ -82,7 +84,8 @@ function tekenGrond() {
     let kleur;
     if (G.L.tower) kleur = t == '#' || t == 't' ? '#28222e' : t == 'U' ? '#c9b27a' : (x + y) % 2 ? (v < 0.5 ? '#6e6878' : '#6a6474') : (v < 0.5 ? '#7a7484' : '#77717f'); // stenen tegelvloer
     else if (G.L.dungeon) kleur = t == '#' || t == 't' ? '#2d2520' : t == 'E' || t == 'U' ? '#c9b27a' : v < 0.33 ? '#7a6a58' : v < 0.66 ? '#74644f' : '#806f5c';
-    else if (t == 'W' || t == '=') kleur = G.L.moeras ? '#3f6656' : '#3a7bbf';
+    else if (t == 'W' || t == '=' || t == 'v') kleur = G.L.moeras ? '#3f6656' : G.L.zee ? '#2f78c0' : '#3a7bbf';
+    else if (t == 'k') kleur = v < 0.5 ? '#e6d59c' : '#dfcd92'; // strand
     else if (t == 'M') kleur = '#8d8170';
     else if (t == 'T') kleur = G.L.heksen && y < 20 ? '#3a3440' : v < 0.5 ? '#4d7a33' : '#517f36';
     else if (t == 's') kleur = '#7d6a45';
@@ -102,14 +105,15 @@ function tekenGrond() {
     if (t == 'b') { if (v > 0.7) { c.strokeStyle = 'rgba(160,70,40,.5)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x * S + 3, y * S + 2); c.lineTo(x * S + 9, y * S + 8); c.lineTo(x * S + 6, y * S + 14); c.stroke(); } continue; }
     if (t == 'L') { c.fillStyle = '#ffc04a'; c.fillRect(x * S + (v * 13 % 10), y * S + 4, 5, 3); c.fillStyle = 'rgba(120,30,10,.5)'; c.fillRect(x * S + 2, y * S + 10 + (v * 7 % 4), 6, 2); continue; }
     if (t == 'r') { c.fillStyle = '#9c7c48'; c.fillRect(x * S + 3, y * S + 6, 3, 2); c.fillRect(x * S + 10, y * S + 11, 3, 2); continue; }
+    if (t == 'k') { if (v > 0.6) { c.fillStyle = '#cdb97e'; c.fillRect(x * S + 3 + (v * 23 % 7), y * S + 4, 2, 2); c.fillRect(x * S + 9, y * S + 10 + (v * 17 % 4), 3, 2); } continue; } // schelpjes en kiezels
     if (t == '.' && v > 0.8) { c.fillStyle = '#86c063'; c.fillRect(x * S + 4 + (v * 37 % 6), y * S + 5, 2, 3); c.fillRect(x * S + 9, y * S + 9 + (v * 51 % 4), 2, 3); }
     if (t == '.' && v < 0.04) { c.fillStyle = '#f4e27a'; c.fillRect(x * S + 7, y * S + 7, 2, 2); }
   }
   // zandrand langs het water
   for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) {
-    if (G.map[y][x] == 'W' || G.map[y][x] == '=') continue;
+    if ('W=v'.includes(G.map[y][x])) continue;
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      if (G.map[y + dy] && (G.map[y + dy][x + dx] == 'W' || G.map[y + dy][x + dx] == '=')) {
+      if (G.map[y + dy] && 'W=v'.includes(G.map[y + dy][x + dx] || '')) {
         c.fillStyle = '#d9c78c';
         c.fillRect(x * S + (dx == 1 ? S - 4 : 0), y * S + (dy == 1 ? S - 4 : 0), dx ? 4 : S, dy ? 4 : S);
       }
@@ -193,7 +197,7 @@ function bouwWereld() {
 
   // water
   const waterTegels = [];
-  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == 'W' || G.map[y][x] == '=') waterTegels.push([x, y]);
+  for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if ('W=v'.includes(G.map[y][x])) waterTegels.push([x, y]);
   for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) if (G.map[y][x] == '=') {
     const c = (i, j) => G.map[j] && G.map[j][i], dwars = c(x - 1, y) != 'W' && c(x + 1, y) != 'W'; // dwars: de brug loopt van west naar oost (rivier van noord naar zuid)
     const br = M.maakBrug(dwars ? c(x - 1, y) == '=' && c(x + 1, y) == '=' : c(x, y - 1) == '=' && c(x, y + 1) == '=');
@@ -208,6 +212,16 @@ function bouwWereld() {
     water.userData = { eigenGeo: 1, eigenMat: 1, water: 1 };
     wereld.add(water);
   }
+  if (G.L.zee) { // waar de kaartrand water is, loopt de zee buiten de kaart door: een lange strook per randtegel, en een vlak op een waterhoek
+    const stroken = [];
+    for (let x = 0; x < MW; x++) { if (isWater(x, 0)) stroken.push([x + 0.5, -30, 1, 60]); if (isWater(x, MH - 1)) stroken.push([x + 0.5, MH + 30, 1, 60]); }
+    for (let y = 0; y < MH; y++) { if (isWater(0, y)) stroken.push([-30, y + 0.5, 60, 1]); if (isWater(MW - 1, y)) stroken.push([MW + 30, y + 0.5, 60, 1]); }
+    for (const [x, y] of [[0, 0], [MW - 1, 0], [0, MH - 1], [MW - 1, MH - 1]]) if (isWater(x, y)) stroken.push([x ? MW + 30 : -30, y ? MH + 30 : -30, 60, 60]);
+    const zee = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: '#4696db' }) /* dezelfde tint als de watertegels */, stroken.length);
+    const mm = new THREE.Matrix4(), qq = new THREE.Quaternion(), pp = new THREE.Vector3(), ss = new THREE.Vector3();
+    stroken.forEach(([x, z, w, d], i) => zee.setMatrixAt(i, mm.compose(pp.set(x, 0.03, z), qq, ss.set(w, 1, d))));
+    zee.userData = { eigenGeo: 1, eigenMat: 1 }; wereld.add(zee);
+  }
 
   // bomen (in de kaart om te hakken, plus een rand sierbomen erbuiten)
   const keys = Object.keys(G.trees);
@@ -215,6 +229,7 @@ function bouwWereld() {
   const r = rnd(11);
   for (let y = -4; y < MH + 4; y++) for (let x = -4; x < MW + 4; x++) {
     if (x >= 0 && y >= 0 && x < MW && y < MH) continue;
+    if (G.L.zee && isWater(Math.max(0, Math.min(MW - 1, x)), Math.max(0, Math.min(MH - 1, y)))) continue; // daar is zee
     if (!kerker && r() < 0.75) sier.push([x, y]);
   }
   const alle = [...keys.map((k) => k.split(',').map(Number)), ...sier];
@@ -257,6 +272,15 @@ function bouwWereld() {
     mijnen.push({ key, goud: m.goud, bord, waarde: null });
   }
 
+  visplekken.length = 0;
+  for (const key in G.visG) { // visplekken in zee: springende visjes en een bordje met hoeveel vis er nog zit
+    const [x, y] = key.split(',').map(Number);
+    const v = M.maakVisplek(); v.g.position.set(x + 0.5, 0.04, y + 0.5); v.g.userData.pick = { vis: [x, y] };
+    const raak = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 1), new THREE.MeshBasicMaterial({ visible: false })); raak.position.y = 0.25; raak.userData.eigenGeo = 1; raak.userData.eigenMat = 1; v.g.add(raak); // aanklikbaar
+    wereld.add(v.g); pickables.push(v.g);
+    const bord = maakBordje(); bord.position.set(x + 0.5, 1.3, y + 0.5); wereld.add(bord);
+    visplekken.push({ key, x, y, g: v.g, vissen: v.vissen, bord, waarde: null });
+  }
   trapPijlen.length = 0; if (kerker) bouwKerker(wereld);
   graven.length = 0;
   if (G.L.graves) { // grafstenen op de graven (g): daar kruipen de skeletten uit
@@ -349,7 +373,7 @@ function syncMannetjes(nu) {
     if (!m) {
       m = M.maakMannetje(u.k, u.side, u.voice && u.voice.lang, u.rolstoel);
       m.g.scale.multiplyScalar(1.3);
-      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : u.k == 'orkbaas' ? 1.4 : u.k == 'zwartvuist' ? 1.85 : u.k == 'morvan' ? 2.0 : u.k == 'water' || u.k == 'watergeest' ? 1.3 : 1.05; m.g.add(m.balk);
+      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : m.boot ? 1.25 : u.k == 'orkbaas' ? 1.4 : u.k == 'zwartvuist' ? 1.85 : u.k == 'morvan' ? 2.0 : u.k == 'water' || u.k == 'watergeest' ? 1.3 : 1.05; m.g.add(m.balk);
       m.px = u.x; m.py = u.y; m.rot = u.side == 'o' ? 0 : Math.PI; m.loop = 0;
       m.g.rotation.y = m.rot;
       scene.add(m.g); uMesh.set(u.id, m);
@@ -377,7 +401,12 @@ function syncMannetjes(nu) {
       m.paard.lijf.position.y = beweegt ? Math.abs(Math.sin(m.loop)) * 0.05 : 0;
       m.lijf.position.y = (m.kenney ? 0.38 : 0.36) + m.paard.lijf.position.y;
     }
-    if (m.voertuig) { if (u.swing > 0) m.lijf.rotation.x = -Math.sin((12 - u.swing) / 12 * Math.PI) * 0.25; else m.lijf.rotation.x = 0; m.lijf.position.y = beweegt ? Math.abs(Math.sin(nu / 90)) * 0.02 : 0; }
+    if (m.boot) { // deint op het water; de hengel gaat omlaag bij het vissen
+      m.g.position.y = 0.04 + Math.sin(nu / 700 + u.id) * 0.03; m.lijf.rotation.z = Math.sin(nu / 900 + u.id * 2) * 0.05; m.lijf.rotation.x = beweegt ? -0.04 : Math.sin(nu / 800 + u.id) * 0.03;
+      const vist = u.st == 'vis' && u.vist > 0; m.p.hengel.rotation.x += ((vist ? 0.55 : 1.1) - m.p.hengel.rotation.x) * 0.1; m.p.lijn.visible = vist;
+      if (vist && u.swing > 0) m.p.hengel.rotation.x = 0.3; // beet!
+      m.p.vis.visible = u.carry == 'vis';
+    } else if (m.voertuig) { if (u.swing > 0) m.lijf.rotation.x = -Math.sin((12 - u.swing) / 12 * Math.PI) * 0.25; else m.lijf.rotation.x = 0; m.lijf.position.y = beweegt ? Math.abs(Math.sin(nu / 90)) * 0.02 : 0; }
     else if (m.kenney) animeer(m, u, beweegt, gekozen);
     else poppetje(m, u, beweegt);
     if (m.p.vleugels) for (const v of m.p.vleugels) v.rotation.y = v.userData.vleugel * (0.5 + Math.sin(nu / 90 + u.id) * 0.45); // demon fladdert
@@ -393,9 +422,14 @@ function syncMannetjes(nu) {
     if (m.kenney && m.acties.die) { // eerst omvallen, dan weg
       m.balk.visible = false; m.p.ring.visible = false;
       speel(m, 'die', true); m.weg = nu + 1600; stervend.push(m);
-    } else scene.remove(m.g);
+    } else if (m.boot) { m.balk.visible = false; m.p.ring.visible = false; m.weg = nu + 1800; m.zinkt = nu; stervend.push(m); } // een boot zinkt langzaam
+    else scene.remove(m.g);
   }
-  for (let i = stervend.length - 1; i >= 0; i--) if (nu > stervend[i].weg) { scene.remove(stervend[i].g); stervend.splice(i, 1); }
+  for (let i = stervend.length - 1; i >= 0; i--) {
+    const m = stervend[i];
+    if (m.zinkt) { const f = (nu - m.zinkt) / 1800; m.g.position.y = 0.04 - f * 0.9; m.lijf.rotation.z = f * 0.8; }
+    if (nu > m.weg) { scene.remove(m.g); stervend.splice(i, 1); }
+  }
 }
 
 // Kenney-animaties: lopen, rusten, hakken/bouwen/vechten, theedrinken en "ja!" als je hem kiest
@@ -462,7 +496,7 @@ function syncGebouwen(nu) {
       m = M.maakGebouw(b.k, b.w, b.h);
       m.g.position.set(b.x + b.w / 2, 0, b.y + b.h / 2);
       m.g.userData.pick = { bld: b };
-      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4, abdij: 3.6, roverkamp: 1.6, weg: 0.6, tempel: 3.4, magiertoren: 4.2, orkmuur: 1.5 }[b.k] || 2.0; m.g.add(m.balk);
+      m.balk = maakBalk(Math.min(1.6, b.w * 0.5)); m.balk.position.y = { kasteel: 3.1, toren: 4.4, orkhut: 1.8, kooi: 2.6, muur: 1.4, orktoren: 3.8, stal: 2.4, abdij: 3.6, roverkamp: 1.6, weg: 0.6, tempel: 3.4, magiertoren: 4.2, orkmuur: 1.5, haven: 2.2 }[b.k] || 2.0; m.g.add(m.balk);
       scene.add(m.g); bMesh.set(b.id, m); pickables.push(m.g);
     }
     m.g.visible = b.side == 'h' || isExp(b.x, b.y);
@@ -476,6 +510,7 @@ function syncGebouwen(nu) {
     m.balk.visible = !G.tussen && (G.selB == b || b.hp < b.max);
     if (m.balk.visible) zetBalk(m.balk, b.hp / b.max, b.side);
     m.model.traverse((o) => { if (o.userData.vlag) o.rotation.y = Math.sin(nu / 300 + b.id) * 0.3; if (o.userData.vlam) o.scale.y = 0.8 + Math.sin(nu / 90 + o.position.x * 5) * 0.25; });
+    if (b.k == 'haven' && !m.havenDraai) { m.havenDraai = 1; m.model.rotation.y = havenRichting(b); } // de steiger wijst naar het water
     if (b.k == 'orkmuur' && !m.palDraai) { // palissade: in de lengte van de buren draaien
       m.palDraai = 1; const pal = new Set(G.blds.filter((o) => o.k == 'orkmuur').map((o) => o.x + ',' + o.y));
       const lr = pal.has((b.x - 1) + ',' + b.y) || pal.has((b.x + 1) + ',' + b.y), ob = pal.has(b.x + ',' + (b.y - 1)) || pal.has(b.x + ',' + (b.y + 1));
@@ -517,6 +552,15 @@ function syncGebouwen(nu) {
   } else if (schaduw) schaduw.g.visible = false;
 }
 
+// Aan welke kant van de haven ligt het water? De steiger (+z van het model) draait die kant op.
+function havenRichting(b) {
+  const tel = { z: 0, n: 0, o: 0, w: 0 }, water = (x, y) => G.map[y] && 'Wv'.includes(G.map[y][x] || '');
+  for (let i = b.x; i < b.x + b.w; i++) { if (water(i, b.y + b.h)) tel.z++; if (water(i, b.y - 1)) tel.n++; }
+  for (let j = b.y; j < b.y + b.h; j++) { if (water(b.x + b.w, j)) tel.o++; if (water(b.x - 1, j)) tel.w++; }
+  const kant = Object.keys(tel).sort((a, c) => tel[c] - tel[a])[0];
+  return { z: 0, o: Math.PI / 2, n: Math.PI, w: -Math.PI / 2 }[kant];
+}
+
 function maakBordje() {
   const c = document.createElement('canvas'); c.width = 128; c.height = 48;
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
@@ -524,12 +568,13 @@ function maakBordje() {
   s.scale.set(1.1, 0.41, 1); s.renderOrder = 12; s.userData.canvas = c;
   return s;
 }
-function tekenBordje(s, goud, rood) {
+function tekenBordje(s, goud, rood, vis) {
   const c = s.userData.canvas, g = c.getContext('2d');
   g.clearRect(0, 0, c.width, c.height);
   g.fillStyle = rood ? 'rgba(170,35,25,.9)' : 'rgba(20,12,4,.78)';
   g.beginPath(); g.roundRect(4, 4, 120, 40, 18); g.fill();
-  g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(28, 24, 10, 0, 7); g.fill();
+  if (vis) { g.fillStyle = '#cfe9ff'; g.beginPath(); g.ellipse(30, 24, 11, 6, 0, 0, 7); g.fill(); g.beginPath(); g.moveTo(18, 24); g.lineTo(10, 17); g.lineTo(10, 31); g.fill(); g.fillStyle = '#1a2a3a'; g.beginPath(); g.arc(35, 22, 1.6, 0, 7); g.fill(); }
+  else { g.fillStyle = '#ffd23f'; g.beginPath(); g.arc(28, 24, 10, 0, 7); g.fill(); }
   g.fillStyle = '#ffe9a0'; g.font = 'bold 26px system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText(String(goud), 76, 25);
   s.material.map.needsUpdate = true;
@@ -586,6 +631,13 @@ function syncWereld(nu) {
     m.bord.visible = G.mineG[m.key] > 0 && isExp(mx, my) && G.state != 'tussen';
     const waarde = G.mineG[m.key] + (knipper ? 'r' : '');
     if (m.bord.visible && waarde != m.waarde) { m.waarde = waarde; tekenBordje(m.bord, G.mineG[m.key], knipper); }
+  }
+  for (const v of visplekken) { // visjes springen om de beurt uit het water; bordje met hoeveel er nog zit
+    const over = G.visG[v.key] > 0, zicht = isExp(v.x, v.y);
+    v.g.visible = over && zicht;
+    if (v.g.visible) v.vissen.forEach((f, i) => { const t = (nu / 900 + f.userData.fase) % (Math.PI * 2 + 1.5 * i); const sp = Math.max(0, Math.sin(t)); f.position.y = sp * 0.45 - 0.08; f.rotation.x = -Math.cos(t) * 0.9; });
+    v.bord.visible = over && zicht && G.state != 'tussen';
+    if (v.bord.visible && G.visG[v.key] != v.waarde) { v.waarde = G.visG[v.key]; tekenBordje(v.bord, v.waarde, false, true); }
   }
   // wolken trekken weg waar je komt
   const w = wolken, tq = new THREE.Quaternion();
@@ -702,6 +754,7 @@ function kies(cx, cy) {
     const pk = o.userData.pick;
     if (pk.bld) { if (G.blds.includes(pk.bld)) { bld = pk.bld; tx = bld.x; ty = bld.y; break; } continue; }
     if (pk.mijn) { [tx, ty] = pk.mijn; break; }
+    if (pk.vis) { [tx, ty] = pk.vis; break; }
   }
   return { unit, bld, tx, ty, gx: g ? g.x : -1, gy: g ? g.y : -1 };
 }
@@ -795,23 +848,24 @@ $('pauzeknop').onclick = () => { if (G.state == 'spel') zetPauze(!G.paused); };
 $('verder').onclick = () => zetPauze(false);
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const prijs = (c) => `<span class="prijs">${c[0] ? `<i class="goud"></i>${c[0]}` : ''} ${c[1] ? `<i class="hout"></i>${c[1]}` : ''}</span>`;
+const prijs = (c) => `<span class="prijs">${c[0] ? `<i class="goud"></i>${c[0]}` : ''} ${c[1] ? `<i class="hout"></i>${c[1]}` : ''} ${c[2] ? `<i class="vis"></i>${c[2]}` : ''}</span>`;
 
 let paneelSleutel = '';
 function tekenPaneel(forceer) {
   const sel = G.sel, b = G.selB, ws = sel.filter((u) => u.k == 'werker');
   const sleutel = JSON.stringify([G.multi, sel.map((u) => u.id), b && b.id, b && b.done, b && b.hp < b.max, b && b.q, G.place && G.place.k, G.L && G.L.bouw.map((k) => canAfford(BLD[k].cost)),
-    ['werker', 'soldaat', 'boog', 'katapult', 'ridder', 'genezer'].map((k) => canAfford(UNIT[k].cost)), S.count('smederij'), S.count('houtzagerij'), G.saved, tovenaar() && Math.floor(tovenaar().mana / 5), !!G.cast]);
+    ['werker', 'soldaat', 'boog', 'katapult', 'ridder', 'genezer', 'vissersboot'].map((k) => canAfford(UNIT[k].cost)), S.count('smederij'), S.count('houtzagerij'), G.saved, tovenaar() && Math.floor(tovenaar().mana / 5), !!G.cast]);
   if (!forceer && sleutel == paneelSleutel) return vulPaneel();
   paneelSleutel = sleutel;
   const p = $('paneel');
   let h = '';
-  const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters', ridder: 'ridders', genezer: 'genezers', magier: 'tovenaars', watergeest: 'waterwezens' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
-  h += `<div class="kiesbalk">${G.L && (G.L.dungeon || G.L.army) ? '<button data-alle="groep">Hele groep</button>' : '<button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button>'}<button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
+  const meervoud = (k, n) => n + ' ' + (n > 1 ? { werker: 'werkers', soldaat: 'soldaten', boog: 'boogschutters', ridder: 'ridders', genezer: 'genezers', magier: 'tovenaars', watergeest: 'waterwezens', vissersboot: 'vissersboten' }[k] || UNIT[k].n.toLowerCase() : UNIT[k].n.toLowerCase());
+  h += `<div class="kiesbalk">${G.L && (G.L.dungeon || G.L.army) ? '<button data-alle="groep">Hele groep</button>' : '<button data-alle="0">Alle werkers</button><button data-alle="1">Alle soldaten</button>' + (G.L && G.L.zee ? '<button data-alle="boten">Alle boten</button>' : '')}<button data-meer class="${G.multi ? 'actief' : ''}">${G.multi ? '✓ Meer kiezen' : '+ Meer kiezen'}</button>${sel.length || b ? '<button data-los>✕ Loslaten</button>' : ''}</div>`;
   if (sel.length == 1) {
     const u = sel[0], l = LAND[u.voice && u.voice.lang];
     h += `<div class="kop"><b>${esc(UNIT[u.k].n)}</b><span id="pstatus"></span></div><div class="hp"><div id="php"></div></div>`;
-    if (l) h += `<div class="land"><b>${esc(l.n)}</b>${u.k == 'werker' ? ` met ${esc(l.ding)}: ${esc(l.effect.charAt(0).toLowerCase() + l.effect.slice(1))}` : ''}${u.rolstoel ? ' · rijdt in een rolstoel' : ''}</div>`;
+    if (l) h += `<div class="land"><b>${esc(l.n)}</b>${u.k == 'werker' ? ` met ${esc(l.ding)}: ${esc(l.effect.charAt(0).toLowerCase() + l.effect.slice(1))}` : u.zee ? ` aan het roer: ${esc(LANDBOOT[u.voice.lang].charAt(0).toLowerCase() + LANDBOOT[u.voice.lang].slice(1))}` : ''}${u.rolstoel ? ' · rijdt in een rolstoel' : ''}</div>`;
+    if (u.zee && u.st != 'vis') h += '<div class="tip">Klik op een plek in zee waar vissen springen om te gaan vissen.</div>';
   } else if (sel.length > 1) {
     const tel = {}; for (const u of sel) tel[u.k] = (tel[u.k] || 0) + 1;
     h += `<div class="kop"><b>${sel.length} gekozen</b></div><div class="groep">${Object.entries(tel).map(([k, n]) => `<button data-weg="${k}" title="Haal ze uit de keuze">${esc(meervoud(k, n))} <span>✕</span></button>`).join('')}</div>`;
@@ -823,6 +877,7 @@ function tekenPaneel(forceer) {
   }
   if (ws.length && G.L) {
     h += '<div class="knoppen">' + G.L.bouw.map((k) => `<button data-bouw="${k}" class="${canAfford(BLD[k].cost) ? '' : 'duur'} ${G.place && G.place.k == k ? 'actief' : ''}">Bouw ${esc(BLD[k].n.toLowerCase())}${prijs(BLD[k].cost)}</button>`).join('') + '</div>';
+    if (G.place && G.place.k == 'haven') h += '<div class="tip">De haven moet met één kant aan het water staan (op het strand mag).</div>';
   }
   if (b) {
     h += `<div class="kop"><b>${esc(BLD[b.k].n)}</b><span id="pstatus"></span></div><div class="hp"><div id="php"></div></div>`;
@@ -830,13 +885,14 @@ function tekenPaneel(forceer) {
       const kan = Object.keys(UNIT).filter((k) => UNIT[k].from && UNIT[k].from.includes(b.k) && (k != 'katapult' || G.L.bouw.includes('smederij')) && (b.k != 'abdij' || G.saved));
       if (b.hp < b.max && b.k != 'weg') h += `<div class="tip">Beschadigd! Kies een werker en klik op dit gebouw om het te repareren (kost een beetje goud en hout).</div>`;
       if (b.k == 'abdij' && !G.saved) h += '<div class="tip">De abdij wordt belegerd! Verjaag eerst de rovers, dan kun je hier soldaten en genezers trainen.</div>';
+      if (b.k == 'haven') h += '<div class="tip">Vissersboten vangen vis op de plekken in zee waar vissen springen, en brengen die hierheen.</div>';
       if (kan.length) h += '<div class="knoppen">' + kan.map((k) => { const mist = UNIT[k].needs && !UNIT[k].needs.every((n) => S.count(n)); return `<button data-train="${k}" class="${!mist && canAfford(UNIT[k].cost) ? '' : 'duur'}">${esc(UNIT[k].n)}${mist ? '<span class="prijs">eerst smederij + houtzagerij</span>' : prijs(UNIT[k].cost)}</button>`; }).join('') + '</div>';
       if (b.q.length) h += `<div class="rij">${b.q.map((k, i) => `<span class="${i ? '' : 'nu'}">${esc(UNIT[k].n)}${i ? '' : '<i id="qbalk"></i>'}</span>`).join('')}</div>`;
     }
   }
   if (!sel.length && !b) h += '<div class="tip">Klik op een mannetje of gebouw.<br>Ctrl/Shift-klik: meer kiezen of weer weghalen.<br>Shift + slepen: een rechthoek om mannetjes trekken.</div>';
   p.innerHTML = h;
-  p.querySelectorAll('[data-alle]').forEach((el) => el.onclick = () => { unlock(); kiesAlle(el.dataset.alle == 'groep' ? 'groep' : el.dataset.alle == '1'); tekenPaneel(true); });
+  p.querySelectorAll('[data-alle]').forEach((el) => el.onclick = () => { unlock(); kiesAlle(el.dataset.alle == 'groep' || el.dataset.alle == 'boten' ? el.dataset.alle : el.dataset.alle == '1'); tekenPaneel(true); });
   p.querySelector('[data-meer]').onclick = () => { G.multi = !G.multi; sClick(); if (G.multi) { G.msg = isTouch ? 'Tik op meer mannetjes om ze toe te voegen of weg te halen.' : 'Klik op meer mannetjes om ze toe te voegen of weg te halen (of houd Ctrl ingedrukt).'; G.msgT = 200; } tekenPaneel(true); };
   const los = p.querySelector('[data-los]'); if (los) los.onclick = () => { stopKeuze(); sClick(); tekenPaneel(true); };
   p.querySelectorAll('[data-weg]').forEach((el) => el.onclick = () => { haalWeg(el.dataset.weg); tekenPaneel(true); });
@@ -859,6 +915,8 @@ function vulPaneel() {
 function tekenBalk() {
   const f = food();
   for (const id of ['goud', 'hout', 'voedsel']) $(id).parentElement.hidden = !!(G.L.dungeon || G.L.army);
+  $('vis').parentElement.hidden = !G.L.zee;
+  $('vis').textContent = G.res.vis;
   $('goud').textContent = G.res.goud;
   $('hout').textContent = G.res.hout;
   $('voedsel').textContent = f.use + '/' + f.cap;
@@ -923,9 +981,9 @@ function autoInsturen() {
 function tekenTitel() {
   toon('titel');
   const lijst = $('levels');
-  lijst.innerHTML = LEVELS.map((l, i) => i < G.unlocked
+  lijst.innerHTML = LEVELS.map((l, i) => (l.deel == 2 && (!LEVELS[i - 1] || !LEVELS[i - 1].deel) ? '<p class="deel">Deel 2: Over zee <span class="label">in de maak</span></p>' : i == 0 ? '<p class="deel">Deel 1</p>' : '') + (i < G.unlocked
     ? `<button class="level" data-lvl="${i}">${i + 1}. ${esc(l.naam)}${i < G.unlocked - 1 ? ' ✓' : ''}</button>`
-    : `<button class="level" disabled>${i + 1}. ${esc(l.naam)} <small>win eerst level ${i}</small></button>`).join('') +
+    : `<button class="level" disabled>${i + 1}. ${esc(l.naam)} <small>win eerst level ${i}</small></button>`)).join('') +
     BINNENKORT.map((n, i) => `<button class="level" disabled>${LEVELS.length + i + 1}. ${esc(n)} <small>komt nog</small></button>`).join('');
   lijst.querySelectorAll('[data-lvl]').forEach((el) => el.onclick = () => { unlock(); primeVoice(); sClick(); start(+el.dataset.lvl); });
   $('moeilijk').innerHTML = DIFF.map((d, i) => `<button data-diff="${i}" class="${G.diff == i ? 'actief' : ''}">${d.n}</button>`).join('');
@@ -956,7 +1014,7 @@ $('beginknop').onclick = () => { unlock(); primeVoice(); G.state = 'spel'; toon(
 function eindScherm() {
   const won = G.state == 'gewonnen';
   $('eindtitel').textContent = won ? (speler() ? `Goed gedaan, ${speler()}!` : 'Gewonnen!') : (speler() ? `Helaas, ${speler()}…` : 'Verloren');
-  $('eindtekst').textContent = won ? (G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : BINNENKORT.length ? 'Knap gedaan! Level ' + (G.lvl + 2) + ' in 3D komt binnenkort.' : 'Zwartvuist is verslagen en het land is weer vrij! Je hebt Orkenstorm 3D uitgespeeld. Hoera!') : G.lostMsg;
+  $('eindtekst').textContent = won ? (G.L.heksen ? 'Zwartvuist is verslagen en het land is weer vrij! Deel 1 is uitgespeeld. Hoera! Maar het verhaal gaat verder…' : G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : BINNENKORT.length ? 'Knap gedaan! Level ' + (G.lvl + 2) + ' (' + BINNENKORT[0] + ') is nog in de maak.' : 'Je hebt Orkenstorm 3D uitgespeeld. Hoera!') : G.lostMsg;
   $('volgende').hidden = !(won && G.lvl + 1 < LEVELS.length);
   $('volgende').textContent = G.L.tussen ? 'Verder met het verhaal' : 'Volgend level';
   $('opnieuw').textContent = won ? 'Nog een keer' : 'Opnieuw proberen';
@@ -1025,7 +1083,7 @@ function frame(nu) {
   if (!G.paused) {
     const ds = dt / 1000;
     for (const [, m] of uMesh) if (m.mixer) m.mixer.update(ds);
-    for (const m of stervend) m.mixer.update(ds);
+    for (const m of stervend) if (m.mixer) m.mixer.update(ds);
     for (const [, m] of bMesh) for (const mx of m.model.userData.mixers || []) mx.update(ds); // gevangenen in de gevangenis
   }
   renderer.render(scene, camera);
@@ -1039,4 +1097,4 @@ $('laden').hidden = true;
 loadLevel(0); G.state = 'titel'; bouwWereld();
 tekenTitel();
 requestAnimationFrame(frame);
-window.__test = { G, update, camera, controls, uMesh, kies }; // handig om te testen
+window.__test = { G, update, camera, controls, uMesh, kies, klik, train, canPlace, S }; // handig om te testen

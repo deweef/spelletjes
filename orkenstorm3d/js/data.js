@@ -24,6 +24,8 @@ export const UNIT = {
   orkheks: { n: 'Orkenheks', hp: 80, dmg: 10, rng: 130, cd: 80, spd: 0.8, sight: 6, side: 'o', fire: 1 },
   zwartvuist: { n: 'Opperork Zwartvuist', hp: 750, dmg: 24, rng: 26, cd: 60, spd: 0.85, sight: 6, side: 'o' },
   morvan: { n: 'Morvan', hp: 420, dmg: 15, rng: 150, cd: 85, spd: 0.8, sight: 6, side: 'o', fire: 1 },
+  // deel 2: op zee. zee: vaart alleen over water (W en v), kan niet vechten
+  vissersboot: { n: 'Vissersboot', hp: 40, dmg: 0, rng: 22, cd: 60, spd: 1.3, sight: 5, side: 'h', cost: [50, 40], time: 420, from: ['haven'], zee: 1 },
 };
 
 export const BLD = {
@@ -44,6 +46,7 @@ export const BLD = {
   tempel: { n: 'Tempel der Verdoemden', w: 3, h: 3, hp: 1400, side: 'o' },
   magiertoren: { n: 'Magiërstoren', w: 2, h: 2, hp: 220, cost: [150, 100], time: 800, side: 'h' },
   orkmuur: { n: 'Palissade', w: 1, h: 1, hp: 220, side: 'o' },
+  haven: { n: 'Haven', w: 3, h: 3, hp: 300, food: 4, cost: [120, 80], time: 900, side: 'h', kust: 1 }, // kust: moet met één kant aan het water staan; traint vissersboten
 };
 
 export const DIFF = [
@@ -860,9 +863,79 @@ export const LEVELS = [
       ['orkbaas', 6, 6], ['ork', 5, 8], ['speerork', 8, 8], ['ork', 3, 5], ['orkbaas', 34, 6], ['ork', 33, 8], ['speerork', 31, 8], ['ork', 36, 5], ['ork', 20, 19], ['speerork', 9, 21], ['ork', 32, 21]],
     huts: [[17, 4], [22, 4], [4, 3], [7, 4], [33, 3], [36, 7]], otowers: [[15, 10], [24, 10], [9, 7], [31, 5]],
     waves: { first: 8400, every: 5400, units: ['ork', 'ork', 'speerork', 'orkbaas'], cat: 1 },
+    tussen: { // het filmpje naar deel 2 (level 12): naar huis, en dan naar de kust
+      uitgang: [18, 20], zonder: ['eekhoorn'],
+      spreker: 'Zwartvuist is verslagen! Het land is vrij. Nu naar huis, en dan eindelijk rust!',
+      grappen: ['enkel', 'plassen'],
+      begin: 'Op de Zwarte Rots is het stil geworden. Alleen de lava borrelt nog…',
+      eind: 'Wie het overleefd had, liep de berg af. Het werd tijd voor rust.',
+      kaart: [
+        'En rust kwam er. Weken lang. De boerderijen groeiden, de kinderen speelden weer buiten.',
+        'Tot er een bode uit Zeewijk kwam, een vissersdorpje aan de kust.',
+        'Vissers hadden op zee zwarte zeilen gezien. Schepen vol orks, op weg naar ons land!',
+        'De koning stuurt je naar Zeewijk. Er is daar geen haven en geen vloot: aan jou om die te bouwen.',
+      ],
+    },
     win: (s) => !s.zwartvuist() && s.huts() == 0,
     procent: (s) => (1 - s.huts() / Math.max(1, s.start().huts)) * 50 + (s.zwartvuist() ? (1 - s.zwartvuist().hp / s.zwartvuist().max) * 45 : 50),
     voortgang: (s) => `orkenhutten nog <b>${s.huts()}</b> · Zwartvuist <b>${s.zwartvuist() ? Math.max(0, Math.round(s.zwartvuist().hp / s.zwartvuist().max * 100)) + '%' : 'verslagen ✓'}</b>`,
+  },
+  // ---------- Deel 2: Over zee ----------
+  {
+    naam: 'Het vissersdorp Zeewijk', zee: 1, deel: 2,
+    brief: [
+      'Na de val van Zwartvuist is er eindelijk rust. Maar vissers zagen zwarte zeilen op zee: de orks komen terug, over het water.',
+      'De koning stuurt je naar Zeewijk, een vissersdorpje aan de kust. De dorpelingen helpen je als werkers.',
+      'Bouw een haven aan het water (op het strand of de oever). In de haven train je vissersboten.',
+      'Klik op een boot en dan op een plek in zee waar vissen springen: de boot gaat vissen en brengt de vis naar de haven.',
+      'Vis is een nieuwe grondstof. Je hebt hem straks nodig voor schepen.',
+      'In het bos in het noorden zit nog een groepje orks. Hou ze op afstand!',
+    ],
+    doel: 'Bouw een haven en vang 500 vis',
+    goud: 250, hout: 150, bouw: ['boerderij', 'kazerne', 'haven', 'toren', 'muur', 'smederij', 'houtzagerij'],
+    map: [ // W = zee, k = strand (lopen mag, alleen een haven bouwen), v = visplek
+      'TTTTTTTTTTTTTTTTTTTTTTTTTWWWWWWWWWWW',
+      'TTTTTTTTTTTTT.TTTTTTTTT.kWWWWWWWWWWW',
+      'TTTTT......TT.TTTTTTTTT.kWWWvWWWWWWW',
+      'TTTTT......TT....TTTT..kkWWWWWWWWWWW',
+      'TTTTT............TTTT...TkWWWWWWWWWW',
+      'TTTTT..........T.........kWWWWWWWWWW',
+      'TTT....TT...............kkWWWWWWWWWW',
+      'TTT.................TTTT..kWWWvvWWWW',
+      'TTT.........TTTT....TTTT..kWWWWWWWWW',
+      'TTTTT.......TTTT.....TT...kkWWWWWWWW',
+      'TTTTT.......TTTT...........kWWWWWWWW',
+      'TTT..........TT.............kWWWWWWW',
+      'TTT.T.....T..TT............kkWWWvvWW',
+      'TTT.............MM.......T...kWWWWWW',
+      'TTT....TTT......MM...........kWWWWWW',
+      'TTT....TTT.................kkWWWWWWW',
+      'TTT........................kWWWWWWWW',
+      'TTT...T...........TTTT....kWWWWWWWWW',
+      'TTT...............TTTT...kkWWWWWWWWW',
+      'TTT..MM...........TTTT....TWWWWWWWWW',
+      'TTT..MM....T.......TT.....kWWWWWWWWW',
+      'TTTTTT.............TT....kkWWWvWWWWW',
+      'TTTTTT..........T......T..kWWWWvWWWW',
+      'TTTTTT....................kWWWWWWWWW',
+      'TTTTTT......T............kkWWWWWWWWW',
+      'TTTTTTTTTT.............MM.kWWWWWWWWW',
+      'TTTTTTTTTT.............MM..kWWWWWWWW',
+      'TTTTTTTTTT..............T.kkWWWWWWWW',
+      'TTTTTTTTTTTTTTT............kWWWWWvvW',
+      'TTTTTTTTTTTTTTT............kWWWWWWWW',
+      'TTTTTTTTTTTTTTT.TTTTTTTTT.kkWWWWWWWW',
+      'TTTTTTTTTTTTTTTTTTTTTTTTTTTTWWWWWWWW',
+    ],
+    mineCap: { '16,13': 2500, '5,19': 1500, '23,25': 1500 },
+    b: [['kasteel', 12, 16], ['boerderij', 9, 17]],
+    u: [['werker', 16, 19], ['werker', 15, 20], ['werker', 17, 20], ['werker', 16, 21], ['werker', 11, 15], ['soldaat', 12, 20], ['soldaat', 13, 20], ['boog', 14, 20]],
+    o: [['ork', 9, 3], ['ork', 5, 5], ['speerork', 10, 6], ['ork', 13, 5], ['ork', 4, 6], ['speerork', 7, 9], ['ork', 22, 5], ['ork', 9, 11]],
+    huts: [[6, 3], [3, 7]],
+    waves: { first: 9000, every: 7200 },
+    win: (s) => s.count('haven') >= 1 && s.vis() >= 500,
+    procent: (s) => Math.min(1, s.count('haven')) * 25 + Math.min(500, s.vis()) / 500 * 75,
+    voortgang: (s) => `haven <b>${Math.min(1, s.count('haven'))}/1</b> · vis gevangen <b>${Math.min(500, s.vis())}/500</b>`,
   },
 ];
 
@@ -874,6 +947,14 @@ export const LAND = {
   it: { n: 'Italiaan', ding: 'een pizza', effect: 'Deelt pizza uit: geneest gewonde mannetjes vlakbij' },
   fr: { n: 'Fransman', ding: 'een stokbrood', effect: 'Snel: is maar kort in de goudmijn' },
 };
+// Wat de bemanning van een vissersboot uit haar land extra doet
+export const LANDBOOT = {
+  nl: 'Vist het best: brengt 2 vis extra mee (haring!)',
+  en: 'Vist gewoon, met een kopje thee aan boord',
+  de: 'Vist gewoon, grondig en op tijd',
+  it: 'Eet onderweg zelf wat vis op: brengt 2 vis minder mee',
+  fr: 'Vist gewoon, en zingt erbij',
+};
 
-// Levels uit de 2D-versie die nog naar 3D moeten
-export const BINNENKORT = [];
+// Levels van deel 2 die nog gebouwd worden (zie PLAN.md)
+export const BINNENKORT = ['Zwarte zeilen', 'Het eiland Meeuwenrots', 'De smidse van IJzerbaard', 'De kogge Zeearend', 'De bergen van Grauwkam', 'Burcht en vesting', 'De overtocht', 'De Zwarte Poort'];

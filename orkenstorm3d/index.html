@@ -27,6 +27,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 .vak button{background:none;border:0;padding:0 2px;font-size:15px;font-weight:700}
 i.goud,i.hout,i.eten{display:inline-block;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe680,#d9a21b);flex:none}
 i.hout{border-radius:3px;background:linear-gradient(#a8743c,#7a5230)}
+i.vis{border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:linear-gradient(#cfe9ff,#4a90d0);transform:scaleX(1.3)}
+.deel{margin:10px 0 4px;font:bold 15px Georgia,serif;color:#bfa77a;text-align:left}
+.deel .label{margin-left:8px;vertical-align:middle;font-size:10px}
 i.eten{border-radius:3px 3px 50% 50%;background:linear-gradient(#f2d25a,#d4a92d)}
 .concept{background:#c0462f;color:#fff;border-color:#e88a6a;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
 
@@ -129,6 +132,7 @@ h2{font:bold 28px/1.1 Georgia,serif;margin:4px 0 10px}
   <div id="balk">
     <div class="vak" title="Goud"><i class="goud"></i><span id="goud">0</span></div>
     <div class="vak" title="Hout"><i class="hout"></i><span id="hout">0</span></div>
+    <div class="vak" title="Vis"><i class="vis"></i><span id="vis">0</span></div>
     <div class="vak" title="Voedsel: mannetjes / ruimte"><i class="eten"></i><span id="voedsel">0/0</span></div>
     <div class="vak" id="doel"></div>
     <div class="ruimte"></div>

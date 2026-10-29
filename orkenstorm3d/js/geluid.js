@@ -41,6 +41,7 @@ export const sHorn = () => { snd(196, 0.6, 'sawtooth', 0.05); snd(247, 0.6, 'saw
 export const sBuild = () => { noise(0.05, 0.06, 600); noise(0.05, 0.06, 600, 0.15); };
 export const sClick = () => snd(700, 0.04, 'triangle', 0.03);
 export const sNee = () => snd(150, 0.15, 'square', 0.04);
+export const sVis = () => { snd(880, 0.07, 'sine', 0.035, 1320); snd(1320, 0.1, 'sine', 0.03, 1760, 0.06); }; // vis aan land: blubberig belletje
 export const sWin = () => [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => snd(f, 0.2, 'triangle', 0.06, 0, i * 0.1));
 
 // ---------- stemmen ----------
@@ -107,7 +108,13 @@ VOICES.fr = { werker: ['Oui?', 'À votre service!', 'Que dois-je faire?', 'Oui, 
   werkerGo: ["J'y vais!", 'Tout de suite!', "D'accord!"], krijgerGo: ['En route!', 'Compris!', 'Oui!'], aanval: ["À l'attaque!", 'En avant!', 'Pour le roi!'], werkerAanval: ['Euh... bon, d\'accord!', 'Vraiment?'],
   prik: ['Arrêtez de me pousser!', 'Oh là là!'], bouw: ['Je construis!', 'Au travail!'], hout: ['Je coupe du bois!', 'À la forêt!'], goud: ['À la mine!', "De l'or!"], samen: ['Tous prêts!'],
   extra: ['Oh là là, de l\'or!', 'Magnifique!', 'Bon appétit!'] };
-VOICES.nl.extra = ['Zuinig, hè!', 'Weer wat extra goud!', 'Lekker kaasje!'];
+VOICES.nl.extra = ['Zuinig, hè!', 'Weer wat extra goud!', 'Lekker kaasje!', 'Haring! Lekker!'];
+// vissersboten (deel 2): kiezen en naar een visplek sturen
+VOICES.nl.boot = ['Ahoy!', 'Kapitein?', 'Alle hens aan dek!']; VOICES.nl.vis = ['Vissen!', 'Op naar zee!', 'Netten uit!'];
+VOICES.en.boot = ['Ahoy there!', 'Captain?', 'All hands on deck!']; VOICES.en.vis = ['Gone fishing!', 'Out to sea!', 'Nets out!'];
+VOICES.de.boot = ['Ahoi!', 'Käpt\'n?', 'Alle Mann an Deck!']; VOICES.de.vis = ['Petri Heil!', 'Raus aufs Meer!', 'Netze raus!'];
+VOICES.it.boot = ['Ehi, capitano!', 'Ai suoi ordini!', 'Tutti a bordo!']; VOICES.it.vis = ['A pescare!', 'Al mare!', 'Reti in acqua!'];
+VOICES.fr.boot = ['Ohé, capitaine!', 'À vos ordres!', 'Tout le monde à bord!']; VOICES.fr.vis = ['À la pêche!', 'En mer!', 'Les filets à l\'eau!'];
 VOICES.en.extra = ['Tea time!', 'Lovely cup of tea!', 'Splendid!'];
 
 export const pick = (a) => a[Math.floor(Math.random() * a.length)];

@@ -18,7 +18,7 @@ Uploaden: in GitHub **Add file → Upload files**, een paar zips per keer (max. 
 | tower-defense-kit | Orkenstorm 3D | torens, orkentorens |
 | graveyard-kit | Orkenstorm 3D (De Donkere Mijnen) | skeletten, graven, hekken |
 | modular-cave-kit | Orkenstorm 3D (De Donkere Mijnen) | grotgangen voor de mijn |
-| pirate-kit | Piratenbluf 3D | schip, kanonnen, schatkist, palmbomen |
+| pirate-kit | Orkenstorm 3D (deel 2: haven, bootjes, later schepen en kanonnen), Piratenbluf 3D | schip, kanonnen, schatkist, palmbomen, steigers |
 | food-kit | Koekjesschuiver 3D | koekjes en ander lekkers |
 | train-kit | later, bijvoorbeeld een treinspel | treinen, rails, stationnetjes |
 
