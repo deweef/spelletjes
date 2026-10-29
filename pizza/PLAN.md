@@ -330,3 +330,5 @@ rok, bovenarm, onderarm, twee benen, stok; los, van opzij, met ronde scharnieren
 knipt de losse vormpjes, hangt ze aan een skelet (heup, knie, schouder, elleboog, nek) en tekent houdingen: staan en 6 loopstappen werken goed;
 zitten nog niet (de rok wordt een blok; zitten van opzij hebben we al van Gemini). Nog te doen als we doorgaan: zelfde voor voor- en achteraanzicht
 (eigen onderdelenvel per richting), uitvoer direct in het vakjesformaat van `pizza/klanten.png`.
+- Non (29 okt, ChatGPT, zonder voorbeeld gemaakt): onderdelenvel van voren `pizza/non-onderdelen-chatgpt.png`; idee: nieuwe klant of vast figuur
+  ("Zuster Benedicta komt een pizza zegenen"). Nog nodig: opzij lopen en zitten.
