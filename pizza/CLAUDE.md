@@ -328,3 +328,5 @@ Van Lijstje), 'wijn', standaard 'overig' (vragen); in het dagoverzicht per soort
 Filmpje bij de achterkamer: na het goede antwoord loopt de bezoeker eerst naar het haakje (`haakPlek`, zaak 1 naast het schilderij; st 'haak' →
 'pak'), pakt de sleutel (`b.sleutel`, in zijn hand getekend, belletje), dan door het luik naar het deurtje; het beeld zoomt in en loopt mee
 (`b.cam`, daarna terug naar de oude zoom). Gerrits eerste tekst ('gleufhoed' C) vertelt over het haakje; geen sleuteltje linksboven meer.
+Balans nieuwe zaak (29 okt): boos weglopen kost 1,5 populariteit per poppetje (was 3), en in een 2e/3e/4e zaak groeit populariteit onder 35 met
+×1,4 (`repRem`). Getest: zaak 2 met 4 stoelen gaat in een week van 20 naar ~37 (was: zakte naar 4).

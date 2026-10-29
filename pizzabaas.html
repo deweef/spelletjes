@@ -825,7 +825,7 @@ const ge = (n, soort = 'overig') => { S.geld += n; if (n < 0) tel.kosten += -n; 
 const EXTRANAAM = { overig: '💶 Andere inkomsten', kunst: '🖼️ Schilderij verkocht', wijn: '🍷 Château verkocht', spel: '🎲 Gewonnen' };
 const extraTotaal = () => Object.values(tel.extra || {}).reduce((a, n) => a + n, 0);
 // populariteit: omhoog gaat steeds moeilijker naarmate je hoger zit (boven 60 flink), omlaag gaat gewoon
-const repRem = (n) => n > 0 ? n * Math.max(0.15, Math.min(1, 1.25 - S.rep / 80)) : n; // 40 → 75%, 60 → 50%, 80 → 25%, 100 → 15%
+const repRem = (n) => n > 0 ? n * Math.max(0.15, Math.min(1, 1.25 - S.rep / 80)) * (S.zaak && S.rep < 35 ? 1.4 : 1) : n; // een nieuwe zaak (2e, 3e…) groeit in het begin wat sneller: de buurt is nieuwsgierig // 40 → 75%, 60 → 50%, 80 → 25%, 100 → 15%
 const rep = (n) => { S.rep = Math.max(0, Math.min(100, S.rep + repRem(n))); };
 const opDeKaart = () => [...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
 const besteOordeel = () => Math.max(...S.menu.map((p) => Object.keys(SOORT).reduce((a, k) => a + oordeel(p, k) * SOORT[k].kans, 0)));
@@ -2733,7 +2733,7 @@ function stap(dt) {
     if (groep.t > groep.geduld) { // te lang gewacht: de hele tafel loopt boos weg
       const wie = groep.mensen.filter((m) => m.st == 'wacht');
       if (ritten.some((r) => r.groep == groep)) tel.boosOber += wie.length; else tel.boosKeuken += wie.length; // waren de pizza's al klaar? dan lag het aan de bediening
-      wie.forEach((m, i) => { m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; if (!i) zeg(m, R(ZEG.boos)); tel.boos++; S.rep = Math.max(0, S.rep - 3); });
+      wie.forEach((m, i) => { m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; if (!i) zeg(m, R(ZEG.boos)); tel.boos++; S.rep = Math.max(0, S.rep - 1.5); }); // was −3: een nieuwe, kleine zaak kwam dan nooit vooruit
       boos();
       wachtrij = wachtrij.filter((b) => b.groep != groep); klaar = klaar.filter((b) => b.groep != groep); ritten = ritten.filter((r) => r.groep != groep);
     }
