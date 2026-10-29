@@ -26,6 +26,7 @@ export const UNIT = {
   morvan: { n: 'Morvan', hp: 420, dmg: 15, rng: 150, cd: 85, spd: 0.8, sight: 6, side: 'o', fire: 1 },
   // deel 2: op zee. zee: vaart alleen over water (W en v), kan niet vechten
   vissersboot: { n: 'Vissersboot', hp: 40, dmg: 0, rng: 22, cd: 60, spd: 1.3, sight: 5, side: 'h', cost: [50, 40], time: 420, from: ['haven'], zee: 1 },
+  orkgalei: { n: 'Orkengalei', hp: 220, dmg: 9, rng: 135, cd: 80, spd: 0.9, sight: 6, side: 'o', zee: 1 }, // zet orks af op het strand en schiet brandende pijlen
 };
 
 export const BLD = {
@@ -53,6 +54,42 @@ export const DIFF = [
   { n: 'Makkelijk', hp: 0.7, dmg: 0.7, wave: 1.35, extra: -1, res: 1.5 },
   { n: 'Normaal', hp: 1, dmg: 1, wave: 1, extra: 0, res: 1 },
   { n: 'Moeilijk', hp: 1.35, dmg: 1.3, wave: 0.8, extra: 1, res: 0.8 },
+];
+
+// De kust bij Zeewijk (level 12 en 13). W = zee, k = strand (lopen mag, alleen een haven bouwen), v = visplek
+const KAART_ZEEWIJK = [
+      'TTTTTTTTTTTTTTTTTTTTTTTTTWWWWWWWWWWW',
+      'TTTTTTTTTTTTT.TTTTTTTTT.kWWWWWWWWWWW',
+      'TTTTT......TT.TTTTTTTTT.kWWWvWWWWWWW',
+      'TTTTT......TT....TTTT..kkWWWWWWWWWWW',
+      'TTTTT............TTTT...TkWWWWWWWWWW',
+      'TTTTT..........T.........kWWWWWWWWWW',
+      'TTT....TT...............kkWWWWWWWWWW',
+      'TTT.................TTTT..kWWWvvWWWW',
+      'TTT.........TTTT....TTTT..kWWWWWWWWW',
+      'TTTTT.......TTTT.....TT...kkWWWWWWWW',
+      'TTTTT.......TTTT...........kWWWWWWWW',
+      'TTT..........TT.............kWWWWWWW',
+      'TTT.T.....T..TT............kkWWWvvWW',
+      'TTT.............MM.......T...kWWWWWW',
+      'TTT....TTT......MM...........kWWWWWW',
+      'TTT....TTT.................kkWWWWWWW',
+      'TTT........................kWWWWWWWW',
+      'TTT...T...........TTTT....kWWWWWWWWW',
+      'TTT...............TTTT...kkWWWWWWWWW',
+      'TTT..MM...........TTTT....TWWWWWWWWW',
+      'TTT..MM....T.......TT.....kWWWWWWWWW',
+      'TTTTTT.............TT....kkWWWvWWWWW',
+      'TTTTTT..........T......T..kWWWWvWWWW',
+      'TTTTTT....................kWWWWWWWWW',
+      'TTTTTT......T............kkWWWWWWWWW',
+      'TTTTTTTTTT.............MM.kWWWWWWWWW',
+      'TTTTTTTTTT.............MM..kWWWWWWWW',
+      'TTTTTTTTTT..............T.kkWWWWWWWW',
+      'TTTTTTTTTTTTTTT............kWWWWWvvW',
+      'TTTTTTTTTTTTTTT............kWWWWWWWW',
+      'TTTTTTTTTTTTTTT.TTTTTTTTT.kkWWWWWWWW',
+      'TTTTTTTTTTTTTTTTTTTTTTTTTTTTWWWWWWWW',
 ];
 
 export const LEVELS = [
@@ -893,49 +930,53 @@ export const LEVELS = [
     ],
     doel: 'Bouw een haven en vang 500 vis',
     goud: 250, hout: 150, bouw: ['boerderij', 'kazerne', 'haven', 'toren', 'muur', 'smederij', 'houtzagerij'],
-    map: [ // W = zee, k = strand (lopen mag, alleen een haven bouwen), v = visplek
-      'TTTTTTTTTTTTTTTTTTTTTTTTTWWWWWWWWWWW',
-      'TTTTTTTTTTTTT.TTTTTTTTT.kWWWWWWWWWWW',
-      'TTTTT......TT.TTTTTTTTT.kWWWvWWWWWWW',
-      'TTTTT......TT....TTTT..kkWWWWWWWWWWW',
-      'TTTTT............TTTT...TkWWWWWWWWWW',
-      'TTTTT..........T.........kWWWWWWWWWW',
-      'TTT....TT...............kkWWWWWWWWWW',
-      'TTT.................TTTT..kWWWvvWWWW',
-      'TTT.........TTTT....TTTT..kWWWWWWWWW',
-      'TTTTT.......TTTT.....TT...kkWWWWWWWW',
-      'TTTTT.......TTTT...........kWWWWWWWW',
-      'TTT..........TT.............kWWWWWWW',
-      'TTT.T.....T..TT............kkWWWvvWW',
-      'TTT.............MM.......T...kWWWWWW',
-      'TTT....TTT......MM...........kWWWWWW',
-      'TTT....TTT.................kkWWWWWWW',
-      'TTT........................kWWWWWWWW',
-      'TTT...T...........TTTT....kWWWWWWWWW',
-      'TTT...............TTTT...kkWWWWWWWWW',
-      'TTT..MM...........TTTT....TWWWWWWWWW',
-      'TTT..MM....T.......TT.....kWWWWWWWWW',
-      'TTTTTT.............TT....kkWWWvWWWWW',
-      'TTTTTT..........T......T..kWWWWvWWWW',
-      'TTTTTT....................kWWWWWWWWW',
-      'TTTTTT......T............kkWWWWWWWWW',
-      'TTTTTTTTTT.............MM.kWWWWWWWWW',
-      'TTTTTTTTTT.............MM..kWWWWWWWW',
-      'TTTTTTTTTT..............T.kkWWWWWWWW',
-      'TTTTTTTTTTTTTTT............kWWWWWvvW',
-      'TTTTTTTTTTTTTTT............kWWWWWWWW',
-      'TTTTTTTTTTTTTTT.TTTTTTTTT.kkWWWWWWWW',
-      'TTTTTTTTTTTTTTTTTTTTTTTTTTTTWWWWWWWW',
-    ],
+    map: KAART_ZEEWIJK,
     mineCap: { '16,13': 2500, '5,19': 1500, '23,25': 1500 },
     b: [['kasteel', 12, 16], ['boerderij', 9, 17]],
     u: [['werker', 16, 19], ['werker', 15, 20], ['werker', 17, 20], ['werker', 16, 21], ['werker', 11, 15], ['soldaat', 12, 20], ['soldaat', 13, 20], ['boog', 14, 20]],
     o: [['ork', 9, 3], ['ork', 5, 5], ['speerork', 10, 6], ['ork', 13, 5], ['ork', 4, 6], ['speerork', 7, 9], ['ork', 22, 5], ['ork', 9, 11]],
     huts: [[6, 3], [3, 7]],
     waves: { first: 9000, every: 7200 },
+    tussen: { // het filmpje naar level 13: de burgemeester heeft zwarte zeilen gezien
+      uitgang: [28, 12], voorop: 'soldaat',
+      spreker: 'De burgemeester van Zeewijk: "Onze vissers zagen vannacht zwarte zeilen, vlak voor de kust. Ze komen deze kant op!"',
+      grappen: ['haring', 'enkel'],
+      begin: 'De haven staat en de netten zitten vol. Dan komt de burgemeester van Zeewijk aangerend…',
+      eind: 'Op het strand tuurde iedereen over de zee. En ja hoor, aan de horizon: zwarte zeilen.',
+      kaart: [
+        'Die avond kwamen de orks. Niet door het bos, maar over zee, in lange zwarte galeien.',
+        'Ze zetten hun krijgers af op het strand en schieten brandende pijlen op alles wat aan de kust staat.',
+        'Alleen boogschutters, torens en katapulten kunnen de galeien raken. Soldaten moeten de orks op het strand opwachten.',
+        'Hou Zeewijk een kwartier lang vol. Dan is het licht en trekken de orks zich terug.',
+      ],
+    },
     win: (s) => s.count('haven') >= 1 && s.vis() >= 500,
     procent: (s) => Math.min(1, s.count('haven')) * 25 + Math.min(500, s.vis()) / 500 * 75,
     voortgang: (s) => `haven <b>${Math.min(1, s.count('haven'))}/1</b> · vis gevangen <b>${Math.min(500, s.vis())}/500</b>`,
+  },
+  {
+    naam: 'Zwarte zeilen', zee: 1, deel: 2, schemer: 1, overleef: 54000, // 15 minuten standhouden
+    brief: [
+      'Het is avond in Zeewijk. Aan de horizon verschijnen zwarte zeilen: orkengaleien, vol krijgers.',
+      'De galeien varen naar het strand, zetten hun orks af en schieten brandende pijlen op alles aan de kust.',
+      'Soldaten kunnen niet bij een galei komen: alleen boogschutters, torens en katapulten raken hem.',
+      'Bouw torens langs het strand, zet je soldaten klaar waar de orks aan land komen, en repareer wat kapotgaat.',
+      'De orks komen in golven, steeds meer. Hou het dorp een kwartier lang vol: dan wordt het licht en trekken ze zich terug.',
+      'Valt het kasteel, dan is Zeewijk verloren.',
+    ],
+    doel: 'Hou Zeewijk 15 minuten lang vol tegen de orks van zee',
+    goud: 300, hout: 200, bouw: ['boerderij', 'kazerne', 'haven', 'toren', 'muur', 'smederij', 'houtzagerij'],
+    map: KAART_ZEEWIJK,
+    mineCap: { '16,13': 2500, '5,19': 1500, '23,25': 1500 },
+    b: [['kasteel', 12, 16], ['boerderij', 9, 17], ['boerderij', 9, 20], ['kazerne', 17, 23], ['haven', 24, 16], ['toren', 22, 19]],
+    u: [['werker', 16, 19], ['werker', 15, 20], ['werker', 17, 20], ['werker', 16, 21], ['werker', 20, 17], ['soldaat', 20, 20], ['soldaat', 21, 21], ['soldaat', 20, 22], ['boog', 22, 22], ['boog', 23, 21], ['vissersboot', 27, 17], ['vissersboot', 27, 19]],
+    o: [],
+    huts: [],
+    waves: { first: 3600, every: 4800, zee: 1 }, // zee: de golven komen met galeien over het water
+    win: (s) => s.tijdOver() <= 0,
+    procent: (s) => Math.min(99, (1 - s.tijdOver() / 54000) * 100),
+    voortgang: (s) => `hou vol, nog <b>${s.klok()}</b>` + (s.galeien() ? ` · galeien <b>${s.galeien()}</b>` : '') + (s.orcs() - s.galeien() > 0 ? ` · orks aan land <b>${s.orcs() - s.galeien()}</b>` : ''),
+    gewonnen: 'De zon komt op en de laatste galeien draaien om. Zeewijk heeft het gered!',
   },
 ];
 
@@ -957,4 +998,4 @@ export const LANDBOOT = {
 };
 
 // Levels van deel 2 die nog gebouwd worden (zie PLAN.md)
-export const BINNENKORT = ['Zwarte zeilen', 'Het eiland Meeuwenrots', 'De smidse van IJzerbaard', 'De kogge Zeearend', 'De bergen van Grauwkam', 'Burcht en vesting', 'De overtocht', 'De Zwarte Poort'];
+export const BINNENKORT = ['Het eiland Meeuwenrots', 'De smidse van IJzerbaard', 'De kogge Zeearend', 'De bergen van Grauwkam', 'Burcht en vesting', 'De overtocht', 'De Zwarte Poort'];

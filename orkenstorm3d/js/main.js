@@ -186,11 +186,11 @@ function bouwWereld() {
   tekenGrond(); kaartVersie = G.mapVersie;
   // licht en lucht: buiten zonnig, in de mijnen warm en schemerig (maar niet eng)
   const kerker = !!G.L.dungeon;
-  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : G.L.moeras ? '#a8bba0' : G.L.graves ? '#6e6a8a' : G.L.heksen ? '#5a3a3a' : '#9fd3f0'; // Zwarte Rots: rode, rokerige lucht // tempel: onweerslucht // moeras: grauw en nevelig // de toren van Morvan: paars en geheimzinnig
+  const toren = !!G.L.tower, lucht = toren ? '#1c1530' : kerker ? '#1d1712' : G.L.schemer ? '#3b4470' /* avond aan zee */ : G.L.moeras ? '#a8bba0' : G.L.graves ? '#6e6a8a' : G.L.heksen ? '#5a3a3a' : '#9fd3f0'; // Zwarte Rots: rode, rokerige lucht // tempel: onweerslucht // moeras: grauw en nevelig // de toren van Morvan: paars en geheimzinnig
   scene.background.set(lucht); scene.fog.color.set(lucht);
   scene.fog.near = kerker ? 22 : G.L.moeras || G.L.graves ? 20 : 28; scene.fog.far = kerker ? 48 : G.L.moeras || G.L.graves ? 50 : 60;
-  hemel.color.set(toren ? '#ead8ff' : kerker ? '#ffe2b8' : '#dff1ff'); hemel.groundColor.set(toren ? '#3a2a4a' : kerker ? '#4a3626' : '#56703a'); hemel.intensity = kerker ? 1.25 : 1.6;
-  zon.intensity = kerker ? 1.1 : 2.4;
+  hemel.color.set(toren ? '#ead8ff' : kerker ? '#ffe2b8' : G.L.schemer ? '#aab4e0' : '#dff1ff'); hemel.groundColor.set(toren ? '#3a2a4a' : kerker ? '#4a3626' : '#56703a'); hemel.intensity = kerker ? 1.25 : G.L.schemer ? 1.0 : 1.6;
+  zon.intensity = kerker ? 1.1 : G.L.schemer ? 1.3 : 2.4; zon.color.set(G.L.schemer ? '#ffb27a' : '#fff3dc'); // avond: lage oranje zon
   const rand = new THREE.Mesh(new THREE.PlaneGeometry(220, 220).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ color: kerker ? '#241d18' : '#4b7a32' }));
   rand.position.set(MW / 2, -0.02, MH / 2); rand.receiveShadow = true; rand.userData = { eigenGeo: 1, eigenMat: 1 };
   wereld.add(rand);
@@ -373,7 +373,7 @@ function syncMannetjes(nu) {
     if (!m) {
       m = M.maakMannetje(u.k, u.side, u.voice && u.voice.lang, u.rolstoel);
       m.g.scale.multiplyScalar(1.3);
-      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : m.boot ? 1.25 : u.k == 'orkbaas' ? 1.4 : u.k == 'zwartvuist' ? 1.85 : u.k == 'morvan' ? 2.0 : u.k == 'water' || u.k == 'watergeest' ? 1.3 : 1.05; m.g.add(m.balk);
+      m.balk = maakBalk(0.5); m.balk.position.y = m.paard ? 1.5 : u.k == 'orkgalei' ? 2.4 : m.boot ? 1.25 : u.k == 'orkbaas' ? 1.4 : u.k == 'zwartvuist' ? 1.85 : u.k == 'morvan' ? 2.0 : u.k == 'water' || u.k == 'watergeest' ? 1.3 : 1.05; m.g.add(m.balk);
       m.px = u.x; m.py = u.y; m.rot = u.side == 'o' ? 0 : Math.PI; m.loop = 0;
       m.g.rotation.y = m.rot;
       scene.add(m.g); uMesh.set(u.id, m);
@@ -403,9 +403,11 @@ function syncMannetjes(nu) {
     }
     if (m.boot) { // deint op het water; de hengel gaat omlaag bij het vissen
       m.g.position.y = 0.04 + Math.sin(nu / 700 + u.id) * 0.03; m.lijf.rotation.z = Math.sin(nu / 900 + u.id * 2) * 0.05; m.lijf.rotation.x = beweegt ? -0.04 : Math.sin(nu / 800 + u.id) * 0.03;
-      const vist = u.st == 'vis' && u.vist > 0; m.p.hengel.rotation.x += ((vist ? 0.55 : 1.1) - m.p.hengel.rotation.x) * 0.1; m.p.lijn.visible = vist;
-      if (vist && u.swing > 0) m.p.hengel.rotation.x = 0.3; // beet!
-      m.p.vis.visible = u.carry == 'vis';
+      if (m.p.hengel) {
+        const vist = u.st == 'vis' && u.vist > 0; m.p.hengel.rotation.x += ((vist ? 0.55 : 1.1) - m.p.hengel.rotation.x) * 0.1; m.p.lijn.visible = vist;
+        if (vist && u.swing > 0) m.p.hengel.rotation.x = 0.3; // beet!
+        m.p.vis.visible = u.carry == 'vis';
+      }
     } else if (m.voertuig) { if (u.swing > 0) m.lijf.rotation.x = -Math.sin((12 - u.swing) / 12 * Math.PI) * 0.25; else m.lijf.rotation.x = 0; m.lijf.position.y = beweegt ? Math.abs(Math.sin(nu / 90)) * 0.02 : 0; }
     else if (m.kenney) animeer(m, u, beweegt, gekozen);
     else poppetje(m, u, beweegt);
@@ -676,7 +678,7 @@ function syncEffecten() {
     gezien.add(f);
     let m = fxMesh.get(f);
     if (!m) {
-      if (f.arrow) m = M.maakPijl();
+      if (f.arrow) m = f.brand ? new THREE.Mesh(vuurGeo, vuurMat) : M.maakPijl(); // brand: brandende pijl van een galei
       else if (f.ring) m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: f.ring, transparent: true }));
       else if (f.rock) m = new THREE.Mesh(steenGeo, M.mat('#8d867b'));
       else if (f.rook) m = new THREE.Mesh(rookGeo, new THREE.MeshBasicMaterial({ color: 0x9be07a, transparent: true, opacity: 0.75, depthWrite: false }));
@@ -923,7 +925,7 @@ function tekenBalk() {
   $('voedsel').parentElement.classList.toggle('vol', f.use >= f.cap);
   if (G.L) {
     let tekst = 'Doel: ' + G.L.voortgang(S);
-    if (G.L.waves && S.huts() + S.camps() > 0 && G.saved) tekst += ` · volgende aanval over <b>${Math.max(0, Math.ceil((G.nextWave - G.t) / 60))}s</b>`;
+    if (G.L.waves && (G.L.waves.zee ? S.tijdOver() > 1500 : S.huts() + S.camps() > 0 && G.saved)) tekst += ` · volgende aanval over <b>${Math.max(0, Math.ceil((G.nextWave - G.t) / 60))}s</b>`;
     $('doel').innerHTML = tekst;
   }
   const m = $('melding');
@@ -1014,7 +1016,7 @@ $('beginknop').onclick = () => { unlock(); primeVoice(); G.state = 'spel'; toon(
 function eindScherm() {
   const won = G.state == 'gewonnen';
   $('eindtitel').textContent = won ? (speler() ? `Goed gedaan, ${speler()}!` : 'Gewonnen!') : (speler() ? `Helaas, ${speler()}…` : 'Verloren');
-  $('eindtekst').textContent = won ? (G.L.heksen ? 'Zwartvuist is verslagen en het land is weer vrij! Deel 1 is uitgespeeld. Hoera! Maar het verhaal gaat verder…' : G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : BINNENKORT.length ? 'Knap gedaan! Level ' + (G.lvl + 2) + ' (' + BINNENKORT[0] + ') is nog in de maak.' : 'Je hebt Orkenstorm 3D uitgespeeld. Hoera!') : G.lostMsg;
+  $('eindtekst').textContent = won ? (G.L.gewonnen ? G.L.gewonnen + ' ' : '') + (G.L.heksen ? 'Zwartvuist is verslagen en het land is weer vrij! Deel 1 is uitgespeeld. Hoera! Maar het verhaal gaat verder…' : G.lvl + 1 < LEVELS.length ? 'Op naar het volgende level!' : BINNENKORT.length ? 'Knap gedaan! Level ' + (G.lvl + 2) + ' (' + BINNENKORT[0] + ') is nog in de maak.' : 'Je hebt Orkenstorm 3D uitgespeeld. Hoera!') : G.lostMsg;
   $('volgende').hidden = !(won && G.lvl + 1 < LEVELS.length);
   $('volgende').textContent = G.L.tussen ? 'Verder met het verhaal' : 'Volgend level';
   $('opnieuw').textContent = won ? 'Nog een keer' : 'Opnieuw proberen';

@@ -62,6 +62,7 @@ const KLEDING = {
 export function maakMannetje(k, side, land, rolstoel) {
   if (k == 'katapult' || k == 'orkkatapult') return maakKatapult(k == 'orkkatapult');
   if (k == 'vissersboot') return maakBoot(land);
+  if (k == 'orkgalei') return maakGalei();
   if (K.klaar) return kenneyMannetje(k, side, land, rolstoel);
   if (k == 'ridder') { const m = maakMannetje('soldaat', side, land, false); return opPaard(m, false); }
   const kl = KLEDING[k] || KLEDING.werker;
@@ -755,6 +756,17 @@ function maakBoot(land) {
   p.vis = new THREE.Group(); for (let i = 0; i < 5; i++) { const v = visje(i % 2 ? '#9fc8e0' : ZILVER); v.position.set((i % 3 - 1) * 0.08, 0.22 + Math.floor(i / 3) * 0.05, -0.32 + (i % 2) * 0.06); v.rotation.y = i * 1.1; p.vis.add(v); }
   p.vis.visible = false; lijf.add(p.vis);
   return { g, lijf, p, voertuig: true, boot: true, mixer, acties };
+}
+
+// Orkengalei (deel 2): zwart piratenschip uit de pirate-kit met een rode orkenvlag en slagtanden op de boeg. Een voertuig, deint als een boot.
+function maakGalei() {
+  const g = new THREE.Group(), lijf = new THREE.Group(); g.add(lijf);
+  if (K.klaar) { const sch = K.stuk('pirate/ship-pirate-small'); sch.scale.setScalar(0.22); lijf.add(sch); }
+  else { lijf.add(doos(0.9, 0.35, 1.9, '#3a2a1c', 0, 0.2, 0)); lijf.add(cil(0.03, 0.03, 1.6, '#2a1a10', 0, 1.0, 0, 5)); lijf.add(doos(0.7, 0.9, 0.03, '#1a1a1a', 0, 1.0, 0.1)); }
+  for (const x of [-0.22, 0.22]) { const h = kegel(0.045, 0.22, '#efe6d2', x, 0.42, 0.95, 5); h.rotation.x = 0.9; lijf.add(h); } // slagtanden op de boeg
+  lijf.add(vlag('#7a1e1e', 0.1, 1.9, -0.3));
+  const p = { ring: keuzering('o') }; p.ring.scale.setScalar(2.2); g.add(p.ring);
+  return { g, lijf, p, voertuig: true, boot: true };
 }
 
 // Visplek in zee: een paar visjes die om de beurt uit het water springen (bewegen in main.js, syncWereld)

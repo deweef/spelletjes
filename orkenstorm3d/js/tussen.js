@@ -19,6 +19,7 @@ const VERTAAL = {
   "Tea time! I shan't be a minute.": 'Theetijd! Ik ben zo terug.', 'Mamma mia, prima la pizza!': 'Mamma mia, eerst de pizza!',
   "Tea first. One doesn't build on an empty stomach.": 'Eerst thee. Met een lege maag bouw je niet.', 'Ein Bier zum Richtfest! Prost!': 'Een biertje op het hoogste punt! Proost!',
   'E la pizzeria, dove la mettiamo?': 'En de pizzeria, waar komt die?', "Ce château n'est pas assez chic…": 'Dit kasteel is niet chic genoeg…',
+  'Mmm, fresh herring! …Cough! Cough!': 'Mmm, verse haring! …Kuch! Kuch!', 'Mmm, frischer Hering! …Hust! Hust!': 'Mmm, verse haring! …Kuch! Kuch!', 'Mmm, aringa fresca! …Cof! Cof!': 'Mmm, verse haring! …Kuch! Kuch!', 'Mmm, du hareng frais! …Keuf! Keuf!': 'Mmm, verse haring! …Kuch! Kuch!',
 };
 
 // ---------- de grappen ----------
@@ -68,6 +69,12 @@ const GRAPPEN = {
     zin: { nl: 'Wacht even op mij! Op krukken gaat het niet zo snel…', en: 'Wait for me! Crutches are slow…', de: 'Wartet auf mich! Mit Krücken geht das nicht so schnell…', it: 'Aspettatemi! Con le stampelle non vado veloce…', fr: 'Attendez-moi! Avec des béquilles, ça ne va pas vite…' },
     verteller: 'De genezer op krukken raakt achter. Hij komt later wel, zegt hij.',
     doe(u, f) { u.tempo = 0.3; f.later(0.5, () => stuur(u, f.uitgang()[0], f.uitgang()[1])); },
+  },
+  haring: { // level 12: een werker proeft van de vangst
+    past: (u) => u.k == 'werker',
+    zin: { nl: 'Mmm, verse haring! …Kuch! Kuch!', en: 'Mmm, fresh herring! …Cough! Cough!', de: 'Mmm, frischer Hering! …Hust! Hust!', it: 'Mmm, aringa fresca! …Cof! Cof!', fr: 'Mmm, du hareng frais! …Keuf! Keuf!' },
+    verteller: 'Eentje proeft van de vangst, verslikt zich in een haring en gaat hoestend naar huis voor een glas water.',
+    doe(u, f) { u.path = null; u.pose = 'holding-left'; f.later(2.2, () => { u.pose = 'emote-no'; }); f.later(4, () => { u.pose = null; u.tempo = 0.9; f.naarHuis(u); }); },
   },
   // per land, alleen voor werkers
   nl: {

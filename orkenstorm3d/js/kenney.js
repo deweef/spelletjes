@@ -40,7 +40,7 @@ const LIJST = [
   'graveyard/character-skeleton', 'graveyard/lantern-candle', 'dungeon/wall', 'dungeon/stairs', 'dungeon/barrel', 'dungeon/banner', 'characters/aid-crutch',
   // deel 2 (pirate-kit): haven en vissersboot
   'pirate/boat-row-small', 'pirate/structure-platform-dock', 'pirate/structure-platform-dock-small', 'pirate/structure-roof', 'pirate/crate', 'pirate/barrel',
-  'pirate/tool-paddle', 'pirate/flag', 'pirate/platform-planks', 'pirate/rocks-sand-a', 'pirate/rocks-sand-b',
+  'pirate/tool-paddle', 'pirate/flag', 'pirate/platform-planks', 'pirate/rocks-sand-a', 'pirate/rocks-sand-b', 'pirate/ship-pirate-small',
 ];
 
 const glb = {};

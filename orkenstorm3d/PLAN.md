@@ -126,7 +126,7 @@ Engelsman met thee op de vogel, de Nederlander die op een eiland "wilde kruiden"
 
 ## Bouwvolgorde
 1. Zee, kust, haven, vis en vissersbootjes + level 12 — KLAAR (met tussenstukje 11 → 12; het tussenstukje 12 → 13 komt met level 13).
-2. Orkengalei en aanvallen vanaf zee + level 13.
+2. Orkengalei en aanvallen vanaf zee + level 13 — KLAAR (met tussenstukje 12 → 13).
 3. Scheepswerf en veerboot (instappen/uitstappen) + level 14.
 4. Buskruit: kruithuis, kanontoren, sloper + level 15.
 5. Kogge en zeeslag + level 16.
@@ -144,5 +144,5 @@ Liever: deel 2 in het titelmenu markeren als "in de maak", zodat deel 1 gewoon s
 5. Gestart met stap 1.
 
 ## Nu (deel 2)
-- Level 12 is speelbaar; Marcel test het en noteert verbeterpunten. Volgende stap: orkengaleien en aanvallen vanaf zee + level 13
-  (met het tussenstukje 12 → 13: de burgemeester van Zeewijk, een werker verslikt zich in een haring).
+- Level 12 en 13 zijn speelbaar; Marcel test ze en noteert verbeterpunten (is 15 minuten standhouden te lang of te zwaar?).
+  Volgende stap: scheepswerf en veerboot (instappen en uitstappen) + level 14, het eiland Meeuwenrots, met tussenstukje 13 → 14.

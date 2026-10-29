@@ -45,6 +45,9 @@ export const S = {
   tempel: () => G.blds.find((b) => b.k == 'tempel'),
   zwartvuist: () => G.units.find((u) => u.k == 'zwartvuist'),
   vis: () => G.visTotaal, // deel 2: hoeveel vis er in dit level gevangen is
+  tijdOver: () => Math.max(0, (G.L.overleef || 0) - G.t), // level 13: standhouden tot de tijd om is
+  klok: () => { const t = Math.ceil(Math.max(0, (G.L.overleef || 0) - G.t) / 60); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); },
+  galeien: () => G.units.filter((u) => u.k == 'orkgalei').length,
   verdieping: () => Math.max(1, ...G.units.filter((u) => u.side == 'h' && u.k != 'watergeest').map((u) => verdieping(u))), // level 7: de hoogste verdieping waar iemand van jou is
   start: () => G.start || {},
   // voor de voortgang in procenten (level 4): hoe dicht je bij Sir Lodewijk bent, en hij bij de trap
@@ -225,8 +228,8 @@ function alive(o) { return o.w ? G.blds.includes(o) : G.units.includes(o); }
 function damage(tg, n, by) {
   if (by && by.side == 'o') n *= DIFF[G.diff].dmg;
   tg.hp -= n;
-  if (tg.side == 'o' && by && G.units.includes(by)) { for (const o of G.units) if (o.side == 'o' && o.st != 'attack' && dist(o, tg) < 4 * T && zelfde(o, by)) cmdAttack(o, by); }
-  if (tg.side == 'h' && by && G.units.includes(by)) { const c = tg.w ? center(tg) : tg; for (const u of G.units) if (u.side == 'h' && u.k != 'werker' && u.st == 'idle' && dist(u, c) < 10 * T && zelfde(u, by)) cmdAttack(u, by); }
+  if (tg.side == 'o' && by && G.units.includes(by)) { for (const o of G.units) if (o.side == 'o' && !o.zee && o.st != 'attack' && dist(o, tg) < 4 * T && zelfde(o, by) && kanRaken(o, by)) cmdAttack(o, by); }
+  if (tg.side == 'h' && by && G.units.includes(by)) { const c = tg.w ? center(tg) : tg; for (const u of G.units) if (u.side == 'h' && u.k != 'werker' && !u.zee && u.st == 'idle' && dist(u, c) < 10 * T && zelfde(u, by) && kanRaken(u, by)) cmdAttack(u, by); }
   if (tg.side == 'h' && G.t - G.lastAlert > 600) { G.lastAlert = G.t; sHorn(); say(G.L.dungeon ? 'Je groep wordt aangevallen!' : G.L.army ? 'Je leger wordt aangevallen!' : G.L.keep ? 'De abdij wordt aangevallen!' : 'Je dorp wordt aangevallen!', 150); }
   if (tg.w) {
     if (tg.hp <= 0) {
@@ -289,13 +292,22 @@ function bevrijd(b) {
 function nearestEnemy(u, range) {
   let best = null, bd = range;
   for (const e of G.units) if (e.side != u.side && e.side != 'n' && zelfde(u, e)) {
-    if (!!e.zee != !!u.zee && UNIT[u.k].rng < 40) continue; // met een bijl kom je niet bij een boot (en andersom)
+    if (!kanRaken(u, e)) continue; // met een bijl kom je niet bij een boot (en andersom)
     const d = dist(u, e); if (d < bd && (u.side == 'o' || isExp(...tileOf(e)))) { bd = d; best = e; }
   }
   for (const b of G.blds) if (b.side != u.side && b.k != 'weg') { const d = targetDist(u, b); if (d < bd) { bd = d; best = b; } }
   return best;
 }
-function attackGoals(tg) { if (tg.w) return ringAround(tg.x, tg.y, tg.w, tg.h); const [x, y] = tileOf(tg); return new Set([x + ',' + y]); }
+// kan u (met zijn wapen) bij e komen? Een bijl reikt niet tot op het water; pijlen, stenen en vuurballen wel
+export const kanRaken = (u, e) => !!e.zee == !!u.zee || UNIT[u.k].rng >= 40;
+function attackGoals(tg, u) {
+  if (u && tg.zee && !u.zee) { // een schip vanaf de kant beschieten: alle vakjes op de wal binnen schootsafstand
+    const [tx, ty] = tileOf(tg), r = UNIT[u.k].rng / T - 0.4, s = new Set();
+    for (let y = Math.floor(ty - r); y <= ty + r; y++) for (let x = Math.floor(tx - r); x <= tx + r; x++) if (Math.hypot(x - tx, y - ty) <= r && !blocked(x, y)) s.add(x + ',' + y);
+    return s;
+  }
+  if (tg.w) return ringAround(tg.x, tg.y, tg.w, tg.h, u && u.zee); const [x, y] = tileOf(tg); return new Set([x + ',' + y]);
+}
 function cmdAttack(u, tg) { u.st = 'attack'; u.tg = tg; u.path = null; u.repath = 0; }
 function cmdMove(u, tx, ty) { u.st = 'move'; u.tg = null; if (blocked(tx, ty, u.zee)) { u.path = null; goTo(u, ringAround(tx, ty, 1, 1, u.zee)); } else goTo(u, new Set([tx + ',' + ty])); }
 function nearestTree(x, y) {
@@ -445,10 +457,10 @@ export function update() {
       } else {
         if (!u.path || --u.repath <= 0) {
           u.repath = 30;
-          if (!goTo(u, attackGoals(tg))) { // geen weg: dan maar door de dichtstbijzijnde muur heen
+          if (!goTo(u, attackGoals(tg, u))) { // geen weg: dan maar door de dichtstbijzijnde muur heen
             const wk = u.side == 'h' ? 'orkmuur' : 'muur', doel = tg.w ? center(tg) : tg;
             const wl = G.blds.filter((b) => b.k == wk).sort((a, c) => targetDist(u, a) + targetDist(doel, a) - (targetDist(u, c) + targetDist(doel, c)))[0];
-            if (wl && wl != tg && goTo(u, attackGoals(wl))) { u.tg = wl; u.fail = 0; }
+            if (wl && wl != tg && goTo(u, attackGoals(wl, u))) { u.tg = wl; u.fail = 0; }
             else if (++u.fail > 2) { u.fail = 0; u.st = 'idle'; u.tg = null; u.path = null; continue; }
           } else u.fail = 0;
         }
@@ -471,7 +483,8 @@ export function update() {
     say('De abdij is gered! De monniken geven je 400 goud en 100 hout. Train er soldaten en genezers.', 400);
     speak(pick(['Gered! Dank u wel!', 'Saved! Thank you!', 'Gerettet! Danke!', 'Salvi! Grazie!', 'Sauvés! Merci!']), 0.8, 'nl');
   }
-  if (L.waves && S.huts() + S.camps() > 0 && G.saved && G.t >= G.nextWave) {
+  if (L.waves && L.waves.zee && G.t >= G.nextWave && (!L.overleef || S.tijdOver() > 1500)) { zeeGolf(); } // deel 2: galeien
+  else if (L.waves && !L.waves.zee && S.huts() + S.camps() > 0 && G.saved && G.t >= G.nextWave) {
     G.nextWave = G.t + Math.round(L.waves.every * DIFF[G.diff].wave); G.waveN++;
     const huts = G.blds.filter((b) => b.k == 'orkhut' || b.k == 'roverkamp'), soort = L.waves.units;
     const n = Math.max(1, Math.min(1 + G.waveN, 4) + DIFF[G.diff].extra);
@@ -558,7 +571,74 @@ export function update() {
   }
 }
 
+// Een golf van zee (level 13): een of meer orkengaleien verschijnen aan de rand van de zee, ieder met orks aan boord, en varen
+// naar het strand dat het dichtst bij het kasteel ligt
+function zeeGolf() {
+  const L = G.L;
+  G.nextWave = G.t + Math.round(L.waves.every * DIFF[G.diff].wave); G.waveN++;
+  const rand = []; // watervakjes aan de rand van de kaart
+  for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) if ((x == 0 || y == 0 || x == G.MW - 1 || y == G.MH - 1) && !blocked(x, y, 1)) rand.push([x, y]);
+  const h = hall(); if (!rand.length || !h) return;
+  const hc = center(h);
+  const kust = G.kust = []; // watervakjes naast een vrij stuk strand, dichtstbijzijnde bij het kasteel eerst
+  for (let y = 0; y < G.MH; y++) for (let x = 0; x < G.MW; x++) if (!blocked(x, y, 1) && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => G.map[y + dy] && G.map[y + dy][x + dx] == 'k' && !blocked(x + dx, y + dy)))
+    kust.push([x, y, Math.hypot((x + 0.5) * T - hc.x, (y + 0.5) * T - hc.y)]);
+  kust.sort((a, b) => a[2] - b[2]);
+  if (!kust.length) return;
+  const aantal = Math.min(3, 1 + Math.floor((G.waveN - 1) / 3)), per = Math.max(1, Math.min(2 + G.waveN, 5) + DIFF[G.diff].extra);
+  for (let i = 0; i < aantal; i++) {
+    const [sx, sy] = rand[Math.floor(Math.random() * rand.length)];
+    const g = addUnit('orkgalei', sx, sy); g.thuis = sx + ',' + sy; g.st = 'vaar';
+    const d = kust[Math.min(kust.length - 1, i * 4 + Math.floor(Math.random() * 3))] || kust[0]; g.doel = d[0] + ',' + d[1];
+    g.lading = []; for (let j = 0; j < per; j++) g.lading.push(G.waveN >= 3 && j == per - 1 && i == 0 ? 'orkbaas' : j % 3 == 2 ? 'speerork' : 'ork');
+  }
+  sHorn(); say('Zwarte zeilen aan de horizon! (golf ' + G.waveN + ')', 200);
+}
+
+// De orkengalei: vaart naar het strand, zet zijn orks af, schiet een tijdje op alles aan de kust en vaart dan weer weg
+function galeiBrain(u) {
+  const d = UNIT[u.k];
+  const weg = () => { G.units.splice(G.units.indexOf(u), 1); G.sel = G.sel.filter((s) => s != u); };
+  if (u.st == 'vaar') {
+    if (!u.path || !u.path.length) { if (!goTo(u, new Set([u.doel]))) { u.st = 'los'; return; } }
+    if (moveAlong(u)) u.st = 'los';
+    return;
+  }
+  if (u.st == 'los') { // de orks springen van boord, op het strand (vrije vakjes vlakbij; is er geen strand vrij, dan een stukje verderop aanleggen)
+    const [gx, gy] = tileOf(u); let land = [];
+    for (let r = 1; r <= 2 && !land.length; r++) for (let y = gy - r; y <= gy + r; y++) for (let x = gx - r; x <= gx + r; x++) if ((Math.abs(x - gx) == r || Math.abs(y - gy) == r) && !blocked(x, y) && G.map[y] && '.ks'.includes(G.map[y][x])) land.push([x, y]);
+    if (!land.length && u.lading.length && (u.pogingen || 0) < 3 && G.kust && G.kust.length) {
+      u.pogingen = (u.pogingen || 0) + 1; const k = G.kust[Math.min(G.kust.length - 1, u.pogingen * 3 + Math.floor(Math.random() * 3))]; u.doel = k[0] + ',' + k[1]; u.st = 'vaar'; u.path = null; return;
+    }
+    if (land.length) {
+      u.lading.forEach((k, i) => { const [x, y] = land[i % land.length]; const o = addUnit(k, x, y); o.raid = 1; o.st = 'raid'; o.home = { x: o.x, y: o.y }; o.x += (Math.random() - 0.5) * 10; o.y += (Math.random() - 0.5) * 10; });
+      if (u.lading.length) { sHorn(); if (G.t - (G.landMelding || -999) > 300) { G.landMelding = G.t; say('Orks komen aan land op het strand!', 180); } }
+    }
+    u.lading = []; u.st = 'schiet'; u.blijf = 60 * 30; return;
+  }
+  if (u.st == 'schiet') { // brandende pijlen op alles binnen bereik; daarna terug naar zee
+    u.blijf--;
+    if (u.cd <= 0) {
+      const tg = nearestEnemy(u, d.rng);
+      if (tg) {
+        u.cd = d.cd; u.swing = 12; u.blijf = Math.max(u.blijf, 600);
+        const tx = tg.w ? center(tg).x : tg.x, ty = tg.w ? center(tg).y : tg.y;
+        G.fx.push({ x: u.x, y: u.y, tx, ty, l: 18, l0: 18, arrow: 1, brand: 1 }); sArrow(); damage(tg, d.dmg * (tg.w ? 0.7 : 1), u); // gebouwen branden minder hard
+      }
+    }
+    if (u.blijf <= 0) { u.st = 'terug'; u.path = null; }
+    return;
+  }
+  if (u.st == 'terug') {
+    if (!u.path || !u.path.length) { if (!goTo(u, new Set([u.thuis]))) { weg(); return; } }
+    if (moveAlong(u)) weg();
+    return;
+  }
+  u.st = 'vaar';
+}
+
 function orcBrain(u) {
+  if (u.zee) return galeiBrain(u);
   const d = UNIT[u.k];
   if (u.st == 'attack') {
     if (!u.raid && u.home && dist(u, u.home) > 9 * T) { u.st = 'move'; u.tg = null; goTo(u, new Set([Math.floor(u.home.x / T) + ',' + Math.floor(u.home.y / T)])); }
@@ -872,10 +952,11 @@ export function klik(p) {
   const enemy = hitU && hitU.side == 'o' ? hitU : (hitB && hitB.side == 'o' ? hitB : null);
   if (enemy) {
     if (G.sel.length) {
-      for (const u of G.sel) if (!u.zee) cmdAttack(u, enemy); // boten vechten niet
+      if (enemy.zee && !G.sel.some((u) => !u.zee && kanRaken(u, enemy))) { say('Een orkengalei: alleen boogschutters, torens en katapulten kunnen hem raken.', 150); sNee(); return; }
+      for (const u of G.sel) if (!u.zee && kanRaken(u, enemy)) cmdAttack(u, enemy); // boten vechten niet; met een bijl kom je niet bij een schip
       sClick(); unitSay(G.sel[0], G.sel[0].k == 'werker' ? 'werkerAanval' : 'aanval');
       G.fx.push({ x: enemy.w ? center(enemy).x : enemy.x, y: enemy.w ? center(enemy).y : enemy.y, l: 20, ring: '#e0574c' });
-    } else { G.selB = null; G.sel = []; say(enemy.k == 'zwartvuist' ? 'Opperork Zwartvuist! Val hem met je hele leger tegelijk aan.' : enemy.k == 'orkheks' ? 'Een orkenheks: zij roept demonen en gifwolken op. Pak haar eerst!' : enemy.k == 'orkmuur' ? 'Een palissade. Sla er een gat in, of neem de poort!' : enemy.k == 'orkkatapult' ? 'Een orkenkatapult! Die schiet op je gebouwen: pak hem snel.' : enemy.k == 'tempel' ? 'De Tempel der Verdoemden! Je katapult doet daar veel schade.' : enemy.k == 'orkpriester' ? 'Een orkpriester: hij wekt de doden op. Pak hem snel!' : enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
+    } else { G.selB = null; G.sel = []; say(enemy.k == 'orkgalei' ? 'Een orkengalei! Hij zet orks af op het strand en schiet brandende pijlen. Alleen boogschutters, torens en katapulten raken hem.' : enemy.k == 'zwartvuist' ? 'Opperork Zwartvuist! Val hem met je hele leger tegelijk aan.' : enemy.k == 'orkheks' ? 'Een orkenheks: zij roept demonen en gifwolken op. Pak haar eerst!' : enemy.k == 'orkmuur' ? 'Een palissade. Sla er een gat in, of neem de poort!' : enemy.k == 'orkkatapult' ? 'Een orkenkatapult! Die schiet op je gebouwen: pak hem snel.' : enemy.k == 'tempel' ? 'De Tempel der Verdoemden! Je katapult doet daar veel schade.' : enemy.k == 'orkpriester' ? 'Een orkpriester: hij wekt de doden op. Pak hem snel!' : enemy.k == 'roverkamp' ? 'Een roverkamp. Stuur je soldaten erop af!' : enemy.k == 'rover' || enemy.k == 'roverboog' ? 'Een rover! Die zijn opgestookt door de orks.' : enemy.k == 'kooi' ? 'De gevangenis! Stuur je soldaten erop af om hem kapot te slaan.' : enemy.k == 'orktoren' ? 'Een orkentoren: die schiet pijlen. Stuur er ridders of een katapult op af!' : enemy.k == 'orkbaas' ? 'Een orkenbaas! Die is sterk, val hem met een groep aan.' : enemy.w ? 'Een orkenhut. Stuur er soldaten op af!' : 'Een ork! Pas op.'); }
     return;
   }
   if (hitU && hitU.side == 'n') { say('Sir Lodewijk! Stuur iemand naar hem toe om hem te bevrijden.', 150); return; }

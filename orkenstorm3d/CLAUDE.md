@@ -183,11 +183,21 @@ pakket (elk pakket heeft een eigen colormap met dezelfde naam). Zet nieuwe model
   - Level 12 (Het vissersdorp Zeewijk, kaart 36x32): zee aan de oostkant met een baai, negen visplekken, twee orkenhutten in het bos
     linksboven met langzame golven. Winnen: een haven en 500 vis gevangen. Tussenstukje 11 → 12 (bij level 11): naar huis, dan de bode
     uit Zeewijk met de zwarte zeilen.
+  - Orkengalei (UNIT `orkgalei`, `zee: 1`, side o): komt met golven over zee (`waves: { zee: 1 }`, `zeeGolf` in spel.js: 1 galei, vanaf golf 4
+    twee, vanaf golf 7 drie; elk met 3 tot 5 orks aan boord, vanaf golf 3 een orkenbaas). Verschijnt op een watervakje aan de kaartrand,
+    vaart naar een watervakje naast vrij strand zo dicht mogelijk bij het kasteel (`G.kust`), zet de orks af (`st: 'los'`; is het strand daar
+    bezet, dan een plek verderop), schiet 30 s lang brandende pijlen (fx `arrow` met `brand`, 0,7x schade op gebouwen) op alles binnen 4
+    vakjes en vaart dan terug naar zijn beginvakje en verdwijnt (`galeiBrain`). Alleen eenheden met bereik ≥ 40 (boogschutters, torens,
+    katapulten, tovenaars) kunnen een schip raken (`kanRaken`); `attackGoals` stuurt een schutter naar een walvakje binnen schootsafstand.
+    Model: pirate `ship-pirate-small` (0,22x) met slagtanden en een rode orkenvlag (`maakGalei`).
+  - Level 13 (Zwarte zeilen, zelfde kaart `KAART_ZEEWIJK`, `schemer: 1` = avondlicht, `overleef: 54000`): 15 minuten standhouden
+    (`S.tijdOver`, `S.klok`), golven van zee elke 80 s, de laatste 25 s geen nieuwe golf. Winnen als de tijd om is (tekst in `gewonnen`),
+    verliezen als het kasteel valt. Tussenstukje 12 → 13: de burgemeester (een werker spreekt), grap `haring` (werker verslikt zich).
   - Modellen uit de pirate-kit staan in `assets/pirate/` (zelfde pakketstijl, maar ±2,5x zo groot als de andere pakketten: schaal 0,36–0,5).
 - Repareren: werkers kiezen en op een beschadigd eigen gebouw klikken (`teDoen` in spel.js: niet af óf beschadigd). Half zo snel als
   bouwen, kost samen 40% van de bouwprijs (`HERSTEL`, betaald per stukje; kasteel en abdij zonder prijs: max/4 goud, max/8 hout).
   Geen geld meer = de werker stopt. Status "repareert", tip in het paneel bij een beschadigd gebouw.
-- Deel 2 wordt gebouwd in de volgorde van `PLAN.md` (haven en vis ✓, dan orkengaleien, scheepswerf en veerboot, buskruit, kogge,
+- Deel 2 wordt gebouwd in de volgorde van `PLAN.md` (haven en vis ✓, orkengaleien ✓, dan scheepswerf en veerboot, buskruit, kogge,
   vliegers, upgrades, de overtocht en de Zwarte Poort). Eigen namen gebruiken.
 - Level 5 heet in 2D "Het Woud van Elwynn"; Elwynn is een Warcraft-naam. In 3D heet het "Het Woud van Wilgendaal".
   Gebruik eigen namen en teksten, geen namen of verhaalteksten uit Warcraft (auteurs- en merkrecht).
