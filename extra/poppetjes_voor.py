@@ -6,6 +6,8 @@ from PIL import Image, ImageFilter
 FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links naar rechts); mouw = blote armen bruin kleuren tot de pols
   'opa': dict(voor='pizza/opa-onderdelen-voor-gemini.jpg', benen='pizza/opa-onderdelen-benen-gemini.jpg', hoofd=2, romp=1, arm=(6, 7), been=(1, 2),
               beenschaal=0.66, mouw=(118, 74, 44), pols=0.66),
+  'werker': dict(voor='pizza/werker-onderdelen-chatgpt.png', benen='pizza/werker-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(3, 4), been=(5, 6),
+                 beenschaal=0.95, achter=(7, 8), kapjes=(236, 120, 30)),  # bruine schouderkapjes op de romp oranje maken  # ChatGPT: alles op één vel (benen 5/6 voor, 7/8 achter)
 }
 def lees(pad):
     a = np.array(Image.open(pad).convert('RGB')).astype(int); H, W, _ = a.shape; bg = np.median(a[2:8, 2:8].reshape(-1, 3), 0)
@@ -33,8 +35,15 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
         if hoek: im = im.rotate(-hoek, center=(im.size[0] / 2, 0), resample=Image.BICUBIC)
         doek.alpha_composite(im, (round(ox + cx - im.size[0] / 2), round(oy + ty)))
     romp, hoofd = deel(voor, F['romp']), deel(voor, F['hoofd'])
+    def kap(im, alleenRand):  # bruine schouderkapjes (ronde uiteinden) in de kleur van de mouw
+        a = np.array(im).astype(int); W, H = a.shape[1], a.shape[0]; r, g, b = a[..., 0], a[..., 1], a[..., 2]; m = (r > 90) & (r < 200) & (g > 40) & (g < 115) & (b < 75) & (r - g > 40)
+        if alleenRand: k_ = np.zeros(a.shape[:2], bool); k_[:, :int(W * 0.3)] = True; k_[:, int(W * 0.7):] = True; m &= k_
+        else: m[int(H * 0.35):] = False
+        l = a[..., :3].mean(-1) / 105; a[m, :3] = np.clip(np.array(F['kapjes']) * l[m][:, None], 0, 255); return Image.fromarray(a.astype(np.uint8))
+    if F.get('kapjes'): romp = kap(romp, True)
     armen = [deel(voor, n) for n in F['arm']]
     if F.get('mouw'): armen = [mouw(a, F['mouw'], F['pols']) for a in armen]
+    if F.get('kapjes'): armen = [kap(a, False) for a in armen]
     bn = [deel(benen, n, F['beenschaal']) for n in F['been']]
     for i, b in enumerate(bn):  # het stappende been wordt iets korter (knie buigt naar de kijker toe)
         til = max(0, s if i == 0 else -s) * 26
@@ -46,7 +55,7 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
     return doek.crop(doek.getbbox())
 if __name__ == '__main__':
     naam = sys.argv[1]; uit = sys.argv[2] if len(sys.argv) > 2 else '.'; F = FIG[naam]
-    voor, benen = lees(F['voor']), lees(F['benen']); strip = Image.new('RGBA', (113 * 4, 192)); toon = []
+    voor = lees(F['voor']); benen = voor if F['benen'] == F['voor'] else lees(F['benen']); strip = Image.new('RGBA', (113 * 4, 192)); toon = []
     for i in range(4):
         f = houding(F, voor, benen, math.sin(i / 4 * 2 * math.pi)); toon.append(f)
         hh = 166; f = f.resize((round(f.size[0] * hh / f.size[1]), hh), Image.LANCZOS)
