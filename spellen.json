@@ -88,5 +88,13 @@
     "plaatje": "pizzabaas.jpg",
     "stand": "liggend",
     "concept": true
+  },
+  {
+    "naam": "Songfestival-hits",
+    "omschrijving": "Print de kaartjes, scan er een met je telefoon en raad uit welk jaar dat songfestivalliedje is. Leg het kaartje op de goede plek in je tijdlijn. 248 liedjes van 1956 tot nu, afgespeeld via Spotify.",
+    "bestand": "songfestival/index.html",
+    "plaatje": "songfestival.jpg",
+    "stand": "staand",
+    "concept": true
   }
 ]

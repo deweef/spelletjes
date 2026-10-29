@@ -2,7 +2,7 @@
 
 Stand en volgende stap: `songfestival/PLAN.md`.
 
-Songfestival-hits (`songfestival/`, test, nog niet op de startpagina): zelfgeprinte kaartjes in Hitster-stijl (die naam niet op de site
+Songfestival-hits (`songfestival/`, op de startpagina als concept sinds 29 okt 2026; tegel `songfestival.jpg` is met PIL getekend, mag met Gemini mooier): zelfgeprinte kaartjes in Hitster-stijl (die naam niet op de site
 gebruiken, is een merk). De liedjes zijn geheim: `geheim.js` = `GEHEIM` met de lijst versleuteld (AES-GCM, `slot.js`) met een vaste
 sleutel die in elke QR-code achter het # staat (`?k=<id>#<sleutel>`), plus diezelfde sleutel versleuteld met het wachtwoord (PBKDF2) voor de
 printpagina. Het wachtwoord staat nergens in de repo; Marcel weet het. Lijst aanpassen: in `kaartjes.html` openen met het wachtwoord,

@@ -13,8 +13,8 @@ Techniek staat in CLAUDE.md. Niet op de startpagina zolang het een test is.
 ## Volgende stappen
 - Dana laten nakijken: jaar/land/winnaar van alle kaartjes; "Du bist" van Tie Break (id 97, 2004) was volgens mij alleen de
   Duitse voorronde; Joegoslavië heeft de vlag van Kroatië (Riva, Tereza Kesovija) of Servië (Aska) gekregen.
-- Het spel op de startpagina zetten (`spellen.json`, plaatje 640x400, `"concept": true` zolang het test is) en de spelregels
-  op het beginscherm: hoe speel je met tijdlijn en kaartjes, extra punt voor land/artiest (nog kiezen).
+- Staat op de startpagina als concept (29 okt). Zonder kaartje toont de speler korte spelregels (tijdlijn, tien kaartjes wint).
+  Nog kiezen: extra punt voor land/artiest, en of het concept-label weg kan na Dana's controle.
 - Nieuwe liedjes toevoegen gaat met `WW=<wachtwoord> node bijwerken.js geheim.js <nieuw.tsv> <ids.tsv>` (uitleg in de kop van
   `bijwerken.js`; zelfde sleutel, id's lopen door, bestaande liedjes krijgen hooguit een ander spotify-id). Dana's lijst
   uitlezen: Spotify op de laptop, nummer aanklikken, Ctrl+A, Ctrl+C geeft alle links; schermafbeeldingen (20 per stuk, genummerd)

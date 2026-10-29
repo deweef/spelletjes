@@ -63,7 +63,9 @@
   function fout(t) { $('spel').hidden = true; $('fout').hidden = false; $('fout').innerHTML = t; $('nummer').textContent = ''; }
   async function kaartje(k, s) {
     if (s && s != sleutel) { try { lijst = await SLOT.lijst(s); sleutel = s; } catch (e) { lijst = null; } }
-    if (!lijst) { fout('Scan een kaartje met de knop hieronder of met de camera van je telefoon.'); return; }
+    if (!lijst) { fout('<b>Zo speel je het.</b> Print de kaartjes en leg ze op een stapel met de QR-code naar boven. Scan een kaartje: het liedje speelt. ' +
+      'Raad uit welk jaar het is en leg het kaartje op de goede plek tussen de kaartjes die je al hebt, van oud naar nieuw. Tik op <b>Laat zien</b>: klopt het, dan mag je het houden. ' +
+      'Wie het eerst tien kaartjes op een rij heeft, wint.<br><br>Scan een kaartje met de knop hieronder of met de camera van je telefoon.'); return; }
     L = lijst.find((l) => l.id == k);
     if (!L) { fout('Dit kaartje ken ik niet.'); return; }
     $('spel').hidden = false; $('fout').hidden = true;
