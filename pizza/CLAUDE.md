@@ -333,5 +333,5 @@ Balans nieuwe zaak (29 okt): boos weglopen kost 1,5 populariteit per poppetje (w
 Opa loopt naar voren (rij 6, vakjes 18-21) uit `extra/poppetjes_voor.py opa` (figuren in een broek: vel `-voor-` + vel `-benen-`, instellingen
 per figuur in `FIG`; Gemini gaf blote armen, `mouw` kleurt ze tot de pols in de kleur van het jasje). Nieuwe figuur: vellen bewaren als
 `pizza/<naam>-onderdelen-voor-gemini.jpg` en `-benen-`, nummers opzoeken, regel in `FIG`, uitvoer in vakjes 18-21 van de rij, rij in `VOORLOOP`.
-Werker loopt naar voren (rij 0, vakjes 18-21) uit `extra/poppetjes_voor.py werker`, vel van ChatGPT (`pizza/werker-onderdelen-chatgpt.png`:
+Werker (rij 0) en student (rij 1, `pizza/student-onderdelen-chatgpt.png`) lopen naar voren (vakjes 18-21) uit `extra/poppetjes_voor.py werker`, vel van ChatGPT (`pizza/werker-onderdelen-chatgpt.png`:
 alles op één vel, benen 5/6 voor, 7/8 achter); `kapjes` kleurt de bruine schouderkapjes oranje. ChatGPT deed het in één keer goed.

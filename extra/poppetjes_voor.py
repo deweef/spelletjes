@@ -8,6 +8,8 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
               beenschaal=0.66, mouw=(118, 74, 44), pols=0.66),
   'werker': dict(voor='pizza/werker-onderdelen-chatgpt.png', benen='pizza/werker-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(3, 4), been=(5, 6),
                  beenschaal=0.95, achter=(7, 8), kapjes=(236, 120, 30)),  # bruine schouderkapjes op de romp oranje maken  # ChatGPT: alles op één vel (benen 5/6 voor, 7/8 achter)
+  'student': dict(voor='pizza/student-onderdelen-chatgpt.png', benen='pizza/student-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 3), been=(8, 9),
+                  beenschaal=0.95, achter=(6, 7)),
 }
 def lees(pad):
     a = np.array(Image.open(pad).convert('RGB')).astype(int); H, W, _ = a.shape; bg = np.median(a[2:8, 2:8].reshape(-1, 3), 0)
