@@ -10,6 +10,8 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
                  beenschaal=0.95, achter=(7, 8), kapjes=(236, 120, 30)),  # bruine schouderkapjes op de romp oranje maken  # ChatGPT: alles op één vel (benen 5/6 voor, 7/8 achter)
   'student': dict(voor='pizza/student-onderdelen-chatgpt.png', benen='pizza/student-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 3), been=(8, 9),
                   beenschaal=0.95, achter=(6, 7)),
+  'villa': dict(voor='pizza/villa-onderdelen-chatgpt.png', benen='pizza/villa-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 5), been=(7, 8),
+                beenschaal=0.62, achter=(9, 10), jurk=True, vlak=True),  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }
 def lees(pad):
     a = np.array(Image.open(pad).convert('RGB')).astype(int); H, W, _ = a.shape; bg = np.median(a[2:8, 2:8].reshape(-1, 3), 0)
@@ -43,14 +45,22 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
         else: m[int(H * 0.35):] = False
         l = a[..., :3].mean(-1) / 105; a[m, :3] = np.clip(np.array(F['kapjes']) * l[m][:, None], 0, 255); return Image.fromarray(a.astype(np.uint8))
     if F.get('kapjes'): romp = kap(romp, True)
+    def vlak(im, bovenFr, randen):  # donkere ronde kapjes gelijkmaken aan de stof eromheen (mediaan van de stof)
+        a = np.array(im).astype(int); H, W = a.shape[:2]; zone = np.zeros((H, W), bool); zone[:int(H * bovenFr)] = True
+        if randen: zone[:, int(W * 0.28):int(W * 0.72)] = False
+        stof = a[int(H * 0.3):int(H * 0.6)][a[int(H * 0.3):int(H * 0.6), :, 3] > 0][:, :3]; med = np.median(stof, 0)
+        d = np.abs(a[..., :3] - med).sum(-1); m = zone & (a[..., 3] > 0) & (d > 25) & (d < 120) & (a[..., :3].sum(-1) > 120)
+        a[m, :3] = med; return Image.fromarray(a.astype(np.uint8))
+    if F.get('vlak'): romp = vlak(romp, 0.35, True)
     armen = [deel(voor, n) for n in F['arm']]
     if F.get('mouw'): armen = [mouw(a, F['mouw'], F['pols']) for a in armen]
     if F.get('kapjes'): armen = [kap(a, False) for a in armen]
+    if F.get('vlak'): armen = [vlak(a, 0.3, False) for a in armen]
     bn = [deel(benen, n, F['beenschaal']) for n in F['been']]
     for i, b in enumerate(bn):  # het stappende been wordt iets korter (knie buigt naar de kijker toe)
         til = max(0, s if i == 0 else -s) * 26
         if til: b = b.resize((b.size[0], round(b.size[1] - til)), Image.LANCZOS)
-        zet(b, (-1 if i == 0 else 1) * romp.size[0] * 0.24, -12)
+        zet(b, (-1 if i == 0 else 1) * romp.size[0] * (0.17 if F.get('jurk') else 0.24), -12 - (22 if F.get('jurk') else 0))
     zet(romp, 0, -romp.size[1] + 10)
     for i, a in enumerate(armen): zet(a, (-1 if i == 0 else 1) * (romp.size[0] / 2 - 28), -romp.size[1] + 70, hoek=(6 if i == 0 else -6) * s)
     zet(hoofd, 0, -romp.size[1] - hoofd.size[1] + 42)
