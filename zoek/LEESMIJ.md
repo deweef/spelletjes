@@ -35,14 +35,14 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 - Muziekwinkel (level 24, `zoek/muziek.jpg`): https://share.gemini.google/OVQnpSsUrkek
 - Brommerwerkplaats (level 25, `zoek/brommer.jpg`): https://share.gemini.google/qZy0xDofvb8z
 - Frankrijk (C1, landenpad, `zoek/frankrijk.jpg`): https://share.gemini.google/438shHx7DoEm
-- Griekenland (C2, `zoek/griekenland.jpg`, nog niet in de repo): https://share.gemini.google/5LPagwAF9TVP
-- Bouwplaat (level 26, `zoek/bouwplaat.jpg`, nog niet in de repo): https://share.gemini.google/nLv38m5A5bN6
-- Toren van Babel (B6, `zoek/babel.jpg`, nog niet in de repo): https://share.gemini.google/idM0fUVuM369
-- Sinterklaasavond (geparkeerd tot eind november, `zoek/sinterklaas.jpg`, nog niet in de repo): https://share.gemini.google/IrVGOiYyfmCI
-- Sint-Maarten (level 27, `zoek/sintmaarten.jpg`, nog niet in de repo): https://share.gemini.google/x8qKlVzW8qvB
-- Italië / Venetië (C3, `zoek/italie.jpg`, nog niet in de repo): https://share.gemini.google/Z1dyr5DcMn7Q
-- Orkenstorm-dorp (level 28, `zoek/orkenstorm.jpg`, met voorbeeld `zoek/voorbeeld/orkenstorm-voorbeeld.jpg`, nog niet in de repo): https://share.gemini.google/IGMM9ljJYzKo
-- Dracula, 600e verjaardag (level 29, `zoek/dracula.jpg`, nog niet in de repo): https://share.gemini.google/HhZoeUke4okr
+- Griekenland (C2, `zoek/griekenland.jpg`): https://share.gemini.google/5LPagwAF9TVP
+- Bouwplaat (level 26, `zoek/bouwplaat.jpg`): https://share.gemini.google/nLv38m5A5bN6
+- Toren van Babel (B6, `zoek/babel.jpg`): https://share.gemini.google/idM0fUVuM369
+- Sinterklaasavond (geparkeerd tot eind november, `zoek/sinterklaas.jpg`): https://share.gemini.google/IrVGOiYyfmCI
+- Sint-Maarten (level 27, `zoek/sintmaarten.jpg`): https://share.gemini.google/x8qKlVzW8qvB
+- Italië / Venetië (C3, `zoek/italie.jpg`): https://share.gemini.google/Z1dyr5DcMn7Q
+- Orkenstorm-dorp (level 28, `zoek/orkenstorm.jpg`, met voorbeeld `zoek/voorbeeld/orkenstorm-voorbeeld.jpg`): https://share.gemini.google/IGMM9ljJYzKo
+- Dracula, 600e verjaardag (level 29, `zoek/dracula.jpg`): https://share.gemini.google/HhZoeUke4okr
 
 Werkwijze: plaatje downloaden op de computer (de volle maat, 1376x768; een in de chat geplakt plaatje is maar ±512 px breed en te klein), in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 

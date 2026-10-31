@@ -64,3 +64,11 @@ eigen strook (`kaartPlek`/`baan`; Bruegel rechts op een bruine strook, landen li
 📍 + pulserende ring bij het level waar je bent (eerste open level zonder tijd op het pad van `zoek_laatst`). Tik = kaartje `#levelinfo` (`toonInfo`) met Spelen.
 Landenpad: C1 Frankrijk (`frankrijk`, `pad: 'C'`, `na: ['brommer']`, `puzzel: 1`: linksonder de legpuzzel van Frankrijk `tekenPuzzel`/`FRANKRIJK`,
 elk gevonden voorwerp legt stukjes, het laatste stukje komt pas als je Sjaak betrapt; Sjaak heeft hier een vakje voor zijn lijf en een voor het stukje in zijn hand).
+Ronde 26-29, B6, C2, C3 (allemaal met effect, zie de functies): 26 bouwplaat (`bouw: 1`, kartonnen autootje linksonder `kartonAuto`/`tekenBouw`, knipgeluid
+`sKnip`, rijdt aan het eind over het scherm `wegrijden`; geen Gemini-oldtimer, dus `autoBeeld` op de boekenkast), 27 Sint-Maarten (`lampions: [[x, y]]`:
+donker met lichtvlekken bij de lampions, drie wandelende lampions en je eigen lampion bij de vinger, `tekenAvond`), 28 Orkenstorm-dorp (`orks: 1`, om de
+14-22 s een golf getekende orks met trommels, `tekenOrks`/`ork`/`sOrks`; voorbeeld voor Gemini in `zoek/voorbeeld/`), 29 Dracula (`vampier: 1`,
+vleermuiszwermen en bliksem met donder, `tekenNacht`; Gemini vergat Sjaak, dus geen `sjaak`), B6 toren van Babel (`talen: {naam: {en, de, fr, es, fy}}`:
+om de 3,5 s wisselt een naam bovenin van taal, `babel`/`naamIn`/`babelTaal`; een hint zet dat vakje terug in het Nederlands), C2 Griekenland (`opa: 1`:
+bord kapot met scherven `scherven` (schermeffect met zwaartekracht `zw`) en een loopje dat sneller gaat, `sOpa`), C3 Italië/Venetië (`water: 1`: acqua
+alta stijgt in ~60 s tot 60% van het scherm, elk voorwerp -30%, hint = weg, `tekenWater`).
