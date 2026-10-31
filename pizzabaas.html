@@ -2240,6 +2240,47 @@ function pofBetalen() {
 // namaakt); met de achterkamer zoekt ze ook "verloren gewaande" meesterwerken (S.lijstje = { v, prijs, tot }): een tweede koper naast Gerrit.
 const KUNSTHUUR = 120, kunstAan = () => S.kunstHuur && S.kunstHuur.tot > S.dag, kunstVanDeWeek = () => Math.floor(S.dag / 7) % 6;
 function lijstjeWens() { if (!S.lijstje || S.lijstje.tot < S.dag) S.lijstje = { v: Math.floor(Math.random() * 6), prijs: 250 + Math.floor(Math.random() * 6) * 25, tot: S.dag + 6 }; return S.lijstje; }
+// ---------- pizzawedstrijd tegen Luigi op de markt (eens per week, S.wedWeek; jury = pizza/jury.jpg uit pizza/jury-recensent-gemini.jpg) ----------
+// Drie juryleden (werker = marktkoopman, opa = oma met hoedje, student = het kind) geven elk een cijfer: 3 + oordeel × 1,1 (± toeval).
+// Luigi krijgt 5-8 per jurylid. Winst = € 120, populariteit +3 en Luigi boos; gelijk = inleg terug; verlies = populariteit −1.
+const week = () => Math.floor((S.dag - 1) / 7), WEDINLEG = 20;
+const JURY = [['werker', 'Bert de marktkoopman'], ['opa', 'Oma Ria'], ['student', 'Kleine Daan']];
+const wensTekst = (soort) => { const w = SOORT[soort].wil, nm = ['vet', 'zoet', 'zout', 'pittig']; const o = w.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
+  return `houdt van ${nm[o[0][1]]} en ${nm[o[1][1]]}${w[3] < 1 ? ', niet pittig' : ''}`; };
+function toonWedstrijd() {
+  const k2 = $('stadkaart'), menu = S.menu;
+  k2.innerHTML = `<div class="kaart" style="margin:auto"><h1>🏆 Pizzawedstrijd</h1>
+    <img src="pizza/jury.jpg" alt="De jury" style="width:100%;max-width:340px;display:block;margin:4px auto;border-radius:10px">
+    <p>Luigi staat al klaar met zijn pizza en een grote grijns. "Kom maar op, collega!" Inleg: € ${WEDINLEG}. De jury:</p>
+    <p class="buurt">${JURY.map(([s, n]) => `${SOORT[s].ik} <b>${n}</b> ${wensTekst(s)}`).join('<br>')}</p>
+    <p><b>Welke pizza bak jij?</b></p>
+    <div class="rij">${menu.map((p, i) => `<button class="knop rood" data-wed="${i}" ${S.geld < WEDINLEG ? 'disabled' : ''}>🍕 ${esc(p.naam)}</button>`).join('')}</div>
+    <div class="rij"><button class="knop" id="wedterug">Toch maar niet</button></div></div>`;
+  $('wedterug').onclick = () => toonStad('markt');
+  k2.querySelectorAll('[data-wed]').forEach((b) => b.onclick = () => wedstrijdUitslag(menu[+b.dataset.wed]));
+}
+function wedstrijdUitslag(p) {
+  S.wedWeek = week(); ge(-WEDINLEG); kassa(); bewaar(); tekenKnoppen();
+  const jij = JURY.map(([s]) => Math.max(1, Math.min(10, Math.round(3 + oordeel(p, s) * 1.1 + (Math.random() - 0.5)))));
+  const lu = JURY.map(() => 5 + Math.floor(Math.random() * 4) + ((S.ruzie || 0) > 50 ? 1 : 0)), sj = jij.reduce((a, n) => a + n, 0), sl = lu.reduce((a, n) => a + n, 0);
+  const k2 = $('stadkaart');
+  k2.innerHTML = `<div class="kaart" style="margin:auto"><h1>🏆 De jury proeft…</h1>
+    <img src="pizza/jury.jpg" alt="De jury" style="width:100%;max-width:300px;display:block;margin:4px auto;border-radius:10px">
+    <table style="width:100%;text-align:center"><tr><td></td>${JURY.map(([s, n]) => `<td>${SOORT[s].ik}<br><small>${n.split(' ')[0] == 'Bert' ? 'Bert' : n.split(' ').pop()}</small></td>`).join('')}<td><b>Totaal</b></td></tr>
+      <tr><td style="text-align:left">🍕 Jij<br><small>${esc(p.naam)}</small></td>${jij.map((n, i) => `<td class="wedcijfer" data-i="${i}" style="font-size:22px;font-weight:700;opacity:0">${n}</td>`).join('')}<td id="wedjij" style="font-size:22px;font-weight:700;opacity:0">${sj}</td></tr>
+      <tr><td style="text-align:left">🕶️ Luigi</td>${lu.map((n, i) => `<td class="wedcijfer" data-i="${i + 3}" style="font-size:22px;font-weight:700;opacity:0">${n}</td>`).join('')}<td id="wedlu" style="font-size:22px;font-weight:700;opacity:0">${sl}</td></tr></table>
+    <p id="weduit" style="opacity:0"></p><div class="rij"><button class="knop rood" id="wedklaar" style="visibility:hidden">Terug naar de markt</button></div></div>`;
+  const cel = [...k2.querySelectorAll('.wedcijfer')]; let t = 0;
+  [0, 3, 1, 4, 2, 5].forEach((i) => setTimeout(() => { const c = cel.find((c) => +c.dataset.i == i); c.style.opacity = 1; ding(500 + (+c.textContent) * 60, 0.08); }, (t += 700)));
+  setTimeout(() => {
+    $('wedjij').style.opacity = 1; $('wedlu').style.opacity = 1; const u = $('weduit'); u.style.opacity = 1; $('wedklaar').style.visibility = 'visible';
+    if (sj > sl) { ge(120, 'spel'); rep(3); S.ruzie = Math.min(100, (S.ruzie || 0) + 10); S.wedWinst = (S.wedWinst || 0) + 1; kassa(); ding(880, 0.1); setTimeout(() => ding(1320, 0.12), 150);
+      u.innerHTML = `🎉 <b>Gewonnen!</b> € 120 en een gouden lintje. De markt juicht. Luigi gooit zijn pizza in de fontein en stampt weg. "Volgende week, collega. VOLGENDE WEEK!"`; }
+    else if (sj == sl) { ge(WEDINLEG); kassa(); u.innerHTML = `🤝 <b>Gelijkspel!</b> Je krijgt je inleg terug. Luigi en jij kijken elkaar een minuut lang zwijgend aan.`; }
+    else { rep(-1); u.innerHTML = `😩 <b>Verloren.</b> Luigi danst over de markt met zijn pizzaschep. Tip: kijk naar wat de jury lekker vindt (de gezichtjes in 📖 Pizza's).`; }
+    bewaar(); tekenKnoppen(); $('wedklaar').onclick = () => toonStad('markt');
+  }, (t += 900));
+}
 const RECLAME = 150, reclameAan = () => S.reclame && S.reclame.tot > S.dag; // reclamebord bij de bouwplaats: een week lang meer klanten in alle zaken
 const PLEK = {
   zaak: { n: 'Jouw pizzeria', ik: '🍕', x: 540, y: 180, b: 125, h: 140 },
@@ -2283,7 +2324,8 @@ function toonStad(plek) {
     h += `<p>Kraampjes vol groente, kaas en worst. "Verse waar! Alles moet weg!"</p>${heb ? `<p class="buurt">Je hebt al korting op ${esc(ING[heb.i].n.toLowerCase())} tot ${esc(datumLang(heb.tot))}.</p>` : ''}
       ${aanbod.map((a, n) => `<button class="aanbieder" data-koop="${n}" ${S.geld < a.prijs ? 'disabled' : ''}><span class="gz">🧺</span><span><b>${esc(ING[a.i].n)}: halve prijs</b><br>${a.dagen} dagen lang, voor € ${a.prijs}</span></button>`).join('')}
       <p class="buurt">Bij de fontein staan toeristen met fototoestellen. Een straatartiest heeft net zijn plekje verlaten…${S.acroBest ? ` Jouw record: ${S.acroBest} keer gevangen.` : ''}</p>`;
-    knoppen = `<button class="knop rood" id="acro" ${S.acroDag == S.dag ? 'disabled' : ''}>🤹 ${S.acroDag == S.dag ? 'Pizza-acrobatiek: morgen weer' : 'Pizza-acrobatiek voor de toeristen'}</button>`;
+    knoppen = `<button class="knop rood" id="acro" ${S.acroDag == S.dag ? 'disabled' : ''}>🤹 ${S.acroDag == S.dag ? 'Pizza-acrobatiek: morgen weer' : 'Pizza-acrobatiek voor de toeristen'}</button>`
+      + `<button class="knop rood" id="wedstrijd" ${S.wedWeek == week() ? 'disabled' : ''}>🏆 ${S.wedWeek == week() ? 'Pizzawedstrijd: volgende week weer' : 'Pizzawedstrijd tegen Luigi'}</button>`;
   }
   if (plek == 'politie') {
     const kan = S.gesaboteerd && S.gesaboteerd >= S.dag - 3 && !(S.aangifte >= S.gesaboteerd);
@@ -2349,6 +2391,7 @@ function toonStad(plek) {
   if ($('opnemen')) $('opnemen').onclick = () => { const n = bedrag(`Hoeveel wil je opnemen? (er staat € ${Math.floor(S.bankSaldo)} op de bank)`, S.bankSaldo); if (!n) return; S.bankSaldo -= n; S.geld += n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} opgenomen. Contant in de kassa.`); toonStad('bank'); };
   if ($('aangifte')) $('aangifte').onclick = () => { S.aangifte = S.dag; if (kans(0.6)) { S.luigiRust = S.dag + 10; ge(0); bewaar(); meld('De politie gaat met Luigi praten. Hij laat je voorlopig met rust.'); } else meld('"Zonder bewijs kunnen we weinig doen," zegt agent Jansen.'); bewaar(); toonStad('politie'); };
   if ($('acro')) $('acro').onclick = () => { S.acroDag = S.dag; bewaar(); toonAcro(); };
+  if ($('wedstrijd')) $('wedstrijd').onclick = () => toonWedstrijd();
   if ($('eetwed')) $('eetwed').onclick = () => { ge(-EET.inleg); S.eetDag = S.dag; bewaar(); kassa(); tekenKnoppen(); toonEet(); };
   if ($('flyers')) $('flyers').onclick = () => { ge(-15); S.flyers = S.dag; S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.15 }; S.studentenMorgen = true; bewaar(); tekenKnoppen(); meld('Flyers uitgedeeld! Morgen komen er meer studenten.'); toonStad('studenten'); };
   k2.querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const a = marktAanbod()[+b.dataset.koop]; ge(-a.prijs); S.korting = { i: a.i, tot: S.dag + a.dagen }; kassa(); bewaar(); tekenKnoppen(); meld(`${ING[a.i].n} voor de halve prijs, ${a.dagen} dagen lang!`); toonStad('markt'); });

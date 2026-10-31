@@ -343,3 +343,8 @@ Vervolgvragen bij gewone vragen (31 okt): via `naVraag = () => toonVraag({ id: '
 wil de bruiloft hier), kat C (Pepperoni bedelt), goochelaar A (jij als vrijwilliger doormidden gezaagd), blinddate A (zij houdt van Hawaii),
 recensent A bij ≥ 4 sterren (foto voor de krant), tiktok A als het viraal gaat (nog een dansje, met jou). Dubbele grappen weg: spion (Luigi's
 "precies zoals bij de buren"-bord), patat (Mario met een pincet), kokjarig (opera-aria in plaats van O sole mio).
+Pizzawedstrijd tegen Luigi (31 okt, markt, knop "🏆 Pizzawedstrijd", eens per week `S.wedWeek`/`week()`, inleg € 20, `toonWedstrijd`/`wedstrijdUitslag`
+in `#stadkaart`): jury `JURY` = werker (Bert de marktkoopman), opa (Oma Ria), student (Kleine Daan), met hun smaak (`wensTekst` uit `SOORT.wil`);
+je kiest een pizza van je kaart, cijfer per jurylid = 3 + oordeel × 1,1 (± 0,5), Luigi 5-8 (+1 bij veel ruzie); bordjes één voor één. Winst € 120
+('spel'), populariteit +3, ruzie +10, `S.wedWinst`; gelijk = inleg terug; verlies = populariteit −1. Plaatje `pizza/jury.jpg` (en `pizza/recensent.png`
+voor de Gouden Pizzaschep), uit `pizza/jury-recensent-gemini.jpg`.
