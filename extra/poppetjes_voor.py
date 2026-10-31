@@ -16,6 +16,8 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
                    beenschaal=0.95, achter=(7, 8)),  # groen shirt: alleen de rand ontgroenen
   'chinese': dict(voor='pizza/chinese-onderdelen-chatgpt.png', benen='pizza/chinese-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(7, 5),
                   beenschaal=0.62, achter=(8, 6), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),
+  'toerist': dict(voor='pizza/toerist-onderdelen-chatgpt.png', benen='pizza/toerist-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(3, 4), been=(5,),
+                  beenschaal=1.0, achter=(7,), paar=0.36, kapjes=(205, 35, 35)),  # ChatGPT tekende de benen per paar: onder de broekspijpen afknippen en doormidden
   'chinese2': dict(voor='pizza/chinese2-onderdelen-chatgpt.png', benen='pizza/chinese2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
                    beenschaal=0.62, achter=(7, 8), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),  # tweede versie: de helft van de Chinese dames  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }
@@ -49,7 +51,7 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
     romp, hoofd = deel(voor, F['romp']), deel(voor, F['hoofd'])
     def kap(im, alleenRand):  # bruine schouderkapjes (ronde uiteinden) in de kleur van de mouw
         a = np.array(im).astype(int); W, H = a.shape[1], a.shape[0]; r, g, b = a[..., 0], a[..., 1], a[..., 2]; m = (r > 90) & (r < 200) & (g > 40) & (g < 115) & (b < 75) & (r - g > 40)
-        if alleenRand: k_ = np.zeros(a.shape[:2], bool); k_[:, :int(W * 0.3)] = True; k_[:, int(W * 0.7):] = True; m &= k_
+        if alleenRand: k_ = np.zeros(a.shape[:2], bool); k_[:int(H * 0.45), :int(W * 0.3)] = True; k_[:int(H * 0.45), int(W * 0.7):] = True; m &= k_  # alleen de schouders
         else: m[int(H * 0.35):] = False
         l = np.clip(a[..., :3].mean(-1) / 105, 0.97, 1.15) if F.get('vlak') else a[..., :3].mean(-1) / 105; a[m, :3] = np.clip(np.array(F['kapjes']) * l[m][:, None], 0, 255); return Image.fromarray(a.astype(np.uint8))
     if F.get('kapjes'): romp = kap(romp, True)
@@ -65,11 +67,14 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
     if F.get('mouw'): armen = [mouw(a, F['mouw'], F['pols']) for a in armen]
     if F.get('kapjes'): armen = [kap(a, False) for a in armen]
     if F.get('vlak'): armen = [vlak(a, 0.3, False) for a in armen]
-    bn = [deel(benen, n, F['beenschaal']) for n in F['been']]
+    if F.get('paar'):  # twee benen in één stuk (met een broek erboven): alleen de blote benen, doormidden
+        pr = deel(benen, F['been'][0], F['beenschaal']); w, h = pr.size; pr = pr.crop((0, int(h * F['paar']), w, h)); bn = [pr.crop((0, 0, w // 2, pr.size[1])), pr.crop((w // 2, 0, w, pr.size[1]))]
+        bn = [b.crop(b.getbbox()) for b in bn]
+    else: bn = [deel(benen, n, F['beenschaal']) for n in F['been']]
     for i, b in enumerate(bn):  # het stappende been wordt iets korter (knie buigt naar de kijker toe)
         til = max(0, s if i == 0 else -s) * 26
         if til: b = b.resize((b.size[0], round(b.size[1] - til)), Image.LANCZOS)
-        zet(b, (-1 if i == 0 else 1) * romp.size[0] * (0.17 if F.get('jurk') else 0.24), -12 - (22 if F.get('jurk') else 0))
+        zet(b, (-1 if i == 0 else 1) * (b.size[0] * 0.47 if F.get('paar') else romp.size[0] * (0.17 if F.get('jurk') else 0.24)), -12 - (22 if F.get('jurk') or F.get('paar') else 0))
     zet(romp, 0, -romp.size[1] + 10)
     for i, a in enumerate(armen): zet(a, (-1 if i == 0 else 1) * (romp.size[0] / 2 - 28), -romp.size[1] + 70, hoek=(6 if i == 0 else -6) * s)
     zet(hoofd, 0, -romp.size[1] - hoofd.size[1] + 42 + F.get('nek', 0))  # nek: hoofd verder omlaag (hoofd en jurk hebben allebei een kraagje)

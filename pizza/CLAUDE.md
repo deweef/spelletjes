@@ -337,3 +337,4 @@ Werker (rij 0), student (rij 1, `pizza/student-onderdelen-chatgpt.png`) villadam
 alles op één vel, benen 5/6 voor, 7/8 achter); `kapjes` kleurt de bruine schouderkapjes oranje. ChatGPT deed het in één keer goed.
 Chinese dame (rij 4): twee versies van ChatGPT (`chinese-` en `chinese2-onderdelen-chatgpt.png`), vakjes 18-21 en 22-25 (`pizza/klanten.png` is nu
 26 vakjes breed); `VOORLOOP[4]` = lijst van twee lijsten, `KLANTVEL(rij, m)` kiest per klant vast een versie (`m.versie`).
+Chinese toerist (rij 5, `toerist-onderdelen-chatgpt.png`): ChatGPT tekende de benen per paar met de korte broek erboven; `paar` = knip de blote benen eronder af en doormidden.
