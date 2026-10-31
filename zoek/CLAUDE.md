@@ -72,3 +72,12 @@ vleermuiszwermen en bliksem met donder, `tekenNacht`; Gemini vergat Sjaak, dus g
 om de 3,5 s wisselt een naam bovenin van taal, `babel`/`naamIn`/`babelTaal`; een hint zet dat vakje terug in het Nederlands), C2 Griekenland (`opa: 1`:
 bord kapot met scherven `scherven` (schermeffect met zwaartekracht `zw`) en een loopje dat sneller gaat, `sOpa`), C3 Italië/Venetië (`water: 1`: acqua
 alta stijgt in ~60 s tot 60% van het scherm, elk voorwerp -30%, hint = weg, `tekenWater`).
+Effecten voor level 1-20 (behalve spookslot en ruimtestation, die hadden er al een): `fx: '<naam>'` in `LEVELS`, met de code in het object `FX`
+(per effect start/teken/vind/tik/hint/klaar/stop/hoek/schud, staat in `fxS`, hulpjes `wolk`/`tekenWolken`). 1 `stof` (stofwolk + hatsjoe), 2 `post`
+(vliegende enveloppen, "Nummer 56!"), 3 `melodie` (elk voorwerp de volgende noot van de Ode an die Freude, `VREUGDE`; eindscherm: hele melodie),
+4 `meeuw` (meeuw poept op het scherm, tik het weg), 5 `deinen` (schip deint via `hoek`, kanonschot met kruitdamp en schok), 6 `stoom` (scherm beslaat,
+vondst veegt 30% weg, hint alles), 7 `ballon` (opstijgende ballonnen, tik = knal), 8 `storing` (glitch met verschoven strepen), 9 `mug` (zoemende
+mug, tik = pets), 11 `hartslag` (monitor rechtsonder, sneller als je lang niets vindt), 12 `aap` (aap pikt 7 s een vakje bovenin), 13 `proppen`
+(papierproppen, schoolbel), 14 `vliegtuig` (vliegtuig over het scherm, trillen, omroep voor Sjaak), 15 `flits` (fotoflitsen), 16 `kruit` (musketten
+met kruitdamp), 17 `bellen` (luchtbellen), 18 `kassa` (kassapiep per voorwerp, omroep), 19 `darts` (dartpijlen in het scherm).
+Een tik gaat eerst naar `fx().tik` (true = voor het effect, dus niet zoeken).

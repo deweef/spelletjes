@@ -1554,7 +1554,7 @@ function storm() {
     ctx.strokeStyle = 'rgba(70,35,10,.6)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-b.r, 0); ctx.lineTo(b.r * 1.2, 0); ctx.stroke(); ctx.restore(); }
   blad = blad.filter((b) => !b.wild || b.x < innerWidth + 60);
 }
-const stormSchud = () => (level && level.storm && blad.some((b) => b.wild && b.x > 0) ? Math.sin(performance.now() / 35) * 3 : 0);
+const stormSchud = () => (level && level.storm && blad.some((b) => b.wild && b.x > 0) ? Math.sin(performance.now() / 35) * 3 : 0) + (fx().schud && $('klaar').hidden ? fx().schud() : 0);
 // winter (winter: 1, jagers in de sneeuw): sneeuw die altijd valt, om de 14-22 s een sneeuwbui, en ijsbloemen die vanaf de randen
 // over het scherm groeien (ijs 0..1, vol in ~50 s); elk gevonden voorwerp ontdooit een stuk
 let sneeuw = [], bui = 0, buiTot = 0, ijs = 0, ijsDoek = null, ijsMasker = null, ijsTijd = 0;
@@ -1715,35 +1715,148 @@ function tekenWater() {
   ctx.fillStyle = 'rgba(40,120,150,.72)'; ctx.fill(); ctx.strokeStyle = 'rgba(220,245,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,.25)'; for (let k = 0; k < 8; k++) { const x = (k * 173 + nu / 30) % innerWidth, yy = y + 30 + (k * 53) % Math.max(30, innerHeight - y - 20); ctx.fillRect(x, yy, 26, 2); }
 }
+// ---------- effecten voor level 1-20 (fx: '<naam>' in LEVELS) ----------
+// Elk effect is een object in FX met (alles optioneel): start() bij het begin, teken(nu, top) elke beeldje in schermpixels,
+// vind(v) bij een gevonden voorwerp (true = eigen geluid in plaats van het gewone pingetje), tik(sx, sy) (true = de tik is voor het effect),
+// hint(), klaar() op het eindscherm, hoek() = draaiing van het plaatje en schud() = verschuiving in schermpixels.
+let fxS = {}; // staat van het effect van dit level
+const fx = () => (level && level.fx && FX[level.fx]) || {};
+const kans = (a, b) => a + Math.random() * (b - a);
+function wolk(x, y, r, k, duur) { (fxS.wolken = fxS.wolken || []).push({ x, y, r, k, t0: performance.now(), duur, vx: kans(-0.3, 0.3), vy: kans(-0.5, -0.1) }); }
+function tekenWolken(nu) { // grijze of witte wolkjes die uitzetten en vervagen (stof, kruitdamp, stoom)
+  fxS.wolken = (fxS.wolken || []).filter((w) => nu - w.t0 < w.duur);
+  for (const w of fxS.wolken) { const t = (nu - w.t0) / w.duur; w.x += w.vx; w.y += w.vy; ctx.fillStyle = w.k.replace('A', (0.75 * (1 - t)).toFixed(2));
+    for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.arc(w.x + Math.cos(k * 1.3) * w.r * 0.6 * (0.5 + t), w.y + Math.sin(k * 1.7) * w.r * 0.4 * (0.5 + t), w.r * (0.6 + t * 0.8), 0, 7); ctx.fill(); } }
+}
+const plekOpScherm = (top) => [kans(60, innerWidth - 60), kans(top + 60, innerHeight - 60)];
+const VREUGDE = [330, 330, 349, 392, 392, 349, 330, 294, 262, 262, 294, 330, 330, 294, 294, 330, 330, 349, 392, 392, 349, 330, 294, 262, 262, 294, 330, 294, 262, 262]; // Beethoven, Ode an die Freude
+const FX = {
+  stof: { // 1 rommelkamer: stofwolken met een nies
+    teken(nu, top) { if (!fxS.volg) fxS.volg = nu + 6000; if (nu > fxS.volg) { fxS.volg = nu + kans(11000, 17000); const [x, y] = plekOpScherm(top); for (let k = 0; k < 4; k++) wolk(x + kans(-60, 60), y + kans(-30, 30), kans(40, 70), 'rgba(170,160,140,A)', 3500); ruis(0.15, 'bandpass', 2500, 0.1, 0.25); ruis(0.35, 'highpass', 3000, 0.14, 0.45); meld('Hatsjoe! 🤧'); }
+      tekenWolken(nu); } },
+  post: { // 2 postkantoor: enveloppen vliegen over het scherm en de nummertjesautomaat roept
+    teken(nu, top) { if (!fxS.volg) fxS.volg = nu + 5000;
+      if (nu > fxS.volg) { fxS.volg = nu + kans(10000, 15000); const y0 = kans(top + 40, innerHeight - 160); fxS.brief = Array.from({ length: 12 }, () => ({ x: -kans(40, 500), y: y0 + kans(0, 140), v: kans(6, 10), d: kans(0, 7) })); noot(988, 0.3, 'sine', 0.06); noot(784, 0.5, 'sine', 0.06, 0.3); meld(`🔔 Nummer ${Math.floor(kans(12, 99))}!`); }
+      for (const b of fxS.brief || []) { b.x += b.v; b.d += 0.08; ctx.save(); ctx.translate(b.x, b.y + Math.sin(b.d) * 10); ctx.rotate(Math.sin(b.d) * 0.3); ctx.fillStyle = '#fff'; ctx.strokeStyle = '#8a7a6a'; ctx.lineWidth = 1.5; ctx.fillRect(-16, -10, 32, 20); ctx.strokeRect(-16, -10, 32, 20);
+        ctx.beginPath(); ctx.moveTo(-16, -10); ctx.lineTo(0, 2); ctx.lineTo(16, -10); ctx.stroke(); ctx.fillStyle = '#e8384f'; ctx.fillRect(8, -8, 6, 6); ctx.restore(); }
+      fxS.brief = (fxS.brief || []).filter((b) => b.x < innerWidth + 40); } },
+  melodie: { // 3 orkest: elk voorwerp is de volgende noot van de Ode an die Freude; op het eindscherm speelt het hele orkest
+    vind() { const f = VREUGDE[(fxS.noot = (fxS.noot || 0)) % VREUGDE.length]; fxS.noot++; noot(f, 0.5, 'triangle', 0.07); noot(f * 2, 0.4, 'sine', 0.02); return true; },
+    klaar() { VREUGDE.forEach((f, i) => { noot(f, 0.4, 'triangle', 0.06, i * 0.28); noot(f / 2, 0.4, 'sawtooth', 0.015, i * 0.28, 900); }); } },
+  meeuw: { // 4 strand: een meeuw vliegt over en laat iets vallen op je scherm; tik het weg
+    teken(nu, top) { if (!fxS.volg) fxS.volg = nu + 8000; fxS.poep = fxS.poep || [];
+      if (nu > fxS.volg && fxS.poep.length < 3) { fxS.volg = nu + kans(15000, 24000); fxS.m = { x: -60, y: kans(top + 40, top + 160), los: kans(innerWidth * 0.2, innerWidth * 0.8), gevallen: false }; [0, 0.15].forEach((w) => noot(kans(1500, 1900), 0.15, 'sawtooth', 0.025, w, 2500)); }
+      const m = fxS.m; if (m) { m.x += 6; const w = Math.sin(nu / 90) * 10; ctx.strokeStyle = '#333'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(m.x - 26, m.y - w); ctx.quadraticCurveTo(m.x - 12, m.y - 12, m.x, m.y); ctx.quadraticCurveTo(m.x + 12, m.y - 12, m.x + 26, m.y - w); ctx.stroke();
+        if (!m.gevallen && m.x > m.los) { m.gevallen = true; fxS.val = { x: m.x, y: m.y, doel: kans(top + 120, innerHeight - 80) }; } if (m.x > innerWidth + 60) fxS.m = null; }
+      const v = fxS.val; if (v) { v.y += 12; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(v.x, v.y, 4, 0, 7); ctx.fill(); if (v.y >= v.doel) { fxS.poep.push({ x: v.x, y: v.doel, r: kans(28, 40) }); fxS.val = null; ruis(0.12, 'lowpass', 600, 0.15); meld('Splets! 💩 Tik erop om het weg te vegen'); } }
+      for (const p of fxS.poep) { ctx.fillStyle = 'rgba(250,250,240,.95)'; ctx.beginPath(); for (let k = 0; k < 9; k++) { const a = k / 9 * 7, r = p.r * (k % 2 ? 0.55 : 1); ctx.lineTo(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r); } ctx.fill(); ctx.fillStyle = 'rgba(120,120,100,.5)'; ctx.beginPath(); ctx.arc(p.x + 4, p.y + 3, p.r * 0.3, 0, 7); ctx.fill(); } },
+    tik(x, y) { const i = (fxS.poep || []).findIndex((p) => Math.hypot(p.x - x, p.y - y) < p.r + 10); if (i < 0) return false; fxS.poep.splice(i, 1); ruis(0.2, 'highpass', 2000, 0.06); return true; } },
+  deinen: { // 5 piratenschip: het schip deint en af en toe gaat er een kanon af
+    hoek: () => Math.sin(performance.now() / 1400) * 0.035,
+    teken(nu, top) { if (!fxS.volg) fxS.volg = nu + 9000; if (nu > fxS.volg) { fxS.volg = nu + kans(14000, 20000); fxS.boem = nu; const [x, y] = plekOpScherm(top); for (let k = 0; k < 5; k++) wolk(x + kans(-50, 50), y + kans(-20, 20), kans(35, 60), 'rgba(230,230,230,A)', 4000); snd(60, 0.6, 'sine', 0.3, 30); ruis(0.8, 'lowpass', 400, 0.2); }
+      tekenWolken(nu); },
+    schud: () => (fxS.boem && performance.now() - fxS.boem < 400 ? Math.sin(performance.now() / 20) * 6 : 0) },
+  stoom: { // 6 keuken: de stoom laat het scherm beslaan; elk voorwerp veegt een stuk schoon, een hint helemaal
+    start() { fxS.mist = 0; },
+    teken(nu, top) { const dt = fxS.t ? Math.min(1, (nu - fxS.t) / 1000) : 0; fxS.t = nu; fxS.mist = Math.min(1, fxS.mist + dt / 55);
+      if (Math.random() < 0.05) wolk(kans(0, innerWidth), innerHeight + 20, kans(40, 70), 'rgba(255,255,255,A)', 5000); tekenWolken(nu);
+      if (fxS.mist > 0.02) { const g = ctx.createLinearGradient(0, top, 0, innerHeight); g.addColorStop(0, `rgba(240,244,248,${fxS.mist * 0.85})`); g.addColorStop(0.5, `rgba(240,244,248,${fxS.mist * 0.45})`); g.addColorStop(1, `rgba(240,244,248,${fxS.mist * 0.7})`); ctx.fillStyle = g; ctx.fillRect(0, top, innerWidth, innerHeight - top); } },
+    vind() { fxS.mist = Math.max(0, fxS.mist - 0.3); }, hint() { fxS.mist = 0; } },
+  ballon: { // 7 kermis: ballonnen stijgen op; tik er een om hem te laten knallen
+    teken(nu, top) { fxS.b = fxS.b || []; if (Math.random() < 0.012 && fxS.b.length < 6) fxS.b.push({ x: kans(40, innerWidth - 40), y: innerHeight + 40, v: kans(0.8, 1.6), k: ['#e8384f', '#3a8ae8', '#ffd34d', '#3fae5a', '#e84ad8'][Math.floor(kans(0, 5))], d: kans(0, 7) });
+      for (const b of fxS.b) { b.y -= b.v; b.d += 0.03; const x = b.x + Math.sin(b.d) * 12; ctx.strokeStyle = '#555'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, b.y + 24); ctx.quadraticCurveTo(x + 8, b.y + 45, x, b.y + 70); ctx.stroke();
+        ctx.fillStyle = b.k; ctx.beginPath(); ctx.ellipse(x, b.y, 18, 23, 0, 0, 7); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(x - 6, b.y - 8, 4, 7, -0.4, 0, 7); ctx.fill(); b.sx = x; }
+      fxS.b = fxS.b.filter((b) => b.y > top - 80); },
+    tik(x, y) { const i = (fxS.b || []).findIndex((b) => Math.hypot(b.sx - x, b.y - y) < 24); if (i < 0) return false; const b = fxS.b.splice(i, 1)[0]; ruis(0.12, 'highpass', 1500, 0.2); scherven(b.sx, b.y); return true; } },
+  storing: { // 8 serverruimte: af en toe een storing, het beeld glitcht
+    teken(nu, top) { if (!fxS.volg) fxS.volg = nu + 8000; if (nu > fxS.volg) { fxS.volg = nu + kans(13000, 19000); fxS.glitch = nu; [0, 0.12, 0.24].forEach((w) => snd(kans(200, 1200), 0.08, 'square', 0.04, 0, w)); meld('⚠️ Storing! Heeft u hem al uit en aan gezet?'); }
+      if (fxS.glitch && nu - fxS.glitch < 1400) { const H = innerHeight - top; for (let k = 0; k < 7; k++) { const y = top + kans(0, H - 30), h = kans(8, 40), dx = kans(-40, 40); const sc = cv.height / innerHeight; ctx.drawImage(cv, 0, y * sc, cv.width, h * sc, dx, y, innerWidth, h); }
+        ctx.fillStyle = `rgba(${Math.random() < 0.5 ? '0,255,120' : '255,0,180'},.12)`; ctx.fillRect(0, top, innerWidth, innerHeight - top); } } },
+  mug: { // 9 camping: een zoemende mug; tik hem dood
+    teken(nu, top) { if (!fxS.mug && nu > (fxS.volg || 0)) fxS.mug = { t0: nu, a: kans(0, 7) };
+      const m = fxS.mug; if (!m) return; const t = (nu - m.t0) / 1000; m.x = innerWidth / 2 + Math.sin(t * 0.9 + m.a) * innerWidth * 0.35 + Math.sin(t * 3.1) * 40; m.y = top + (innerHeight - top) / 2 + Math.sin(t * 1.3) * (innerHeight - top) * 0.3 + Math.cos(t * 4.7) * 25;
+      ctx.fillStyle = 'rgba(255,255,255,.6)'; const w = Math.sin(nu / 15) * 4; ctx.beginPath(); ctx.ellipse(m.x - 5, m.y - 4 - w, 6, 3, -0.5, 0, 7); ctx.ellipse(m.x + 5, m.y - 4 - w, 6, 3, 0.5, 0, 7); ctx.fill();
+      ctx.fillStyle = '#222'; ctx.beginPath(); ctx.ellipse(m.x, m.y, 3, 6, 0, 0, 7); ctx.fill(); ctx.strokeStyle = '#222'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(m.x, m.y - 6); ctx.lineTo(m.x + 4, m.y - 12); ctx.stroke();
+      if (nu > (fxS.zoem || 0)) { fxS.zoem = nu + 2600; noot(kans(560, 620), 1.2, 'sawtooth', 0.012, 0, 1800, 0.3); } },
+    tik(x, y) { const m = fxS.mug; if (!m || Math.hypot(m.x - x, m.y - y) > 30) return false; fxS.mug = null; fxS.volg = performance.now() + kans(15000, 22000); ruis(0.1, 'lowpass', 800, 0.2); meld('Pets! 🦟 Die is weg (voorlopig…)'); return true; } },
+  hartslag: { // 11 ziekenhuis: hartslagmonitor; hoe langer je niets vindt, hoe sneller je hart klopt
+    start() { fxS.laatst = performance.now(); fxS.lijn = []; },
+    teken(nu, top) { const bpm = Math.min(170, 70 + (nu - fxS.laatst) / 1000 * 2.2), x0 = innerWidth - 200, y0 = innerHeight - 70;
+      if (nu > (fxS.slag || 0)) { fxS.slag = nu + 60000 / bpm; fxS.piek = nu; snd(1000, 0.07, 'sine', 0.035); }
+      const d = nu - (fxS.piek || 0), v = d < 60 ? -d / 2 : d < 120 ? -30 + (d - 60) : d < 160 ? 30 - (d - 120) * 0.75 : 0; fxS.lijn.push(v); if (fxS.lijn.length > 180) fxS.lijn.shift();
+      ctx.fillStyle = 'rgba(0,20,10,.8)'; ctx.fillRect(x0 - 8, y0 - 46, 196, 64); ctx.strokeStyle = '#3f6'; ctx.lineWidth = 2; ctx.beginPath(); fxS.lijn.forEach((v, i) => ctx.lineTo(x0 + i, y0 + v)); ctx.stroke();
+      ctx.font = 'bold 14px "Trebuchet MS",sans-serif'; ctx.textAlign = 'right'; ctx.fillStyle = bpm > 130 ? '#f55' : '#3f6'; ctx.fillText(`♥ ${Math.round(bpm)}`, x0 + 182, y0 - 28); },
+    vind() { fxS.laatst = performance.now(); } },
+  aap: { // 12 dierentuin: een aap pikt af en toe een vakje bovenin en brengt het later terug
+    start() { fxS.volg = performance.now() + 12000; },
+    teken(nu, top) { const balk = $('balk'); if (!fxS.aap && nu > fxS.volg) { const vol = [...balk.children].map((d, i) => i).filter((i) => actief[i]); if (vol.length) { const i = vol[Math.floor(kans(0, vol.length))], r = balk.children[i].getBoundingClientRect(); fxS.aap = { i, x: -40, doel: r.left + r.width / 2, y: r.bottom + 18, fase: 0, t: nu }; } else fxS.volg = nu + 5000; }
+      const a = fxS.aap; if (!a) return; const d = balk.children[a.i];
+      if (a.fase == 0) { a.x += 9; if (a.x >= a.doel) { a.fase = 1; d.style.visibility = 'hidden'; noot(700, 0.12, 'square', 0.04); noot(900, 0.12, 'square', 0.04, 0.12); meld('🐒 Hé! De aap heeft een vakje gepikt!'); } }
+      else if (a.fase == 1) { a.x += 9; if (a.x > innerWidth + 50) { a.fase = 2; a.t = nu + 7000; } }
+      else if (a.fase == 2 && nu > a.t) { d.style.visibility = ''; fxS.aap = null; fxS.volg = nu + kans(22000, 32000); meld('🐒 De aap brengt het vakje terug.'); return; }
+      if (a.fase < 2) { ctx.font = '36px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🐒', a.x, a.y + 10 + Math.abs(Math.sin(nu / 80)) * -6); if (a.fase == 1) { ctx.fillStyle = '#fff8e8'; ctx.fillRect(a.x + 12, a.y - 18, 26, 22); } } },
+    stop() { if (fxS.aap) { const d = $('balk').children[fxS.aap.i]; if (d) d.style.visibility = ''; } } },
+  proppen: { // 13 school: papierproppen vliegen door de klas, en de schoolbel
+    start() { snd(1200, 0.6, 'square', 0.02); snd(1200, 0.6, 'square', 0.02, 0.7); },
+    teken(nu, top) { fxS.p = fxS.p || []; if (nu > (fxS.volg || 0)) { fxS.volg = nu + kans(5000, 10000); const l = Math.random() < 0.5; fxS.p.push({ x: l ? -20 : innerWidth + 20, y: kans(top + 100, innerHeight - 50), vx: (l ? 1 : -1) * kans(7, 11), vy: kans(-9, -5), r: kans(0, 7) }); ruis(0.1, 'highpass', 4000, 0.04); }
+      for (const p of fxS.p) { p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.r += 0.2; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = '#f4f4f0'; ctx.strokeStyle = '#999'; ctx.beginPath(); for (let k = 0; k < 8; k++) { const a = k / 8 * 7, r = k % 2 ? 9 : 13; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+      fxS.p = fxS.p.filter((p) => p.y < innerHeight + 30); },
+    klaar() { snd(1200, 0.8, 'square', 0.025); } },
+  vliegtuig: { // 14 vliegveld: een vliegtuig dondert laag over en het scherm trilt; de omroep roept Sjaak om
+    teken(nu, top) { if (!fxS.volg) fxS.volg = nu + 10000; if (nu > fxS.volg) { fxS.volg = nu + kans(18000, 26000); fxS.t0 = nu; ruis(3.5, 'lowpass', 250, 0.22); noot(150, 3, 'sawtooth', 0.02, 0, 400, 1); if (Math.random() < 0.5) { noot(660, 0.4, 'sine', 0.05, 3.6); noot(523, 0.6, 'sine', 0.05, 4); setTimeout(() => meld('📢 Laatste oproep voor passagier Sjaak naar Las Vegas…', 4000), 3600); } }
+      const t = fxS.t0 ? (nu - fxS.t0) / 3500 : 2; if (t > 1) return; const x = -300 + t * (innerWidth + 600), y = top + 40 + t * 60;
+      ctx.save(); ctx.translate(x, y); ctx.fillStyle = 'rgba(40,40,60,.85)'; ctx.beginPath(); ctx.ellipse(0, 0, 170, 26, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(40, -110); ctx.lineTo(80, -110); ctx.lineTo(50, 0); ctx.moveTo(-30, 0); ctx.lineTo(40, 110); ctx.lineTo(80, 110); ctx.lineTo(50, 0); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-150, -5); ctx.lineTo(-180, -70); ctx.lineTo(-140, -70); ctx.lineTo(-110, -5); ctx.fill(); ctx.restore(); },
+    schud: () => { const t = fxS.t0 ? (performance.now() - fxS.t0) / 3500 : 2; return t > 0.25 && t < 0.75 ? Math.sin(performance.now() / 18) * 4 : 0; } },
+  flits: { // 15 fotoshoot: overal flitsen de camera's
+    teken(nu, top) { if (nu > (fxS.volg || 0)) { fxS.volg = nu + kans(2500, 6000); const [x, y] = plekOpScherm(top); fxS.f = { x, y, t: nu }; snd(2500, 0.03, 'square', 0.03); ruis(0.08, 'highpass', 5000, 0.05, 0.02); }
+      const f = fxS.f; if (f) { const a = 1 - (nu - f.t) / 350; if (a <= 0) return; const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 260); g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(f.x - 260, f.y - 260, 520, 520); } } },
+  kruit: { // 16 Nachtwacht: de schutters vuren hun musketten af, met kruitdamp
+    teken(nu, top) { if (!fxS.volg) fxS.volg = nu + 7000; if (nu > fxS.volg) { fxS.volg = nu + kans(11000, 17000); const [x, y] = plekOpScherm(top); for (let k = 0; k < 6; k++) wolk(x + kans(-70, 70), y + kans(-25, 25), kans(35, 60), 'rgba(215,210,195,A)', 4500); ruis(0.4, 'lowpass', 700, 0.25); snd(90, 0.3, 'sine', 0.2, 40); meld(['Pang! 💥', 'Vuur!', 'Stilstaan, iedereen!'][Math.floor(kans(0, 3))]); }
+      tekenWolken(nu); } },
+  bellen: { // 17 onderwaterstadje: luchtbellen borrelen omhoog
+    teken(nu, top) { fxS.b = fxS.b || []; if (Math.random() < 0.25) fxS.b.push({ x: kans(0, innerWidth), y: innerHeight + 10, r: kans(3, 12), v: kans(1, 2.5), d: kans(0, 7) });
+      ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.5; for (const b of fxS.b) { b.y -= b.v; b.d += 0.05; const x = b.x + Math.sin(b.d) * 6; ctx.beginPath(); ctx.arc(x, b.y, b.r, 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(x - b.r * 0.35, b.y - b.r * 0.35, b.r * 0.25, 0, 7); ctx.fill(); }
+      fxS.b = fxS.b.filter((b) => b.y > top - 20); if (nu > (fxS.blub || 0)) { fxS.blub = nu + kans(3000, 6000); [0, 0.1, 0.2].forEach((w) => snd(kans(300, 600), 0.08, 'sine', 0.03, kans(500, 900), w)); } } },
+  kassa: { // 18 supermarkt: piep bij elk voorwerp en de omroep
+    vind() { snd(1850, 0.12, 'square', 0.035); return true; },
+    teken(nu) { if (!fxS.volg) fxS.volg = nu + 12000; if (nu > fxS.volg) { fxS.volg = nu + kans(20000, 30000); noot(784, 0.4, 'sine', 0.05); noot(659, 0.4, 'sine', 0.05, 0.35); noot(523, 0.6, 'sine', 0.05, 0.7); meld(['📢 Kassa 3 graag!', '📢 Een collega naar de groente-afdeling a.u.b.', '📢 Wie heeft er een zilveren oldtimer op de parkeerplaats?'][Math.floor(kans(0, 3))], 3500); } } },
+  darts: { // 19 bruin café: dartpijlen ploffen in het scherm
+    teken(nu, top) { fxS.p = fxS.p || []; if (nu > (fxS.volg || 0)) { fxS.volg = nu + kans(7000, 12000); const [x, y] = plekOpScherm(top); fxS.p.push({ x, y, t: nu }); ruis(0.06, 'lowpass', 1200, 0.25); snd(180, 0.1, 'sine', 0.1, 90); if (Math.random() < 0.4) meld(['🎯 Bullseye!', '🎯 Honderdtachtig!', '🎯 Mis, de muur in…'][Math.floor(kans(0, 3))]); }
+      fxS.p = fxS.p.filter((p) => nu - p.t < 6000);
+      for (const p of fxS.p) { const z = Math.min(1, (nu - p.t) / 120); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(-0.6); ctx.scale(0.6 + 0.4 * z, 0.6 + 0.4 * z); ctx.fillStyle = '#333'; ctx.fillRect(0, -2, 34, 4); ctx.fillStyle = '#c33'; ctx.fillRect(10, -3, 12, 6);
+        ctx.fillStyle = '#3a8ae8'; ctx.beginPath(); ctx.moveTo(30, 0); ctx.lineTo(46, -9); ctx.lineTo(44, 0); ctx.lineTo(46, 9); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#ccc'; ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(-10, 0); ctx.lineTo(0, 2); ctx.fill(); ctx.restore();
+        ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 7); ctx.fill(); } } },
+};
 let lamp = null; // spookslot: waar de zaklamp schijnt (schermpixels); volgt de muis of je vinger
 let autoGevonden = false, autoMelding = 0, sjaakGevonden = false, sjaakMelding = 0, gekozen = -1, melding = null; // gekozen: welk vakje bovenin je hebt aangetikt
 let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, totaal = 25, start = 0, hints = 0, hintKlaar = 0, hintPuls = null, effecten = [];
 // achter/voor/items: tekening en voorwerpen van een getekend level; auto: waar de zilveren oldtimer staat [x, y, schaal, draai]
 const LEVELS = [
-  { id: 'kamer', naam: 'De rommelkamer', uitleg: 'Een kamer vol troep', beeld: 'zoek/rommelkamer.jpg', items: KAMER_BEELD, auto: [222, 280, 333, 320], sjaak: [680, 565, 862, 765] },
+  { id: 'kamer', naam: 'De rommelkamer', uitleg: 'Een kamer vol troep', beeld: 'zoek/rommelkamer.jpg', items: KAMER_BEELD, auto: [222, 280, 333, 320], sjaak: [680, 565, 862, 765], fx: 'stof' },
   // reserve, de getekende versie: { id: 'kamer', ..., achter: () => kamerAchter(), voor: () => kamerVoor(), items: STRIP, w: KW, h: KH, auto: [1040, 772, 0.5, 0] },
-  { id: 'post', naam: 'Het postkantoor', uitleg: 'Druk, druk, druk bij de loketten', beeld: 'zoek/postkantoor.jpg', items: POST_BEELD, auto: [252, 639, 322, 676, 277, 711, 345, 744], sjaak: [1118, 486, 1340, 640, 1180, 612, 1300, 756] },
+  { id: 'post', naam: 'Het postkantoor', uitleg: 'Druk, druk, druk bij de loketten', beeld: 'zoek/postkantoor.jpg', items: POST_BEELD, auto: [252, 639, 322, 676, 277, 711, 345, 744], sjaak: [1118, 486, 1340, 640, 1180, 612, 1300, 756], fx: 'post' },
   // reserve, de getekende versie: { id: 'post', ..., achter: () => postAchter(), voor: () => postVoor(), items: POST, w: PW, h: PH, auto: [120, 138, 0.5, 0] },
-  { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', beeld: 'zoek/orkest.jpg', items: ORKEST_BEELD, auto: [1323, 637, 1376, 674], sjaak: [612, 116, 676, 196], sjaakTekst: 'Gezocht! Zelfs op het grote scherm hangt zijn opsporingsbericht.' },
+  { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', beeld: 'zoek/orkest.jpg', items: ORKEST_BEELD, auto: [1323, 637, 1376, 674], sjaak: [612, 116, 676, 196], sjaakTekst: 'Gezocht! Zelfs op het grote scherm hangt zijn opsporingsbericht.', fx: 'melodie' },
   // reserve, de getekende versie: { id: 'orkest', ..., achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
-  { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', beeld: 'zoek/strand.jpg', items: STRAND_BEELD, autoBeeld: 'zoek/oldtimer.png', auto: [40, 316, 86, 337], sjaak: [684, 198, 728, 252], sjaakTekst: 'Gezocht! De strandwacht houdt een oogje in het zeil.' },
+  { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', beeld: 'zoek/strand.jpg', items: STRAND_BEELD, autoBeeld: 'zoek/oldtimer.png', auto: [40, 316, 86, 337], sjaak: [684, 198, 728, 252], sjaakTekst: 'Gezocht! De strandwacht houdt een oogje in het zeil.', fx: 'meeuw' },
   // reserve, de getekende versie: { id: 'strand', ..., achter: () => strandAchter(), voor: () => strandVoor(), items: STRAND, w: SW, h: SH, auto: [560, 548, 0.5, 0.1] },
-  { id: 'schip', naam: 'Het piratenschip', uitleg: 'Ahoy! Wat hebben die piraten allemaal verstopt?', beeld: 'zoek/piratenschip.jpg', items: SCHIP_BEELD, auto: [160, 197, 395, 270], sjaak: [638, 395, 732, 512] },
+  { id: 'schip', naam: 'Het piratenschip', uitleg: 'Ahoy! Wat hebben die piraten allemaal verstopt?', beeld: 'zoek/piratenschip.jpg', items: SCHIP_BEELD, auto: [160, 197, 395, 270], sjaak: [638, 395, 732, 512], fx: 'deinen' },
   // reserve, de getekende versie: { id: 'schip', ..., achter: () => schipAchter(), voor: () => schipVoor(), items: SCHIP, w: ZW, h: ZH, auto: [1000, 1250, 0.5, 0] },
-  { id: 'keuken', naam: 'De restaurantkeuken', uitleg: 'Vuur, schuim en een kat met een vis', beeld: 'zoek/keuken.jpg', items: KEUKEN_BEELD, auto: [888, 659, 1025, 756], sjaak: [580, 545, 770, 768] },
-  { id: 'kermis', naam: 'De kermis', uitleg: 'Botsauto’s, oliebollen en een reuzenteddybeer', beeld: 'zoek/kermis.jpg', items: KERMIS_BEELD, auto: [405, 302, 518, 355], sjaak: [953, 516, 1051, 666] },
-  { id: 'server', naam: 'De serverruimte', uitleg: 'Heeft u hem al uit en aan gezet?', beeld: 'zoek/serverruimte.jpg', items: SERVER_BEELD, auto: [375, 60, 585, 140], sjaak: [1038, 277, 1150, 400] },
-  { id: 'camping', naam: 'De camping', uitleg: 'Tentjes, caravans en een barbecue die te hard rookt', beeld: 'zoek/camping.jpg', items: CAMPING_BEELD, auto: [455, 50, 680, 145], sjaak: [128, 590, 225, 768, 200, 135, 230, 180, 37, 664, 68, 709] },
+  { id: 'keuken', naam: 'De restaurantkeuken', uitleg: 'Vuur, schuim en een kat met een vis', beeld: 'zoek/keuken.jpg', items: KEUKEN_BEELD, auto: [888, 659, 1025, 756], sjaak: [580, 545, 770, 768], fx: 'stoom' },
+  { id: 'kermis', naam: 'De kermis', uitleg: 'Botsauto’s, oliebollen en een reuzenteddybeer', beeld: 'zoek/kermis.jpg', items: KERMIS_BEELD, auto: [405, 302, 518, 355], sjaak: [953, 516, 1051, 666], fx: 'ballon' },
+  { id: 'server', naam: 'De serverruimte', uitleg: 'Heeft u hem al uit en aan gezet?', beeld: 'zoek/serverruimte.jpg', items: SERVER_BEELD, auto: [375, 60, 585, 140], sjaak: [1038, 277, 1150, 400], fx: 'storing' },
+  { id: 'camping', naam: 'De camping', uitleg: 'Tentjes, caravans en een barbecue die te hard rookt', beeld: 'zoek/camping.jpg', items: CAMPING_BEELD, auto: [455, 50, 680, 145], sjaak: [128, 590, 225, 768, 200, 135, 230, 180, 37, 664, 68, 709], fx: 'mug' },
   { id: 'spook', naam: 'Het spookslot', uitleg: 'Het is donker… schijn met je zaklamp!', beeld: 'zoek/spookslot.jpg', items: SPOOK_BEELD, auto: [252, 52, 475, 148], sjaak: [1140, 536, 1255, 758], zaklamp: 1 },
-  { id: 'ziekenhuis', naam: 'Het ziekenhuis', uitleg: 'Beterschap! Maar eerst zoeken', beeld: 'zoek/ziekenhuis.jpg', items: ZIEKENHUIS_BEELD, auto: [395, 80, 490, 112], sjaak: [1080, 295, 1140, 475, 1193, 549, 1226, 574] },
-  { id: 'dieren', naam: 'De dierentuin', uitleg: 'Niet voeren! Wel zoeken', beeld: 'zoek/dierentuin.jpg', items: DIERENTUIN_BEELD, auto: [515, 50, 675, 115], sjaak: [818, 425, 865, 500] },
-  { id: 'school', naam: 'De school', uitleg: 'Stilte: proefwerk!', beeld: 'zoek/school.jpg', items: SCHOOL_BEELD, auto: [628, 700, 800, 768], sjaak: [540, 455, 615, 635] },
-  { id: 'vlieg', naam: 'Het vliegveld', uitleg: 'Je vliegtuig vertrekt bijna!', beeld: 'zoek/vliegveld.jpg', items: VLIEGVELD_BEELD, auto: [1238, 468, 1286, 512], sjaak: [1275, 584, 1355, 750] },
-  { id: 'foto', naam: 'De fotoshoot', uitleg: 'Glamour, glitter en een wegwaaiende pruik', beeld: 'zoek/fotoshoot.jpg', items: FOTOSHOOT_BEELD, auto: [975, 150, 1205, 280], sjaak: [1243, 105, 1330, 300] },
-  { id: 'nachtwacht', naam: 'De Nachtwacht', uitleg: 'Rembrandt, maar dan anders: stilstaan, iedereen!', beeld: 'zoek/nachtwacht.jpg', items: NACHTWACHT_BEELD, auto: [1178, 383, 1300, 442], sjaak: [585, 392, 655, 600] },
-  { id: 'onderwater', naam: 'Het onderwaterstadje', uitleg: 'Blub! Een heel dorp op de zeebodem', beeld: 'zoek/onderwater.jpg', items: ONDERWATER_BEELD, auto: [630, 168, 760, 218], sjaak: [1190, 85, 1350, 290] },
-  { id: 'supermarkt', naam: 'De supermarkt', uitleg: 'Zaterdagmiddag, kassa 3 gesloten', beeld: 'zoek/supermarkt.jpg', items: SUPERMARKT_BEELD, auto: [700, 60, 775, 96, 700, 108, 790, 146], sjaak: [715, 325, 832, 445] },
-  { id: 'cafe', naam: 'Het bruine café', uitleg: 'Biljart, darts en een biertje met veel schuim', beeld: 'zoek/cafe.jpg', items: CAFE_BEELD, auto: [198, 262, 262, 288], sjaak: [98, 470, 245, 735] },
+  { id: 'ziekenhuis', naam: 'Het ziekenhuis', uitleg: 'Beterschap! Maar eerst zoeken', beeld: 'zoek/ziekenhuis.jpg', items: ZIEKENHUIS_BEELD, auto: [395, 80, 490, 112], sjaak: [1080, 295, 1140, 475, 1193, 549, 1226, 574], fx: 'hartslag' },
+  { id: 'dieren', naam: 'De dierentuin', uitleg: 'Niet voeren! Wel zoeken', beeld: 'zoek/dierentuin.jpg', items: DIERENTUIN_BEELD, auto: [515, 50, 675, 115], sjaak: [818, 425, 865, 500], fx: 'aap' },
+  { id: 'school', naam: 'De school', uitleg: 'Stilte: proefwerk!', beeld: 'zoek/school.jpg', items: SCHOOL_BEELD, auto: [628, 700, 800, 768], sjaak: [540, 455, 615, 635], fx: 'proppen' },
+  { id: 'vlieg', naam: 'Het vliegveld', uitleg: 'Je vliegtuig vertrekt bijna!', beeld: 'zoek/vliegveld.jpg', items: VLIEGVELD_BEELD, auto: [1238, 468, 1286, 512], sjaak: [1275, 584, 1355, 750], fx: 'vliegtuig' },
+  { id: 'foto', naam: 'De fotoshoot', uitleg: 'Glamour, glitter en een wegwaaiende pruik', beeld: 'zoek/fotoshoot.jpg', items: FOTOSHOOT_BEELD, auto: [975, 150, 1205, 280], sjaak: [1243, 105, 1330, 300], fx: 'flits' },
+  { id: 'nachtwacht', naam: 'De Nachtwacht', uitleg: 'Rembrandt, maar dan anders: stilstaan, iedereen!', beeld: 'zoek/nachtwacht.jpg', items: NACHTWACHT_BEELD, auto: [1178, 383, 1300, 442], sjaak: [585, 392, 655, 600], fx: 'kruit' },
+  { id: 'onderwater', naam: 'Het onderwaterstadje', uitleg: 'Blub! Een heel dorp op de zeebodem', beeld: 'zoek/onderwater.jpg', items: ONDERWATER_BEELD, auto: [630, 168, 760, 218], sjaak: [1190, 85, 1350, 290], fx: 'bellen' },
+  { id: 'supermarkt', naam: 'De supermarkt', uitleg: 'Zaterdagmiddag, kassa 3 gesloten', beeld: 'zoek/supermarkt.jpg', items: SUPERMARKT_BEELD, auto: [700, 60, 775, 96, 700, 108, 790, 146], sjaak: [715, 325, 832, 445], fx: 'kassa' },
+  { id: 'cafe', naam: 'Het bruine café', uitleg: 'Biljart, darts en een biertje met veel schuim', beeld: 'zoek/cafe.jpg', items: CAFE_BEELD, auto: [198, 262, 262, 288], sjaak: [98, 470, 245, 735], fx: 'darts' },
   { id: 'ruimte', naam: 'Het ruimtestation', uitleg: 'Alles draait en je zuurstof raakt op!', beeld: 'zoek/ruimte.jpg', items: RUIMTE_BEELD, auto: [688, 155, 775, 195], sjaak: [690, 550, 770, 718], ruimte: 1 },
   { id: 'hockey', naam: 'De hockeywedstrijd', uitleg: 'Hup de meiden! En wie heeft de bal gepikt?', beeld: 'zoek/hockey.jpg', items: HOCKEY_BEELD, auto: [13, 13, 173, 73], sjaak: [1094, 116, 1134, 168, 1266, 216, 1354, 334] },
   { id: 'herfst', naam: 'De herfststorm', uitleg: 'Boom om, paraplu weg, en pas op voor de windvlagen!', beeld: 'zoek/herfst.jpg', storm: 1, items: HERFST_BEELD, auto: [713, 162, 794, 196], sjaak: [698, 555, 765, 735, 827, 592, 866, 662] },
@@ -1856,7 +1969,7 @@ function startLevel(n) {
   // heeft een plaatje meer voorwerpen dan PER_POTJE, dan is elk potje anders
   rij = schud(voorwerpen()).slice(0, PER_POTJE); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
-  lamp = null; blad = []; vlaag = 0; wegrijden = 0; orkGolf = 0; orkVolgende = 0; vleer = []; vleerVolgende = 0; flits = 0; babelTaal = []; babelWissel = performance.now() + 4000; water = 0; waterTijd = 0; dronk = 0; slaap = 0; slaapTijd = 0; snurk = 0; bromAl = 0; laatsteWapen = null; bromN = level.onderdelen ? [...actief, ...rij].filter((v) => level.onderdelen.includes(v.naam)).length : 0; sneeuw = []; bui = 0; buiTot = 0; ijs = 0; ijsTijd = 0; zuurstof = 100; autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
+  lamp = null; if (fx().stop) fx().stop(); fxS = {}; if (fx().start) fx().start(); blad = []; vlaag = 0; wegrijden = 0; orkGolf = 0; orkVolgende = 0; vleer = []; vleerVolgende = 0; flits = 0; babelTaal = []; babelWissel = performance.now() + 4000; water = 0; waterTijd = 0; dronk = 0; slaap = 0; slaapTijd = 0; snurk = 0; bromAl = 0; laatsteWapen = null; bromN = level.onderdelen ? [...actief, ...rij].filter((v) => level.onderdelen.includes(v.naam)).length : 0; sneeuw = []; bui = 0; buiTot = 0; ijs = 0; ijsTijd = 0; zuurstof = 100; autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
   $('titel').textContent = 'Level ' + level.label + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
   vulBalk(); maat.klaar = false; maat(); start = performance.now();
 }
@@ -1878,6 +1991,7 @@ function kiesVak(i) { gekozen = i; [...$('balk').children].forEach((d, j) => d.c
 function meld(tekst, duur = 1600) { melding = { tekst, t: performance.now(), duur }; }
 function tik(sx, sy) {
   if (!level || !$('klaar').hidden) return;
+  if (fx().tik && fx().tik(sx, sy)) return; // tik voor het effect (meeuwenpoep, ballon, mug)
   const [x, y] = naarWereld(sx, sy), m = 14 / zoom;
   const raak = actief.findIndex((v) => v && v.raak(x, y, m));
   if (raak >= 0) { vind(raak); return; }
@@ -1896,7 +2010,7 @@ function tik(sx, sy) {
   if (later) meld('Goed gezien, maar die zoeken we nu nog niet!');
 }
 // ruimtestation: het plaatje draait langzaam rond zijn midden (een rondje in 3 minuten)
-const draaiHoek = () => (level && level.ruimte && start ? (performance.now() - start) / 180000 * Math.PI * 2 : wiebel());
+const draaiHoek = () => (level && level.ruimte && start ? (performance.now() - start) / 180000 * Math.PI * 2 : wiebel() + (fx().hoek ? fx().hoek() : 0));
 function naarScherm(x, y) { const a = draaiHoek(), cx = BW / 2, cy = BH / 2, dx = x - cx, dy = y - cy; return [ox + (cx + dx * Math.cos(a) - dy * Math.sin(a)) * zoom, oy + (cy + dx * Math.sin(a) + dy * Math.cos(a)) * zoom]; }
 function naarWereld(sx, sy) { const a = -draaiHoek(), cx = BW / 2, cy = BH / 2, dx = (sx - ox) / zoom - cx, dy = (sy - oy) / zoom - cy; return [cx + dx * Math.cos(a) - dy * Math.sin(a), cy + dx * Math.sin(a) + dy * Math.cos(a)]; }
 // vakjes [x1, y1, x2, y2, (nog een vakje)...]: geeft het vakje terug waar (x, y) in valt
@@ -1906,7 +2020,7 @@ const rondje = ([a, c, d, e]) => ({ midden: [(a + d) / 2, (c + e) / 2], r: Math.
 function vind(i) {
   kiesVak(-1);
   const v = actief[i]; actief[i] = null; v.gevonden = true; gevondenLijst.push(v); gevonden++;
-  const g = level.geluid && INSTRUMENT[level.geluid[v.naam]]; if (g) g(); else if (!level.opa) sGevonden();
+  const g = level.geluid && INSTRUMENT[level.geluid[v.naam]], eigen = fx().vind && fx().vind(v); if (g) g(); else if (!level.opa && !eigen) sGevonden();
   if (level.bier && level.bier.includes(v.naam)) { dronk = Math.min(6, dronk + 1); meld(['Proost! 🍺', 'Nog eentje dan… 🍻', 'Het draait een beetje… 🍺', 'Hik! 🍺'][Math.min(3, dronk - 1)]); }
   if (level.koffie == v.naam && dronk) { dronk = 0; meld('☕ Sterke koffie: weer helemaal nuchter!'); }
   if (level.slaap) slaap = Math.max(0, slaap - 0.35);
@@ -1938,6 +2052,7 @@ function klaar() {
   const s = Math.round((performance.now() - start) / 1000), n = level.nr, stand = s + hints * HINT_STRAF;
   const best = +(opslag.get('zoek_tijd_' + level.id) || 0); if (!best || stand < best) opslag.set('zoek_tijd_' + level.id, stand);
   if (level.bouw) { wegrijden = performance.now(); sToet(); }
+  if (fx().stop) fx().stop(); if (fx().klaar) fx().klaar();
   if (level.onderdelen) sBrommer(true); else if (level.wapens) sDader(); else sKlaar(); for (let k = 0; k < 60; k++) effecten.push({ soort: 'confetti', x: Math.random() * innerWidth, y: -20 - Math.random() * 200, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3, k: ['#ffd34d', '#e8384f', '#3fae5a', '#3a8ae8', '#e84ad8'][k % 5], t: 0, scherm: true });
   $('klaartekst').innerHTML = `Je vond alle ${totaal} ${level.wat || 'spullen'} in <b>${tijd(s)}</b>` + (hints ? ` met ${hints} hint${hints > 1 ? 's' : ''} (+${hints * HINT_STRAF} s), dat wordt <b>${tijd(stand)}</b>` : '') + '.'
     + (autoGevonden ? '<br>🚗 En de oldtimer had je ook gevonden!' : '<br>🚗 Maar de zilveren oldtimer heb je gemist…')
@@ -1956,6 +2071,7 @@ $('hint').onclick = () => {
   const v = kies[Math.floor(Math.random() * kies.length)]; hints++; hintKlaar = performance.now() + 15000;
   hintPuls = { v, t: 0 }; kiesVak(actief.indexOf(v));
   if (level.slaap) slaap = 0;
+  if (fx().hint) fx().hint();
   if (level.water) water = 0;
   if (level.talen) { const k = actief.indexOf(v); babelTaal[k] = 'nl'; zetVak(k); kiesVak(k); }
   if (level.winter && ijs > 0.05) { ijs = 0; snd(2400, 0.3, 'triangle', 0.035, 3800); } // een hint krabt ook de hele ruit schoon
@@ -2010,6 +2126,7 @@ function teken() {
   if (level && level.talen && $('klaar').hidden) babel();
   if (level && level.water && $('klaar').hidden) tekenWater();
   if (level && level.bouw) tekenBouw();
+  if (level && level.fx && $('klaar').hidden && fx().teken) fx().teken(performance.now(), $('boven').offsetHeight);
   for (const e of effecten) if (e.scherm) { e.t++; e.vy += e.zw || 0; e.x += e.vx; e.y += e.vy; ctx.fillStyle = e.k; ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.t * 0.1); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); }
   if (autoMelding && performance.now() - autoMelding < 2600) { const tx = innerWidth / 2, ty = innerHeight * 0.55; ctx.font = 'bold 22px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(42,31,58,.9)'; ctx.fillRect(tx - 170, ty - 34, 340, 62); ctx.fillStyle = '#ffd34d'; ctx.fillText('🚗 Oh jee, daar is hij weer!', tx, ty); ctx.font = 'bold 13px "Trebuchet MS",sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('Je vond de zilveren oldtimer', tx, ty + 20); }
