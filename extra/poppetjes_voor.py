@@ -18,6 +18,8 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
                   beenschaal=0.62, achter=(8, 6), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),
   'toerist': dict(voor='pizza/toerist-onderdelen-chatgpt.png', benen='pizza/toerist-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(3, 4), been=(5,),
                   beenschaal=1.0, achter=(7,), paar=0.36, kapjes=(205, 35, 35)),  # ChatGPT tekende de benen per paar: onder de broekspijpen afknippen en doormidden
+  'studente': dict(voor='pizza/studente-onderdelen-chatgpt.png', benen='pizza/studente-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 3), been=(5, 6),
+                   beenschaal=0.95, achter=(7, 8)),
   'chinese2': dict(voor='pizza/chinese2-onderdelen-chatgpt.png', benen='pizza/chinese2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
                    beenschaal=0.62, achter=(7, 8), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),  # tweede versie: de helft van de Chinese dames  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }

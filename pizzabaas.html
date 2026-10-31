@@ -2993,7 +2993,7 @@ function figuur(img, p, bijzonder, rug, achter, vel) {
 // rijen: 0 werker (pizza/werker2-gemini.jpg), 1 student (student2), 2 villadame, 3 Afrikaanse man (afrikaan), 4 Chinese dame (dame-china2), 5 Chinese toerist (toerist),
 // 6 opa (opa2), 7 studente, 8 Afrikaanse vrouw (afrikaanse-vrouw), 9 zakenman, 10 oma (oma2)
 const KLANTEN = new Image(); KLANTEN.src = 'pizza/klanten.png';
-const VOORLOOP = { 0: [18, 19, 20, 21], 1: [18, 19, 20, 21], 2: [18, 19, 20, 21], 3: [18, 19, 20, 21], 4: [[18, 19, 20, 21], [22, 23, 24, 25]], 5: [18, 19, 20, 21], 6: [18, 19, 20, 21], 10: [18, 19, 20, 21] }; // vakjes 18-21: lopen naar de kijker toe (uit extra/poppetjes_generator.py en extra/poppetjes_voor.py); nu opa en oma
+const VOORLOOP = { 0: [18, 19, 20, 21], 1: [18, 19, 20, 21], 2: [18, 19, 20, 21], 3: [18, 19, 20, 21], 4: [[18, 19, 20, 21], [22, 23, 24, 25]], 5: [18, 19, 20, 21], 6: [18, 19, 20, 21], 7: [18, 19, 20, 21], 10: [18, 19, 20, 21] }; // vakjes 18-21: lopen naar de kijker toe (uit extra/poppetjes_generator.py en extra/poppetjes_voor.py); nu opa en oma
 const KLANTVEL = (rij, m) => { const vl = VOORLOOP[rij], twee = vl && Array.isArray(vl[0]); // twee versies (Chinese dame): per klant vast gekozen
   return { rij, staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], voorLoop: twee ? vl[m && m.versie != null ? m.versie : (m ? (m.versie = Math.random() < 0.5 ? 0 : 1) : 0)] : vl, fps: 9 }; };
 const FIGUREN = { werker: [0, 0, 3], student: [1, 7], villa: [2, 9], toerist: [5, 4, 3, 8], opa: [6, 10] };
