@@ -659,6 +659,7 @@ function openDeuren() {
   if (S.dicht) { tel = NIEUWTEL(); tel.dicht = S.dicht; S.dicht = null; mensen = []; eindeDag(); return; } // vandaag blijft de zaak dicht
   modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
   tel = NIEUWTEL(); bezet = null; belZ = null; startVoorraad();
+
   { const dicht = S.spullen.filter((c) => c.t == 'stoel' && !stoelBereik(c)).length; if (dicht) setTimeout(() => meld(!toonbankVrij() ? '🚧 De obers kunnen niet weg bij de toonbank: alles ervoor staat vol. Laat een looppad vrij van de toonbank naar de deur!' : `🚧 Bij ${dicht} stoel${dicht > 1 ? 'en' : ''} kan niemand komen: daar gaat niemand zitten. Laat een looppad vrij vanaf de deur!`, 6000), 1200); } // de inrichting kan veranderd zijn: looproutes opnieuw
   bezoeker = null; vlekken = []; rat = null; vandaag = VANDAAG(); vandaag.trend = S.trendMorgen || null; S.trendMorgen = null; if (vandaag.trend) setTimeout(() => meld(`📈 Trend van vandaag: ${TREND[vandaag.trend].ik} ${TREND[vandaag.trend].n}! ${TREND[vandaag.trend].tekst}`, 4500), 600); if (S.morgen) { Object.assign(vandaag, S.morgen); S.morgen = null; } planVragen();
   if (S.bonnen && S.bonnen.tot >= S.dag) { vandaag.aankomst *= 1 + 0.4 * S.bonnen.q; if (kans(0.12 + (1 - S.bonnen.q) * 0.4)) S.verplicht = [...(S.verplicht || []), 'luigiBoos']; } // valse bonnen
@@ -674,6 +675,9 @@ function openDeuren() {
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen(); wegLog = [];
   if (S.manager && MANAGER[S.manager.wie].fooi) vandaag.fooi *= MANAGER[S.manager.wie].fooi; // Bruno: de klanten zijn dol op hem
+  if (S.dag >= 8 && S.rep >= 30 && !(S.schepDag > S.dag - 10) && (S.scheppen || 0) < 3 && kans(0.15)) { vandaag.incognito = 'komt'; S.schepDag = S.dag; // Gouden Pizzaschep
+    setTimeout(() => meld('🕵️ Gerucht in de stad: vandaag eet er een recensent van de Gouden Pizzaschep in je zaak. Incognito! Behandel iedereen als een koning…', 6000), 2600); }
+  if (S.scheppen) vandaag.aankomst *= 1 + 0.06 * S.scheppen; // bordje Gouden Pizzaschep aan de deur
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
 function eindeDag() {
@@ -726,6 +730,7 @@ function eindeDag() {
       ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
     </table>
     ${S.trendMorgen ? `<p class="buurt" style="background:#fff3c4;border-radius:8px;padding:6px 8px">📈 <b>Trend van morgen: ${TREND[S.trendMorgen].ik} ${TREND[S.trendMorgen].n}.</b> ${esc(TREND[S.trendMorgen].tekst)} ${S.menu.some((p) => TREND[S.trendMorgen].ok(p)) ? `Op je kaart: ${S.menu.filter((p) => TREND[S.trendMorgen].ok(p)).map((p) => esc(p.naam)).join(', ')}.` : 'Je hebt er nog geen pizza voor: verzin er een (📖 Pizza\'s)!'}</p>` : ''}
+    ${schepUitslag()}
     <p>${tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
       : tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
     <p style="margin:10px 0 2px"><b>🏆 Waarde van je pizzeria: € ${waarde}</b>${waarde >= (S.waardeBest || 0) ? ' (record!)' : ` (record € ${S.waardeBest})`}</p><div id="dagbord" class="buurt" style="text-align:left"></div><div id="dagbord2" class="buurt" style="text-align:left;margin-top:4px"></div>
@@ -2281,6 +2286,18 @@ function wedstrijdUitslag(p) {
     bewaar(); tekenKnoppen(); $('wedklaar').onclick = () => toonStad('markt');
   }, (t += 900));
 }
+// ---------- Gouden Pizzaschep: een recensent eet incognito mee (vandaag.incognito / m.incognito); 's avonds de uitslag (schepUitslag) ----------
+// Punten = oordeel van zijn pizza (0-6) + 1 als hij snel geholpen werd + gezelligheid van zijn tafel / 2 (max 2). ≥ 6,5 = een schep (S.scheppen, max 3):
+// populariteit +8 en elke schep 6% meer klanten. Boos weggelopen = populariteit −5.
+function schepUitslag() {
+  if (!vandaag.incognito) return ''; const r = vandaag.recensie, img = '<img src="pizza/recensent.png" alt="" style="float:right;height:110px;margin:0 0 4px 8px">';
+  if (!r) return `<div class="opdracht" style="display:block">${img}<b>🕵️ De recensent…</b><br>Er is niemand van de Gouden Pizzaschep gezien. Misschien kwam hij niet, of zat hij er bij sluitingstijd nog. Volgende keer beter!</div>`;
+  if (r.boos) { rep(-5); return `<div class="opdracht" style="display:block">${img}<b>🕵️ Ontmaskerd: de recensent!</b><br>Hij liep boos weg omdat het te lang duurde. In de krant: "Pizzeria? Eerder een wachtkamer." Populariteit −5.</div>`; }
+  const punten = r.o + (r.wacht < 18 ? 1 : 0) + Math.min(2, r.gez / 2), soortNaam = SOORT[r.soort] ? SOORT[r.soort].n.toLowerCase() : 'klant';
+  if (punten >= 6.5) { S.scheppen = Math.min(3, (S.scheppen || 0) + 1); rep(8);
+    return `<div class="opdracht" style="display:block;background:#fff3c4">${img}<b>🏆 DE GOUDEN PIZZASCHEP!</b><br>De recensent zat verkleed als ${soortNaam} tussen je klanten en at een ${esc(r.pizza)}. Hij was verrukt! Je krijgt ${S.scheppen > 1 ? `je ${S.scheppen}e` : 'een'} Gouden Pizzaschep voor aan de deur: populariteit +8 en voortaan meer klanten.</div>`; }
+  return `<div class="opdracht" style="display:block">${img}<b>🕵️ Ontmaskerd: de recensent!</b><br>Hij zat verkleed als ${soortNaam} tussen je klanten en at een ${esc(r.pizza)}. Zijn oordeel: "best aardig" (${String(Math.round(punten * 10) / 10).replace('.', ',')} van de 6,5 punten). Tip: een pizza met blije gezichtjes, snel bedienen en een gezellige tafel.</div>`;
+}
 const RECLAME = 150, reclameAan = () => S.reclame && S.reclame.tot > S.dag; // reclamebord bij de bouwplaats: een week lang meer klanten in alle zaken
 const PLEK = {
   zaak: { n: 'Jouw pizzeria', ik: '🍕', x: 540, y: 180, b: 125, h: 140 },
@@ -2422,6 +2439,7 @@ function nieuweGroep() {
     // de tafel bestelt samen en wacht samen: geduld telt per tafel (een grotere tafel heeft wat meer geduld, er moet meer gebakken worden)
     const groep = { mensen: [], t: 0, geduld: GEDULD + (k - 1) * 7, besteld: false, opgehaald: false };
     for (let i = 0; i < k; i++) { const m = maakMens(t.s, t.vrij[i], soort); m.groep = groep; groep.mensen.push(m); m.x += i * 0.25 + gi * 0.4; m.y += i * 0.3; mensen.push(m);
+      if (vandaag.incognito == 'komt' && klok > DAG * 0.15 && kans(0.3)) { m.incognito = true; vandaag.incognito = 'binnen'; } // de recensent: een gewone klant, je weet niet wie
       if (i == 0 && gi == 0) zeg(m, keus.length > 1 ? R(['Dan zitten we wel apart!', 'We splitsen ons wel op.', 'Niet naast elkaar? Ook goed!']) : R(ZEG.binnen)); }
   });
 }
@@ -2758,7 +2776,7 @@ function stap(dt) {
     } else if (m.st == 'eet' && m.t > ETEN) {
       // hoe lekker (0-6) bepaalt de fooi en of ze het doorvertellen
       const o = m.oordeel, prijs = m.pizza.prijs * TELT, fooi = Math.max(0, gezellig(m.tafel) * 0.4 + (o - 2) * 0.5 + (m.wacht < 18 ? 1 : 0)) * vandaag.fooi * TELT + (m.chef ? 3 : 0); // TELT: anderhalve klant; m.chef: de kok kwam even flirten
-      S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o;
+      S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o; if (m.incognito) vandaag.recensie = { o, wacht: m.wacht, gez: gezellig(m.tafel), pizza: m.pizza.naam, soort: m.soort };
       if (S.wijn && S.wijn.n > 0 && S.buurt == 'villa' && (m.soort == 'villa' || kans(0.2)) && kans(0.6)) { const w = 20 + Math.round(70 * S.wijn.q); S.wijn.n--; ge(w, 'wijn'); tel.wijn = (tel.wijn || 0) + 1; // een fles Château bij het eten
         muntjes.push({ x: m.x, y: m.y - 0.6, t: 1.4, tekst: '🍷 +€' + w }); if (!S.wijn.n) S.wijn = null; }
       tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1;
@@ -2776,7 +2794,7 @@ function stap(dt) {
     if (groep.t > groep.geduld) { // te lang gewacht: de hele tafel loopt boos weg
       const wie = groep.mensen.filter((m) => m.st == 'wacht');
       if (ritten.some((r) => r.groep == groep)) tel.boosOber += wie.length; else tel.boosKeuken += wie.length; // waren de pizza's al klaar? dan lag het aan de bediening
-      wie.forEach((m, i) => { m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; if (!i) zeg(m, R(ZEG.boos)); tel.boos++; S.rep = Math.max(0, S.rep - 1.5); }); // was −3: een nieuwe, kleine zaak kwam dan nooit vooruit
+      if (wie.some((m) => m.incognito)) vandaag.recensie = { boos: true }; wie.forEach((m, i) => { m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; if (!i) zeg(m, R(ZEG.boos)); tel.boos++; S.rep = Math.max(0, S.rep - 1.5); }); // was −3: een nieuwe, kleine zaak kwam dan nooit vooruit
       boos();
       wachtrij = wachtrij.filter((b) => b.groep != groep); klaar = klaar.filter((b) => b.groep != groep); ritten = ritten.filter((r) => r.groep != groep);
     }
@@ -3605,7 +3623,7 @@ function toonMaak(nr) {
       <div><canvas id="bodem" width="640" height="640"></canvas><p class="buurt" style="text-align:center;margin:4px 0 0">Tik op een ingrediënt om het erop te leggen, tik op de pizza om het laatste weer weg te halen.</p></div>
       <div><div class="meter" id="meter"></div>
         <div class="rij" style="margin:10px 0"><b>Prijs</b><button class="knop" id="goedkoper">−</button><b id="pprijs"></b><button class="knop" id="duurder">+</button></div>
-        <div id="oordelen"></div></div>
+        <div id="oordelen"></div><p class="buurt" style="font-size:12px;margin:4px 0 0">Hoe blijer de gezichtjes (😐 🙂 😋 😍), hoe lekkerder die klanten hem vinden. Een recensent of jury let op het gemiddelde: vooral 🙂 en beter = veel sterren.</p></div>
       <div id="bak"></div>
     </div>
     <div class="rij" style="margin-top:12px"><button class="knop rood" id="pbewaar">✅ Op de kaart</button><button class="knop" id="pterug">Terug</button>
@@ -3768,6 +3786,7 @@ const DOELEN = [
   { id: 'zes', n: 'Zet 6 pizza\'s op de kaart', geld: 40, ok: () => S.menu.length >= 6 },
   { id: 'vijftig', n: 'Haal 50 tevreden klanten op één dag', geld: 60, ok: () => (S.besteDag || 0) >= 50 },
   { id: 'rep80', n: 'Bereik populariteit 80 in een van je zaken', geld: 60, ok: () => S.rep >= 80 || S.zaken.some((z) => z.rep >= 80) },
+  { id: 'schep', n: 'Win de Gouden Pizzaschep (een recensent eet incognito mee)', geld: 80, ok: () => (S.scheppen || 0) >= 1 },
   { id: 'chef', n: 'Haal 2 sterren bij de sterrenchef', geld: 60, ok: () => (S.chefSterren || 0) >= 2 },
   { id: 'maand', n: 'Hou het 30 dagen vol', geld: 50, ok: () => S.dag > 30 },
   { id: 'derde', n: 'Open een derde pizzeria', geld: 150, ok: () => S.zaken.length >= 3 },

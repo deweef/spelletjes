@@ -348,3 +348,7 @@ in `#stadkaart`): jury `JURY` = werker (Bert de marktkoopman), opa (Oma Ria), st
 je kiest een pizza van je kaart, cijfer per jurylid = 3 + oordeel × 1,1 (± 0,5), Luigi 5-8 (+1 bij veel ruzie); bordjes één voor één. Winst € 120
 ('spel'), populariteit +3, ruzie +10, `S.wedWinst`; gelijk = inleg terug; verlies = populariteit −1. Plaatje `pizza/jury.jpg` (en `pizza/recensent.png`
 voor de Gouden Pizzaschep), uit `pizza/jury-recensent-gemini.jpg`.
+Gouden Pizzaschep (31 okt): vanaf dag 8 en populariteit 30, hooguit eens per 10 dagen (`S.schepDag`) 15% kans: melding "gerucht", een willekeurige
+klant wordt de recensent (`m.incognito`, `vandaag.incognito`); zijn maaltijd in `vandaag.recensie`. Dagoverzicht `schepUitslag()` met
+`pizza/recensent.png`: punten = oordeel + 1 (snel) + gezellig/2 (max 2); ≥ 6,5 = schep (`S.scheppen` max 3, rep +8, elke schep 6% meer klanten),
+boos weg = rep −5. Doel 'schep'. Bij het maken van een pizza staat nu uitgelegd wat de gezichtjes betekenen.
