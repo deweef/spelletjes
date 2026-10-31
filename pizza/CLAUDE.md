@@ -339,3 +339,7 @@ Chinese dame (rij 4): twee versies van ChatGPT (`chinese-` en `chinese2-onderdel
 26 vakjes breed); `VOORLOOP[4]` = lijst van twee lijsten, `KLANTVEL(rij, m)` kiest per klant vast een versie (`m.versie`).
 Chinese toerist (rij 5, `toerist-onderdelen-chatgpt.png`): ChatGPT tekende de benen per paar met de korte broek erboven; `paar` = knip de blote benen eronder af en doormidden.
 Studente (rij 7, `studente-onderdelen-chatgpt.png`).
+Vervolgvragen bij gewone vragen (31 okt): via `naVraag = () => toonVraag({ id: 'vervolg', … })` in het antwoord: aanzoek A (het verloofde stel
+wil de bruiloft hier), kat C (Pepperoni bedelt), goochelaar A (jij als vrijwilliger doormidden gezaagd), blinddate A (zij houdt van Hawaii),
+recensent A bij ≥ 4 sterren (foto voor de krant), tiktok A als het viraal gaat (nog een dansje, met jou). Dubbele grappen weg: spion (Luigi's
+"precies zoals bij de buren"-bord), patat (Mario met een pincet), kokjarig (opera-aria in plaats van O sole mio).
