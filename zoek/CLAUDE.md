@@ -50,7 +50,7 @@ gevonden voorwerp -35%, een hint maakt helemaal wakker). Plan in `zoek/IDEEEN.md
 commentaarregels in `LEVELS` (de tekenfuncties zijn er nog; `#tegel` gebruikt nog de getekende rommelkamer). `orkest-gemini.jpg` is een eerdere versie.
 `auto` en `sjaak` mogen meer vakjes hebben (postkantoor: twee oldtimers), zie `inVak`. Een nieuw level = regel in `LEVELS` en naam in `ZOEK` in `scores/index.html`.
 Sluipende Sjaak (inbreker met streepjestrui, oogmasker, platte pet en geldzak met $; staat in de Gemini-prompt): `sjaak: [x1, y1, x2, y2]`, niet op het
-lijstje; gevonden = politiefluitje (`sSjaak`, `fluit`) + "Hé! Daar sluipt Sjaak weer rond!" en een 🦹 bij het level. Orkest en strand hebben (nog) geen Sjaak.
+lijstje; gevonden = politiefluitje (`sSjaak`, `fluit`) + "Hé! Daar sluipt Sjaak weer rond!" en een 🦹 bij het level. Orkest, strand en Dracula hadden geen Sjaak: die is erin geplakt (orkest: GEZOCHT-affiche op het scherm, strand: affiche op de strandwachttoren, Dracula: ingelijst portret, uit de bouwplaat-Sjaak); `sjaakTekst` = extra melding als je hem vindt. Dubbele Sjaken laten we staan: elk exemplaar krijgt een vakje.
 Levelmenu en eindscherm scrollen (`.scherm` heeft `overflow-y:auto`, `.kaart` `margin:auto`).
 Level 4 Het strand gebruikt `zoek/strand.jpg` (Gemini, 1376x768) met `STRAND_BEELD` (36 voorwerpen); daar zat geen oldtimer in, dus
 `autoBeeld: 'zoek/oldtimer.png'` (uitgeknipt uit `orkest-gemini.jpg`, doorzichtige achtergrond) zet de Gemini-oldtimer in het vakje `auto` op het plaatje.

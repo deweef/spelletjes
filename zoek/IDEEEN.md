@@ -27,7 +27,6 @@
     - B10 Afsluiter: elk halve minuut een ander effect uit de reeks (storm, sneeuw, wazig, Babel, zon).
 - **Sjaak-plaat**: één plaat met ±20 Sjaakjes, gaat open als je Sjaak in alle levels hebt betrapt; een Sjaak-teller in het menu.
   Afgesproken: een geheim level, los van 21-30 en B1-B10, dat pas in het menu verschijnt als Sjaak overal betrapt is.
-- Orkest en strand hebben nog geen Sjaak (nieuwe Gemini-plaat of Sjaak erin plakken zoals de oldtimer bij het strand).
 - We doen steeds 5 platen tegelijk. 23-25 en B4-B5 zijn gebouwd. Reserve-ideeën van Marcel: naai-atelier, autorace, dromen;
   woordenlijst om op te schieten: kapsalon, tandarts, bouwplaats, kringloop, bakkerij, dierenarts, sinterklaas, kerstmarkt, zwembad,
   bowling, festival, verhuisdag, meubelzaak, wasstraat, tuincentrum, trein, bioscoop, gevangenis (Sjaak in de cel), heksenhuis, ridderkasteel, dinomuseum.

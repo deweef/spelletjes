@@ -46,7 +46,7 @@ Gemini-deellinks (alleen te openen in de browser van Marcel, niet vanuit Claude)
 
 Werkwijze: plaatje downloaden op de computer (de volle maat, 1376x768; een in de chat geplakt plaatje is maar ±512 px breed en te klein), in deze map op GitHub zetten, dan zet Claude de vakjes en bouwt het level.
 
-Vast blokje onderaan elke Gemini-opdracht (versie 2):
+Vast blokje onderaan elke Gemini-opdracht (versie 3, punt 5 is nieuw sinds okt 2026 omdat Gemini Sjaak soms vergat of dubbel tekende):
 1. Zet er minstens 40 losse voorwerpen in die passen bij de plek, elk duidelijk herkenbaar en goed los van elkaar
    (niet half achter iets anders), en elk voorwerp maar één keer. Liever veel kleine dingetjes verspreid over het
    hele plaatje dan grote stapels. Elk voorwerp staat op een logische plek in de tekening (vastgehouden, op tafel, op de grond,
@@ -60,5 +60,7 @@ Vast blokje onderaan elke Gemini-opdracht (versie 2):
    hij gluurt achter iets vandaan of sluipt half achter een ding langs, zodat je hem goed moet zoeken. Zijn pet,
    maskertje en geldzak blijven wel zichtbaar. Hij doet iets stouts dat bij de plek past.
 4. Geen echte merken, logo's of bekende stripfiguren. Teksten op bordjes in het Nederlands.
+5. (versie 3) Controleer het plaatje voordat je het laat zien: er staat precies één oldtimer en precies één Sluipende Sjaak in,
+   niet nul en niet twee. Geen andere figuren met een streepjestrui én pet én maskertje, en geen andere zilveren auto's.
 
 Versie 1 (gebruikt voor rommelkamer t/m serverruimte): alleen de oldtimer en Sjaak "klein en een beetje verstopt".

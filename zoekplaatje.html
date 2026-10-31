@@ -1724,9 +1724,9 @@ const LEVELS = [
   // reserve, de getekende versie: { id: 'kamer', ..., achter: () => kamerAchter(), voor: () => kamerVoor(), items: STRIP, w: KW, h: KH, auto: [1040, 772, 0.5, 0] },
   { id: 'post', naam: 'Het postkantoor', uitleg: 'Druk, druk, druk bij de loketten', beeld: 'zoek/postkantoor.jpg', items: POST_BEELD, auto: [252, 639, 322, 676, 277, 711, 345, 744], sjaak: [1118, 486, 1340, 640, 1180, 612, 1300, 756] },
   // reserve, de getekende versie: { id: 'post', ..., achter: () => postAchter(), voor: () => postVoor(), items: POST, w: PW, h: PH, auto: [120, 138, 0.5, 0] },
-  { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', beeld: 'zoek/orkest.jpg', items: ORKEST_BEELD, auto: [1323, 637, 1376, 674] },
+  { id: 'orkest', naam: 'Het orkest', uitleg: 'Een concert vol gekke dingen', beeld: 'zoek/orkest.jpg', items: ORKEST_BEELD, auto: [1323, 637, 1376, 674], sjaak: [612, 116, 676, 196], sjaakTekst: 'Gezocht! Zelfs op het grote scherm hangt zijn opsporingsbericht.' },
   // reserve, de getekende versie: { id: 'orkest', ..., achter: () => orkestAchter(), voor: () => orkestVoor(), items: ORKEST, w: OW, h: OH, auto: [55, 1150, 0.5, 0] },
-  { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', beeld: 'zoek/strand.jpg', items: STRAND_BEELD, autoBeeld: 'zoek/oldtimer.png', auto: [40, 316, 86, 337] },
+  { id: 'strand', naam: 'Het strand', uitleg: 'Zon, zee, zand en heel veel zoeken', beeld: 'zoek/strand.jpg', items: STRAND_BEELD, autoBeeld: 'zoek/oldtimer.png', auto: [40, 316, 86, 337], sjaak: [684, 198, 728, 252], sjaakTekst: 'Gezocht! De strandwacht houdt een oogje in het zeil.' },
   // reserve, de getekende versie: { id: 'strand', ..., achter: () => strandAchter(), voor: () => strandVoor(), items: STRAND, w: SW, h: SH, auto: [560, 548, 0.5, 0.1] },
   { id: 'schip', naam: 'Het piratenschip', uitleg: 'Ahoy! Wat hebben die piraten allemaal verstopt?', beeld: 'zoek/piratenschip.jpg', items: SCHIP_BEELD, auto: [160, 197, 395, 270], sjaak: [638, 395, 732, 512] },
   // reserve, de getekende versie: { id: 'schip', ..., achter: () => schipAchter(), voor: () => schipVoor(), items: SCHIP, w: ZW, h: ZH, auto: [1000, 1250, 0.5, 0] },
@@ -1757,7 +1757,7 @@ const LEVELS = [
   { id: 'sintmaarten', naam: 'Sint-Maarten', uitleg: 'Het is donker: zoek bij het licht van de lampions', beeld: 'zoek/sintmaarten.jpg', items: SINTMAARTEN_BEELD, auto: [1155, 125, 1222, 170], sjaak: [1250, 193, 1292, 247, 1258, 403, 1302, 500],
     lampions: [[276, 312], [617, 354], [147, 672], [503, 484], [735, 497], [735, 337], [730, 293], [886, 299], [990, 294], [880, 342], [1022, 585], [1280, 627]] },
   { id: 'orkenstorm', naam: 'Het Orkenstorm-dorp', uitleg: 'Pas op, daar komen de orks!', beeld: 'zoek/orkenstorm.jpg', items: ORKENSTORM_BEELD, auto: [1058, 48, 1137, 90], sjaak: [1137, 88, 1193, 174, 892, 353, 964, 472, 1019, 296, 1057, 350], orks: 1 },
-  { id: 'dracula', naam: 'Dracula wordt 600', uitleg: 'Feest in het kasteel, met vleermuizen en onweer', beeld: 'zoek/dracula.jpg', items: DRACULA_BEELD, auto: [1295, 152, 1345, 185], vampier: 1 },
+  { id: 'dracula', naam: 'Dracula wordt 600', uitleg: 'Feest in het kasteel, met vleermuizen en onweer', beeld: 'zoek/dracula.jpg', items: DRACULA_BEELD, auto: [1295, 152, 1345, 185], sjaak: [412, 96, 456, 146], sjaakTekst: 'Een eerbetoon: in 1987 overviel Sjaak de bloedbank voor de graaf!', vampier: 1 },
   { id: 'spreekwoorden', pad: 'B', na: ['ruimte'], naam: 'De spreekwoorden', uitleg: 'Bruegel: zoek de spreekwoorden', wat: 'spreekwoorden', beeld: 'zoek/spreekwoorden.jpg', items: SPREEKWOORDEN_BEELD, auto: [1258, 133, 1354, 182], sjaak: [45, 380, 122, 492, 130, 415, 192, 522] },
   { id: 'kinderspelen', pad: 'B', naam: 'De kinderspelen', uitleg: 'Bruegel: zoek de spelletjes', wat: 'spelletjes', beeld: 'zoek/kinderspelen.jpg', items: KINDERSPELEN_BEELD, auto: [1080, 195, 1190, 240], sjaak: [165, 268, 225, 330, 1183, 285, 1218, 352] },
   { id: 'jagers', pad: 'B', naam: 'Jagers in de sneeuw', uitleg: 'Bruegel: wat hoort er niet bij? Brrr, de ruit bevriest!', winter: 1, wat: 'dingen die er niet horen', beeld: 'zoek/jagers.jpg', items: JAGERS_BEELD, auto: [1305, 170, 1362, 202], sjaak: [276, 308, 307, 393, 316, 260, 365, 322] },
@@ -1888,7 +1888,7 @@ function tik(sx, sy) {
   }
   const sj = level.sjaak && inVak(level.sjaak, x, y, m);
   if (sj && !sjaakGevonden) { // Sluipende Sjaak, de inbreker met zijn geldzak: net als de oldtimer een verrassing
-    sjaakGevonden = true; sjaakMelding = performance.now(); autoMelding = 0; const r = rondje(sj); gevondenLijst.push(r); opslag.set('zoek_sjaak_' + level.id, '1'); sSjaak();
+    sjaakGevonden = true; sjaakMelding = performance.now(); autoMelding = 0; if (level.sjaakTekst) meld('🦹 ' + level.sjaakTekst, 4500); const r = rondje(sj); gevondenLijst.push(r); opslag.set('zoek_sjaak_' + level.id, '1'); sSjaak();
     effecten.push({ soort: 'goed', x: r.midden[0], y: r.midden[1], t: 0 }); return;
   }
   const later = rij.some((v) => v.raak(x, y, 0));
