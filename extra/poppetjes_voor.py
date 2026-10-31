@@ -15,9 +15,9 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
   'afrikaan': dict(voor='pizza/afrikaan-onderdelen-chatgpt.png', benen='pizza/afrikaan-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 3), been=(5, 6),
                    beenschaal=0.95, achter=(7, 8)),  # groen shirt: alleen de rand ontgroenen
   'chinese': dict(voor='pizza/chinese-onderdelen-chatgpt.png', benen='pizza/chinese-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(7, 5),
-                  beenschaal=0.62, achter=(8, 6), jurk=True, kapjes=(200, 30, 28), vlak=True),
+                  beenschaal=0.62, achter=(8, 6), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),
   'chinese2': dict(voor='pizza/chinese2-onderdelen-chatgpt.png', benen='pizza/chinese2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
-                   beenschaal=0.62, achter=(7, 8), jurk=True, kapjes=(200, 30, 28), vlak=True),  # tweede versie: de helft van de Chinese dames  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
+                   beenschaal=0.62, achter=(7, 8), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),  # tweede versie: de helft van de Chinese dames  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }
 def lees(pad):
     a = np.array(Image.open(pad).convert('RGB')).astype(int); H, W, _ = a.shape; bg = np.median(a[2:8, 2:8].reshape(-1, 3), 0)
@@ -42,7 +42,7 @@ def mouw(im, kleur, pols):  # blote arm: alles boven de pols in de kleur van het
     a = np.array(im).astype(float); h = a.shape[0]; rij = int(h * pols); s = a[:rij, :, :3]; l = s.mean(-1, keepdims=True) / max(1, np.percentile(s.mean(-1)[a[:rij, :, 3] > 0], 70))
     a[:rij, :, :3] = np.clip(np.array(kleur) * l * 1.05, 0, 255); return Image.fromarray(a.astype(np.uint8))
 def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
-    doek = Image.new('RGBA', (900, 1400)); ox, oy = 450, 650 - abs(s) * 10
+    doek = Image.new('RGBA', (900, 1600)); ox, oy = 450, 950 - abs(s) * 10  # ruim genoeg: anders valt de bovenkant van het hoofd eraf
     def zet(im, cx, ty, hoek=0):
         if hoek: im = im.rotate(-hoek, center=(im.size[0] / 2, 0), resample=Image.BICUBIC)
         doek.alpha_composite(im, (round(ox + cx - im.size[0] / 2), round(oy + ty)))
@@ -72,7 +72,7 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
         zet(b, (-1 if i == 0 else 1) * romp.size[0] * (0.17 if F.get('jurk') else 0.24), -12 - (22 if F.get('jurk') else 0))
     zet(romp, 0, -romp.size[1] + 10)
     for i, a in enumerate(armen): zet(a, (-1 if i == 0 else 1) * (romp.size[0] / 2 - 28), -romp.size[1] + 70, hoek=(6 if i == 0 else -6) * s)
-    zet(hoofd, 0, -romp.size[1] - hoofd.size[1] + 42)
+    zet(hoofd, 0, -romp.size[1] - hoofd.size[1] + 42 + F.get('nek', 0))  # nek: hoofd verder omlaag (hoofd en jurk hebben allebei een kraagje)
     return doek.crop(doek.getbbox())
 if __name__ == '__main__':
     naam = sys.argv[1]; uit = sys.argv[2] if len(sys.argv) > 2 else '.'; F = FIG[naam]
