@@ -44,5 +44,6 @@
 - **Level 27 Sint-Maarten (11 november)**, plaat gemaakt: kinderen met lampions langs de deuren; effect-idee: het is avond, alleen het licht van de lampions (die rondlopen) en je eigen lampion laat iets zien.
 - **C3 Italië (Venetië)**: effect-idee acqua alta, het water stijgt langzaam vanaf de onderkant, elk gevonden voorwerp laat het zakken.
 - **Orkenstorm-dorp** (level 28): Gemini-opdracht met voorbeeldplaatje `zoek/voorbeeld/orkenstorm-voorbeeld.jpg` (schermafbeeldingen uit Orkenstorm 3D: kasteel met blauwe daken, boerderijen, mijn, werkers met strohoed, ridders met pluim).
+- **Level 29 Dracula** (600e verjaardag, plaat gemaakt): effect-idee: zwermen vleermuizen over het scherm en bliksemflitsen.
 - Meer levels: winterkermis.
 - Gemini-prompt en alle links: zie `zoek/LEESMIJ.md`.
