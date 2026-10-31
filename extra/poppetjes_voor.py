@@ -13,7 +13,11 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
   'villa': dict(voor='pizza/villa-onderdelen-chatgpt.png', benen='pizza/villa-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 5), been=(7, 8),
                 beenschaal=0.62, achter=(9, 10), jurk=True, vlak=True),
   'afrikaan': dict(voor='pizza/afrikaan-onderdelen-chatgpt.png', benen='pizza/afrikaan-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(4, 3), been=(5, 6),
-                   beenschaal=0.95, achter=(7, 8)),  # groen shirt: alleen de rand ontgroenen  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
+                   beenschaal=0.95, achter=(7, 8)),  # groen shirt: alleen de rand ontgroenen
+  'chinese': dict(voor='pizza/chinese-onderdelen-chatgpt.png', benen='pizza/chinese-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(7, 5),
+                  beenschaal=0.62, achter=(8, 6), jurk=True, kapjes=(200, 30, 28), vlak=True),
+  'chinese2': dict(voor='pizza/chinese2-onderdelen-chatgpt.png', benen='pizza/chinese2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
+                   beenschaal=0.62, achter=(7, 8), jurk=True, kapjes=(200, 30, 28), vlak=True),  # tweede versie: de helft van de Chinese dames  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }
 def lees(pad):
     a = np.array(Image.open(pad).convert('RGB')).astype(int); H, W, _ = a.shape; bg = np.median(a[2:8, 2:8].reshape(-1, 3), 0)
@@ -47,13 +51,14 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
         a = np.array(im).astype(int); W, H = a.shape[1], a.shape[0]; r, g, b = a[..., 0], a[..., 1], a[..., 2]; m = (r > 90) & (r < 200) & (g > 40) & (g < 115) & (b < 75) & (r - g > 40)
         if alleenRand: k_ = np.zeros(a.shape[:2], bool); k_[:, :int(W * 0.3)] = True; k_[:, int(W * 0.7):] = True; m &= k_
         else: m[int(H * 0.35):] = False
-        l = a[..., :3].mean(-1) / 105; a[m, :3] = np.clip(np.array(F['kapjes']) * l[m][:, None], 0, 255); return Image.fromarray(a.astype(np.uint8))
+        l = np.clip(a[..., :3].mean(-1) / 105, 0.97, 1.15) if F.get('vlak') else a[..., :3].mean(-1) / 105; a[m, :3] = np.clip(np.array(F['kapjes']) * l[m][:, None], 0, 255); return Image.fromarray(a.astype(np.uint8))
     if F.get('kapjes'): romp = kap(romp, True)
     def vlak(im, bovenFr, randen):  # donkere ronde kapjes gelijkmaken aan de stof eromheen (mediaan van de stof)
         a = np.array(im).astype(int); H, W = a.shape[:2]; zone = np.zeros((H, W), bool); zone[:int(H * bovenFr)] = True
         if randen: zone[:, int(W * 0.28):int(W * 0.72)] = False
         stof = a[int(H * 0.3):int(H * 0.6)][a[int(H * 0.3):int(H * 0.6), :, 3] > 0][:, :3]; med = np.median(stof, 0)
-        d = np.abs(a[..., :3] - med).sum(-1); m = zone & (a[..., 3] > 0) & (d > 25) & (d < 120) & (a[..., :3].sum(-1) > 120)
+        lum = a[..., :3].sum(-1); ml = med.sum(); tint = (a[..., :3] / np.maximum(1, lum)[..., None]); mt = med / max(1, ml)
+        m = zone & (a[..., 3] > 0) & (lum > 120) & (lum < ml * 0.93) & (np.abs(tint - mt).sum(-1) < 0.25)  # donkerder, maar dezelfde kleurtoon (geen lijnen of goud)
         a[m, :3] = med; return Image.fromarray(a.astype(np.uint8))
     if F.get('vlak'): romp = vlak(romp, 0.35, True)
     armen = [deel(voor, n) for n in F['arm']]

@@ -335,3 +335,5 @@ per figuur in `FIG`; Gemini gaf blote armen, `mouw` kleurt ze tot de pols in de 
 `pizza/<naam>-onderdelen-voor-gemini.jpg` en `-benen-`, nummers opzoeken, regel in `FIG`, uitvoer in vakjes 18-21 van de rij, rij in `VOORLOOP`.
 Werker (rij 0), student (rij 1, `pizza/student-onderdelen-chatgpt.png`) villadame (rij 2, `villa-`, `jurk`: de jurk loopt tot de knie, `vlak`: donkere kapjes weg) en Afrikaanse man (rij 3, `afrikaan-`; `deel` ontgroent alleen de buitenrand, zodat groene kleren groen blijven) lopen naar voren (vakjes 18-21) uit `extra/poppetjes_voor.py werker`, vel van ChatGPT (`pizza/werker-onderdelen-chatgpt.png`:
 alles op één vel, benen 5/6 voor, 7/8 achter); `kapjes` kleurt de bruine schouderkapjes oranje. ChatGPT deed het in één keer goed.
+Chinese dame (rij 4): twee versies van ChatGPT (`chinese-` en `chinese2-onderdelen-chatgpt.png`), vakjes 18-21 en 22-25 (`pizza/klanten.png` is nu
+26 vakjes breed); `VOORLOOP[4]` = lijst van twee lijsten, `KLANTVEL(rij, m)` kiest per klant vast een versie (`m.versie`).
