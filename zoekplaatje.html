@@ -1522,6 +1522,95 @@ function tekenPuzzel() {
 // plaats delict (wapens: [namen], verdachten: [...]): het laatst gevonden wapen bepaalt wie het gedaan heeft
 let laatsteWapen = null;
 const sDader = () => [[392, 0.25], [370, 0.25], [294, 1.1]].forEach(([f, d], i) => noot(f, d, 'sawtooth', 0.06, i * 0.3, 900, 0.02));
+// bouwplaat (bouw: 1): linksonder komt een kartonnen autootje stukje voor stukje in elkaar; aan het eind rijdt hij toeterend over het scherm
+let wegrijden = 0;
+function kartonAuto(x, y, s, k) { // k = 0..1: hoe ver hij af is
+  const lijn = (f) => { ctx.setLineDash(f ? [] : [4, 4]); ctx.strokeStyle = '#5a3a1a'; ctx.lineWidth = 2; };
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  lijn(k > 0.15); ctx.fillStyle = k > 0.15 ? '#e8384f' : 'rgba(255,255,255,.15)'; ctx.beginPath(); ctx.rect(-50, -16, 100, 22); ctx.fill(); ctx.stroke(); // romp
+  lijn(k > 0.4); ctx.fillStyle = k > 0.4 ? '#c82a3f' : 'rgba(255,255,255,.1)'; ctx.beginPath(); ctx.moveTo(-28, -16); ctx.lineTo(-18, -34); ctx.lineTo(20, -34); ctx.lineTo(32, -16); ctx.closePath(); ctx.fill(); ctx.stroke(); // dak
+  if (k > 0.6) { ctx.fillStyle = '#bfe4ff'; ctx.fillRect(-15, -30, 15, 12); ctx.fillRect(4, -30, 15, 12); }
+  for (const wx of [-30, 30]) { lijn(k > 0.8); ctx.fillStyle = k > 0.8 ? '#2a1f3a' : 'rgba(255,255,255,.1)'; ctx.beginPath(); ctx.arc(wx, 8, 10, 0, 7); ctx.fill(); ctx.stroke(); if (k > 0.8) { ctx.fillStyle = '#ccc'; ctx.beginPath(); ctx.arc(wx, 8, 4, 0, 7); ctx.fill(); } }
+  if (k >= 1) { ctx.fillStyle = '#ffd34d'; ctx.beginPath(); ctx.arc(48, -8, 4, 0, 7); ctx.fill(); }
+  ctx.setLineDash([]); ctx.restore();
+}
+function tekenBouw() {
+  if (wegrijden) { const t = (performance.now() - wegrijden) / 2600; if (t > 1.2) return; kartonAuto(-80 + t * (innerWidth + 160), innerHeight * 0.62 + Math.sin(t * 40) * 2, 1.6, 1); return; }
+  if (!$('klaar').hidden) return; const x0 = 14, y0 = innerHeight - 90;
+  ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(x0 - 4, y0 - 4, 132, 80); ctx.font = 'bold 12px "Trebuchet MS",sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.fillText('✂️ Bouwplaat', x0 + 2, y0 + 12);
+  kartonAuto(x0 + 62, y0 + 56, 0.95, gevonden / totaal);
+}
+const sKnip = () => { ruis(0.05, 'highpass', 5000, 0.08); ruis(0.05, 'highpass', 5000, 0.08, 0.09); };
+// Sint-Maarten (lampions: [[x, y], ...] in het plaatje): het is donker; licht komt van de lampions (die zachtjes wiebelen), drie lampions die door de straat lopen en je eigen lampion
+function tekenAvond() {
+  const nu = performance.now(), top = $('boven').offsetHeight, H = innerHeight - top;
+  if (!tekenAvond.doek || tekenAvond.doek.width != innerWidth || tekenAvond.doek.height != H) { tekenAvond.doek = document.createElement('canvas'); tekenAvond.doek.width = innerWidth; tekenAvond.doek.height = H; }
+  const d = tekenAvond.doek, g = d.getContext('2d'); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, innerWidth, H); g.fillStyle = 'rgba(12,10,40,.9)'; g.fillRect(0, 0, innerWidth, H);
+  g.globalCompositeOperation = 'destination-out';
+  const licht = (x, y, r) => { const gr = g.createRadialGradient(x, y - top, r * 0.2, x, y - top, r); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(0.6, 'rgba(0,0,0,.75)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - r, y - top - r, r * 2, r * 2); };
+  const R = 70 * zoom + 20, lijst = [];
+  (level.lampions || []).forEach(([x, y], k) => { const [sx, sy] = naarScherm(x + Math.sin(nu / 700 + k) * 6, y); lijst.push([sx, sy, R * (0.9 + 0.1 * Math.sin(nu / 300 + k * 2))]); });
+  for (let k = 0; k < 3; k++) { const t = ((nu / 1000 / (22 + k * 5)) + k / 3) % 1, x = (k % 2 ? 1 - t : t) * BW, y = BH * (0.55 + k * 0.12) + Math.sin(nu / 400 + k) * 8, [sx, sy] = naarScherm(x, y); lijst.push([sx, sy, R * 1.1]); }
+  const eigen = lamp || { x: innerWidth / 2, y: top + H / 2 }; lijst.push([eigen.x, eigen.y, Math.max(90, Math.min(innerWidth, H) * 0.18)]);
+  for (const [x, y, r] of lijst) licht(x, y, r);
+  ctx.drawImage(d, 0, top);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (const [x, y, r] of lijst) { const gr = ctx.createRadialGradient(x, y, 0, x, y, r * 0.6); gr.addColorStop(0, 'rgba(255,170,60,.22)'); gr.addColorStop(1, 'rgba(255,170,60,0)'); ctx.fillStyle = gr; ctx.fillRect(x - r, y - r, r * 2, r * 2); } ctx.restore();
+}
+// Orkenstorm-dorp (orks: 1): om de 14-22 s stormt een golf orks met getrommel dwars over het scherm
+let orkGolf = 0, orkVolgende = 0;
+function sOrks() { [0, 0.25, 0.5, 0.75, 1, 1.25].forEach((w, i) => snd(i % 2 ? 90 : 70, 0.18, 'sine', 0.16, 40, w)); snd(110, 1.1, 'sawtooth', 0.05, 70, 0.3); ruis(1.2, 'lowpass', 300, 0.06, 0.2); }
+function ork(x, y, s, f) { // groen, slagtanden, knots
+  ctx.save(); ctx.translate(x, y); ctx.scale(-s, s); const stap = Math.sin(f) * 6;
+  ctx.fillStyle = '#5a3a1a'; ctx.fillRect(-10 + stap, 18, 8, 18); ctx.fillRect(4 - stap, 18, 8, 18);
+  ctx.fillStyle = '#7a5a2a'; ctx.beginPath(); ctx.ellipse(0, 6, 18, 20, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#5aa04a'; ctx.beginPath(); ctx.arc(0, -20, 15, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-6, -12); ctx.lineTo(-4, -20); ctx.lineTo(-2, -12); ctx.moveTo(2, -12); ctx.lineTo(4, -20); ctx.lineTo(6, -12); ctx.fill();
+  ctx.fillStyle = '#d33'; ctx.fillRect(-7, -25, 4, 3); ctx.fillRect(3, -25, 4, 3);
+  ctx.save(); ctx.translate(16, 0); ctx.rotate(-0.8 + Math.sin(f * 0.5) * 0.6); ctx.fillStyle = '#8a6a3a'; ctx.fillRect(-3, -34, 7, 36); ctx.beginPath(); ctx.arc(0, -36, 8, 0, 7); ctx.fill(); ctx.restore(); ctx.restore();
+}
+function tekenOrks() {
+  const nu = performance.now(); if (!orkVolgende) orkVolgende = nu + 9000;
+  if (nu > orkVolgende) { orkGolf = nu; orkVolgende = nu + 14000 + Math.random() * 8000; sOrks(); }
+  const t = (nu - orkGolf) / 3200; if (!orkGolf || t > 1) return; const top = $('boven').offsetHeight;
+  for (let k = 0; k < 9; k++) { const x = innerWidth + 60 - t * (innerWidth + 260) + (k % 3) * 70 + (k * 37 % 50), y = top + 60 + (innerHeight - top - 120) * ((k * 0.37) % 1), s = 1.3 + (k % 3) * 0.3;
+    ctx.fillStyle = 'rgba(160,130,90,.35)'; ctx.beginPath(); ctx.ellipse(x + 30 * s, y + 34 * s, 22 * s, 8 * s, 0, 0, 7); ctx.fill(); ork(x, y, s, nu / 70 + k); }
+}
+// Dracula (vampier: 1): zwermen vleermuizen en af en toe bliksem met donder
+let vleer = [], vleerVolgende = 0, flits = 0, flitsVolgende = 0;
+function tekenNacht() {
+  const nu = performance.now(), top = $('boven').offsetHeight; if (!vleerVolgende) { vleerVolgende = nu + 6000; flitsVolgende = nu + 12000; }
+  if (nu > vleerVolgende) { vleerVolgende = nu + 12000 + Math.random() * 8000; const n = 25 + Math.floor(Math.random() * 20), y0 = top + Math.random() * (innerHeight - top) * 0.6; for (let k = 0; k < n; k++) vleer.push({ x: -40 - Math.random() * 400, y: y0 + Math.random() * 220, v: 7 + Math.random() * 5, f: Math.random() * 7, s: 0.8 + Math.random() * 0.9 }); [0, 0.1, 0.2, 0.35].forEach((w) => noot(3200 + Math.random() * 800, 0.06, 'sine', 0.02, w)); }
+  if (nu > flitsVolgende) { flits = nu; flitsVolgende = nu + 18000 + Math.random() * 12000; ruis(2.2, 'lowpass', 180, 0.2, 0.3); }
+  ctx.fillStyle = '#1a1020';
+  for (const b of vleer) { b.x += b.v; b.f += 0.5; b.y += Math.sin(b.f * 0.3) * 2; const w = Math.sin(b.f) * 10 * b.s;
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.quadraticCurveTo(b.x - 10 * b.s, b.y - w - 4, b.x - 20 * b.s, b.y - w); ctx.quadraticCurveTo(b.x - 10 * b.s, b.y + 2, b.x, b.y + 4 * b.s);
+    ctx.quadraticCurveTo(b.x + 10 * b.s, b.y + 2, b.x + 20 * b.s, b.y - w); ctx.quadraticCurveTo(b.x + 10 * b.s, b.y - w - 4, b.x, b.y); ctx.fill(); ctx.beginPath(); ctx.arc(b.x, b.y, 4 * b.s, 0, 7); ctx.fill(); }
+  vleer = vleer.filter((b) => b.x < innerWidth + 40);
+  const a = flits ? 1 - (nu - flits) / 450 : 0; if (a > 0) { ctx.fillStyle = `rgba(235,240,255,${a * (Math.sin((nu - flits) / 25) > 0 ? 0.75 : 0.35)})`; ctx.fillRect(0, top, innerWidth, innerHeight - top); }
+}
+// toren van Babel (talen: {naam: {en, de, fr, es, fy}}): spraakverwarring, de namen bovenin staan in een andere taal en wisselen af en toe
+const TAAL = ['en', 'de', 'fr', 'es', 'fy', 'nl'];
+let babelTaal = [], babelWissel = 0;
+const naamIn = (v, i) => { const t = babelTaal[i], vt = level.talen && level.talen[v.naam]; return (t && t != 'nl' && vt && vt[t]) || v.naam; };
+function babel() {
+  const nu = performance.now(); if (nu < babelWissel) return; babelWissel = nu + 3500;
+  const i = Math.floor(Math.random() * 10), v = actief[i]; if (!v) return; babelTaal[i] = TAAL[Math.floor(Math.random() * 5)];
+  const sp = $('balk').children[i] && $('balk').children[i].querySelector('span'); if (sp) sp.textContent = naamIn(v, i);
+}
+// Griekenland (opa: 1): bij elk gevonden voorwerp een bord kapot met scherven, en een bouzouki-loopje dat steeds sneller gaat
+function sOpa() {
+  ruis(0.35, 'highpass', 2500, 0.14); [0.05, 0.11, 0.16, 0.24].forEach((w) => noot(3000 + Math.random() * 2500, 0.08, 'sine', 0.03, w));
+  const tempo = Math.max(0.06, 0.16 - gevonden / totaal * 0.1); [587, 622, 740, 784, 880, 784, 740, 622].forEach((f, i) => noot(f, tempo * 1.4, 'triangle', 0.045, 0.3 + i * tempo, 2400));
+}
+function scherven(x, y) { for (let k = 0; k < 22; k++) effecten.push({ soort: 'confetti', x, y, vx: (Math.random() - 0.5) * 9, vy: -3 - Math.random() * 6, zw: 0.35, k: k % 3 ? '#f4f4f4' : '#3a6ad8', t: 0, scherm: true }); }
+// Venetië (water: 1): acqua alta, het water stijgt in ~60 s vanaf de onderkant tot over de helft; elk gevonden voorwerp laat het zakken, een hint pompt het weg
+let water = 0, waterTijd = 0;
+function tekenWater() {
+  const nu = performance.now(), dt = waterTijd ? Math.min(1, (nu - waterTijd) / 1000) : 0; waterTijd = nu; water = Math.min(1, water + dt / 60);
+  if (water < 0.02) return; const top = $('boven').offsetHeight, H = innerHeight - top, y = innerHeight - water * H * 0.6;
+  ctx.beginPath(); ctx.moveTo(0, innerHeight); for (let x = 0; x <= innerWidth + 20; x += 20) ctx.lineTo(x, y + Math.sin(x / 40 + nu / 500) * 6 + Math.sin(x / 13 + nu / 300) * 2); ctx.lineTo(innerWidth, innerHeight); ctx.closePath();
+  ctx.fillStyle = 'rgba(40,120,150,.72)'; ctx.fill(); ctx.strokeStyle = 'rgba(220,245,255,.8)'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; for (let k = 0; k < 8; k++) { const x = (k * 173 + nu / 30) % innerWidth, yy = y + 30 + (k * 53) % Math.max(30, innerHeight - y - 20); ctx.fillRect(x, yy, 26, 2); }
+}
 let lamp = null; // spookslot: waar de zaklamp schijnt (schermpixels); volgt de muis of je vinger
 let autoGevonden = false, autoMelding = 0, sjaakGevonden = false, sjaakMelding = 0, gekozen = -1, melding = null; // gekozen: welk vakje bovenin je hebt aangetikt
 let level = null, rij = [], actief = [], gevondenLijst = [], gevonden = 0, totaal = 25, start = 0, hints = 0, hintKlaar = 0, hintPuls = null, effecten = [];
@@ -1654,7 +1743,7 @@ function startLevel(n) {
   // heeft een plaatje meer voorwerpen dan PER_POTJE, dan is elk potje anders
   rij = schud(voorwerpen()).slice(0, PER_POTJE); actief = rij.splice(0, 10); gevondenLijst = []; gevonden = 0; totaal = actief.length + rij.length; hints = 0; hintKlaar = 0; hintPuls = null; effecten = [];
   for (const v of [...actief, ...rij]) v.gevonden = false;
-  lamp = null; blad = []; vlaag = 0; dronk = 0; slaap = 0; slaapTijd = 0; snurk = 0; bromAl = 0; laatsteWapen = null; bromN = level.onderdelen ? [...actief, ...rij].filter((v) => level.onderdelen.includes(v.naam)).length : 0; sneeuw = []; bui = 0; buiTot = 0; ijs = 0; ijsTijd = 0; zuurstof = 100; autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
+  lamp = null; blad = []; vlaag = 0; wegrijden = 0; orkGolf = 0; orkVolgende = 0; vleer = []; vleerVolgende = 0; flits = 0; babelTaal = []; babelWissel = performance.now() + 4000; water = 0; waterTijd = 0; dronk = 0; slaap = 0; slaapTijd = 0; snurk = 0; bromAl = 0; laatsteWapen = null; bromN = level.onderdelen ? [...actief, ...rij].filter((v) => level.onderdelen.includes(v.naam)).length : 0; sneeuw = []; bui = 0; buiTot = 0; ijs = 0; ijsTijd = 0; zuurstof = 100; autoGevonden = false; autoMelding = 0; sjaakGevonden = false; sjaakMelding = 0; gekozen = -1; melding = null;
   $('titel').textContent = 'Level ' + level.label + ': ' + level.naam; $('boven').hidden = false; $('menu').hidden = true; $('klaar').hidden = true; $('bord').hidden = true;
   vulBalk(); maat.klaar = false; maat(); start = performance.now();
 }
@@ -1668,7 +1757,7 @@ function zetVak(i) {
   const d = $('balk').children[i], v = actief[i];
   if (!v) { d.className = 'vak leeg'; d.innerHTML = ''; return; }
   d.className = 'vak'; d.innerHTML = ''; const c = document.createElement('canvas'); c.width = 68; c.height = 60; d.appendChild(c); v.icoon(c);
-  const s = document.createElement('span'); s.textContent = v.naam; d.appendChild(s);
+  const s = document.createElement('span'); s.textContent = level.talen ? naamIn(v, i) : v.naam; d.appendChild(s);
   d.onclick = () => unlock();
 }
 // een vakje oplichten (bij een hint)
@@ -1704,11 +1793,14 @@ const rondje = ([a, c, d, e]) => ({ midden: [(a + d) / 2, (c + e) / 2], r: Math.
 function vind(i) {
   kiesVak(-1);
   const v = actief[i]; actief[i] = null; v.gevonden = true; gevondenLijst.push(v); gevonden++;
-  const g = level.geluid && INSTRUMENT[level.geluid[v.naam]]; if (g) g(); else sGevonden();
+  const g = level.geluid && INSTRUMENT[level.geluid[v.naam]]; if (g) g(); else if (!level.opa) sGevonden();
   if (level.bier && level.bier.includes(v.naam)) { dronk = Math.min(6, dronk + 1); meld(['Proost! 🍺', 'Nog eentje dan… 🍻', 'Het draait een beetje… 🍺', 'Hik! 🍺'][Math.min(3, dronk - 1)]); }
   if (level.koffie == v.naam && dronk) { dronk = 0; meld('☕ Sterke koffie: weer helemaal nuchter!'); }
   if (level.slaap) slaap = Math.max(0, slaap - 0.35);
   if (level.onderdelen && level.onderdelen.includes(v.naam)) { bromAl++; sBrommer(false); }
+  if (level.bouw) sKnip();
+  if (level.opa) { sOpa(); const [sx, sy] = naarScherm(...v.midden); scherven(sx, sy); if (Math.random() < 0.4) meld(['Opa! 🍽️', 'Opa opa! 💃', 'Krak! 🍽️'][Math.floor(Math.random() * 3)]); }
+  if (level.water) { water = Math.max(0, water - 0.3); ruis(0.3, 'lowpass', 900, 0.08); }
   if (level.wapens && level.wapens.includes(v.naam)) { laatsteWapen = v.naam; meld('🔎 Hm… een mogelijk moordwapen!'); }
   if (level.ruimte) zuurstof = Math.min(100, zuurstof + 14);
   if (level.winter && ijs > 0.05) { ijs = Math.max(0, ijs - 0.3); snd(2400, 0.2, 'triangle', 0.03, 3400); } // ontdooien
@@ -1732,10 +1824,12 @@ const dader = () => { const w = level.wapens.indexOf(laatsteWapen); return level
 function klaar() {
   const s = Math.round((performance.now() - start) / 1000), n = level.nr, stand = s + hints * HINT_STRAF;
   const best = +(opslag.get('zoek_tijd_' + level.id) || 0); if (!best || stand < best) opslag.set('zoek_tijd_' + level.id, stand);
+  if (level.bouw) { wegrijden = performance.now(); sToet(); }
   if (level.onderdelen) sBrommer(true); else if (level.wapens) sDader(); else sKlaar(); for (let k = 0; k < 60; k++) effecten.push({ soort: 'confetti', x: Math.random() * innerWidth, y: -20 - Math.random() * 200, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3, k: ['#ffd34d', '#e8384f', '#3fae5a', '#3a8ae8', '#e84ad8'][k % 5], t: 0, scherm: true });
   $('klaartekst').innerHTML = `Je vond alle ${totaal} ${level.wat || 'spullen'} in <b>${tijd(s)}</b>` + (hints ? ` met ${hints} hint${hints > 1 ? 's' : ''} (+${hints * HINT_STRAF} s), dat wordt <b>${tijd(stand)}</b>` : '') + '.'
     + (autoGevonden ? '<br>🚗 En de oldtimer had je ook gevonden!' : '<br>🚗 Maar de zilveren oldtimer heb je gemist…')
     + (level.onderdelen ? '<br>🛵 De brommer is weer heel: brrrrm!' : '')
+    + (level.bouw ? '<br>✂️ Het kartonnen autootje is af en rijdt weg: toet toet!' : '')
     + (level.puzzel ? (sjaakGevonden ? '<br>🧩 De puzzel van Frankrijk is af, ook het laatste stukje!' : '<br>🧩 De puzzel is bijna af… maar het laatste stukje heeft Sjaak meegenomen!') : '')
     + (level.wapens ? `<br>🔎 Opgelost! Het was <b>${dader()}</b> met de <b>${(laatsteWapen || level.wapens[0]).toLowerCase()}</b> in de bibliotheek.` : '')
     + (!level.sjaak ? '' : sjaakGevonden ? '<br>🦹 En Sluipende Sjaak heb je betrapt!' : '<br>🦹 Sluipende Sjaak is ongezien weggeslopen…') + (best && stand >= best ? `<br>Je snelste tijd: ${tijd(best)}` : best ? '<br>Nieuw record!' : '');
@@ -1749,6 +1843,8 @@ $('hint').onclick = () => {
   const v = kies[Math.floor(Math.random() * kies.length)]; hints++; hintKlaar = performance.now() + 15000;
   hintPuls = { v, t: 0 }; kiesVak(actief.indexOf(v));
   if (level.slaap) slaap = 0;
+  if (level.water) water = 0;
+  if (level.talen) { const k = actief.indexOf(v); babelTaal[k] = 'nl'; zetVak(k); kiesVak(k); }
   if (level.winter && ijs > 0.05) { ijs = 0; snd(2400, 0.3, 'triangle', 0.035, 3800); } // een hint krabt ook de hele ruit schoon
   // als hij buiten beeld is: er naartoe schuiven
   const top = $('boven').offsetHeight; lamp = null; const [hx, hy] = naarScherm(v.midden[0], v.midden[1]); ox += innerWidth / 2 - hx; oy += top + (innerHeight - top) / 2 - hy; begrens();
@@ -1795,7 +1891,13 @@ function teken() {
   if (level && level.slaap && $('klaar').hidden) dommel();
   if (level && level.onderdelen && $('klaar').hidden) tekenBrommer();
   if (level && level.puzzel && $('klaar').hidden) tekenPuzzel();
-  for (const e of effecten) if (e.scherm) { e.t++; e.x += e.vx; e.y += e.vy; ctx.fillStyle = e.k; ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.t * 0.1); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); }
+  if (level && level.lampions && $('klaar').hidden) tekenAvond();
+  if (level && level.orks && $('klaar').hidden) tekenOrks();
+  if (level && level.vampier && $('klaar').hidden) tekenNacht();
+  if (level && level.talen && $('klaar').hidden) babel();
+  if (level && level.water && $('klaar').hidden) tekenWater();
+  if (level && level.bouw) tekenBouw();
+  for (const e of effecten) if (e.scherm) { e.t++; e.vy += e.zw || 0; e.x += e.vx; e.y += e.vy; ctx.fillStyle = e.k; ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.t * 0.1); ctx.fillRect(-4, -2, 8, 4); ctx.restore(); }
   if (autoMelding && performance.now() - autoMelding < 2600) { const tx = innerWidth / 2, ty = innerHeight * 0.55; ctx.font = 'bold 22px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(42,31,58,.9)'; ctx.fillRect(tx - 170, ty - 34, 340, 62); ctx.fillStyle = '#ffd34d'; ctx.fillText('🚗 Oh jee, daar is hij weer!', tx, ty); ctx.font = 'bold 13px "Trebuchet MS",sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText('Je vond de zilveren oldtimer', tx, ty + 20); }
   if (sjaakMelding && performance.now() - sjaakMelding < 2600) { const tx = innerWidth / 2, ty = innerHeight * 0.55; ctx.font = 'bold 20px "Trebuchet MS",sans-serif'; ctx.textAlign = 'center';
