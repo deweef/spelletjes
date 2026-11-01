@@ -24,6 +24,8 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
                      beenschaal=0.75, achter=(7, 8), jurk=True, kapjes=(220, 110, 30)),  # originele PNG (eerder via de deellink, 1200x630)
   'zakenman': dict(voor='pizza/zakenman-onderdelen-chatgpt.png', benen='pizza/zakenman-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(3, 4), been=(5,),
                    beenschaal=0.95, achter=(7,), paar=0.0, kapjes=(40, 62, 120), breed=1.0),  # hele broek per paar: doormidden
+  'dame2': dict(voor='pizza/dame2-onderdelen-chatgpt.png', benen='pizza/dame2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
+                beenschaal=0.62, achter=(7, 8), jurk=True),  # nieuwe gast: dame in rood (nog geen eigen klantrij)
   'chinese2': dict(voor='pizza/chinese2-onderdelen-chatgpt.png', benen='pizza/chinese2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
                    beenschaal=0.62, achter=(7, 8), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),  # tweede versie: de helft van de Chinese dames  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }
