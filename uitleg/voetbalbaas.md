@@ -4,7 +4,9 @@ Eigen voetbalmanager in de stijl van de oude managerspellen uit de jaren 80 (zoa
 maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courier-lettertype, alles in één HTML-bestand.
 
 ## Spelverloop
-- Beginscherm: kies een van de 8 clubs uit de Kelderklasse (grappige verzonnen namen in `CLUBS`, 32 clubs, 8 per divisie).
+- Eigen club maken (`clubMaken`): naam + kleur shirt (`k1`) en streep (`k2`) uit `KLEUREN` of de kleurkiezer; neemt de plek van een
+  willekeurige club in de Kelderklasse in. Vanuit het kantoor (🎨 Clubnaam en kleuren) kan het later nog aangepast worden.
+- Beginscherm: of kies een van de 8 clubs uit de Kelderklasse (grappige verzonnen namen in `CLUBS`, 32 clubs, 8 per divisie).
 - 4 divisies (`DIVNAAM`): Kelderklasse (4), Derde klasse, Tweede klasse, Ereklasse (1). Seizoen = 14 weken (dubbele competitie).
   Nummer 1 en 2 promoveren, nummer 7 en 8 degraderen. Prijzengeld per plek (`PRIJS`).
 - Kantoor (`kantoor`): bank, plaats, volgende tegenstander (sterren), knoppen Opstelling, Transfers, Stand, Erelijst.
@@ -26,5 +28,5 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 ## Opslag
 `voetbalbaas:<naam>` (oude sleutel `voetbalbaas` als beginwaarde).
 
-## Ideeën
-- Beker naast de competitie, scorebord (hoogste divisie/titels), training kiezen, kaartjesprijs zelf instellen.
+## Plaatjes en plannen
+Zie `voetbalbaas/PLAN.md` (Gemini-opdrachten: kantoor, managers, nieuwsplaatjes, velden per divisie). De wedstrijd blijft pixelstijl.

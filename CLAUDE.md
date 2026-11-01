@@ -24,7 +24,7 @@ bedenk dat de site openbaar is.
   | Songfestival-hits | `songfestival/CLAUDE.md` | `songfestival/PLAN.md` |
   | Koekjesschuiver 3D | `koekjesschuiver3d/CLAUDE.md` | |
   | Orkenstorm 3D | `orkenstorm3d/CLAUDE.md` | `orkenstorm3d/PLAN.md` |
-  | Voetbalbaas | `uitleg/voetbalbaas.md` | |
+  | Voetbalbaas | `uitleg/voetbalbaas.md` | `voetbalbaas/PLAN.md` |
   | Keukenplanner (geen spel, niet op de startpagina) | `keuken/LEESMIJ.md` | |
   Plaatjes maken met Gemini (opdrachten, uitknippen met `extra/knip_figuren.py`, bewaren): `uitleg/gemini-en-plaatjes.md`.
   De oude 2D-spellen (kasteelsprong, koekjesschuiver, kikkersprong, skirun, piratenbluf, orkenstorm) hebben geen uitlegbestand.
@@ -36,6 +36,9 @@ bedenk dat de site openbaar is.
   speler in `speler`. Spellen bewaren voortgang per naam als `<sleutel>:<naam>` (Orkenstorm 3D:
   `orkenstorm3d_lvl:Sanne`), met de oude sleutel zonder naam als beginwaarde. Verwijder je een speler, dan
   verdwijnen alle sleutels die op `:<naam>` eindigen.
+- Onderaan staat het blok "Spelletjes van Arnold": spellen op een andere website (nu de boerderij, https://norafarming.netlify.app/).
+  Die staan in de lijst `ARNOLD` in `index.html` (niet in `spellen.json`: de service worker kan andere websites niet offline bewaren),
+  plaatje in de hoofdmap (`arnold-boerderij.jpg`, schermafbeelding 640x400).
 - De spellen staan in twee blokken: 3D (`"soort": "3d"` in spellen.json; mooist op de pc, maar werkt ook op een
   telefoon) en 2D. 3D staat altijd bovenaan, ook in het overzicht.
   Bovenaan staat een overzicht (`#overzicht`) met per blok de spellen als knopjes; een tik scrollt naar dat spel

@@ -102,8 +102,9 @@ const eff=p=>p.kracht*(0.5+0.5*p.cond/100);
 // ---------- spelstatus ----------
 let S=lees();if(S)volgId=S.volgId||1000;
 
-function nieuwSpel(clubId){
+function nieuwSpel(clubId,eigen){ // eigen = {naam,k1,k2}: eigen club, neemt de plek van een club in de Kelderklasse in
  const clubs=CLUBS.map((c,i)=>({id:i,naam:c[0],k1:c[1],k2:c[2],div:4-Math.floor(i/8),niveau:0}));
+ if(eigen)Object.assign(clubs[clubId],eigen);
  clubs.forEach(c=>c.niveau=BASIS[c.div]+rnd(-1.5,1.5));
  const sp=[];const b=BASIS[4];
  [['K',2],['V',5],['M',5],['A',4]].forEach(([pos,n])=>{for(let i=0;i<n;i++)sp.push(nieuweSpeler(pos,b+rnd(-1.5,2)))});
@@ -259,6 +260,7 @@ function beginScherm(){
  ${S?`<button class="knop groot" id="verder">Verder als baas van ${esc(club(S.club).naam)}</button>`:''}
  <h2>${S?'Of begin opnieuw met een club:':'Kies je club'}</h2>
  <p class="klein">Je begint onderaan in de Kelderklasse. Kies een club en probeer hem naar de Ereklasse te brengen.</p>
+ <button class="knop groot" id="eigen" style="background:var(--groen)">✏️ Eigen club maken (naam en kleuren)</button>
  ${voorbeeld.map((c,i)=>`<button class="knop" data-c="${i}"><span class="club" style="background:linear-gradient(90deg,${c[1]} 50%,${c[2]} 50%)"></span>${esc(c[0])}</button>`).join('')}
  <h2>Hoe werkt het?</h2>
  <p class="klein">Elke week kies je je <b class="wit">opstelling</b> (11 spelers, 1 keeper), koop en verkoop je spelers en speel je een wedstrijd.
@@ -267,9 +269,37 @@ function beginScherm(){
  Moe? Laat een speler een weekje rusten. Thuiswedstrijden leveren geld op, maar je spelers willen ook salaris.
  Kom je onder de ${euro(-25000)}, dan ontslaat het bestuur je. Nummer 1 en 2 promoveren, de laatste twee degraderen.</p>`);
  if(S)$('#verder').onclick=kantoor;
+ $('#eigen').onclick=()=>clubMaken(false);
  scherm.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;nieuwSpel(+b.dataset.c);kantoor()});
 }
 
+// Eigen club: naam en twee kleuren kiezen (shirt en streep). bestaand = de huidige club aanpassen.
+const KLEUREN=['#d02020','#ff7a1a','#ffe000','#30a030','#1a7a3a','#2a50c8','#9fd8ff','#6a2a8a','#ff6fb0','#8b4513','#ffffff','#111111'];
+function clubMaken(bestaand){
+ const c=bestaand?mijn():{naam:'',k1:'#d02020',k2:'#ffffff'};let k1=c.k1,k2=c.k2;
+ const rij=(id)=>`<div class="rij" style="flex-wrap:wrap;gap:6px;margin:4px 0 10px">${KLEUREN.map(k=>`<button class="kl" data-v="${id}" data-k="${k}" style="width:34px;height:34px;border-radius:4px;border:3px solid var(--bg);background:${k};cursor:pointer"></button>`).join('')}<input type="color" data-v="${id}" style="width:40px;height:34px;border:0;background:none;padding:0"></div>`;
+ teken(`<h1 style="font-size:20px">${bestaand?'CLUB AANPASSEN':'EIGEN CLUB'}</h1>
+ <p class="sub">${bestaand?'Een nieuwe naam of nieuwe kleuren? Je spelers en de stand blijven gewoon.':'Je club begint in de Kelderklasse, in plaats van een van de andere clubs.'}</p>
+ <h2>Naam van je club</h2>
+ <input id="cnaam" maxlength="24" value="${esc(c.naam)}" placeholder="bijv. FC De Weef" style="width:100%;font:inherit;font-size:18px;padding:10px;border-radius:4px;border:2px solid var(--tekst);background:var(--vak);color:var(--wit)">
+ <h2>Kleur van het shirt</h2>${rij(1)}
+ <h2>Kleur van de streep</h2>${rij(2)}
+ <div class="vak" style="text-align:center"><canvas id="pop" width="240" height="110" style="width:240px;max-width:100%;margin:0 auto;background:#2f8a3a"></canvas><div id="pnaam" class="wit"></div></div>
+ <button class="knop groot" id="ok">${bestaand?'Bewaren':'Beginnen!'}</button><button class="knop" id="annuleer">Terug</button>`);
+ const toon=()=>{const cv=$('#pop'),x=cv.getContext('2d');x.fillStyle='#2f8a3a';x.fillRect(0,0,240,110);x.save();x.scale(1.6,1.6);
+  [[30,40],[75,36],[120,40]].forEach(([a,b],i)=>poppetje(x,a-20,b-20,k1,k2,i*.13+.1));x.restore();
+  $('#pnaam').innerHTML=`<span class="club" style="background:linear-gradient(90deg,${k1} 50%,${k2} 50%)"></span>${esc($('#cnaam').value||'Naamloos FC')}`;
+  scherm.querySelectorAll('.kl').forEach(b=>b.style.borderColor=(b.dataset.v==1?k1:k2)==b.dataset.k?'var(--geel)':'var(--bg)');
+  scherm.querySelectorAll('input[type=color]').forEach(i=>i.value=i.dataset.v==1?k1:k2)};
+ scherm.querySelectorAll('.kl').forEach(b=>b.onclick=()=>{if(b.dataset.v==1)k1=b.dataset.k;else k2=b.dataset.k;toon()});
+ scherm.querySelectorAll('input[type=color]').forEach(i=>i.oninput=()=>{if(i.dataset.v==1)k1=i.value;else k2=i.value;toon()});
+ $('#cnaam').oninput=toon;toon();
+ $('#annuleer').onclick=bestaand?kantoor:beginScherm;
+ $('#ok').onclick=()=>{const naam=$('#cnaam').value.trim().replace(/\s+/g,' ');if(!naam){$('#cnaam').focus();return}
+  if(bestaand){Object.assign(mijn(),{naam,k1,k2});bewaar();return kantoor()}
+  if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;
+  nieuwSpel(ri(0,7),{naam,k1,k2});kantoor()};
+}
 function kantoor(){
  if(S.ontslagen)return ontslagen();
  if(S.week>=14){seizoenKlaar();return seizoenScherm()}
@@ -288,7 +318,8 @@ function kantoor(){
  <button class="knop" id="stand">📊 Stand en uitslagen</button>
  <button class="knop" id="ere">🏆 Erelijst</button>
  ${S.berichten.length?`<h2>Berichten</h2>${S.berichten.slice(-4).reverse().map(b=>`<p class="melding">${esc(b)}</p>`).join('')}`:''}
- <button class="knop klein" id="opnieuw" style="margin-top:16px">Opnieuw beginnen</button>`);
+ <div style="margin-top:16px"><button class="knop klein" id="kleuren">🎨 Clubnaam en kleuren</button><button class="knop klein" id="opnieuw">Opnieuw beginnen</button></div>`);
+ $('#kleuren').onclick=()=>clubMaken(true);
  $('#spelen').onclick=()=>{if(opstellingFout())return opstelling(true);speelWeek();wedstrijd()};
  $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
 }
