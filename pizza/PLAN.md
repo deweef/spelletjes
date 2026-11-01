@@ -332,3 +332,4 @@ zitten nog niet (de rok wordt een blok; zitten van opzij hebben we al van Gemini
 (eigen onderdelenvel per richting), uitvoer direct in het vakjesformaat van `pizza/klanten.png`.
 - Non (29 okt, ChatGPT, zonder voorbeeld gemaakt): onderdelenvel van voren `pizza/non-onderdelen-chatgpt.png`; idee: nieuwe klant of vast figuur
   ("Zuster Benedicta komt een pizza zegenen"). Nog nodig: opzij lopen en zitten.
+- Nieuwe gast (1 nov): dame in rode jurk met blond opgestoken haar, parels, rode pumps, zittend van opzij: `pizza/dame2-opzij-chatgpt.png` (ChatGPT zonder voorbeeldplaatje, lijkt op de villadame maar is anders). Nog nodig: onderdelenvel van voren + van opzij lopen; dan als nieuwe klantrij.
