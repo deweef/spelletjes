@@ -42,7 +42,7 @@ tr.omhoog td:first-child{color:var(--groen)}tr.omlaag td:first-child{color:var(-
 .cond{width:46px;height:8px;background:#222;border-radius:4px;overflow:hidden}
 .cond i{display:block;height:100%;background:var(--groen)}
 .balk{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:13px}
-.balk span:first-child{width:96px}
+.balk span:first-child{width:128px;font-size:12px;white-space:nowrap}
 .balk .b{flex:1;height:10px;background:#222;border-radius:5px;position:relative;overflow:hidden}
 .balk .b i{position:absolute;top:0;bottom:0;left:0;border-radius:5px}
 .goed{color:var(--groen)}.slecht{color:var(--rood)}.geel{color:var(--geel)}.wit{color:var(--wit)}
@@ -119,7 +119,12 @@ function nieuwSpel(clubId,eigen){ // eigen = {naam,k1,k2}: eigen club, neemt de 
 function nieuwSeizoen(){
  const ids=S.clubs.filter(c=>c.div==S.div).map(c=>c.id).sort(()=>R()-.5);
  const rondes=[];let a=ids.slice();
- for(let r=0;r<7;r++){const p=[];for(let i=0;i<4;i++){const x=a[i],y=a[7-i];p.push((r+i)%2?[y,x]:[x,y])}rondes.push(p);a.splice(1,0,a.pop())}
+ // thuis/uit: wie tot nu toe het minst thuis speelde (of vorige ronde uit speelde) speelt thuis, zodat het om en om gaat
+ const thuis={},vorig={};ids.forEach(i=>{thuis[i]=0;vorig[i]=0});
+ for(let r=0;r<7;r++){const p=[];for(let i=0;i<4;i++){let x=a[i],y=a[7-i];
+   if(thuis[y]<thuis[x]||(thuis[y]==thuis[x]&&vorig[y]<vorig[x]))[x,y]=[y,x];
+   thuis[x]++;vorig[x]=1;vorig[y]=0;p.push([x,y])}
+  rondes.push(p);a.splice(1,0,a.pop())}
  S.schema=rondes.concat(rondes.map(r=>r.map(([x,y])=>[y,x])));S.uitslagen=[];S.week=0;
 }
 function nieuweMarkt(){
@@ -132,8 +137,20 @@ const mijn=()=>club(S.club);
 
 // ---------- sterkte ----------
 function lijnen(ids){const l={K:0,V:0,M:0,A:0},n={K:0,V:0,M:0,A:0};ids.forEach(id=>{const p=S.spelers.find(x=>x.id==id);if(p){l[p.pos]+=eff(p);n[p.pos]++}});return{l,n}}
-function sterkte(l){return{A:l.A+0.3*l.M,M:l.M+0.25*(l.V+l.A),D:l.V+0.3*l.M+1.5*l.K}}
-const tegenLijnen=(L)=>({K:L,V:4*L,M:4*L,A:2*L});
+// Kenmerken van een ploeg (l = opgetelde kracht per linie, n = aantal spelers per linie):
+//  qA = gemiddelde kracht van wie aanvalt (aanvallers + een kwart van het middenveld), nA = hoeveel dat er zijn
+//  qD = gemiddelde kracht van de verdediging (verdedigers + kwart middenveld, plus de keeper), nD = hoeveel
+//  M  = middenveld: bepaalt wie de kansen krijgt
+// Kans op een goal ~ (qA/qD)^1.3 × √(nA/3) / (nD/5)^1.5: meer aanvallers = meer goals, meer verdedigers = minder tegengoals.
+function sterkte(l,n){const nA=n.A+0.25*n.M,nD=n.V+0.25*n.M;
+ return{qA:nA?(l.A+0.25*l.M)/nA:0,nA,qD:0.75*(nD?(l.V+0.25*l.M)/nD:0)+0.25*l.K,nD,M:l.M+0.15*(l.V+l.A),K:l.K}}
+const tegenPloeg=L=>sterkte({K:L,V:4*L,M:4*L,A:2*L},{K:1,V:4,M:4,A:2}); // tegenstanders spelen 4-4-2
+const aanvalWaarde=s=>s.qA*Math.pow(s.nA/3,0.5/1.3),verdWaarde=s=>s.qD*Math.pow(s.nD/5,1.5/1.3);
+// Tactiek: counter = minder vaak de bal, maar gevaarlijker als de tegenstander veel aanvalt (ruimte achterin bij hen);
+// aanvallen = vaker de bal, maar meer ruimte achterin bij ons.
+const TACTIEK={normaal:{s:1,eig:0,teg:1,naam:'Normaal',uitleg:'Gewoon je spel spelen.'},
+ counter:{s:0.65,eig:0.9,teg:0.9,naam:'Op de counter',uitleg:'Achterin dicht, minder vaak de bal, maar snel en gevaarlijk uitbreken. Vooral goed tegen sterkere ploegen.'},
+ aanval:{s:1.3,eig:0,teg:1.3,naam:'Aanvallen!',uitleg:'Vaker de bal en vaker voor het doel, maar achterin gaten. Vooral goed tegen zwakkere ploegen (of als je achter staat).'}};
 function besteElf(){
  const vrij=S.spelers.filter(kun).sort((a,b)=>eff(b)-eff(a)),gekozen=[];
  const pak=(pos,n)=>{for(const p of vrij){if(n<=0)break;if(p.pos==pos&&!gekozen.includes(p)){gekozen.push(p);n--}}};
@@ -150,11 +167,11 @@ function opstellingFout(){
 }
 
 // ---------- wedstrijd uitrekenen ----------
-function simuleer(sH,sA,tv=1.15){ // sH/sA = {A,M,D,K}, tv = thuisvoordeel
- const ev=[],n=ri(8,11),mh=sH.M*sH.M*tv,ma=sA.M*sA.M;
+function simuleer(sH,sA,tv=1.15,tH=TACTIEK.normaal,tA=TACTIEK.normaal){ // sH/sA = sterkte(), tv = thuisvoordeel, tH/tA = tactiek
+ const ev=[],n=ri(8,11),mh0=Math.pow(sH.M,1.5)*tv,ma0=Math.pow(sA.M,1.5),ph=mh0/(mh0+ma0),mh=mh0*tH.s,ma=ma0*tA.s;
  const minuten=Array.from({length:n},()=>ri(2,89)).sort((a,b)=>a-b);
- for(const m of minuten){const thuis=R()<mh/(mh+ma),at=thuis?sH:sA,vd=thuis?sA:sH;
-  const r=at.A/(at.A+vd.D*0.4776),pg=clamp(0.3*Math.pow(2*r,1.6),0.06,0.65);
+ for(const m of minuten){const thuis=R()<mh/(mh+ma),at=thuis?sH:sA,vd=thuis?sA:sH,ta=thuis?tH:tA,tvd=thuis?tA:tH;
+  const pg=clamp(0.3*Math.pow(at.qA/(vd.qD||1),1.3)*Math.pow(at.nA/3,0.5)/Math.pow(Math.max(vd.nD,0.5)/5,1.5)*(1+ta.eig*(thuis?1-ph:ph))*tvd.teg,0.03,0.7);
   let uit;if(R()<pg)uit='goal';else{const pr=clamp(0.5+(vd.K-BASIS[S.div])*0.03,0.3,0.75);uit=R()<pr?'redding':R()<0.18?'lat':'naast'}
   ev.push({min:m,thuis,uit})}
  return ev;
@@ -172,10 +189,10 @@ function volgende(){const w=S.schema[S.week];if(!w)return null;const m=w.find(([
 // ---------- de week spelen ----------
 function speelWeek(){
  const v=volgende(),uit=[];let mijnEv=null;
- const mijnS=(()=>{const{l}=lijnen(S.opstelling);const s=sterkte(l);s.K=l.K;return s})();
+ const mijnS=(()=>{const{l,n}=lijnen(S.opstelling);return sterkte(l,n)})(),mijnT=TACTIEK[S.tactiek]||TACTIEK.normaal;
  for(const[h,a]of S.schema[S.week]){
-  const s=id=>{if(id==S.club)return mijnS;const L=club(id).niveau*rnd(0.88,1.12),l=tegenLijnen(L),x=sterkte(l);x.K=L;return x};
-  const ev=simuleer(s(h),s(a),h==S.club?thuisvoordeel():1.15),[dh,da]=tel(ev);uit.push({h,a,dh,da});if(h==S.club||a==S.club)mijnEv=ev}
+  const s=id=>{if(id==S.club)return mijnS;return tegenPloeg(club(id).niveau*rnd(0.88,1.12))};
+  const ev=simuleer(s(h),s(a),h==S.club?thuisvoordeel():1.15,h==S.club?mijnT:TACTIEK.normaal,a==S.club?mijnT:TACTIEK.normaal),[dh,da]=tel(ev);uit.push({h,a,dh,da});if(h==S.club||a==S.club)mijnEv=ev}
  S.uitslagen.push(uit);
  const u=uit.find(x=>x.h==S.club||x.a==S.club),voor=v.thuis?u.dh:u.da,tegen=v.thuis?u.da:u.dh;
  // schutters en namen bij de kansen van jouw team
@@ -332,10 +349,13 @@ function kantoor(){
 }
 
 function balken(){
- const{l,n}=lijnen(S.opstelling),m=sterkte(l),v=volgende(),t=sterkte(tegenLijnen(club(v.teg).niveau));
- const rij=(naam,a,b)=>{const mx=Math.max(a,b)*1.15||1;return`<div class="balk"><span>${naam}</span><div class="b"><i style="width:${a/mx*100}%;background:${a>=b?'var(--groen)':'var(--rood)'}"></i></div></div><div class="balk"><span class="klein">tegenstander</span><div class="b"><i style="width:${b/mx*100}%;background:#999"></i></div></div>`};
- return`<div class="vak"><b class="wit">Formatie ${n.V}-${n.M}-${n.A}</b> tegen ${esc(club(v.teg).naam)}
- ${rij('Aanval',m.A,t.A)}${rij('Middenveld',m.M,t.M)}${rij('Verdediging',m.D,t.D)}</div>`;
+ const{l,n}=lijnen(S.opstelling),m=sterkte(l,n),v=volgende(),t=tegenPloeg(club(v.teg).niveau);
+ const rij=(naam,a,naam2,b)=>{const mx=Math.max(a,b)*1.15||1;return`<div class="balk"><span>${naam}</span><div class="b"><i style="width:${a/mx*100}%;background:${a>=b?'var(--groen)':'var(--rood)'}"></i></div></div><div class="balk" style="margin-bottom:8px"><span class="klein">${naam2}</span><div class="b"><i style="width:${b/mx*100}%;background:#999"></i></div></div>`};
+ return`<div class="vak"><b class="wit">Formatie ${n.V}-${n.M}-${n.A}</b> tegen ${esc(club(v.teg).naam)} (4-4-2)
+ ${rij('Onze aanval',aanvalWaarde(m),'hun verdediging',verdWaarde(t))}${rij('Ons middenveld',m.M,'hun middenveld',t.M)}${rij('Onze verdediging',verdWaarde(m),'hun aanval',aanvalWaarde(t))}
+ <p class="klein" style="margin:0">Groen = wij zijn sterker. Meer aanvallers = vaker scoren, meer verdedigers = minder tegengoals, meer middenveld = vaker de bal.</p></div>
+ <div class="vak"><b class="wit">Tactiek</b><div class="rij" style="flex-wrap:wrap;gap:4px;margin:6px 0">${Object.entries(TACTIEK).map(([k,t])=>`<button class="knop klein" data-tak="${k}" style="${(S.tactiek||'normaal')==k?'background:var(--geel);color:#222':''}">${t.naam}</button>`).join('')}</div>
+ <p class="klein" style="margin:0">${TACTIEK[S.tactiek||'normaal'].uitleg}</p></div>`;
 }
 function spelerRij(p,aan,knop){
  const st=p.blessure?` <span class="slecht">🩹${p.blessure}</span>`:p.schorsing?` <span class="slecht">🟥</span>`:'';
@@ -356,6 +376,7 @@ function opstelling(waarschuw){
   if(i>=0)S.opstelling.splice(i,1);else if(kun(p)){if(p.pos=='K')S.opstelling=S.opstelling.filter(x=>S.spelers.find(q=>q.id==x).pos!='K');if(S.opstelling.length<11)S.opstelling.push(id)}
   bewaar();const y=scrollY;opstelling();scrollTo(0,y)});
  $('#beste').onclick=()=>{S.opstelling=besteElf();bewaar();opstelling()};
+ scherm.querySelectorAll('[data-tak]').forEach(b=>b.onclick=()=>{S.tactiek=b.dataset.tak;bewaar();const y=scrollY;opstelling();scrollTo(0,y)});
  $('#leeg').onclick=()=>{S.opstelling=[];bewaar();opstelling()};
  $('#klaar').onclick=$('#klaar2').onclick=kantoor;
 }
@@ -461,7 +482,7 @@ function wedstrijd(){
    if(st.fase=='klok'){ // klok tikt door tot de volgende kans
     const doel=st.ev[st.i+1]?st.ev[st.i+1].min:90;st.min=Math.min(doel,st.min+dt*22);
     if(st.min>=doel){st.min=doel;if(st.ev[st.i+1]){st.i++;const e=st.ev[st.i];st.actie=maakActie(e);st.t=0;st.fase='actie';
-      $('#verslag').innerHTML=e.wij?`${esc(e.helpers[0])} gaat ervandoor...`:`${esc(hun.naam)} valt aan...`}
+      $('#verslag').innerHTML=e.wij?`${S.tactiek=='counter'&&R()<.6?'Snelle counter! ':''}${esc(e.helpers[0])} gaat ervandoor...`:`${esc(hun.naam)} valt aan...`}
      else{st.fase='uit';fluit(3);$('#verslag').innerHTML=`<span class="geel">Het eindsignaal!</span>`;setTimeout(()=>{if(anim)naWedstrijd()},1800/st.snel)}}
     st.min=Math.floor(st.min*10)/10;$('#min').textContent=Math.floor(st.min)+"'";
     tekenVeld(ctx);tekenStil(ctx,ons,hunK1)}

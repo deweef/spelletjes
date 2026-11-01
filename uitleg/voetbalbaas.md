@@ -21,9 +21,15 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Einde seizoen (`seizoenKlaar`): spelers worden ouder (jong = beter, oud = minder, 35+ stopt soms), clubs wisselen van divisie.
 
 ## Wedstrijd
-- `simuleer`: 8-11 kansen; wie de kans krijgt hangt af van het middenveld (+15% thuisvoordeel), de kans op een goal van
-  aanval tegen verdediging+keeper. Uitkomsten: goal, redding, naast, lat. Andere wedstrijden gaan met dezelfde formule
-  (tegenstanders hebben alleen een `niveau`, omgerekend als 4-4-2).
+- `sterkte(l,n)`: qA = gemiddelde kracht van de aanvallers (+ kwart middenveld), nA = aantal; qD = verdediging (+ kwart middenveld,
+  keeper telt 25% mee), nD = aantal; M = middenveld. `simuleer`: 8-11 kansen; wie de kans krijgt hangt af van M^1,5 (thuisvoordeel
+  `thuisvoordeel()`), goalkans = 0,3 × (qA/qD)^1,3 × √(nA/3) / (nD/5)^1,5. Dus **onze aanval tegen hun verdediging**, meer aanvallers =
+  meer goals, meer verdedigers = minder tegengoals. Tegenstanders spelen 4-4-2 op hun `niveau` (`tegenPloeg`).
+- Tactiek `S.tactiek` (`TACTIEK`, knoppen in de opstelling): normaal; counter (65% van de kansen, maar goalkans ×(1 + 0,9 × balbezit
+  tegenstander) en tegenstander ×0,9: goed tegen sterkere ploegen); aanvallen (130% kansen, maar tegenstander ×1,3).
+  Getest (4000 wedstrijden, alle spelers kracht 6): tegen een sterkere ploeg (8) haalt 5-4-1 counter 0,57 punt per wedstrijd,
+  4-4-2 0,44 en 3-4-3 0,25; tegen een zwakkere ploeg maakt het weinig uit.
+- Schema (`nieuwSeizoen`): thuis/uit gaat om en om (wie het minst thuis speelde, speelt thuis), nooit meer dan 2 keer achter elkaar.
 - De uitslag wordt bewaard vóór de animatie (herladen helpt dus niet om een nederlaag over te doen).
 - Animatie (`maakActie`/`speelActie`): drie aanvallers, twee verdedigers en een keeper; camera zoomt in op de helft van de kans.
   Wij vallen altijd naar rechts aan, de tegenstander naar links. Knoppen START, Sneller, Naar de uitslag.
