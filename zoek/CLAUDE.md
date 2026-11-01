@@ -32,7 +32,7 @@ Gemini-plaatjes staan in `zoek/` (allemaal 1376x768, links en vaste prompt in `z
 (`KAMER_BEELD`), 2 postkantoor (`POST_BEELD`), 3 orkest (`ORKEST_BEELD`), 4 strand (`STRAND_BEELD`), 5 piratenschip (`SCHIP_BEELD`), 6 restaurantkeuken
 (`keuken.jpg`, `KEUKEN_BEELD`), 7 kermis (`KERMIS_BEELD`), 8 serverruimte (id `server`, `SERVER_BEELD`), 9 camping (`CAMPING_BEELD`, Sjaak 3 vakjes),
 10 spookslot (id `spook`, `SPOOK_BEELD`, `zaklamp: 1`: alles donker behalve een lichtcirkel rond de muis of je vinger, `lamp`; bij het eindscherm
-gaat het licht aan), 11 ziekenhuis, 12 dierentuin (id `dieren`), 13 school, 14 vliegveld (id `vlieg`), 15 fotoshoot (id `foto`),
+gaat het licht aan), 11 ziekenhuis (heeft een witte rand met losse plaatjes: die doet niet mee, `binnen: [x1, y1, x2, y2]` = het eigenlijke plaatje, de rand wordt vervaagd en een tik daar geeft "Ben je ziek ofzo?"; alle voorwerpen staan binnenin), 12 dierentuin (id `dieren`), 13 school, 14 vliegveld (id `vlieg`), 15 fotoshoot (id `foto`),
 16 Nachtwacht (Rembrandt op onze manier, mag: publiek domein), 17 onderwaterstadje (id `onderwater`), 18 supermarkt, 19 bruin café (id `cafe`),
 20 ruimtestation (id `ruimte`, `ruimte: 1`: het plaatje draait langzaam rond zijn midden, `draaiHoek`/`naarScherm`/`naarWereld`, en een
 zuurstofmeter linksboven `zuurstof` loopt in ~1 min leeg, elk gevonden voorwerp +14; leeg = level opnieuw). Na level 20 splitst het pad:

@@ -585,16 +585,19 @@ const SPOOK_BEELD = [
   ['Speelkaarten', 873, 644, 900, 666], ['Geldbuidel', 985, 691, 1015, 724], ['Groot spook', 1195, 445, 1370, 590],
 ];
 // ziekenhuis.jpg (Gemini, 1376 x 768)
-const ZIEKENHUIS_BEELD = [
-  ['Stethoscoop', 20, 15, 75, 105], ['Thermometer', 100, 12, 168, 55, 22, 135, 70, 210], ['Pleister', 197, 12, 255, 55, 20, 580, 75, 645],
-  ['Krukken', 280, 10, 370, 55, 25, 362, 65, 470], ['Ballon Beterschap', 400, 5, 450, 65, 853, 95, 893, 150], ['Bedpan', 942, 10, 1006, 55],
-  ['Mondkapje', 1025, 10, 1093, 58], ['Pillendoosje', 1116, 10, 1200, 58, 1302, 425, 1370, 465], ['Reflexhamer', 1220, 10, 1278, 60],
-  ['Rubberen handschoen', 1305, 10, 1360, 75, 1312, 685, 1362, 750], ['Druiventros', 1305, 115, 1365, 190],
-  ['Fruitmand', 1303, 215, 1368, 280, 1226, 435, 1288, 498], ['Teddybeer', 1305, 308, 1368, 385, 15, 670, 75, 745], ['Infuuszak', 22, 233, 68, 345],
-  ['Rolstoel', 13, 485, 80, 555], ['Wattenstaafjes', 1312, 494, 1366, 545], ['Beterschapskaart', 1305, 573, 1365, 655],
-  ['Emmer met watten', 398, 212, 433, 248], ['Röntgenfoto met autootje', 180, 300, 290, 370], ['Bos bloemen', 330, 310, 372, 355],
-  ['Injectiespuit', 790, 555, 915, 640], ['Zak drop', 1200, 388, 1245, 435], ['Klok', 1055, 105, 1081, 130], ['Pionnetje', 655, 594, 683, 649],
-  ['Handtas', 1005, 714, 1068, 754], ['Klembord', 893, 342, 928, 372], ['Kartonnen doos', 210, 165, 245, 192],
+const ZIEKENHUIS_BEELD = [ // alleen de binnenkant; de rand met losse plaatjes doet niet mee (binnen)
+  ['Ballon Beterschap', 852, 94, 894, 150], ['Kartonnen doos', 207, 160, 246, 194, 300, 95, 338, 115, 342, 92, 375, 115, 461, 205, 493, 246], ['Emmer met watten', 396, 210, 434, 250],
+  ['Röntgenfoto met autootje', 180, 297, 292, 375], ['Bos bloemen', 328, 310, 376, 365], ['Klembord', 891, 339, 930, 376, 725, 557, 753, 592],
+  ['Zak drop', 1197, 385, 1246, 436], ['Fruitmand', 1224, 437, 1290, 500], ['Injectiespuit', 775, 553, 917, 677, 651, 118, 678, 166],
+  ['Pionnetje', 654, 593, 685, 650], ['Handtas', 1000, 713, 1070, 756], ['Klok', 1054, 104, 1082, 131],
+  ['Computerscherm', 110, 157, 146, 196, 100, 343, 141, 386], ['Pennenbakje', 98, 181, 113, 203], ['Prikbord', 189, 101, 259, 168],
+  ['Rode fles', 399, 167, 417, 203], ['Glazen potten', 397, 124, 436, 158], ['Groene fles', 445, 216, 464, 251],
+  ['Tang', 583, 97, 617, 141], ['Koffiemok', 90, 372, 105, 392], ['Map', 289, 382, 318, 413],
+  ['Infuus', 391, 275, 413, 307, 994, 299, 1012, 333, 782, 300, 806, 356], ['Wastafel', 329, 362, 366, 389], ['Kruik', 770, 374, 801, 404],
+  ['Dieetposter', 1149, 294, 1198, 350], ['Vaas met bloemen', 1239, 354, 1281, 403], ['Glas water', 254, 630, 270, 652, 316, 633, 334, 654, 989, 357, 1004, 377],
+  ['Bord met eten', 194, 654, 241, 678, 249, 656, 296, 681], ['Spelcomputer', 208, 567, 236, 589], ['Bureaustoel', 172, 185, 212, 247, 152, 368, 196, 440],
+  ['Rolstoel met nummer', 518, 588, 606, 672, 566, 620, 652, 722], ['Bordje Bezoekuur', 998, 598, 1078, 652],
+  ['Liftknoppen', 1253, 659, 1282, 696], ['Mummie', 98, 568, 216, 732], ['Koekkruimels', 112, 727, 156, 757],
 ];
 // dierentuin.jpg (Gemini, 1376 x 768)
 const DIERENTUIN_BEELD = [
@@ -1848,7 +1851,7 @@ const LEVELS = [
   { id: 'server', naam: 'De serverruimte', uitleg: 'Heeft u hem al uit en aan gezet?', beeld: 'zoek/serverruimte.jpg', items: SERVER_BEELD, auto: [375, 60, 585, 140], sjaak: [1038, 277, 1150, 400], fx: 'storing' },
   { id: 'camping', naam: 'De camping', uitleg: 'Tentjes, caravans en een barbecue die te hard rookt', beeld: 'zoek/camping.jpg', items: CAMPING_BEELD, auto: [455, 50, 680, 145], sjaak: [128, 590, 225, 768, 200, 135, 230, 180, 37, 664, 68, 709], fx: 'mug' },
   { id: 'spook', naam: 'Het spookslot', uitleg: 'Het is donker… schijn met je zaklamp!', beeld: 'zoek/spookslot.jpg', items: SPOOK_BEELD, auto: [252, 52, 475, 148], sjaak: [1140, 536, 1255, 758], zaklamp: 1 },
-  { id: 'ziekenhuis', naam: 'Het ziekenhuis', uitleg: 'Beterschap! Maar eerst zoeken', beeld: 'zoek/ziekenhuis.jpg', items: ZIEKENHUIS_BEELD, auto: [395, 80, 490, 112], sjaak: [1080, 295, 1140, 475, 1193, 549, 1226, 574], fx: 'hartslag' },
+  { id: 'ziekenhuis', naam: 'Het ziekenhuis', uitleg: 'Beterschap! Maar eerst zoeken', beeld: 'zoek/ziekenhuis.jpg', items: ZIEKENHUIS_BEELD, auto: [394, 80, 492, 113], sjaak: [1061, 293, 1143, 477, 1192, 546, 1229, 577], binnen: [82, 67, 1296, 768], fx: 'hartslag' },
   { id: 'dieren', naam: 'De dierentuin', uitleg: 'Niet voeren! Wel zoeken', beeld: 'zoek/dierentuin.jpg', items: DIERENTUIN_BEELD, auto: [515, 50, 675, 115], sjaak: [818, 425, 865, 500], fx: 'aap' },
   { id: 'school', naam: 'De school', uitleg: 'Stilte: proefwerk!', beeld: 'zoek/school.jpg', items: SCHOOL_BEELD, auto: [628, 700, 800, 768], sjaak: [540, 455, 615, 635], fx: 'proppen' },
   { id: 'vlieg', naam: 'Het vliegveld', uitleg: 'Je vliegtuig vertrekt bijna!', beeld: 'zoek/vliegveld.jpg', items: VLIEGVELD_BEELD, auto: [1238, 468, 1286, 512], sjaak: [1275, 584, 1355, 750], fx: 'vliegtuig' },
