@@ -69,7 +69,7 @@ uitslagscherm, na een nederlaag boos.
 >    blik; de scheidsrechter staat achter hem met zijn armen over elkaar en één opgetrokken wenkbrauw.
 > [stijlblok]
 
-## Opdracht 5 – Nieuwsplaatjes, vel 3
+## Opdracht 5 – Nieuwsplaatjes, vel 3 – KLAAR (vakjes 8-11 in `nieuws.jpg`)
 > Zelfde opzet (4 vierkante plaatjes, 2x2, even groot, dunne witte rand, oranje shirts met zwarte streep):
 > 1. (linksboven) De clubloterij: een opgewonden voorzitter in pak houdt een krat bier omhoog als hoofdprijs, een
 >    blije oma heeft het winnende lootje, er dwarrelen confetti.
