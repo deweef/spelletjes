@@ -98,4 +98,8 @@ op het scherm "Einde seizoen" bij promotie.
 1 (kantoor) en 3 (nieuws vel 1) eerst: daar zie je het meeste verschil. Daarna 2 (managers), 4, 5 en 6.
 
 ## Open ideeën (spel)
-- Beker naast de competitie, scorebord (hoogste divisie/titels), training kiezen, kaartjesprijs zelf instellen.
+- ~~Kaartjesprijs zelf instellen~~ (gedaan).
+- Beker naast de competitie (knock-out, tussendoor, extra geld).
+- Online scorebord: hoogste divisie en aantal titels per speler.
+- Training kiezen (conditie of kracht), jeugdspelers uit de eigen jeugd.
+- Managers kiezen met portret (na Gemini-opdracht 2).

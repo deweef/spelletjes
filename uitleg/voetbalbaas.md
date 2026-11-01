@@ -13,6 +13,9 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Opstelling: precies 11 spelers en 1 keeper; balkjes vergelijken aanval/middenveld/verdediging met de tegenstander.
 - Spelers: positie K/V/M/A, kracht 1-20, leeftijd, conditie (spelen = moe, rusten = herstel), blessure, schorsing.
 - Transfers: elke week 4 spelers te koop (`nieuweMarkt`), eigen spelers verkopen voor 80% van `waarde`. Selectie 13-20.
+- Kaartjes en geld (`geldScherm`): kaartjesprijs `S.prijs` met −/+ (normaal `KAARTJE`); publiek = `verwachtPubliek` (vraag = 1,6 − 0,6 × prijs/normaal);
+  meer publiek = meer thuisvoordeel (`thuisvoordeel`). Toont het gemiddelde per week (sponsor + halve thuiswedstrijd − salarissen).
+  Bij promotie/degradatie schuift de prijs mee. Getest: normale prijs ≈ +€25.000 per seizoen in de Kelderklasse.
 - Geld: sponsor per week, kaartjes bij thuiswedstrijden, salaris per speler (`salaris` = kracht² × 5). Onder -€25.000 = ontslagen.
 - Willekeurig nieuws (`gebeurtenis`): kantine, kater, plassen in het bos, 'sigaretje' achter de dug-out, koeien op het veld enz.
 - Einde seizoen (`seizoenKlaar`): spelers worden ouder (jong = beter, oud = minder, 35+ stopt soms), clubs wisselen van divisie.

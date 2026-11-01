@@ -78,7 +78,12 @@ function bewaar(){try{localStorage.setItem(SLEUTEL,JSON.stringify(S))}catch(e){}
 const DIVNAAM={4:'Kelderklasse',3:'Derde klasse',2:'Tweede klasse',1:'Ereklasse'};
 const BASIS={4:6,3:9,2:12,1:15};          // gemiddelde kracht in die divisie
 const PUBLIEK={4:700,3:1600,2:3200,1:6500};
-const KAARTJE={4:8,3:10,2:12,1:15};
+const KAARTJE={4:8,3:10,2:12,1:15};     // normale kaartjesprijs per divisie
+// Kaartjesprijs zelf kiezen (S.prijs): goedkoper = meer publiek (en meer thuisvoordeel), duurder = minder publiek.
+const prijs=()=>S.prijs||KAARTJE[S.div];
+const vraag=p=>clamp(1.6-0.6*p/KAARTJE[S.div],0.15,1.8);
+const verwachtPubliek=p=>Math.round(PUBLIEK[S.div]*(1+(8-(S.week?plek():4))/16)*vraag(p));
+const thuisvoordeel=()=>1.15*Math.pow(vraag(prijs()),0.3);
 const SPONSOR={4:1500,3:2500,2:5000,1:9000};
 const PRIJS={4:2500,3:5000,2:10000,1:20000}; // prijzengeld per plek boven de laatste
 const CLUBS=[
@@ -145,8 +150,8 @@ function opstellingFout(){
 }
 
 // ---------- wedstrijd uitrekenen ----------
-function simuleer(sH,sA){ // sH/sA = {A,M,D,K}
- const ev=[],n=ri(8,11),mh=sH.M*sH.M*1.15,ma=sA.M*sA.M;
+function simuleer(sH,sA,tv=1.15){ // sH/sA = {A,M,D,K}, tv = thuisvoordeel
+ const ev=[],n=ri(8,11),mh=sH.M*sH.M*tv,ma=sA.M*sA.M;
  const minuten=Array.from({length:n},()=>ri(2,89)).sort((a,b)=>a-b);
  for(const m of minuten){const thuis=R()<mh/(mh+ma),at=thuis?sH:sA,vd=thuis?sA:sH;
   const r=at.A/(at.A+vd.D*0.4776),pg=clamp(0.3*Math.pow(2*r,1.6),0.06,0.65);
@@ -170,7 +175,7 @@ function speelWeek(){
  const mijnS=(()=>{const{l}=lijnen(S.opstelling);const s=sterkte(l);s.K=l.K;return s})();
  for(const[h,a]of S.schema[S.week]){
   const s=id=>{if(id==S.club)return mijnS;const L=club(id).niveau*rnd(0.88,1.12),l=tegenLijnen(L),x=sterkte(l);x.K=L;return x};
-  const ev=simuleer(s(h),s(a)),[dh,da]=tel(ev);uit.push({h,a,dh,da});if(h==S.club||a==S.club)mijnEv=ev}
+  const ev=simuleer(s(h),s(a),h==S.club?thuisvoordeel():1.15),[dh,da]=tel(ev);uit.push({h,a,dh,da});if(h==S.club||a==S.club)mijnEv=ev}
  S.uitslagen.push(uit);
  const u=uit.find(x=>x.h==S.club||x.a==S.club),voor=v.thuis?u.dh:u.da,tegen=v.thuis?u.da:u.dh;
  // schutters en namen bij de kansen van jouw team
@@ -179,7 +184,7 @@ function speelWeek(){
  mijnEv.forEach(e=>{e.wij=e.thuis==v.thuis;if(e.wij){const s=kiesSchutter();e.schutter=s.naam;e.helpers=[kies(aanvallers).naam,kies(aanvallers).naam]}});
  // geld
  const berichten=[];let inkomsten=SPONSOR[S.div],toesch=0;
- if(v.thuis){const p=plek();toesch=Math.round(PUBLIEK[S.div]*rnd(0.75,1.25)*(1+(8-p)/16));inkomsten+=toesch*KAARTJE[S.div]}
+ if(v.thuis){toesch=Math.round(verwachtPubliek(prijs())*rnd(0.8,1.2));inkomsten+=toesch*prijs()}
  const lonen=S.spelers.reduce((t,p)=>t+salaris(p),0);
  S.geld+=inkomsten-lonen;
  // conditie, blessures, schorsingen
@@ -230,6 +235,7 @@ function seizoenKlaar(){
  if(omhoog.includes(S.club)&&p!=1)info.push('⬆️ Je promoveert! Op naar de '+DIVNAAM[d-1]+'.');
  if(omhoog.includes(S.club)&&p==1)info.push('⬆️ Volgend seizoen speel je in de '+DIVNAAM[d-1]+'.');
  if(omlaag.includes(S.club))info.push('⬇️ Helaas, je degradeert naar de '+DIVNAAM[d+1]+'.');
+ if(S.prijs)S.prijs=Math.max(1,Math.round(S.prijs*KAARTJE[mijn().div]/KAARTJE[d])); // kaartjesprijs schuift mee met de divisie
  S.div=mijn().div;
  // spelers worden ouder
  const weg=[];
@@ -314,6 +320,7 @@ function kantoor(){
  ${fout?`<p class="melding">${fout}</p>`:''}
  <button class="knop groot" id="spelen">⚽ Speel de wedstrijd</button>
  <button class="knop" id="opst">📋 Opstelling</button>
+ <button class="knop" id="geld">🎟️ Kaartjes en geld</button>
  <button class="knop" id="trans">💰 Transfers (kopen en verkopen)</button>
  <button class="knop" id="stand">📊 Stand en uitslagen</button>
  <button class="knop" id="ere">🏆 Erelijst</button>
@@ -321,7 +328,7 @@ function kantoor(){
  <div style="margin-top:16px"><button class="knop klein" id="kleuren">🎨 Clubnaam en kleuren</button><button class="knop klein" id="opnieuw">Opnieuw beginnen</button></div>`);
  $('#kleuren').onclick=()=>clubMaken(true);
  $('#spelen').onclick=()=>{if(opstellingFout())return opstelling(true);speelWeek();wedstrijd()};
- $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
+ $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;$('#geld').onclick=geldScherm;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
 }
 
 function balken(){
@@ -353,6 +360,27 @@ function opstelling(waarschuw){
  $('#klaar').onclick=$('#klaar2').onclick=kantoor;
 }
 
+function geldScherm(){
+ const p=prijs(),fans=verwachtPubliek(p),kaart=fans*p,sp=SPONSOR[S.div],lonen=S.spelers.reduce((t,x)=>t+salaris(x),0),gem=sp+kaart/2-lonen;
+ const sfeer=vraag(p)>1.25?'Kolkend! Je spelers worden gedragen door het publiek.':vraag(p)>0.9?'Gezellig vol.':vraag(p)>0.55?'Wat lege plekken. Het publiek moppert over de prijs.':'Bijna leeg. Je hoort de scheidsrechter hijgen.';
+ teken(`<h1 style="font-size:20px">KAARTJES EN GELD</h1><p class="sub">Bank: <span class="${S.geld<0?'slecht':'goed'}">${euro(S.geld)}</span></p>
+ <h2>Prijs van een kaartje</h2>
+ <div class="rij" style="justify-content:center;gap:14px"><button class="knop klein" id="min" style="font-size:22px;width:52px;text-align:center">−</button><span class="wit" style="font-size:28px">${euro(p)}</span><button class="knop klein" id="plus" style="font-size:22px;width:52px;text-align:center">+</button></div>
+ <p class="klein" style="text-align:center">Normaal in de ${DIVNAAM[S.div]}: ${euro(KAARTJE[S.div])}</p>
+ <div class="vak"><div class="rij"><span style="flex:1">Verwacht publiek</span><span class="wit">± ${fans.toLocaleString('nl-NL')}</span></div>
+ <div class="rij"><span style="flex:1">Kaartjes per thuiswedstrijd</span><span class="goed">± ${euro(kaart)}</span></div>
+ <p class="klein">${sfeer} Goedkope kaartjes = meer publiek = meer thuisvoordeel. Dure kaartjes = meer geld per kaartje, maar minder mensen.</p></div>
+ <h2>Gemiddeld per week</h2>
+ <div class="vak klein"><div class="rij"><span style="flex:1">Sponsor (elke week)</span><span class="goed">+${euro(sp)}</span></div>
+ <div class="rij"><span style="flex:1">Kaartjes (om de week een thuiswedstrijd)</span><span class="goed">+${euro(kaart/2)}</span></div>
+ <div class="rij"><span style="flex:1">Salarissen (${S.spelers.length} spelers)</span><span class="slecht">-${euro(lonen)}</span></div>
+ <div class="rij"><span style="flex:1" class="wit">Over per week</span><span class="${gem<0?'slecht':'goed'}">${gem<0?'':'+'}${euro(gem)}</span></div></div>
+ <p class="klein">Bij een uitwedstrijd krijg je alleen de sponsor: de kaartjes zijn dan voor de thuisclub. Aan het eind van het seizoen komt er nog prijzengeld bij (hoe hoger je eindigt, hoe meer).</p>
+ <button class="knop groot" id="klaar">Klaar</button>`);
+ $('#min').onclick=()=>{S.prijs=Math.max(1,p-1);bewaar();geldScherm()};
+ $('#plus').onclick=()=>{S.prijs=Math.min(KAARTJE[S.div]*3,p+1);bewaar();geldScherm()};
+ $('#klaar').onclick=kantoor;
+}
 function transfers(){
  teken(`<h1 style="font-size:20px">TRANSFERS</h1><p class="sub">Bank: <span class="${S.geld<0?'slecht':'goed'}">${euro(S.geld)}</span> · selectie ${S.spelers.length} spelers (min 13, max 20)</p>
  <h2>Te koop deze week</h2>
@@ -550,7 +578,7 @@ function naWedstrijd(){
  <div class="vak" style="text-align:center"><div class="wit" style="font-size:18px">${esc(ch.naam)} ${L.dh} - ${L.da} ${esc(ca.naam)}</div>
  ${goals.length?`<div class="klein">⚽ ${goals.join(', ')}</div>`:''}</div>
  <h2>Geld deze week</h2><div class="vak klein">
- ${L.toesch?`<div class="rij"><span style="flex:1">${L.toesch.toLocaleString('nl-NL')} toeschouwers + sponsor</span><span class="goed">+${euro(L.inkomsten)}</span></div>`:`<div class="rij"><span style="flex:1">Sponsor (uitwedstrijd, geen kaartjes)</span><span class="goed">+${euro(L.inkomsten)}</span></div>`}
+ ${L.toesch?`<div class="rij"><span style="flex:1">${L.toesch.toLocaleString('nl-NL')} toeschouwers + sponsor</span><span class="goed">+${euro(L.inkomsten)}</span></div>`:`<div class="rij"><span style="flex:1">Sponsor (uitwedstrijd: de kaartjes zijn voor de thuisclub)</span><span class="goed">+${euro(L.inkomsten)}</span></div>`}
  <div class="rij"><span style="flex:1">Salarissen</span><span class="slecht">-${euro(L.lonen)}</span></div>
  <div class="rij"><span style="flex:1" class="wit">Bank</span><span class="${S.geld<0?'slecht':'wit'}">${euro(S.geld)}</span></div></div>
  ${L.berichten.length?`<h2>Nieuws</h2>${L.berichten.map(b=>`<p class="melding">${esc(b)}</p>`).join('')}`:''}
