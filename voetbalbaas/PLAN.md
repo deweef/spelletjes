@@ -43,7 +43,7 @@ in `uitleg/voetbalbaas.md` welk vakje wat is.
 *Gebruik:* je kiest bij het begin je manager (komt bij `Eigen club maken`); na een overwinning staat hij blij op het
 uitslagscherm, na een nederlaag boos.
 
-## Opdracht 3 – Nieuwsplaatjes, vel 1
+## Opdracht 3 – Nieuwsplaatjes, vel 1 – KLAAR (`nieuws.jpg`, vakjes 0-3; Gemini maakte ze liggend, dat is prima)
 > Maak een vel met 4 vierkante plaatjes in een raster van 2 naast elkaar en 2 onder elkaar, elk precies even groot, met een
 > dunne witte rand eromheen en ruimte ertussen. Elk plaatje is een klein grappig krantenplaatje over een amateurvoetbalclub.
 > De spelers dragen effen oranje shirts met een zwarte streep in het midden.
