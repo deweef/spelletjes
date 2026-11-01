@@ -1993,6 +1993,7 @@ function tik(sx, sy) {
   if (!level || !$('klaar').hidden) return;
   if (fx().tik && fx().tik(sx, sy)) return; // tik voor het effect (meeuwenpoep, ballon, mug)
   const [x, y] = naarWereld(sx, sy), m = 14 / zoom;
+  const bi = level.binnen; if (bi && (x < bi[0] || x > bi[2] || y < bi[1] || y > bi[3])) { sMis(); meld('🤒 Ben je ziek ofzo? Niet in de rand zoeken, maar ín het plaatje!', 2500); return; } // de rand met losse plaatjes doet niet mee
   const raak = actief.findIndex((v) => v && v.raak(x, y, m));
   if (raak >= 0) { vind(raak); return; }
   const au = level.auto, vak = level.beeld && inVak(au, x, y, m);
@@ -2087,6 +2088,7 @@ function teken() {
     { const a = draaiHoek(); if (a) { ctx.translate(BW / 2, BH / 2); ctx.rotate(a); ctx.translate(-BW / 2, -BH / 2); } }
     if (level && level.beeld) { // plaatje: gevonden voorwerpen krijgen een groen rondje
       ctx.drawImage(level.img, 0, 0, BW, BH); if (level.bier && dronk) { ctx.globalAlpha = Math.min(0.4, dronk * 0.08); ctx.drawImage(level.img, dronk * 3 * Math.sin(performance.now() / 400), dronk * 2, BW, BH); ctx.globalAlpha = 1; } // dubbel zien
+      if (level.binnen) { const [a, b, c, d] = level.binnen; ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.fillRect(0, 0, BW, b); ctx.fillRect(0, d, BW, BH - d); ctx.fillRect(0, b, a, d - b); ctx.fillRect(c, b, BW - c, d - b); } // rand vervaagd
       if (level.autoBeeld && !autoGevonden && level.autoImg && level.autoImg.complete) { const a = level.auto; ctx.drawImage(level.autoImg, a[0], a[1], a[2] - a[0], a[3] - a[1]); }
       for (const v of gevondenLijst) { ctx.strokeStyle = '#3fae5a'; ctx.lineWidth = 4 / zoom; ctx.fillStyle = 'rgba(63,174,90,.22)'; ctx.beginPath(); ctx.arc(v.midden[0], v.midden[1], v.r + 6 / zoom, 0, 7); ctx.fill(); ctx.stroke(); }
     } else {
