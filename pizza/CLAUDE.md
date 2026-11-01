@@ -353,3 +353,4 @@ klant wordt de recensent (`m.incognito`, `vandaag.incognito`); zijn maaltijd in 
 `pizza/recensent.png`: punten = oordeel + 1 (snel) + gezellig/2 (max 2); ≥ 6,5 = schep (`S.scheppen` max 3, rep +8, elke schep 6% meer klanten),
 boos weg = rep −5. Doel 'schep'. Bij het maken van een pizza staat nu uitgelegd wat de gezichtjes betekenen.
 Afrikaanse vrouw (rij 8, `afrikaanse-onderdelen-chatgpt.png`): opgehaald via de ChatGPT-deellink (chatgpt.com staat nu bij de toegestane domeinen; de og:image van de pagina = het plaatje, 1200x630).
+Zakenman (rij 9, `zakenman-onderdelen-chatgpt.png`, broek per paar → `paar=0`). Nu lopen alle 11 klanten naar voren met generatorplaatjes.

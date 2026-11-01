@@ -22,6 +22,8 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
                    beenschaal=0.95, achter=(7, 8)),
   'afrikaanse': dict(voor='pizza/afrikaanse-onderdelen-chatgpt.png', benen='pizza/afrikaanse-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(3, 4), been=(5, 6),
                      beenschaal=0.75, achter=(7, 8), jurk=True, kapjes=(220, 110, 30)),  # originele PNG (eerder via de deellink, 1200x630)
+  'zakenman': dict(voor='pizza/zakenman-onderdelen-chatgpt.png', benen='pizza/zakenman-onderdelen-chatgpt.png', hoofd=1, romp=2, arm=(3, 4), been=(5,),
+                   beenschaal=0.95, achter=(7,), paar=0.0, kapjes=(40, 62, 120), breed=1.0),  # hele broek per paar: doormidden
   'chinese2': dict(voor='pizza/chinese2-onderdelen-chatgpt.png', benen='pizza/chinese2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
                    beenschaal=0.62, achter=(7, 8), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),  # tweede versie: de helft van de Chinese dames  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }
@@ -78,7 +80,7 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
     for i, b in enumerate(bn):  # het stappende been wordt iets korter (knie buigt naar de kijker toe)
         til = max(0, s if i == 0 else -s) * 26
         if til: b = b.resize((b.size[0], round(b.size[1] - til)), Image.LANCZOS)
-        zet(b, (-1 if i == 0 else 1) * (b.size[0] * 0.47 if F.get('paar') else romp.size[0] * (0.17 if F.get('jurk') else 0.24)), -12 - (22 if F.get('jurk') or F.get('paar') else 0))
+        zet(b, (-1 if i == 0 else 1) * (b.size[0] * F.get('breed', 0.47) if F.get('paar') else romp.size[0] * (0.17 if F.get('jurk') else 0.24)), -12 - (22 if F.get('jurk') or F.get('paar') else 0))
     zet(romp, 0, -romp.size[1] + 10)
     for i, a in enumerate(armen): zet(a, (-1 if i == 0 else 1) * (romp.size[0] / 2 - 28), -romp.size[1] + 70, hoek=(6 if i == 0 else -6) * s)
     zet(hoofd, 0, -romp.size[1] - hoofd.size[1] + 42 + F.get('nek', 0))  # nek: hoofd verder omlaag (hoofd en jurk hebben allebei een kraagje)
