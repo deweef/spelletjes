@@ -308,15 +308,20 @@ Per zaak een voorraad deeg en ingrediënten; elke pizza gebruikt wat. 's Ochtend
 voorstel op basis van wat gisteren verkocht is), de markt is duurder maar meteen. Te veel = bederft, te weinig = pizza niet te maken (boze klanten).
 De manager bestelt in de andere zaken (Sandra netjes, Kevin vergeet het soms).
 
-## Nog open (stand 28 okt)
-- Trend van de dag ("vandaag willen ze pittig!"), past bij de voorraad.
-- Eigen kruiden kweken (`pizza/kruiden-gemini.jpg`): goedkoper of lekkerder.
-- Minispel bij de stinkbom (wegsluipen bij Luigi).
-- Pizzawedstrijd op de markt tegen Luigi; Gouden Pizzaschep (recensent incognito); smokkeltruffel via Barrie; ober verliefd op Luigi's dochter.
+## Nog open (stand 1 nov)
+Gedaan sinds 28 okt: trend van de dag, eigen kruiden, pizzawedstrijd tegen Luigi, Gouden Pizzaschep, balans nieuwe zaak, vervolgvragen,
+tekstronde, alle 11 klanten lopen naar voren (generator), looppaden/rode kruisjes.
+Spel:
+- Minispel bij de stinkbom (wegsluipen bij Luigi); smokkeltruffel via Barrie; ober verliefd op Luigi's dochter.
 - Plein: selfiemuur of straatmuzikant.
 - Kinderen (`pizza/kind-gemini.jpg`, `kind2`): kinderstoel, kinderfeestje, afhalen.
-- Duurdere moderne oven; toonbank/kassa uit de vellen; croupier-plaatje voor de gokhal.
-- Balans nakijken: een nieuwe zaak met 4 stoelen groeit traag (boze klant = −3).
+- Duurdere moderne oven; toonbank/kassa uit de vellen.
+- Uitleg en teksten blijven bijhouden voor de familie.
+Plaatjes (ChatGPT/Gemini):
+- Dame in rood (rij 11): alleen nog zitten van voren en achteren (vakjes 12-15), dan in FIGUREN.villa.
+- Zitten van opzij voor villadame, Afrikaanse man, Chinese dame, toerist, opa, studente, Afrikaanse vrouw, zakenman (werker, oma, student al klaar).
+- Bezoekers zonder figuur: student van de drukpers, gokker met sigaar, heer met monocle; Mevrouw Van Lijstje; croupier.
+- Non (onderdelenvel van voren is er): nog opzij lopen, achter en zitten.
 
 ## Gemini-opdracht: zitten precies van opzij (28 okt, voor alle 11 klantfiguren)
 De zittende plaatjes opzij (vakjes 16/17 in `pizza/klanten.png`) zijn half van voren getekend, daardoor lijkt het of mensen schuin aan
