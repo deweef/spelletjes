@@ -57,7 +57,7 @@ uitslagscherm, na een nederlaag boos.
 >    zwaait met een rode kaart naar een koe, een boer komt aanrennen.
 > [stijlblok]
 
-## Opdracht 4 – Nieuwsplaatjes, vel 2
+## Opdracht 4 – Nieuwsplaatjes, vel 2 – KLAAR (vakjes 4-7 in `nieuws.jpg`)
 > Zelfde opzet als het vorige vel (4 vierkante plaatjes, 2x2, even groot, dunne witte rand, oranje shirts met zwarte streep):
 > 1. (linksboven) Een lekkende douche in een oude kleedkamer: water spuit alle kanten op, een loodgieter met een grote
 >    moersleutel en een bouwvakkersdecolleté ligt eronder, voetballers met een handdoek om kijken toe.

@@ -54,7 +54,7 @@ tr.omhoog td:first-child{color:var(--groen)}tr.omlaag td:first-child{color:var(-
 canvas{display:block;width:100%;margin:8px 0;border-radius:4px;background:#2f8a3a;image-rendering:pixelated}
 #verslag{min-height:44px;color:var(--wit);text-align:center;font-size:16px}
 .klein{font-size:13px}
-.nieuwsfoto{display:block;width:100%;aspect-ratio:480/260;background:url(voetbalbaas/nieuws.jpg) 0 0/400% 100% no-repeat;border-radius:3px;margin:2px 0 6px;border:2px solid var(--wit)}
+.nieuwsfoto{display:block;width:100%;aspect-ratio:480/260;background:url(voetbalbaas/nieuws.jpg) 0 0/800% 100% no-repeat;border-radius:3px;margin:2px 0 6px;border:2px solid var(--wit)}
 .melding.met-foto.klein-foto .nieuwsfoto{float:left;width:84px;margin:2px 8px 2px 0;border-width:1px}
 .melding.met-foto::after{content:"";display:block;clear:both}
 /* kantoor: plaatje met plekken om op te tikken (KANTOOR) */
@@ -336,11 +336,11 @@ function clubMaken(bestaand){
 // Plekken in voetbalbaas/kantoor.jpg (in procenten van het plaatje) en welke knop ze indrukken
 const KANTOOR=[['spelen','⚽ Spelen',77,12,17.5,43],['opst','📋 Opstelling',23,18,26,33],['trans','💰 Transfers',57,38,13.5,23],
  ['stand','📊 Stand',56,20,17,17],['ere','🏆 Erelijst',53,5,21,11],['geld','🎟️ Geld',9.5,65,12.5,21]];
-// Nieuwsplaatjes (voetbalbaas/nieuws.jpg, 4 vakjes van 480x260): het plaatje hoort bij het teken waarmee het bericht begint
-const NIEUWSFOTO={'🍺':0,'🥴':1,'🌲':2,'🐄':3};
+// Nieuwsplaatjes (voetbalbaas/nieuws.jpg, 8 vakjes van 480x260): het plaatje hoort bij het teken waarmee het bericht begint
+const NIEUWSFOTO={'🍺':0,'🥴':1,'🌲':2,'🐄':3,'🚿':4,'📣':5,'🎉':6,'🌿':7};
 function melding(b,klein){const i=NIEUWSFOTO[[...b][0]];
  if(i==null)return`<p class="melding">${esc(b)}</p>`;
- return`<div class="melding met-foto ${klein?'klein-foto':''}"><span class="nieuwsfoto" style="background-position:${i*100/3}% 0"></span>${esc(b)}</div>`}
+ return`<div class="melding met-foto ${klein?'klein-foto':''}"><span class="nieuwsfoto" style="background-position:${i*100/7}% 0"></span>${esc(b)}</div>`}
 function kantoor(){
  if(S.ontslagen)return ontslagen();
  if(S.week>=14){seizoenKlaar();return seizoenScherm()}
