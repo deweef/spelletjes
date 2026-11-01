@@ -96,5 +96,13 @@
     "plaatje": "songfestival.jpg",
     "stand": "staand",
     "concept": true
+  },
+  {
+    "naam": "Voetbalbaas",
+    "omschrijving": "Word de baas van een voetbalclub, net als in de oude managerspellen. Kies je opstelling, koop en verkoop spelers, houd de kas op orde en kijk naar de hoogtepunten van elke wedstrijd. Van de Kelderklasse naar de Ereklasse!",
+    "bestand": "voetbalbaas.html",
+    "plaatje": "voetbalbaas.jpg",
+    "stand": "staand",
+    "concept": true
   }
 ]
