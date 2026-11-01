@@ -18,7 +18,7 @@ in `uitleg/voetbalbaas.md` welk vakje wat is.
 > jaren-80-sfeer (trainingspakken, snorren, oude tv's), grappig maar niet grof. Geen tekst, geen letters, geen cijfers,
 > geen logo's of merknamen in het plaatje.
 
-## Opdracht 1 – Het kantoor van de baas (achtergrond kantoorscherm)
+## Opdracht 1 – Het kantoor van de baas (achtergrond kantoorscherm) – KLAAR (`kantoor.jpg`)
 > Maak een liggende illustratie (16:9) van het rommelige kantoortje van de trainer van een klein Nederlands amateurvoetbalclubje,
 > recht van voren gezien, alsof je in de deuropening staat. In het midden een oud houten bureau met daarop een ouderwetse
 > beige computer met een dik bolle beeldbuis (jaren 80), een overvolle asbak vol gummetjes en potloden, een koffiemok,

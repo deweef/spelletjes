@@ -9,7 +9,9 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Beginscherm: of kies een van de 8 clubs uit de Kelderklasse (grappige verzonnen namen in `CLUBS`, 32 clubs, 8 per divisie).
 - 4 divisies (`DIVNAAM`): Kelderklasse (4), Derde klasse, Tweede klasse, Ereklasse (1). Seizoen = 14 weken (dubbele competitie).
   Nummer 1 en 2 promoveren, nummer 7 en 8 degraderen. Prijzengeld per plek (`PRIJS`).
-- Kantoor (`kantoor`): bank, plaats, volgende tegenstander (sterren), knoppen Opstelling, Transfers, Stand, Erelijst.
+- Kantoor (`kantoor`): bovenaan `voetbalbaas/kantoor.jpg` (1100 breed, uit `voetbalbaas/kantoor-gemini.jpg`) met tikplekken `KANTOOR`
+  (raam = spelen, krijtbord = opstelling, computer = transfers, prikbord = stand, bekers = erelijst, krat = geld); laadt het plaatje niet, dan verdwijnt het.
+  Daaronder bank, plaats, volgende tegenstander (sterren), knoppen Opstelling, Transfers, Stand, Erelijst.
 - Opstelling: precies 11 spelers en 1 keeper; balkjes vergelijken aanval/middenveld/verdediging met de tegenstander.
 - Spelers: positie K/V/M/A, kracht 1-20, leeftijd, conditie (spelen = moe, rusten = herstel), blessure, schorsing.
 - Transfers: elke week 4 spelers te koop (`nieuweMarkt`), eigen spelers verkopen voor 80% van `waarde`. Selectie 13-20.

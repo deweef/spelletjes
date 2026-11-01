@@ -54,6 +54,13 @@ tr.omhoog td:first-child{color:var(--groen)}tr.omlaag td:first-child{color:var(-
 canvas{display:block;width:100%;margin:8px 0;border-radius:4px;background:#2f8a3a;image-rendering:pixelated}
 #verslag{min-height:44px;color:var(--wit);text-align:center;font-size:16px}
 .klein{font-size:13px}
+/* kantoor: plaatje met plekken om op te tikken (KANTOOR) */
+.kantoor{position:relative;margin:0 0 10px;border-radius:4px;overflow:hidden;border:2px solid var(--tekst)}
+.kantoor img{display:block;width:100%;height:auto}
+.kantoor button{position:absolute;background:transparent;border:0;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.kantoor button span{background:rgba(42,31,102,.85);color:var(--geel);font:bold 11px/1.2 "Courier New",monospace;padding:2px 5px;border-radius:3px;border:1px solid var(--geel);white-space:nowrap}
+.kantoor button:hover span,.kantoor button:active span{background:var(--geel);color:#222}
+@media (max-width:480px){.kantoor button span{font-size:9px;padding:1px 3px}}
 </style>
 </head>
 <body>
@@ -323,12 +330,16 @@ function clubMaken(bestaand){
   if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;
   nieuwSpel(ri(0,7),{naam,k1,k2});kantoor()};
 }
+// Plekken in voetbalbaas/kantoor.jpg (in procenten van het plaatje) en welke knop ze indrukken
+const KANTOOR=[['spelen','⚽ Spelen',77,12,17.5,43],['opst','📋 Opstelling',23,18,26,33],['trans','💰 Transfers',57,38,13.5,23],
+ ['stand','📊 Stand',56,20,17,17],['ere','🏆 Erelijst',53,5,21,11],['geld','🎟️ Geld',9.5,65,12.5,21]];
 function kantoor(){
  if(S.ontslagen)return ontslagen();
  if(S.week>=14){seizoenKlaar();return seizoenScherm()}
  const v=volgende(),t=club(v.teg),c=mijn(),p=plek(),fout=opstellingFout();
  teken(`<h1 style="font-size:20px">${clubTag(c)}</h1>
  <p class="sub">Seizoen ${S.seizoen} · ${DIVNAAM[S.div]} · Week ${S.week+1}/14${NAAM?' · baas '+esc(NAAM):''}</p>
+ <div class="kantoor"><img src="voetbalbaas/kantoor.jpg" alt="Het kantoor van de baas" onerror="this.parentNode.remove()">${KANTOOR.map(([id,t,x,y,b,h])=>`<button data-naar="${id}" style="left:${x}%;top:${y}%;width:${b}%;height:${h}%" aria-label="${t}"><span>${t}</span></button>`).join('')}</div>
  <div class="vak"><div class="rij"><span style="flex:1">Bank</span><span class="${S.geld<0?'slecht':'goed'}">${euro(S.geld)}</span></div>
  <div class="rij"><span style="flex:1">Plaats in de stand</span><span class="wit">${S.week?p+'e':'-'}</span></div>
  <div class="rij"><span style="flex:1">Volgende wedstrijd</span><span class="wit">${v.thuis?'thuis':'uit'}</span></div>
@@ -345,7 +356,7 @@ function kantoor(){
  <div style="margin-top:16px"><button class="knop klein" id="kleuren">🎨 Clubnaam en kleuren</button><button class="knop klein" id="opnieuw">Opnieuw beginnen</button></div>`);
  $('#kleuren').onclick=()=>clubMaken(true);
  $('#spelen').onclick=()=>{if(opstellingFout())return opstelling(true);speelWeek();wedstrijd()};
- $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;$('#geld').onclick=geldScherm;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
+ $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;scherm.querySelectorAll('[data-naar]').forEach(b=>b.onclick=()=>$('#'+b.dataset.naar).click());$('#geld').onclick=geldScherm;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
 }
 
 function balken(){
