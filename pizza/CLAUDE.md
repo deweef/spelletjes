@@ -355,3 +355,4 @@ boos weg = rep −5. Doel 'schep'. Bij het maken van een pizza staat nu uitgeleg
 Afrikaanse vrouw (rij 8, `afrikaanse-onderdelen-chatgpt.png`): opgehaald via de ChatGPT-deellink (chatgpt.com staat nu bij de toegestane domeinen; de og:image van de pagina = het plaatje, 1200x630).
 Zakenman (rij 9, `zakenman-onderdelen-chatgpt.png`, broek per paar → `paar=0`). Nu lopen alle 11 klanten naar voren met generatorplaatjes.
 Zitten opzij nieuw: student (rij 1) uit `pizza/student-opzij-chatgpt.png` met `extra/zit_opzij.py <vel> <rij>` (plaatje 1 → vakje 16, plaatje 2 → 17).
+Nieuwe klant "dame in rood" (rij 11 in `pizza/klanten.png`, nog NIET in `FIGUREN`): lopen opzij 0-6 en achter 7-10 uit `pizza/dame2-lopen-chatgpt.png`, staan 11 en voor 18-21 uit de generator (`dame2`), zitten opzij 16/17 uit `dame2-opzij-chatgpt.png`. Nog nodig: zitten voor/achter (vakjes 12-15); daarna `11` in VOORLOOP en in FIGUREN.villa.
