@@ -26,7 +26,7 @@ p{margin:6px 0}
 .vak{background:var(--vak);border-radius:4px;padding:8px 10px;margin:8px 0}
 .club{display:inline-block;width:14px;height:14px;border-radius:2px;vertical-align:-2px;margin-right:6px;border:1px solid #000}
 table{width:100%;border-collapse:collapse;font-size:14px}
-td,th{padding:3px 4px;text-align:right}
+td,th{padding:3px 3px;text-align:right;white-space:nowrap}
 td:nth-child(2),th:nth-child(2){text-align:left}
 th{color:var(--geel)}
 tr.jij td{color:var(--geel)}
@@ -54,6 +54,10 @@ tr.omhoog td:first-child{color:var(--groen)}tr.omlaag td:first-child{color:var(-
 canvas{display:block;width:100%;margin:8px 0;border-radius:4px;background:#2f8a3a;image-rendering:pixelated}
 #verslag{min-height:44px;color:var(--wit);text-align:center;font-size:16px}
 .klein{font-size:13px}
+.veldfoto{display:block;width:100%;aspect-ratio:640/350;background:url(voetbalbaas/velden.jpg) 0 0/400% 100% no-repeat;border-radius:4px;border:2px solid var(--wit)}
+#vak-veld{position:relative}
+#vak-veld .veldfoto{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);width:100%;border:0;box-shadow:0 0 0 40px var(--bg)}
+#vak-veld{overflow:hidden;border-radius:4px}
 .portret{display:block;flex:none;width:72px;aspect-ratio:240/270;background:url(voetbalbaas/managers.jpg) 0 0/800% 100% no-repeat;border-radius:4px;border:2px solid var(--wit)}
 .portret.groot{width:120px}
 .mgr{display:flex;gap:10px;align-items:center}
@@ -346,23 +350,9 @@ function melding(b,klein){const i=NIEUWSFOTO[[...b][0]];
  if(i==null)return`<p class="melding">${esc(b)}</p>`;
  return`<div class="melding met-foto ${klein?'klein-foto':''}"><span class="nieuwsfoto" style="background-position:${i*100/11}% 0"></span>${esc(b)}</div>`}
 // Managers (voetbalbaas/managers.jpg, 8 vakjes van 240x270: 0-3 blij, 4-7 dezelfde vier boos)
-const MANAGERS=[
- {naam:'Harrie de Snor',over:'Fout trainingspak, grote snor, groot hart.',
-  blij:['Dit vieren we met een frikandel speciaal!','Zie je wel? Mijn snor liegt nooit.','Rondje van de zaak! Nou ja… een halve.'],
-  boos:['Wie heeft er in de rust aan de tap gezeten?!','Als dit zo doorgaat, gaat de snor eraf!','Dit is erger dan lauw bier.'],
-  gelijk:['Een puntje. Daar kun je een frikandel van kopen.']},
- {naam:'Coach Mieke',over:'Klembord, fluitje en een strak schema.',
-  blij:['Precies volgens het klembord!','Goed gedaan. Morgen gewoon om zeven uur trainen.','Zo wil ik het zien!'],
-  boos:['Wat wás dit?! Morgen tien rondjes om het veld!','Ik fluit jullie straks de kantine uit.','Dit staat níét op mijn klembord.'],
-  gelijk:['Gelijk. Ik heb drie pagina\'s aantekeningen.']},
- {naam:'DJ Jordy',over:'Pet achterstevoren, altijd muziek in zijn oren.',
-  blij:['Sheeesh, dat was een banger!','Dit gaat viral, bro.','Zet de muziek maar keihard in de kleedkamer!'],
-  boos:['Bro… dit was echt cringe.','Ik zet mijn koptelefoon op, ik wil het niet horen.','Wie heeft mijn playlist vervloekt?'],
-  gelijk:['Gelijk… mid. Gewoon mid.']},
- {naam:'Opa Bertus',over:'Regenjas, hoedje, zestig jaar ervaring.',
-  blij:['Hè hè. Nu een borreltje.','Vroeger wonnen we ook altijd. Mooi zo.','Zie je wel. Het jonge spul kan het ook.'],
-  boos:['In mijn tijd wonnen we nog op klompen!','Ik ga naar huis. Mijn hoed waait er nog van af.','Schandalig. Ik schrijf een brief naar de krant.'],
-  gelijk:['Gelijk. In 1974 speelden we ook eens gelijk.']}];
+const MANAGERS=[ { "naam": "Harrie de Snor", "over": "Fout trainingspak, grote snor, groot hart.", "blij": [ "Dit vieren we met een frikandel speciaal!", "Zie je wel? Mijn snor liegt nooit.", "Rondje van de zaak! Nou ja… een halve.", "Zo! Daar krijg ik het warm van in mijn trainingspak.", "Jongens, ik ben trots. En een beetje ontroerd. Het is de snor.", "Die drie punten neem ik vanavond mee naar bed.", "Zet de bitterballen maar klaar!", "Dit is de mooiste dag sinds mijn trouwdag. Bijna.", "Ik zei het toch: gewoon de bal erin trappen!", "Morgen geen training. Grapje. Wel training. Maar korter." ], "boos": [ "Wie heeft er in de rust aan de tap gezeten?!", "Als dit zo doorgaat, gaat de snor eraf!", "Dit is erger dan lauw bier.", "Mijn oma verdedigt beter. En die is tachtig.", "Ik heb er een rood hoofd van. Nog roder dan normaal.", "Wat was dat?! Een balletvoorstelling?!", "Volgende week speel ik zelf. In dit pak.", "Iedereen morgen om zeven uur op het veld. ZEVEN UUR.", "Mijn frikandel is koud geworden van dit spel.", "Ik ga even in de kantine zitten. Niemand praat tegen mij." ], "gelijk": [ "Een puntje. Daar kun je een frikandel van kopen.", "Gelijk. Niet goed, niet slecht. Net als de koffie hier.", "Een punt is een punt, zei mijn vader altijd.", "Hm. Ik weet nog niet of ik blij moet zijn.", "Volgende week die halve kroket erbij, dan is het een hele." ] }, { "naam": "Coach Mieke", "over": "Klembord, fluitje en een strak schema.", "blij": [ "Precies volgens het klembord!", "Goed gedaan. Morgen gewoon om zeven uur trainen.", "Zo wil ik het zien!", "Ik vink deze wedstrijd af: geslaagd.", "Jullie liepen eindelijk waar ik de pijltjes had getekend.", "Zie je wat er gebeurt als je luistert?", "Mooi. Even genieten. Oké, klaar met genieten.", "Dit hang ik op het prikbord. Ingelijst.", "Eén fluitsignaal van blijdschap: TÜÜÜT!", "Vandaag mogen jullie één (1) bitterbal." ], "boos": [ "Wat wás dit?! Morgen tien rondjes om het veld!", "Ik fluit jullie straks de kantine uit.", "Dit staat níét op mijn klembord.", "Ik heb drie pagina's fouten opgeschreven. Aan twee kanten.", "Wie liep er naar links? Ik zei RECHTS.", "Morgen extra training. Overmorgen ook.", "Telefoons inleveren. Allemaal. Nu.", "Ik ben niet boos. Ik ben teleurgesteld. Nee, ik ben boos.", "Jullie hebben de bal vaker gezien op tv dan vandaag.", "Mijn fluitje is kapot van het fluiten. Net als mijn geduld." ], "gelijk": [ "Gelijk. Ik heb drie pagina's aantekeningen.", "Een punt. Voldoende, maar het kan beter.", "Half goed is ook half fout.", "Ik schrijf er een vraagteken achter.", "Volgende keer de laatste vijf minuten wél wakker blijven." ] }, { "naam": "DJ Jordy", "over": "Pet achterstevoren, altijd muziek in zijn oren.", "blij": [ "Sheeesh, dat was een banger!", "Dit gaat viral, bro.", "Zet de muziek maar keihard in de kleedkamer!", "W! Grote W!", "Die goal was echt fire, ik zweer het.", "We zijn gewoon goated, bro.", "Ik zet dit als mijn profielfoto.", "Dit is beter dan een nieuwe sneaker-drop.", "Bass erin! Iedereen dansen in de douche!", "Ik heb kippenvel onder mijn hoodie." ], "boos": [ "Bro… dit was echt cringe.", "Ik zet mijn koptelefoon op, ik wil het niet horen.", "Wie heeft mijn playlist vervloekt?", "L. Gigantische L.", "Dit was zo slecht dat mijn wifi ervan uitviel.", "Ik ga hier een sad song over maken.", "Jullie speelden alsof jullie nog aan het laden waren.", "Nee bro. Gewoon nee.", "Ik unfollow jullie allemaal.", "Mijn pet staat van schrik weer goed om." ], "gelijk": [ "Gelijk… mid. Gewoon mid.", "Niet slecht, niet goed. Lofi-voetbal.", "Eh. Zes uit tien.", "Het was oké. Een beetje skip-waardig.", "Volgende keer meer bass in de aanval." ] }, { "naam": "Opa Bertus", "over": "Regenjas, hoedje, zestig jaar ervaring.", "blij": [ "Hè hè. Nu een borreltje.", "Vroeger wonnen we ook altijd. Mooi zo.", "Zie je wel. Het jonge spul kan het ook.", "Daar word ik weer twintig jaar jonger van. Nou ja, tien.", "Ik heb mijn hoed gezwaaid. Dat doe ik niet vaak.", "Netjes. Heel netjes. Mag in de krant.", "Ik ga mijn vrouw bellen. Ze gelooft het niet.", "Zo speelden wij het in 1965 ook. Precies zo.", "Ik ben tevreden. Zeg het tegen niemand.", "Een kopje koffie en een gevulde koek. Ik heb het verdiend." ], "boos": [ "In mijn tijd wonnen we nog op klompen!", "Ik ga naar huis. Mijn hoed waait er nog van af.", "Schandalig. Ik schrijf een brief naar de krant.", "Ik heb zestig jaar voetbal gezien en dit was het slechtste.", "Mijn heup doet meer pijn van dit kijken dan van de trap.", "Vroeger kreeg je hiervoor een draai om je oren.", "Ik had beter thuis kunnen blijven bij de puzzel.", "Waar is de tijd dat spelers nog liepen?", "Ik zet mijn hoed af. Van ellende.", "Iemand moet mijn bloeddruk even meten." ], "gelijk": [ "Gelijk. In 1974 speelden we ook eens gelijk.", "Een punt. Vroeger kreeg je er maar één, dus het valt mee.", "Mwah. Het kan slechter. Het kan ook beter.", "Ik heb er een goede middag van gemaakt. Ondanks het voetbal.", "Daar zeg ik niks van. Ik denk het wel." ] } ];
+// Velden per divisie (voetbalbaas/velden.jpg, 4 vakjes van 640x350, uit velden-gemini.jpg): 0 Kelderklasse … 3 Ereklasse
+const veldFoto=div=>`<span class="veldfoto" style="background-position:${(4-div)*100/3}% 0"></span>`;
 const mgr=()=>S.manager||0;
 const portret=(i,boos,groot)=>`<span class="portret ${groot?'groot':''}" style="background-position:${(i+(boos?4:0))*100/7}% 0" title="${esc(MANAGERS[i].naam)}"></span>`;
 function managerKiezen(klaar,terug){
@@ -494,6 +484,7 @@ function seizoenScherm(){
  const i=S.seizoenInfo;
  teken(`<h1 style="font-size:20px">EINDE SEIZOEN</h1><p class="sub">Eindstand ${DIVNAAM[i.div]}</p>${tabel(i.tabel,i.div)}
  ${i.info.map(t=>`<p class="melding">${esc(t)}</p>`).join('')}
+ ${S.div!=i.div?`<h2>${S.div<i.div?'Jullie nieuwe veld':'Terug naar dit veld…'}</h2>${veldFoto(S.div)}`:''}
  <button class="knop groot" id="door">Op naar seizoen ${S.seizoen}!</button>`);
  if(i.info.some(t=>t.includes('🏆')))juich();
  $('#door').onclick=kantoor;
@@ -501,7 +492,7 @@ function seizoenScherm(){
 function juich(){geluidAan();[523,659,784,1047].forEach((f,i)=>toon(f,.3,'square',.05,0,i*.15));ruis(1.5,.1,.3)}
 function ontslagen(){
  teken(`<h1 style="font-size:20px">ONTSLAGEN!</h1><p class="melding slecht">Het bestuur van ${esc(mijn().naam)} heeft de schulden bekeken en is er klaar mee. Je mag je bureau leeghalen. De voorzitter neemt je stoel in (en de koelkast).</p>
- <p>Je hield het ${S.seizoen-1} ${S.seizoen==2?'seizoen':'seizoenen'} en ${S.week} weken vol.</p>
+ <p>Je hield het ${S.seizoen>1?`${S.seizoen-1} ${S.seizoen==2?'seizoen':'seizoenen'} en `:''}${S.week} ${S.week==1?'week':'weken'} vol.</p>
  <button class="knop groot" id="nieuw">Nieuwe club zoeken</button>`);
  $('#nieuw').onclick=()=>{S=null;try{localStorage.removeItem(SLEUTEL)}catch(e){}beginScherm()};
 }
@@ -512,7 +503,7 @@ let anim=null;
 function wedstrijd(){
  const L=S.laatste,ch=club(L.h),ca=club(L.a);
  teken(`<div id="bord"><span class="t">${clubTag(ch)}</span><span class="s" id="score">0 - 0</span><span class="t" style="text-align:right">${esc(ca.naam)}<span class="club" style="margin:0 0 0 6px;background:linear-gradient(90deg,${ca.k1} 50%,${ca.k2} 50%)"></span></span><span class="min" id="min">0'</span></div>
- <canvas id="veld" width="640" height="400"></canvas>
+ <div id="vak-veld"><canvas id="veld" width="640" height="400"></canvas>${veldFoto(S.div)}</div>
  <div id="verslag">Druk op START</div>
  <div class="rij"><button class="knop groot" id="start">START</button></div>
  <div class="rij"><button class="knop klein" id="sneller">Sneller ▸▸</button><button class="knop klein" id="einde">Naar de uitslag</button></div>`);
@@ -526,7 +517,7 @@ function wedstrijd(){
  const zet=()=>{$('#score').textContent=st.score[0]+' - '+st.score[1];$('#min').textContent=st.min+"'"};
  $('#sneller').onclick=()=>{st.snel=st.snel==1?2.5:st.snel==2.5?5:1;$('#sneller').textContent=st.snel==1?'Sneller ▸▸':st.snel==2.5?'Nog sneller ▸▸▸':'Normaal ▸'};
  $('#einde').onclick=()=>{stop();naWedstrijd()};
- $('#start').onclick=()=>{geluidAan();fluit(1);$('#start').parentNode.remove();st.fase='klok';st.t=0;let vorig=performance.now();
+ $('#start').onclick=()=>{geluidAan();fluit(1);$('#start').parentNode.remove();const vf=scherm.querySelector('#vak-veld .veldfoto');if(vf)vf.remove();st.fase='klok';st.t=0;let vorig=performance.now();
   const stap=nu=>{const dt=Math.min(.05,(nu-vorig)/1000)*st.snel;vorig=nu;st.t+=dt;
    if(st.fase=='klok'){ // klok tikt door tot de volgende kans
     const doel=st.ev[st.i+1]?st.ev[st.i+1].min:90;st.min=Math.min(doel,st.min+dt*22);

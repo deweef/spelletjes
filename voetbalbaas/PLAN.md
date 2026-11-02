@@ -81,7 +81,7 @@ uitslagscherm, na een nederlaag boos.
 >    oude verzorgers met een tasje en een spons weggedragen.
 > [stijlblok]
 
-## Opdracht 6 – De velden per divisie
+## Opdracht 6 – De velden per divisie – KLAAR (`velden.jpg`)
 > Maak een vel met 4 liggende plaatjes (16:9) in een raster van 2 naast elkaar en 2 onder elkaar, elk precies even groot,
 > met een dunne witte rand en ruimte ertussen. Steeds een voetbalveld schuin van boven gezien, zonder spelers:
 > 1. (linksboven) Een modderig dorpsveldje met kale plekken en plassen, een hek van gaas, een koeienwei ernaast, een
