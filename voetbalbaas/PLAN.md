@@ -99,7 +99,42 @@ op het scherm "Einde seizoen" bij promotie.
 
 ## Open ideeën (spel)
 - ~~Kaartjesprijs zelf instellen~~ (gedaan).
-- Beker naast de competitie (knock-out, tussendoor, extra geld).
+- ~~Beker~~ (gedaan: De Gouden Bierpul).
 - Online scorebord: hoogste divisie en aantal titels per speler.
 - Training kiezen (conditie of kracht), jeugdspelers uit de eigen jeugd.
 - ~~Managers kiezen met portret~~ (gedaan).
+
+## Opdracht 7 – De beker (plaatjes)
+> Maak een vel met 4 liggende plaatjes in een raster van 2 naast elkaar en 2 onder elkaar, elk precies even groot, met een dunne
+> witte rand eromheen en ruimte ertussen, in precies dezelfde stijl als de vorige vellen (die stuur ik mee). Het gaat om een grappige
+> amateurvoetbalbeker waarvan de prijs een enorme gouden bierpul is (een bierpul met twee oren, op een houten voetstuk). De spelers
+> dragen dezelfde oranje shirts met een zwarte streep.
+> 1. (linksboven) De beker zelf: de glimmende gouden bierpul op een fluwelen kussentje in een vitrinekast in de kantine, met lichtstralen
+>    en glinsteringen eromheen, een paar bewonderende gezichten tegen het glas gedrukt.
+> 2. (rechtsboven) De loting: een plechtige voorzitter met een strikje haalt een balletje uit een grote glazen bierpul vol balletjes,
+>    naast hem een zenuwachtige trainer met zijn handen gevouwen; een fotograaf met flitser.
+> 3. (linksonder) Strafschoppen: een keeper in een geel shirt duikt spectaculair naar een hoek, de bal vliegt net langs zijn vingers,
+>    op de achtergrond spelers met de armen om elkaar heen op de middenlijn, nagelbijtend.
+> 4. (rechtsonder) Het bekerfeest: de spelers tillen de gouden bierpul hoog op in de kleedkamer, schuim spat eruit, confetti, de
+>    trainer wordt op de schouders gedragen.
+> Geen tekst, geen letters, geen cijfers, geen logo's of merknamen in het plaatje.
+
+*Gebruik:* 0 trofee in de erelijst en bij de finale, 1 loting bij de bekermelding in het kantoor, 2 strafschoppen na een wedstrijd met
+strafschoppen, 3 feest bij BEKERWINNAAR.
+
+## Opdracht 8 – Uitspraken van de managers voor de beker (tekst, geen plaatje)
+> Ik maak een voetbalmanagerspelletje voor mijn gezin (tieners, Nederlands, vrolijk, mag een beetje stout met knipogen naar bier en
+> kater, maar niet grof). Er zijn vier trainers:
+> 1. Harrie de Snor: gezette vijftiger, grote snor, fout paars trainingspak, houdt van frikandellen en de kantine.
+> 2. Coach Mieke: strenge maar eerlijke veertiger met klembord en fluitje, alles volgens schema.
+> 3. DJ Jordy: jonge gast van 25, pet achterstevoren, praat in jongerentaal (bro, sheesh, W, L, cringe), altijd muziek.
+> 4. Opa Bertus: mopperige 65-plusser met regenjas en hoedje, vergelijkt alles met vroeger.
+> De beker heet "De Gouden Bierpul". Verzin per trainer korte uitspraken (maximaal 15 woorden) voor deze situaties:
+> - DOOR: we zijn door naar de volgende bekerronde (5 per trainer)
+> - ERUIT: we zijn uitgeschakeld in de beker (5 per trainer)
+> - STRAF: we wonnen na strafschoppen (3 per trainer)
+> - FINALE: we hebben de beker gewonnen! (3 per trainer)
+> Geef het precies in deze vorm, één uitspraak per regel, zonder nummering:
+> HARRIE DOOR: …
+> HARRIE ERUIT: …
+> (enzovoort voor MIEKE, JORDY en BERTUS)

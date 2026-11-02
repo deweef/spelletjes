@@ -34,6 +34,17 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Willekeurig nieuws (`gebeurtenis`): kantine, kater, plassen in het bos, 'sigaretje' achter de dug-out, koeien op het veld enz.
 - Einde seizoen (`seizoenKlaar`): spelers worden ouder (jong = beter, oud = minder, 35+ stopt soms), clubs wisselen van divisie.
 
+## Beker: De Gouden Bierpul
+- `S.beker` = {ronde 0-4, eruit, gehad (al gelote clubs), tegen, thuis, gespeeldWeek}; nieuw elk seizoen in `nieuwSeizoen` (oude opslag
+  zonder `S.beker`: pas vanaf het volgende seizoen een beker). 4 rondes (`BEKERRONDE`), gespeeld vóór de competitiewedstrijd van week
+  3, 6, 9 en 12 (`BEKERWEKEN`, `bekerNu`). `bekerLoting`: tegenstander uit divisie ±1 (achtste finale), daarna steeds hogere divisies
+  (halve finale 1 hoger, finale 2 hoger). Finale altijd 'thuis' maar zonder thuisvoordeel, in het grote stadion.
+- `speelBeker`: zelfde rekenregels; gelijk = `strafschoppen` (5 elk, dan sudden death; keeper telt mee), animatie `strafRij` na het eindsignaal.
+  Geld: kaartjes bij thuis (meer publiek dan normaal), finale vast deel `15000 × BEKERFACTOR`, prijzengeld per gewonnen ronde
+  `BEKERPRIJS × BEKERFACTOR` (Kelderklasse 3.000 / 6.000 / 12.000 / 30.000). Geen salaris/sponsor (die horen bij de competitieweek), wel
+  vermoeidheid en blessures (`naAfloop(berichten,false)`: blessures tellen niet af).
+- Gewonnen = `S.bekers` (lijst seizoenen), te zien in de erelijst. Kantoor: melding + knop "🍺 Speel de achtste finale" enz.
+
 ## Wedstrijd
 - `sterkte(l,n)`: qA = gemiddelde kracht van de aanvallers (+ kwart middenveld), nA = aantal; qD = verdediging (+ kwart middenveld,
   keeper telt 25% mee), nD = aantal; M = middenveld. `simuleer`: 8-11 kansen; wie de kans krijgt hangt af van M^1,5 (thuisvoordeel
