@@ -104,7 +104,7 @@ op het scherm "Einde seizoen" bij promotie.
 - Training kiezen (conditie of kracht), jeugdspelers uit de eigen jeugd.
 - ~~Managers kiezen met portret~~ (gedaan).
 
-## Opdracht 7 – De beker (plaatjes)
+## Opdracht 7 – De beker (plaatjes) – KLAAR (`beker.jpg`)
 > Maak een vel met 4 liggende plaatjes in een raster van 2 naast elkaar en 2 onder elkaar, elk precies even groot, met een dunne
 > witte rand eromheen en ruimte ertussen, in precies dezelfde stijl als de vorige vellen (die stuur ik mee). Het gaat om een grappige
 > amateurvoetbalbeker waarvan de prijs een enorme gouden bierpul is (een bierpul met twee oren, op een houten voetstuk). De spelers
@@ -122,7 +122,7 @@ op het scherm "Einde seizoen" bij promotie.
 *Gebruik:* 0 trofee in de erelijst en bij de finale, 1 loting bij de bekermelding in het kantoor, 2 strafschoppen na een wedstrijd met
 strafschoppen, 3 feest bij BEKERWINNAAR.
 
-## Opdracht 8 – Uitspraken van de managers voor de beker (tekst, geen plaatje)
+## Opdracht 8 – Uitspraken van de managers voor de beker (tekst, geen plaatje) – KLAAR (`BEKERPRAAT`; STRAF zelf bedacht, Gemini gaf ze niet)
 > Ik maak een voetbalmanagerspelletje voor mijn gezin (tieners, Nederlands, vrolijk, mag een beetje stout met knipogen naar bier en
 > kater, maar niet grof). Er zijn vier trainers:
 > 1. Harrie de Snor: gezette vijftiger, grote snor, fout paars trainingspak, houdt van frikandellen en de kantine.

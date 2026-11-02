@@ -43,6 +43,9 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
   Geld: kaartjes bij thuis (meer publiek dan normaal), finale vast deel `15000 × BEKERFACTOR`, prijzengeld per gewonnen ronde
   `BEKERPRIJS × BEKERFACTOR` (Kelderklasse 3.000 / 6.000 / 12.000 / 30.000). Geen salaris/sponsor (die horen bij de competitieweek), wel
   vermoeidheid en blessures (`naAfloop(berichten,false)`: blessures tellen niet af).
+- Plaatjes `voetbalbaas/beker.jpg` (4 vakjes van 480x260, uit `voetbalbaas/beker-gemini.jpg`, `bekerFoto(i)`): 0 beker in de vitrine
+  (erelijst, aankondiging finale), 1 loting (aankondiging andere rondes), 2 strafschoppen (na een wedstrijd met strafschoppen), 3 bekerfeest.
+- Uitspraken `BEKERPRAAT` per manager: door (5), eruit (5), straf (3, door na strafschoppen), finale (3). Met Gemini bedacht, grove woorden eruit.
 - Gewonnen = `S.bekers` (lijst seizoenen), te zien in de erelijst. Kantoor: melding + knop "🍺 Speel de achtste finale" enz.
 
 ## Wedstrijd
