@@ -28,7 +28,7 @@ in `uitleg/voetbalbaas.md` welk vakje wat is.
 > een droog hangplantje. Door het raam zie je een stukje voetbalveld met een hek en een kantine-keet. Middagzon, gezellig
 > rommelig. [stijlblok]
 
-## Opdracht 2 – De managers (portretten, blij en boos)
+## Opdracht 2 – De managers (portretten, blij en boos) – KLAAR (`managers.jpg`)
 > Maak een vel met 8 portretjes (borstbeeld, recht van voren, kijkt naar de kijker) in een net raster van 4 naast elkaar
 > en 2 rijen onder elkaar. Elk portretje even groot, met ruimte ertussen, niets overlapt. Effen felgroene achtergrond
 > (#00FF00), geen schaduwen, geen vloer. Bovenste rij: vier verschillende voetbaltrainers die **blij** zijn (dikke lach,
@@ -102,4 +102,4 @@ op het scherm "Einde seizoen" bij promotie.
 - Beker naast de competitie (knock-out, tussendoor, extra geld).
 - Online scorebord: hoogste divisie en aantal titels per speler.
 - Training kiezen (conditie of kracht), jeugdspelers uit de eigen jeugd.
-- Managers kiezen met portret (na Gemini-opdracht 2).
+- ~~Managers kiezen met portret~~ (gedaan).

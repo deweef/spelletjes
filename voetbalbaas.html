@@ -54,6 +54,10 @@ tr.omhoog td:first-child{color:var(--groen)}tr.omlaag td:first-child{color:var(-
 canvas{display:block;width:100%;margin:8px 0;border-radius:4px;background:#2f8a3a;image-rendering:pixelated}
 #verslag{min-height:44px;color:var(--wit);text-align:center;font-size:16px}
 .klein{font-size:13px}
+.portret{display:block;flex:none;width:72px;aspect-ratio:240/270;background:url(voetbalbaas/managers.jpg) 0 0/800% 100% no-repeat;border-radius:4px;border:2px solid var(--wit)}
+.portret.groot{width:120px}
+.mgr{display:flex;gap:10px;align-items:center}
+.mgr .quote{flex:1;color:var(--wit);font-size:15px}
 .nieuwsfoto{display:block;width:100%;aspect-ratio:480/260;background:url(voetbalbaas/nieuws.jpg) 0 0/1200% 100% no-repeat;border-radius:3px;margin:2px 0 6px;border:2px solid var(--wit)}
 .melding.met-foto.klein-foto .nieuwsfoto{float:left;width:84px;margin:2px 8px 2px 0;border-width:1px}
 .melding.met-foto::after{content:"";display:block;clear:both}
@@ -303,7 +307,7 @@ function beginScherm(){
  Kom je onder de ${euro(-25000)}, dan ontslaat het bestuur je. Nummer 1 en 2 promoveren, de laatste twee degraderen.</p>`);
  if(S)$('#verder').onclick=kantoor;
  $('#eigen').onclick=()=>clubMaken(false);
- scherm.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;nieuwSpel(+b.dataset.c);kantoor()});
+ scherm.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;const c=+b.dataset.c;managerKiezen(m=>{nieuwSpel(c);S.manager=m;bewaar();kantoor()},beginScherm)});
 }
 
 // Eigen club: naam en twee kleuren kiezen (shirt en streep). bestaand = de huidige club aanpassen.
@@ -331,7 +335,7 @@ function clubMaken(bestaand){
  $('#ok').onclick=()=>{const naam=$('#cnaam').value.trim().replace(/\s+/g,' ');if(!naam){$('#cnaam').focus();return}
   if(bestaand){Object.assign(mijn(),{naam,k1,k2});bewaar();return kantoor()}
   if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;
-  nieuwSpel(ri(0,7),{naam,k1,k2});kantoor()};
+  managerKiezen(m=>{nieuwSpel(ri(0,7),{naam,k1,k2});S.manager=m;bewaar();kantoor()},()=>clubMaken(false))};
 }
 // Plekken in voetbalbaas/kantoor.jpg (in procenten van het plaatje) en welke knop ze indrukken
 const KANTOOR=[['spelen','⚽ Spelen',77,12,17.5,43],['opst','📋 Opstelling',23,18,26,33],['trans','💰 Transfers',57,38,13.5,23],
@@ -341,6 +345,32 @@ const NIEUWSFOTO={'🍺':0,'🥴':1,'🌲':2,'🐄':3,'🚿':4,'📣':5,'🎉':6
 function melding(b,klein){const i=NIEUWSFOTO[[...b][0]];
  if(i==null)return`<p class="melding">${esc(b)}</p>`;
  return`<div class="melding met-foto ${klein?'klein-foto':''}"><span class="nieuwsfoto" style="background-position:${i*100/11}% 0"></span>${esc(b)}</div>`}
+// Managers (voetbalbaas/managers.jpg, 8 vakjes van 240x270: 0-3 blij, 4-7 dezelfde vier boos)
+const MANAGERS=[
+ {naam:'Harrie de Snor',over:'Fout trainingspak, grote snor, groot hart.',
+  blij:['Dit vieren we met een frikandel speciaal!','Zie je wel? Mijn snor liegt nooit.','Rondje van de zaak! Nou ja… een halve.'],
+  boos:['Wie heeft er in de rust aan de tap gezeten?!','Als dit zo doorgaat, gaat de snor eraf!','Dit is erger dan lauw bier.'],
+  gelijk:['Een puntje. Daar kun je een frikandel van kopen.']},
+ {naam:'Coach Mieke',over:'Klembord, fluitje en een strak schema.',
+  blij:['Precies volgens het klembord!','Goed gedaan. Morgen gewoon om zeven uur trainen.','Zo wil ik het zien!'],
+  boos:['Wat wás dit?! Morgen tien rondjes om het veld!','Ik fluit jullie straks de kantine uit.','Dit staat níét op mijn klembord.'],
+  gelijk:['Gelijk. Ik heb drie pagina\'s aantekeningen.']},
+ {naam:'DJ Jordy',over:'Pet achterstevoren, altijd muziek in zijn oren.',
+  blij:['Sheeesh, dat was een banger!','Dit gaat viral, bro.','Zet de muziek maar keihard in de kleedkamer!'],
+  boos:['Bro… dit was echt cringe.','Ik zet mijn koptelefoon op, ik wil het niet horen.','Wie heeft mijn playlist vervloekt?'],
+  gelijk:['Gelijk… mid. Gewoon mid.']},
+ {naam:'Opa Bertus',over:'Regenjas, hoedje, zestig jaar ervaring.',
+  blij:['Hè hè. Nu een borreltje.','Vroeger wonnen we ook altijd. Mooi zo.','Zie je wel. Het jonge spul kan het ook.'],
+  boos:['In mijn tijd wonnen we nog op klompen!','Ik ga naar huis. Mijn hoed waait er nog van af.','Schandalig. Ik schrijf een brief naar de krant.'],
+  gelijk:['Gelijk. In 1974 speelden we ook eens gelijk.']}];
+const mgr=()=>S.manager||0;
+const portret=(i,boos,groot)=>`<span class="portret ${groot?'groot':''}" style="background-position:${(i+(boos?4:0))*100/7}% 0" title="${esc(MANAGERS[i].naam)}"></span>`;
+function managerKiezen(klaar,terug){
+ teken(`<h1 style="font-size:20px">KIES JE MANAGER</h1><p class="sub">Wie wordt de baas op de bank?</p>
+ ${MANAGERS.map((m,i)=>`<button class="knop mgr" data-m="${i}">${portret(i,false)}<span style="flex:1"><span class="geel">${esc(m.naam)}</span><br><span class="klein">${esc(m.over)}</span></span></button>`).join('')}
+ <button class="knop" id="terugm">Terug</button>`);
+ scherm.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>klaar(+b.dataset.m));$('#terugm').onclick=terug;
+}
 function kantoor(){
  if(S.ontslagen)return ontslagen();
  if(S.week>=14){seizoenKlaar();return seizoenScherm()}
@@ -348,10 +378,10 @@ function kantoor(){
  teken(`<h1 style="font-size:20px">${clubTag(c)}</h1>
  <p class="sub">Seizoen ${S.seizoen} · ${DIVNAAM[S.div]} · Week ${S.week+1}/14${NAAM?' · baas '+esc(NAAM):''}</p>
  <div class="kantoor"><img src="voetbalbaas/kantoor.jpg" alt="Het kantoor van de baas" onerror="this.parentNode.remove()">${KANTOOR.map(([id,t,x,y,b,h])=>`<button data-naar="${id}" style="left:${x}%;top:${y}%;width:${b}%;height:${h}%" aria-label="${t}"><span>${t}</span></button>`).join('')}</div>
- <div class="vak"><div class="rij"><span style="flex:1">Bank</span><span class="${S.geld<0?'slecht':'goed'}">${euro(S.geld)}</span></div>
+ <div class="vak mgr">${portret(mgr(),S.laatste&&S.laatste.res=='v')}<div style="flex:1;min-width:0"><div class="rij"><span style="flex:1">Bank</span><span class="${S.geld<0?'slecht':'goed'}">${euro(S.geld)}</span></div>
  <div class="rij"><span style="flex:1">Plaats in de stand</span><span class="wit">${S.week?p+'e':'-'}</span></div>
  <div class="rij"><span style="flex:1">Volgende wedstrijd</span><span class="wit">${v.thuis?'thuis':'uit'}</span></div>
- <div class="rij"><span style="flex:1">${clubTag(t)}</span><span class="geel">${ster(t.niveau)}</span></div></div>
+ <div class="rij"><span style="flex:1">${clubTag(t)}</span><span class="geel">${ster(t.niveau)}</span></div></div></div>
  ${S.geld<0?`<p class="melding slecht">Let op: je staat rood! Onder de ${euro(-25000)} ontslaat het bestuur je. Verkoop een speler?</p>`:''}
  ${fout?`<p class="melding">${fout}</p>`:''}
  <button class="knop groot" id="spelen">⚽ Speel de wedstrijd</button>
@@ -361,8 +391,8 @@ function kantoor(){
  <button class="knop" id="stand">📊 Stand en uitslagen</button>
  <button class="knop" id="ere">🏆 Erelijst</button>
  ${S.berichten.length?`<h2>Berichten</h2>${S.berichten.slice(-4).reverse().map(b=>melding(b,true)).join('')}`:''}
- <div style="margin-top:16px"><button class="knop klein" id="kleuren">🎨 Clubnaam en kleuren</button><button class="knop klein" id="opnieuw">Opnieuw beginnen</button></div>`);
- $('#kleuren').onclick=()=>clubMaken(true);
+ <div style="margin-top:16px"><button class="knop klein" id="kleuren">🎨 Clubnaam en kleuren</button><button class="knop klein" id="andermgr">🧢 Andere manager</button><button class="knop klein" id="opnieuw">Opnieuw beginnen</button></div>`);
+ $('#kleuren').onclick=()=>clubMaken(true);$('#andermgr').onclick=()=>managerKiezen(m=>{S.manager=m;bewaar();kantoor()},kantoor);
  $('#spelen').onclick=()=>{if(opstellingFout())return opstelling(true);speelWeek();wedstrijd()};
  $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;scherm.querySelectorAll('[data-naar]').forEach(b=>b.onclick=()=>$('#'+b.dataset.naar).click());$('#geld').onclick=geldScherm;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
 }
@@ -617,6 +647,7 @@ function naWedstrijd(){
  teken(`<h1 class="${kop[1]}" style="font-size:24px">${kop[0]}</h1>
  <div class="vak" style="text-align:center"><div class="wit" style="font-size:18px">${esc(ch.naam)} ${L.dh} - ${L.da} ${esc(ca.naam)}</div>
  ${goals.length?`<div class="klein">⚽ ${goals.join(', ')}</div>`:''}</div>
+ <div class="vak mgr">${portret(mgr(),L.res=='v',true)}<span class="quote">“${esc(L.quote||(L.quote=kies(MANAGERS[mgr()][{w:'blij',g:'gelijk',v:'boos'}[L.res]])))}”<br><span class="klein geel">${esc(MANAGERS[mgr()].naam)}</span></span></div>
  <h2>Geld deze week</h2><div class="vak klein">
  ${L.toesch?`<div class="rij"><span style="flex:1">${L.toesch.toLocaleString('nl-NL')} toeschouwers + sponsor</span><span class="goed">+${euro(L.inkomsten)}</span></div>`:`<div class="rij"><span style="flex:1">Sponsor (uitwedstrijd: de kaartjes zijn voor de thuisclub)</span><span class="goed">+${euro(L.inkomsten)}</span></div>`}
  <div class="rij"><span style="flex:1">Salarissen</span><span class="slecht">-${euro(L.lonen)}</span></div>

@@ -6,6 +6,10 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 ## Spelverloop
 - Eigen club maken (`clubMaken`): naam + kleur shirt (`k1`) en streep (`k2`) uit `KLEUREN` of de kleurkiezer; neemt de plek van een
   willekeurige club in de Kelderklasse in. Vanuit het kantoor (🎨 Clubnaam en kleuren) kan het later nog aangepast worden.
+- Manager (`S.manager`, `MANAGERS`, `managerKiezen`): na het kiezen van een club; later via 🧢 Andere manager in het kantoor.
+  Plaatjes `voetbalbaas/managers.jpg` (8 vakjes van 240x270, groen vervangen door #4c3fa8; uit `voetbalbaas/managers-gemini.jpg`):
+  0 Harrie de Snor, 1 Coach Mieke, 2 DJ Jordy, 3 Opa Bertus blij, 4-7 dezelfde boos. Klein in het kantoor (boos na een nederlaag),
+  groot na de wedstrijd met een uitspraak (`blij`/`gelijk`/`boos`, bewaard in `S.laatste.quote`).
 - Beginscherm: of kies een van de 8 clubs uit de Kelderklasse (grappige verzonnen namen in `CLUBS`, 32 clubs, 8 per divisie).
 - 4 divisies (`DIVNAAM`): Kelderklasse (4), Derde klasse, Tweede klasse, Ereklasse (1). Seizoen = 14 weken (dubbele competitie).
   Nummer 1 en 2 promoveren, nummer 7 en 8 degraderen. Prijzengeld per plek (`PRIJS`).
