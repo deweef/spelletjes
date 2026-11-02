@@ -9,7 +9,7 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Manager (`S.manager`, `MANAGERS`, `managerKiezen`): na het kiezen van een club; later via 🧢 Andere manager in het kantoor.
   Plaatjes `voetbalbaas/managers.jpg` (8 vakjes van 240x270, groen vervangen door #4c3fa8; uit `voetbalbaas/managers-gemini.jpg`):
   0 Harrie de Snor, 1 Coach Mieke, 2 DJ Jordy, 3 Opa Bertus blij, 4-7 dezelfde boos. Klein in het kantoor (boos na een nederlaag),
-  groot na de wedstrijd met een uitspraak (per manager 10 `blij`, 10 `boos`, 5 `gelijk`; bewaard in `S.laatste.quote`).
+  groot na de wedstrijd met een uitspraak (per manager 13 `blij`, 13 `boos`, 8 `gelijk`, deels van Gemini; bewaard in `S.laatste.quote`).
 - Velden per divisie: `voetbalbaas/velden.jpg` (4 vakjes van 640x350, uit `voetbalbaas/velden-gemini.jpg`; 0 Kelderklasse modderveld,
   1 Derde klasse sportpark, 2 Tweede klasse stadionnetje, 3 Ereklasse groot stadion; `veldFoto(div)`). Over het wedstrijdveld tot je
   op START drukt, en op het scherm Einde seizoen bij promotie/degradatie.
