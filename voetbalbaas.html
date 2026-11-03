@@ -156,7 +156,7 @@ const club=id=>S.clubs[id];
 const mijn=()=>club(S.club);
 
 // ---------- sterkte ----------
-function lijnen(ids){const l={K:0,V:0,M:0,A:0},n={K:0,V:0,M:0,A:0};ids.forEach(id=>{const p=S.spelers.find(x=>x.id==id);if(p){l[p.pos]+=eff(p);n[p.pos]++}});return{l,n}}
+function lijnen(ids,pijn){const l={K:0,V:0,M:0,A:0},n={K:0,V:0,M:0,A:0};ids.forEach(id=>{const p=S.spelers.find(x=>x.id==id);if(p){l[p.pos]+=eff(p)*(id==pijn?0.5:1);n[p.pos]++}});return{l,n}} // pijn = speler met een pijntje: half zo goed
 // Kenmerken van een ploeg (l = opgetelde kracht per linie, n = aantal spelers per linie):
 //  qA = gemiddelde kracht van wie aanvalt (aanvallers + een kwart van het middenveld), nA = hoeveel dat er zijn
 //  qD = gemiddelde kracht van de verdediging (verdedigers + kwart middenveld, plus de keeper), nD = hoeveel
@@ -187,9 +187,9 @@ function opstellingFout(){
 }
 
 // ---------- wedstrijd uitrekenen ----------
-function simuleer(sH,sA,tv=1.15,tH=TACTIEK.normaal,tA=TACTIEK.normaal){ // sH/sA = sterkte(), tv = thuisvoordeel, tH/tA = tactiek
- const ev=[],n=ri(8,11),mh0=Math.pow(sH.M,1.5)*tv,ma0=Math.pow(sA.M,1.5),ph=mh0/(mh0+ma0),mh=mh0*tH.s,ma=ma0*tA.s;
- const minuten=Array.from({length:n},()=>ri(2,89)).sort((a,b)=>a-b);
+function simuleer(sH,sA,tv=1.15,tH=TACTIEK.normaal,tA=TACTIEK.normaal,van=2,tot=89,n=ri(8,11)){ // sH/sA = sterkte(), tv = thuisvoordeel, tH/tA = tactiek, van-tot = minuten
+ const ev=[],mh0=Math.pow(sH.M,1.5)*tv,ma0=Math.pow(sA.M,1.5),ph=mh0/(mh0+ma0),mh=mh0*tH.s,ma=ma0*tA.s;
+ const minuten=Array.from({length:n},()=>ri(van,tot)).sort((a,b)=>a-b);
  for(const m of minuten){const thuis=R()<mh/(mh+ma),at=thuis?sH:sA,vd=thuis?sA:sH,ta=thuis?tH:tA,tvd=thuis?tA:tH;
   const pg=clamp(0.3*Math.pow(at.qA/(vd.qD||1),1.3)*Math.pow(at.nA/3,0.5)/Math.pow(Math.max(vd.nD,0.5)/5,1.5)*(1+ta.eig*(thuis?1-ph:ph))*tvd.teg,0.03,0.7);
   let uit;if(R()<pg)uit='goal';else{const pr=clamp(0.5+(vd.K-BASIS[S.div])*0.03,0.3,0.75);uit=R()<pr?'redding':R()<0.18?'lat':'naast'}
@@ -243,22 +243,18 @@ function strafschoppen(wijK,zijK){ // 5 elk, daarna om en om tot het beslist is
   if(i<4){const rest=4-i;if(a>b+rest||b>a+rest)break}else if(a!=b)break}
  return{wij:w,zij:z};
 }
-function speelBeker(){
- const b=S.beker,t=club(b.tegen),finale=b.ronde==3;
- const{l,n}=lijnen(S.opstelling),mijnS=sterkte(l,n),mijnT=TACTIEK[S.tactiek]||TACTIEK.normaal,hun=tegenPloeg(t.niveau*rnd(0.9,1.1));
- const tv=finale?1:b.thuis?thuisvoordeel():1.15;
- const ev=b.thuis?simuleer(mijnS,hun,tv,mijnT,TACTIEK.normaal):simuleer(hun,mijnS,tv,TACTIEK.normaal,mijnT),[dh,da]=tel(ev);
- zetSchutters(ev,b.thuis);
+function bekerAfmaken(ev,berichten){
+ const b=S.beker,t=club(b.tegen),finale=b.ronde==3,{l}=lijnen(S.opstelling),[dh,da]=tel(ev);
  const voor=b.thuis?dh:da,tegen=b.thuis?da:dh;let pens=null,door=voor>tegen;
  if(voor==tegen){pens=strafschoppen(l.K,t.niveau);door=pens.wij.filter(Boolean).length>pens.zij.filter(Boolean).length}
- const berichten=[];let inkomsten=0,toesch=0;
+ let inkomsten=0,toesch=0;
  if(finale){toesch=Math.round(PUBLIEK[1]*rnd(2.5,3.2));inkomsten=Math.round(15000*BEKERFACTOR[S.div]/500)*500} // jouw deel van de finale-opbrengst
  else if(b.thuis){toesch=Math.round(verwachtPubliek(prijs())*rnd(1.1,1.5));inkomsten=toesch*prijs()}
  const prijsgeld=door?Math.round(BEKERPRIJS[b.ronde]*BEKERFACTOR[S.div]):0;
  S.geld+=inkomsten+prijsgeld;
  naAfloop(berichten,false);
  const ronde=BEKERRONDE[b.ronde];
- if(door){b.ronde++;b.tegen=null;if(b.ronde==4){S.bekers=(S.bekers||[]).concat(S.seizoen);berichten.unshift(`🏆 ${mijn().naam} wint ${BEKERNAAM}! Er wordt de hele nacht uit de beker gedronken.`)}}
+ if(door){b.ronde++;b.tegen=null;if(b.ronde==4){S.bekers=(S.bekers||[]).concat(S.seizoen);S.prijzen=(S.prijzen||0)+1;S.punten=(S.punten||0)+50*(5-S.div);setTimeout(insturen,0);berichten.unshift(`🏆 ${mijn().naam} wint ${BEKERNAAM}! Er wordt de hele nacht uit de beker gedronken.`)}}
  else b.eruit=true;
  b.gespeeldWeek=S.week;
  S.laatste={ev,h:b.thuis?S.club:t.id,a:b.thuis?t.id:S.club,dh,da,res:voor>tegen?'w':voor<tegen?'v':'g',inkomsten,toesch,lonen:0,berichten,week:S.week,
@@ -266,17 +262,38 @@ function speelBeker(){
  bewaar();
 }
 
-function speelWeek(){
- const v=volgende(),uit=[];let mijnEv=null;
- const mijnS=(()=>{const{l,n}=lijnen(S.opstelling);return sterkte(l,n)})(),mijnT=TACTIEK[S.tactiek]||TACTIEK.normaal;
+// ---------- een wedstrijd in twee helften ----------
+// startWedstrijd rekent de eerste helft uit (S.lopend, wordt bewaard: herladen = terug naar de rust). In de rust kun je wisselen
+// en de tactiek veranderen; afmaken rekent dan de tweede helft uit en verwerkt de uitslag (competitie of beker).
+function startWedstrijd(){
+ const bk=bekerNu();let lo;
+ if(bk){bekerLoting();const b=S.beker,t=club(b.tegen);lo={beker:true,teg:b.tegen,thuis:b.thuis,tv:b.ronde==3?1:b.thuis?thuisvoordeel():1.15,hunL:t.niveau*rnd(0.9,1.1)}}
+ else{const v=volgende();lo={beker:false,teg:v.teg,thuis:v.thuis,tv:v.thuis?thuisvoordeel():1.15,hunL:club(v.teg).niveau*rnd(0.88,1.12)}}
+ const veld=S.opstelling.map(id=>S.spelers.find(p=>p.id==id)).filter(p=>p&&p.pos!='K');
+ lo.pijn=R()<0.3&&veld.length?kies(veld).id:null;lo.wissels=[];
+ S.lopend=lo;lo.ev1=helft(1);zetSchutters(lo.ev1,lo.thuis);bewaar();
+}
+function helft(h){const lo=S.lopend,{l,n}=lijnen(S.opstelling,h==2?lo.pijn:null),ons=sterkte(l,n),hun=tegenPloeg(lo.hunL),mijnT=TACTIEK[S.tactiek]||TACTIEK.normaal;
+ const van=h==1?2:46,tot=h==1?45:89,k=ri(4,6);
+ return lo.thuis?simuleer(ons,hun,lo.tv,mijnT,TACTIEK.normaal,van,tot,k):simuleer(hun,ons,lo.tv,TACTIEK.normaal,mijnT,van,tot,k)}
+function afmaken(){
+ const lo=S.lopend;if(!lo)return;const ev2=helft(2);zetSchutters(ev2,lo.thuis);const ev=lo.ev1.concat(ev2),berichten=[];
+ if(lo.wissels.length)berichten.push('🔁 Wissels: '+lo.wissels.join('; ')+'.');
+ const pp=lo.pijn&&S.spelers.find(p=>p.id==lo.pijn),doorgespeeld=pp&&S.opstelling.includes(pp.id);
+ delete S.lopend;
+ if(lo.beker)bekerAfmaken(ev,berichten);else weekAfmaken(ev,lo,berichten);
+ // wie met een pijntje doorspeelde, is daarna geblesseerd (na naAfloop, anders telt de blessure meteen een week af)
+ if(doorgespeeld){pp.blessure=Math.max(pp.blessure,2);S.laatste.berichten.push(`🩹 ${pp.naam} speelde door met een pijntje. Nu is hij 2 weken geblesseerd.`);S.opstelling=S.opstelling.filter(x=>x!=pp.id);bewaar()}
+}
+function weekAfmaken(mijnEv,lo,berichten){
+ const v=volgende(),uit=[];
  for(const[h,a]of S.schema[S.week]){
-  const s=id=>{if(id==S.club)return mijnS;return tegenPloeg(club(id).niveau*rnd(0.88,1.12))};
-  const ev=simuleer(s(h),s(a),h==S.club?thuisvoordeel():1.15,h==S.club?mijnT:TACTIEK.normaal,a==S.club?mijnT:TACTIEK.normaal),[dh,da]=tel(ev);uit.push({h,a,dh,da});if(h==S.club||a==S.club)mijnEv=ev}
+  if(h==S.club||a==S.club){const[dh,da]=tel(mijnEv);uit.push({h,a,dh,da});continue}
+  const ev=simuleer(tegenPloeg(club(h).niveau*rnd(0.88,1.12)),tegenPloeg(club(a).niveau*rnd(0.88,1.12))),[dh,da]=tel(ev);uit.push({h,a,dh,da})}
  S.uitslagen.push(uit);
  const u=uit.find(x=>x.h==S.club||x.a==S.club),voor=v.thuis?u.dh:u.da,tegen=v.thuis?u.da:u.dh;
- zetSchutters(mijnEv,v.thuis);
  // geld
- const berichten=[];let inkomsten=SPONSOR[S.div],toesch=0;
+ let inkomsten=SPONSOR[S.div],toesch=0;
  if(v.thuis){toesch=Math.round(verwachtPubliek(prijs())*rnd(0.8,1.2));inkomsten+=toesch*prijs()}
  const lonen=S.spelers.reduce((t,p)=>t+salaris(p),0);
  S.geld+=inkomsten-lonen;
@@ -311,6 +328,8 @@ function seizoenKlaar(){
  const prijs=(8-p)*PRIJS[d]+(p==1?PRIJS[d]*3:0);S.geld+=prijs;
  info.push(`Je bent ${p}e geworden in de ${DIVNAAM[d]}. Prijzengeld: ${euro(prijs)}.`);
  S.erelijst.push({seizoen:S.seizoen,div:d,plek:p});
+ const promo=d>1&&p<=2,pnt=seizoenPunten(d,p,promo);S.punten=(S.punten||0)+pnt;if(p==1)S.prijzen=(S.prijzen||0)+1;
+ info.push(`⭐ Managerpunten dit seizoen: +${pnt} (totaal ${S.punten}).`);
  // promotie en degradatie
  const omhoog=d>1?st.slice(0,2).map(r=>r.id):[],omlaag=d<4?st.slice(6).map(r=>r.id):[];
  if(omhoog.length){const boven=S.clubs.filter(c=>c.div==d-1&&c.id!=S.club).sort((a,b)=>a.niveau-b.niveau).slice(0,4).sort(()=>R()-.5).slice(0,2);
@@ -330,7 +349,37 @@ function seizoenKlaar(){
   if(p.leeftijd>=35&&R()<0.6)weg.push(p)});
  weg.forEach(p=>{S.spelers.splice(S.spelers.indexOf(p),1);info.push(`👋 ${p.naam} (${p.leeftijd}) stopt met voetballen en gaat achter de bar staan.`)});
  S.seizoen++;S.opstelling=besteElf();nieuwSeizoen();nieuweMarkt();
- S.seizoenInfo={tabel:st,div:d,info};bewaar();
+ S.seizoenInfo={tabel:st,div:d,info};bewaar();insturen();
+}
+
+// ---------- managerpunten en het online scorebord ----------
+// Managerpunten (carrière): per seizoen (9 − plek) × 10 × (5 − divisie), kampioen + 100 × (5 − divisie), promotie + 50,
+// beker gewonnen + 50 × (5 − divisie). Prijzen = titels + bekers. Allebei naar het familiescorebord (extra/scorebord.gs),
+// onderdelen voetbal_punten en voetbal_prijzen, modus carriere; alleen met een gekozen naam en alleen als het meer is dan al ingestuurd.
+const BORD_URL='https://script.google.com/macros/s/AKfycbzo6b4TQRiL2j1ZhEtBa6xpbNcBxmL7IIIB6e1FdYWnswDIxJ1MphWAlAjm12aK_J9U/exec';
+const seizoenPunten=(div,plek,promo)=>(9-plek)*10*(5-div)+(plek==1?100*(5-div):0)+(promo?50:0);
+if(S&&S.punten==null){S.punten=(S.erelijst||[]).reduce((t,e)=>t+seizoenPunten(e.div,e.plek,false),0)+(S.bekers||[]).length*50;
+ S.prijzen=(S.erelijst||[]).filter(e=>e.plek==1).length+(S.bekers||[]).length;bewaar()}
+function insturen(){
+ if(!NAAM||!S)return;const lk='voetbalbaas_ingestuurd:'+NAAM;let al={};try{al=JSON.parse(localStorage.getItem(lk)||'{}')}catch(e){}
+ for(const[o,w]of[['voetbal_punten',S.punten||0],['voetbal_prijzen',S.prijzen||0]]){if(w<=0||w<=(al[o]||0))continue;
+  fetch(BORD_URL+'?actie=opslaan&naam='+encodeURIComponent(NAAM)+'&onderdeel='+o+'&modus=carriere&score='+w,{redirect:'follow'})
+   .then(r=>{if(!r.ok)throw 0;al[o]=w;try{localStorage.setItem(lk,JSON.stringify(al))}catch(e){}}).catch(()=>{})}
+}
+let bord=null;try{bord=JSON.parse(localStorage.getItem('voetbalbaas_bord')||'null')}catch(e){}
+function scorebord(terug){
+ const lijst=(k,eenheid)=>{const r=(bord&&bord[k])||[];return r.length?`<table>${r.map((x,i)=>`<tr class="${String(x.naam).toLowerCase()==NAAM.toLowerCase()?'jij':''}"><td>${['🥇','🥈','🥉'][i]||i+1}</td><td>${esc(x.naam)}</td><td class="wit">${x.score} ${eenheid}</td></tr>`).join('')}</table>`:'<p class="klein">Nog niemand.</p>'};
+ const toon=st=>{teken(`<h1 style="font-size:20px">🏆 SCOREBORD</h1><p class="sub">Van de hele familie</p>
+  ${st?`<p class="klein" style="text-align:center">${st}</p>`:''}
+  <h2>Managerpunten</h2>${lijst('voetbal_punten_carriere','punten')}
+  <h2>Prijzen (titels en bekers)</h2>${lijst('voetbal_prijzen_carriere','')}
+  <div class="vak klein">Managerpunten verdien je aan het eind van elk seizoen: hoe hoger je eindigt en hoe hoger de divisie, hoe meer.
+  Kampioen, promotie en de beker leveren extra op. ${NAAM?`Jouw score gaat er vanzelf op als je record beter is (als <b class="wit">${esc(NAAM)}</b>).`:'Kies op de startpagina een naam, anders komt je score er niet op.'}
+  ${S?`<br>Jij nu: <b class="wit">${S.punten||0}</b> managerpunten, <b class="wit">${S.prijzen||0}</b> ${S.prijzen==1?'prijs':'prijzen'}.`:''}</div>
+  <button class="knop groot" id="klaar">Terug</button>`);$('#klaar').onclick=terug};
+ toon('Laden…');
+ fetch(BORD_URL,{redirect:'follow'}).then(r=>r.json()).then(d=>{bord=d;try{localStorage.setItem('voetbalbaas_bord',JSON.stringify(d))}catch(e){}if($('#klaar'))toon('')})
+  .catch(()=>{if($('#klaar'))toon(bord?'Geen internet: dit is de laatst bekende stand.':'Geen internet, het scorebord kan nu niet geladen worden.')});
 }
 
 // ---------- geluid ----------
@@ -351,6 +400,7 @@ function beginScherm(){
  const voorbeeld=CLUBS.slice(0,8);
  teken(`<h1>VOETBALBAAS</h1><p class="sub">⚽ Word de baas van een voetbalclub ⚽</p>
  ${S?`<button class="knop groot" id="verder">Verder als baas van ${esc(club(S.club).naam)}</button>`:''}
+ <button class="knop" id="bordknop">🏆 Scorebord van de familie</button>
  <h2>${S?'Of begin opnieuw met een club:':'Kies je club'}</h2>
  <p class="klein">Je begint onderaan in de Kelderklasse. Kies een club en probeer hem naar de Ereklasse te brengen.</p>
  <button class="knop groot" id="eigen" style="background:var(--groen)">✏️ Eigen club maken (naam en kleuren)</button>
@@ -362,7 +412,7 @@ function beginScherm(){
  Moe? Laat een speler een weekje rusten. Thuiswedstrijden leveren geld op, maar je spelers willen ook salaris.
  Kom je onder de ${euro(-25000)}, dan ontslaat het bestuur je. Nummer 1 en 2 promoveren, de laatste twee degraderen.</p>`);
  if(S)$('#verder').onclick=kantoor;
- $('#eigen').onclick=()=>clubMaken(false);
+ $('#eigen').onclick=()=>clubMaken(false);$('#bordknop').onclick=()=>scorebord(beginScherm);
  scherm.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;const c=+b.dataset.c;managerKiezen(m=>{nieuwSpel(c);S.manager=m;bewaar();kantoor()},beginScherm)});
 }
 
@@ -419,6 +469,7 @@ function managerKiezen(klaar,terug){
 }
 function kantoor(){
  if(S.ontslagen)return ontslagen();
+ if(S.lopend)return wedstrijd(); // wedstrijd nog bezig (bijvoorbeeld herladen in de rust)
  if(S.week>=14){seizoenKlaar();return seizoenScherm()}
  const v=tegenNu(),t=club(v.teg),c=mijn(),p=plek(),fout=opstellingFout(),bk=v.beker,br=bk&&BEKERRONDE[S.beker.ronde];
  teken(`<h1 style="font-size:20px">${clubTag(c)}</h1>
@@ -440,7 +491,7 @@ function kantoor(){
  ${S.berichten.length?`<h2>Berichten</h2>${S.berichten.slice(-4).reverse().map(b=>melding(b,true)).join('')}`:''}
  <div style="margin-top:16px"><button class="knop klein" id="kleuren">🎨 Clubnaam en kleuren</button><button class="knop klein" id="andermgr">🧢 Andere manager</button><button class="knop klein" id="opnieuw">Opnieuw beginnen</button></div>`);
  $('#kleuren').onclick=()=>clubMaken(true);$('#andermgr').onclick=()=>managerKiezen(m=>{S.manager=m;bewaar();kantoor()},kantoor);
- $('#spelen').onclick=()=>{if(opstellingFout())return opstelling(true);if(bekerNu())speelBeker();else speelWeek();wedstrijd()};
+ $('#spelen').onclick=()=>{if(opstellingFout())return opstelling(true);startWedstrijd();wedstrijd()};
  $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;scherm.querySelectorAll('[data-naar]').forEach(b=>b.onclick=()=>$('#'+b.dataset.naar).click());$('#geld').onclick=geldScherm;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
 }
 
@@ -534,11 +585,13 @@ function standScherm(){
 function erelijst(){
  teken(`<h1 style="font-size:20px">ERELIJST</h1><p class="sub">${clubTag(mijn())}</p>
  ${S.erelijst.length?S.erelijst.map(e=>`<div class="rij"><span style="flex:1">Seizoen ${e.seizoen} · ${DIVNAAM[e.div]}</span><span class="${e.plek<=2?'goed':e.plek>=7?'slecht':'wit'}">${e.plek==1?'🏆 ':''}${e.plek}e</span></div>`).join(''):'<p>Nog geen seizoen afgemaakt. Dat komt nog!</p>'}
+ <div class="vak"><div class="rij"><span style="flex:1">⭐ Managerpunten</span><b class="wit">${S.punten||0}</b></div><div class="rij"><span style="flex:1">🏆 Prijzen (titels en bekers)</span><b class="wit">${S.prijzen||0}</b></div></div>
+ <button class="knop" id="bordknop">🏆 Scorebord van de familie</button>
  <h2>🍺 ${BEKERNAAM}</h2>${bekerFoto(0)}
  ${(S.bekers||[]).length?S.bekers.map(z=>`<div class="rij"><span style="flex:1">Seizoen ${z}</span><span class="goed">🏆 Bekerwinnaar</span></div>`).join(''):'<p class="klein">Nog nooit gewonnen.</p>'}
  ${S.beker?`<p class="klein">Dit seizoen: ${S.beker.eruit?'uitgeschakeld in de '+BEKERRONDE[S.beker.ronde].toLowerCase():S.beker.ronde>=4?'gewonnen':'nog in de race, volgende ronde: '+BEKERRONDE[S.beker.ronde].toLowerCase()+' (week '+(BEKERWEKEN[S.beker.ronde]+1)+')'}.</p>`:''}
  <button class="knop groot" id="klaar" style="margin-top:12px">Terug</button>`);
- $('#klaar').onclick=kantoor;
+ $("#klaar").onclick=kantoor;$("#bordknop").onclick=()=>scorebord(erelijst);
 }
 function seizoenScherm(){
  const i=S.seizoenInfo;
@@ -561,32 +614,35 @@ function ontslagen(){
 const PW=600,PH=360,GY=180,GH=30; // veld; doel van y 150 tot 210
 let anim=null;
 function wedstrijd(){
- const L=S.laatste,ch=club(L.h),ca=club(L.a);
+ const lo=S.lopend,hId=lo.thuis?S.club:lo.teg,aId=lo.thuis?lo.teg:S.club,ch=club(hId),ca=club(aId);
+ const bk=lo.beker&&{ronde:BEKERRONDE[S.beker.ronde],finale:S.beker.ronde==3};
  teken(`<div id="bord"><span class="t">${clubTag(ch)}</span><span class="s" id="score">0 - 0</span><span class="t" style="text-align:right">${esc(ca.naam)}<span class="club" style="margin:0 0 0 6px;background:linear-gradient(90deg,${ca.k1} 50%,${ca.k2} 50%)"></span></span><span class="min" id="min">0'</span></div>
- <div id="vak-veld"><canvas id="veld" width="640" height="400"></canvas>${veldFoto(L.beker?(L.beker.finale?1:club(L.h).div):S.div)}</div>
- <div id="verslag">${L.beker?`🍺 ${L.beker.ronde} van ${BEKERNAAM}${L.beker.finale?' in het grote stadion':''}.<br>`:''}Druk op START</div>
- <div class="rij"><button class="knop groot" id="start">START</button></div>
- <div class="rij"><button class="knop klein" id="sneller">Sneller ▸▸</button><button class="knop klein" id="einde">Naar de uitslag</button></div>`);
+ <div id="vak-veld"><canvas id="veld" width="640" height="400"></canvas>${veldFoto(bk?(bk.finale?1:ch.div):S.div)}</div>
+ <div id="verslag">${bk?`🍺 ${bk.ronde} van ${BEKERNAAM}${bk.finale?' in het grote stadion':''}.<br>`:''}Druk op START</div>
+ <div id="knoppen"><div class="rij"><button class="knop groot" id="start">START</button></div>
+ <div class="rij"><button class="knop klein" id="sneller">Sneller ▸▸</button><button class="knop klein" id="einde">Naar de uitslag</button></div></div>
+ <div id="rust"></div>`);
  const cv=$('#veld'),ctx=cv.getContext('2d');
- const st={ev:L.ev,i:-1,score:[0,0],min:0,snel:1,fase:'wacht',t:0,actie:null,klaar:false};
- const thuisWij=L.h==S.club;
- // kleuren: wij altijd in onze clubkleuren, tegenstander in de zijne
- const ons=mijn(),hun=club(thuisWij?L.a:L.h);
+ const st={ev:lo.ev1,i:-1,score:[0,0],min:0,snel:1,fase:'wacht',t:0,actie:null,helft:1};
+ const ons=mijn(),hun=club(lo.teg);
  let hunK1=hun.k1;if(kleurAfstand(hun.k1,ons.k1)<120)hunK1=hun.k2;if(kleurAfstand(hunK1,ons.k1)<120)hunK1='#222222';
  tekenVeld(ctx);tekenStil(ctx,ons,hunK1);
- const zet=()=>{$('#score').textContent=st.score[0]+' - '+st.score[1];$('#min').textContent=st.min+"'"};
- $('#sneller').onclick=()=>{st.snel=st.snel==1?2.5:st.snel==2.5?5:1;$('#sneller').textContent=st.snel==1?'Sneller ▸▸':st.snel==2.5?'Nog sneller ▸▸▸':'Normaal ▸'};
- $('#einde').onclick=()=>{stop();naWedstrijd()};
- $('#start').onclick=()=>{geluidAan();fluit(1);$('#start').parentNode.remove();const vf=scherm.querySelector('#vak-veld .veldfoto');if(vf)vf.remove();st.fase='klok';st.t=0;let vorig=performance.now();
-  const stap=nu=>{const dt=Math.min(.05,(nu-vorig)/1000)*st.snel;vorig=nu;st.t+=dt;
-   if(st.fase=='klok'){ // klok tikt door tot de volgende kans
-    const doel=st.ev[st.i+1]?st.ev[st.i+1].min:90;st.min=Math.min(doel,st.min+dt*22);
+ const zet=()=>{$('#score').textContent=st.score[0]+' - '+st.score[1]};
+ let vorig=performance.now();
+ const knoppen=()=>{
+  $('#sneller').onclick=()=>{st.snel=st.snel==1?2.5:st.snel==2.5?5:1;$('#sneller').textContent=st.snel==1?'Sneller ▸▸':st.snel==2.5?'Nog sneller ▸▸▸':'Normaal ▸'};
+  $('#einde').onclick=()=>{stop();if(S.lopend)afmaken();naWedstrijd()}};
+ knoppen();
+ const stap=nu=>{const dt=Math.min(.05,(nu-vorig)/1000)*st.snel;vorig=nu;st.t+=dt;
+   if(st.fase=='klok'){ // klok tikt door tot de volgende kans (of de rust / het eindsignaal)
+    const eind=st.helft==1?45:90,doel=st.ev[st.i+1]?st.ev[st.i+1].min:eind;st.min=Math.min(doel,st.min+dt*22);
     if(st.min>=doel){st.min=doel;if(st.ev[st.i+1]){st.i++;const e=st.ev[st.i];st.actie=maakActie(e);st.t=0;st.fase='actie';
       $('#verslag').innerHTML=e.wij?`${S.tactiek=='counter'&&R()<.6?'Snelle counter! ':''}${esc(e.helpers[0])} gaat ervandoor...`:`${esc(hun.naam)} valt aan...`}
-     else{st.fase='uit';fluit(3);const pn=L.beker&&L.beker.pens;
+     else if(st.helft==1){st.fase='rust';fluit(2);rust()}
+     else{st.fase='uit';fluit(3);const L=S.laatste,pn=L.beker&&L.beker.pens;
       $('#verslag').innerHTML=`<span class="geel">Het eindsignaal!</span>${pn?'<br>Gelijk… dus STRAFSCHOPPEN!':''}`;
       if(pn)strafRij(pn,()=>{if(anim)naWedstrijd()});else setTimeout(()=>{if(anim)naWedstrijd()},1800/st.snel)}}
-    st.min=Math.floor(st.min*10)/10;$('#min').textContent=Math.floor(st.min)+"'";
+    $('#min').textContent=Math.floor(st.min)+"'";
     tekenVeld(ctx);tekenStil(ctx,ons,hunK1)}
    else if(st.fase=='actie'){const a=st.actie,e=a.ev;
     const klaar=speelActie(ctx,a,st.t,ons,hunK1);
@@ -598,8 +654,44 @@ function wedstrijd(){
      else{ruis(.5,.05);if(e.uit=='lat')toon(900,.2,'triangle',.06)}
      $('#verslag').innerHTML=`<span class="${e.uit=='goal'?(e.wij?'goed':'slecht'):'geel'}" style="font-size:${e.uit=='goal'?22:16}px">${tekst}</span>${e.uit=='goal'&&e.wij?' '+esc(e.schutter)+'!':''}`}
     if(klaar){st.fase='klok';st.min=e.min}}
-   if(st.fase!='weg')anim=requestAnimationFrame(stap)};
-  anim=requestAnimationFrame(stap)};
+   if(st.fase=='klok'||st.fase=='actie'||st.fase=='uit')anim=requestAnimationFrame(stap)};
+ const begin=()=>{geluidAan();const vf=scherm.querySelector('#vak-veld .veldfoto');if(vf)vf.remove();st.fase='klok';st.t=0;vorig=performance.now();anim=requestAnimationFrame(stap)};
+ $('#start').onclick=()=>{fluit(1);$('#start').parentNode.remove();begin()};
+ // ---- de rust: wissels en tactiek ----
+ let kies1=null;
+ function rust(){
+  if(anim)cancelAnimationFrame(anim);anim=null;S.lopend.bijRust=true;bewaar();
+  $('#knoppen').style.display='none';$('#min').textContent="45'";
+  const voor=st.score[lo.thuis?0:1],tegen=st.score[lo.thuis?1:0];
+  const pijn=lo.pijn&&S.spelers.find(p=>p.id==lo.pijn),pijnVeld=pijn&&S.opstelling.includes(pijn.id);
+  const op=S.opstelling.map(id=>S.spelers.find(p=>p.id==id)).filter(Boolean).sort((a,b)=>VOLG[a.pos]-VOLG[b.pos]);
+  const bank=S.spelers.filter(p=>!S.opstelling.includes(p.id)&&kun(p)).sort((a,b)=>VOLG[a.pos]-VOLG[b.pos]||b.kracht-a.kracht);
+  const fout=opstellingFout(),max=3-lo.wissels.length;
+  $('#verslag').innerHTML=`<span class="geel">RUST</span> · ${voor>tegen?'we staan voor!':voor<tegen?'we staan achter…':'het staat gelijk'}`;
+  $('#rust').innerHTML=`<button class="knop groot" id="tweede2">Tweede helft ▸</button>
+  ${pijnVeld?`<p class="melding">🤕 <b class="wit">${esc(pijn.naam)}</b> heeft een pijntje en speelt de tweede helft maar half zo goed. Blijft hij erin, dan is hij daarna 2 weken geblesseerd. Wisselen?</p>`:''}
+  <div class="vak"><b class="wit">Wissels</b> <span class="klein">(nog ${max} van de 3)</span>
+  <p class="klein" style="margin:2px 0 6px">${kies1?'Tik nu op een speler van de bank die erin komt.':'Tik op een speler op het veld die eruit gaat.'}</p>
+  ${lo.wissels.length?`<p class="klein goed" style="margin:0 0 6px">🔁 ${lo.wissels.map(esc).join('<br>🔁 ')}</p>`:''}
+  <div class="klein geel">Op het veld</div>
+  ${op.map(p=>spelerRij(p,p.id==kies1,`<span class="vink">${p.id==kies1?'↓':p.id==lo.pijn?'🤕':''}</span>`)).join('').replace(/class="speler /g,'data-veld="1" class="speler ')}
+  <div class="klein geel" style="margin-top:8px">Bank</div>
+  ${bank.length?bank.map(p=>spelerRij(p,false,`<span class="vink">${kies1&&max>0?'↑':''}</span>`)).join('').replace(/class="speler /g,'data-bank="1" class="speler '):'<p class="klein">Niemand fit op de bank.</p>'}</div>
+  ${balken()}
+  ${fout?`<p class="melding slecht">${fout}</p>`:''}
+  <button class="knop groot" id="tweede">Tweede helft ▸</button>`;
+  $('#rust').querySelectorAll('[data-veld]').forEach(rw=>rw.onclick=()=>{if(max<=0)return;const id=+rw.dataset.id;kies1=kies1==id?null:id;rust()});
+  $('#rust').querySelectorAll('[data-bank]').forEach(rw=>rw.onclick=()=>{if(!kies1||max<=0)return;const id=+rw.dataset.id,uit=S.spelers.find(p=>p.id==kies1),inn=S.spelers.find(p=>p.id==id);
+   S.opstelling[S.opstelling.indexOf(kies1)]=id;lo.wissels.push(`${uit.naam} eruit, ${inn.naam} erin`);kies1=null;bewaar();rust()});
+  $('#rust').querySelectorAll('[data-tak]').forEach(b=>b.onclick=()=>{S.tactiek=b.dataset.tak;bewaar();rust()});
+  $('#tweede2').onclick=()=>$('#tweede').click();
+  $('#tweede').onclick=()=>{if(opstellingFout()){rust();const m=$('#rust .melding.slecht');if(m)m.scrollIntoView({block:'center'});return}
+   afmaken();const L=S.laatste;st.ev=L.ev;st.helft=2;st.min=45;$('#rust').innerHTML='';$('#knoppen').style.display='';
+   $('#verslag').innerHTML='De tweede helft begint!';fluit(1);knoppen();begin();window.scrollTo(0,0)};
+ }
+ if(lo.bijRust){ // terug na herladen: meteen de rust, met de stand van de eerste helft
+  $('#start').parentNode.remove();const vf=scherm.querySelector('#vak-veld .veldfoto');if(vf)vf.remove();
+  lo.ev1.forEach(e=>{if(e.uit=='goal')st.score[e.thuis?0:1]++});zet();st.i=lo.ev1.length-1;st.min=45;st.fase='rust';rust()}
  function stop(){if(anim)cancelAnimationFrame(anim);anim=null;st.fase='weg'}
 }
 // strafschoppen één voor één laten zien in het verslag (wij altijd eerst)
@@ -727,6 +819,7 @@ function naWedstrijd(){
 
 if(S&&S.laatste&&S.laatste.berichten&&S.laatste.berichten.length){S.berichten.push(...S.laatste.berichten);S.laatste.berichten=[];bewaar()}
 beginScherm();
+insturen(); // wat de vorige keer (zonder internet) niet lukte, opnieuw proberen
 </script>
 </body>
 </html>

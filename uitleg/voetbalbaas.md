@@ -48,6 +48,21 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Uitspraken `BEKERPRAAT` per manager: door (5), eruit (5), straf (3, door na strafschoppen), finale (3). Met Gemini bedacht, grove woorden eruit.
 - Gewonnen = `S.bekers` (lijst seizoenen), te zien in de erelijst. Kantoor: melding + knop "🍺 Speel de achtste finale" enz.
 
+## Rust en wissels
+- Een wedstrijd gaat in twee helften (`startWedstrijd`, `helft`, `afmaken`): bij het begin wordt alleen de eerste helft uitgerekend en
+  bewaard in `S.lopend` {beker, teg, thuis, tv, hunL, ev1, pijn, wissels, bijRust}. Herladen = terug in de rust (`kantoor` → `wedstrijd`).
+- In de rust (`rust()` in `wedstrijd`): max. 3 wissels (tik veldspeler, dan bankspeler), tactiek wisselen, balkjes. Soms (30%) heeft een
+  veldspeler een pijntje (`lo.pijn`): in de tweede helft half zo goed (`lijnen(ids,pijn)`); blijft hij erin, dan daarna 2 weken geblesseerd.
+- `afmaken` rekent de tweede helft uit met de nieuwe opstelling/tactiek en geeft het door aan `weekAfmaken` (competitie) of `bekerAfmaken`.
+  "Naar de uitslag" in de eerste helft = zonder wissels doorspelen.
+
+## Managerpunten en scorebord
+- `S.punten` (carrière) en `S.prijzen` (titels + bekers); `seizoenPunten(div,plek,promo)` = (9 − plek) × 10 × (5 − div), kampioen
+  + 100 × (5 − div), promotie + 50; beker + 50 × (5 − div). Oude opslag wordt bij het openen uit de erelijst nagerekend.
+- `insturen()` (na het seizoen, na bekerwinst en bij het openen): onderdelen `voetbal_punten` / `voetbal_prijzen`, modus `carriere`,
+  alleen met een gekozen naam en alleen als het meer is dan `voetbalbaas_ingestuurd:<naam>`. `scorebord(terug)`: knop op het beginscherm
+  en in de erelijst; laatste lijst in `voetbalbaas_bord`. De Scores-app (`scores/`) toont het als spel "Voetbalbaas".
+
 ## Wedstrijd
 - `sterkte(l,n)`: qA = gemiddelde kracht van de aanvallers (+ kwart middenveld), nA = aantal; qD = verdediging (+ kwart middenveld,
   keeper telt 25% mee), nD = aantal; M = middenveld. `simuleer`: 8-11 kansen; wie de kans krijgt hangt af van M^1,5 (thuisvoordeel
@@ -60,7 +75,7 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Schema (`nieuwSeizoen`): thuis/uit gaat om en om (wie het minst thuis speelde, speelt thuis), nooit meer dan 2 keer achter elkaar.
 - De uitslag wordt bewaard vóór de animatie (herladen helpt dus niet om een nederlaag over te doen).
 - Animatie (`maakActie`/`speelActie`): drie aanvallers, twee verdedigers en een keeper; camera zoomt in op de helft van de kans.
-  Wij vallen altijd naar rechts aan, de tegenstander naar links. Knoppen START, Sneller, Naar de uitslag.
+  Wij vallen altijd naar rechts aan, de tegenstander naar links. Knoppen START, Sneller, Naar de uitslag; om 45' de rust (zie hierboven).
 
 ## Opslag
 `voetbalbaas:<naam>` (oude sleutel `voetbalbaas` als beginwaarde).

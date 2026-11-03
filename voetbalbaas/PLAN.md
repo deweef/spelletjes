@@ -100,7 +100,10 @@ op het scherm "Einde seizoen" bij promotie.
 ## Open ideeën (spel)
 - ~~Kaartjesprijs zelf instellen~~ (gedaan).
 - ~~Beker~~ (gedaan: De Gouden Bierpul).
-- Online scorebord: hoogste divisie en aantal titels per speler.
+- ~~Online scorebord~~ (gedaan: managerpunten en prijzen).
+- ~~Wissels en tactiek in de rust~~ (gedaan, met pijntjes).
+- Spelers met een eigenschap (Snelle Sem, Muur, Kater-gevoelig).
+- Topscorerslijst per seizoen, prijsje voor de topscorer.
 - Training kiezen (conditie of kracht), jeugdspelers uit de eigen jeugd.
 - ~~Managers kiezen met portret~~ (gedaan).
 
