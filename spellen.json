@@ -104,5 +104,13 @@
     "plaatje": "voetbalbaas.jpg",
     "stand": "staand",
     "concept": true
+  },
+  {
+    "naam": "Pixelpikkers",
+    "omschrijving": "Tik op een gekleurd blok en de pikkertjes pikken die kleur weg uit een pixelschilderijtje, maar alleen waar ze bij kunnen. Je hebt 5 sporen: zet ze slim in, anders zit je vast! 30 plaatjes, van aardbei tot biertje.",
+    "bestand": "pixelpikkers.html",
+    "plaatje": "pixelpikkers.jpg",
+    "stand": "staand",
+    "concept": true
   }
 ]

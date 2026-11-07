@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Pixelpikkers</title>
+<meta name="theme-color" content="#f6e3c4">
+<style>
+html,body{margin:0;height:100%;background:#f6e3c4;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+.terug{position:fixed;z-index:30;top:calc(7px + env(safe-area-inset-top));left:calc(7px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(80,50,20,.35);border:1.5px solid rgba(255,255,255,.7);color:#fff;font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none}
+#menu{position:fixed;inset:0;z-index:20;overflow:auto;background:#f6e3c4;padding:calc(54px + env(safe-area-inset-top)) 16px 30px;box-sizing:border-box;text-align:center;color:#5b3a1a}
+#menu h1{margin:0 0 6px;font-size:40px;letter-spacing:1px;color:#e2563a;text-shadow:3px 3px 0 #7a3b17}
+#menu .uitleg{max-width:440px;margin:0 auto 18px;font-size:16px;line-height:1.45}
+.knop{font:inherit;font-weight:800;font-size:19px;border:0;border-radius:16px;padding:13px 26px;color:#fff;background:#41b75b;box-shadow:0 5px 0 #23803a;cursor:pointer}
+.knop:active{transform:translateY(3px);box-shadow:0 2px 0 #23803a}
+.knop.oranje{background:#f39a22;box-shadow:0 5px 0 #b5650a}
+.knop.grijs{background:#a08a72;box-shadow:0 5px 0 #6f5c47}
+#levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:9px;max-width:520px;margin:22px auto 0}
+#levels button{font:inherit;border:0;border-radius:14px;background:#fff8ec;box-shadow:0 3px 0 #d9bf98;padding:6px 0 4px;cursor:pointer;color:#5b3a1a}
+#levels button b{display:block;font-size:28px;line-height:36px}
+#levels button small{font-size:12px;font-weight:700}
+#levels button:disabled{opacity:.45;cursor:default}
+#levels button.nu{background:#ffe08a;box-shadow:0 3px 0 #d6a52a}
+#dlg{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;background:rgba(70,40,10,.45);padding:16px}
+#dlg[hidden]{display:none}
+#dlg .doos{background:#fff8ec;border-radius:22px;padding:20px 20px 24px;max-width:360px;width:100%;text-align:center;color:#5b3a1a;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+#dlg h2{margin:2px 0 6px;font-size:28px}
+#dlg p{margin:6px 0 16px;line-height:1.4}
+#dlg canvas{position:static;width:160px;height:160px;margin:4px auto 8px;image-rendering:pixelated}
+#dlg .knoppen{display:flex;flex-direction:column;gap:12px;align-items:center}
+</style>
+</head>
+<body>
+<a class="terug" href="./" aria-label="Terug naar de spellen">‹</a>
+<canvas id="c"></canvas>
+<div id="menu">
+  <h1>Pixelpikkers</h1>
+  <p class="uitleg">Tik onderin op een blok. De pikkertjes rennen naar een spoor en pikken van het plaatje alle hokjes in hun kleur weg,
+  maar alleen hokjes waar ze in een rechte lijn bij kunnen. Kunnen ze niet verder, dan wachten ze tot er weer iets vrijkomt.
+  Je hebt <b>5 sporen</b>: staan ze allemaal vol met wachtende pikkertjes, dan zit je vast!</p>
+  <button class="knop" id="verder">Speel level 1</button>
+  <div id="levels"></div>
+</div>
+<div id="dlg" hidden><div class="doos" id="doos"></div></div>
+<script>
+'use strict';
+// ---------- speler en opslag ----------
+const opslag={lees(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},zet(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const speler=opslag.lees('speler','');
+const SLEUTEL='pixelpikkers_lvl'+(speler?':'+speler:'');
+let besteLevel=+opslag.lees(SLEUTEL,opslag.lees('pixelpikkers_lvl','1'))||1; // hoogste vrijgespeelde level
+let geluidAan=opslag.lees('pixelpikkers_geluid','1')=='1';
+
+// ---------- de plaatjes ----------
+const PLAATJES=[
+ ['🍓','Aardbei','Zoet, rood en vol pitjes.'],
+ ['🐸','Kikker','Kwaak! Nog steeds geen prinses gevonden die hem wil zoenen.'],
+ ['🍄','Paddenstoel','Niet van eten in het bos, dan ga je rare dingen zien.'],
+ ['🌻','Zonnebloem','Van Gogh zou trots zijn.'],
+ ['🍔','Hamburger','Met extra pikkertjes-saus.'],
+ ['🍺','Biertje','Proost! De pikkertjes nemen alleen het schuim.'],
+ ['🐙','Octopus','Acht armen, dus acht keer zo goed knuffelen.'],
+ ['🍩','Donut','Het gat in het midden is gratis.'],
+ ['🦄','Eenhoorn','Bestaat echt. Zegt de eenhoorn.'],
+ ['🐝','Bij','Zoem. Hij doet niks, hij wil alleen even kijken.'],
+ ['🍕','Pizza','Ananas erop? Daar is in dit huis ruzie over.'],
+ ['🌷','Tulp','Hollandser wordt het niet.'],
+ ['🐢','Schildpad','Langzaam, maar hij komt er wel.'],
+ ['🧀','Kaas','Goudse, belegen. Met gaatjes van de pikkertjes.'],
+ ['🚀','Raket','Drie, twee, één… pik!'],
+ ['🍉','Watermeloen','Pitjes spugen mag, maar niet naar je broer.'],
+ ['🦊','Vos','Sluw. Maar de pikkertjes zijn sluwer.'],
+ ['🎂','Taart','Wie is er jarig? Iedereen, vandaag.'],
+ ['🐷','Biggetje','Knor. Rolt graag door de modder, net als na het tuinfeest.'],
+ ['🌈','Regenboog','De pot met goud ligt aan het eind. Zeggen ze.'],
+ ['🦜','Papegaai','Lorre wil een koekje. En een biertje.'],
+ ['🍦','IJsje','Snel opeten voor hij smelt!'],
+ ['🐳','Walvis','Het grootste dier van de zee, nu in hokjes.'],
+ ['🌵','Cactus','Niet tegenaan plassen. Au.'],
+ ['🎸','Gitaar','Rock and roll, pikkertjes!'],
+ ['🦩','Flamingo','Staat op één poot. Probeer maar eens.'],
+ ['🍷','Wijntje','Voor Anja, na een lange dag. Proost!'],
+ ['🐞','Lieveheersbeestje','Tel de stippen. Of pik ze weg.'],
+ ['🥑','Avocado','Hip, groen en altijd net niet rijp.'],
+ ['🦋','Vlinder','Fladder fladder.'],
+];
+// reserve als het toestel geen kleuren-emoji heeft (letters = kleuren uit KLEUREN)
+const RESERVEPLAATJE=[
+ '..rr...rr..',
+ '.rrrr.rrrr.',
+ 'rrwrrrrrrrr',
+ 'rwrrrrrrrrr',
+ 'rrrrrrrrrrr',
+ '.rrrrrrrrr.',
+ '..rrrrrrr..',
+ '...rrrrr...',
+ '....rrr....',
+ '.....r.....'];
+
+// de vaste kleuren van de pixelplaatjes
+const KLEUREN=[
+ ['r','#e53935'],['R','#9b1c1c'],['o','#fb8c00'],['g','#fdd835'],['G','#fff3a0'],['l','#9ccc65'],['n','#2e9d48'],['N','#1b5e20'],
+ ['t','#26a69a'],['b','#64b5f6'],['B','#1e63c8'],['D','#1f2a7a'],['p','#8e44ad'],['P','#ce93d8'],['k','#f48fb1'],['h','#f3c99a'],
+ ['u','#9a5a2a'],['U','#4e2a14'],['z','#2a2a2e'],['y','#9e9e9e'],['w','#fafafa']].map(([l,hex])=>{
+  const v=parseInt(hex.slice(1),16);return {l,hex,r:v>>16,g:(v>>8)&255,b:v&255}});
+function afstand(a,b){const rm=(a.r+b.r)/2,dr=a.r-b.r,dg=a.g-b.g,db=a.b-b.b;return (2+rm/256)*dr*dr+4*dg*dg+(2+(255-rm)/256)*db*db}
+function dichtste(r,g,b){let best=0,bd=1e18;const p={r,g,b};for(let i=0;i<KLEUREN.length;i++){const d=afstand(p,KLEUREN[i]);if(d<bd){bd=d;best=i}}return best}
+function lichter(hex,f){const v=parseInt(hex.slice(1),16);let r=v>>16,g=(v>>8)&255,b=v&255;
+ if(f>0){r+=(255-r)*f;g+=(255-g)*f;b+=(255-b)*f}else{r*=1+f;g*=1+f;b*=1+f}
+ return `rgb(${r|0},${g|0},${b|0})`}
+function helderheid(hex){const v=parseInt(hex.slice(1),16);return ((v>>16)*.3+((v>>8)&255)*.59+(v&255)*.11)}
+
+// ---------- toeval met zaadje (zelfde level = zelfde puzzel) ----------
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// ---------- instellingen per level ----------
+function instelling(lvl){
+ const S=Math.min(32,14+2*lvl);
+ return {S,
+  maxKleuren:Math.min(10,2+lvl),
+  min:Math.max(3,Math.round(S*(lvl<6?0.2:lvl<12?0.4:0.6))),
+  max:Math.round(S*(lvl<4?0.8:lvl<8?1.5:lvl<12?2.2:3)),
+  vast:lvl<3?1:lvl<7?2:3,       // hoeveel sporen de maker maximaal laat wachten (jij hebt er 5)
+  kolommen:S<=20?3:S<=26?4:5};
+}
+
+// ---------- emoji omzetten naar een pixelplaatje ----------
+function maakPlaatje(emoji,S,maxKleuren){
+ const groot=document.createElement('canvas');groot.width=groot.height=220;
+ const g=groot.getContext('2d',{willReadFrequently:true});
+ g.textAlign='center';g.textBaseline='middle';
+ g.font='170px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+ g.fillText(emoji,110,118);
+ let d=g.getImageData(0,0,220,220).data,x0=220,y0=220,x1=-1,y1=-1;
+ for(let y=0;y<220;y++)for(let x=0;x<220;x++)if(d[(y*220+x)*4+3]>60){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+ if(x1<0)return null;
+ const bw=x1-x0+1,bh=y1-y0+1,schaal=S/Math.max(bw,bh),F=6,Z=S*F;
+ const klein=document.createElement('canvas');klein.width=klein.height=Z;
+ const k=klein.getContext('2d',{willReadFrequently:true});k.imageSmoothingQuality='high';
+ const dw=bw*schaal*F,dh=bh*schaal*F;
+ k.drawImage(groot,x0,y0,bw,bh,(Z-dw)/2,(Z-dh)/2,dw,dh);
+ d=k.getImageData(0,0,Z,Z).data;
+ const cel=new Int16Array(S*S).fill(-1),tel=new Array(KLEUREN.length).fill(0);
+ for(let cy=0;cy<S;cy++)for(let cx=0;cx<S;cx++){
+  const stem=new Map();let dekking=0;
+  for(let sy=0;sy<F;sy++)for(let sx=0;sx<F;sx++){const i=((cy*F+sy)*Z+cx*F+sx)*4;if(d[i+3]<128)continue;dekking++;
+   const c=dichtste(d[i],d[i+1],d[i+2]);stem.set(c,(stem.get(c)||0)+1)}
+  if(dekking<F*F*0.45)continue;
+  let best=-1,bn=0;for(const[c,n]of stem)if(n>bn){bn=n;best=c}
+  cel[cy*S+cx]=best;tel[best]++}
+ return beperk(cel,tel,maxKleuren);
+}
+// te veel of te kleine kleuren samenvoegen met de kleur die er het meest op lijkt
+function beperk(cel,tel,maxKleuren){
+ for(;;){const aanwezig=[];tel.forEach((n,i)=>{if(n>0)aanwezig.push(i)});
+  if(aanwezig.length<=1)break;
+  aanwezig.sort((a,b)=>tel[a]-tel[b]);const klein=aanwezig[0];
+  if(aanwezig.length<=maxKleuren&&tel[klein]>=4)break;
+  let naar=-1,bd=1e18;for(const j of aanwezig)if(j!=klein){const dd=afstand(KLEUREN[klein],KLEUREN[j]);if(dd<bd){bd=dd;naar=j}}
+  for(let i=0;i<cel.length;i++)if(cel[i]==klein)cel[i]=naar;
+  tel[naar]+=tel[klein];tel[klein]=0}
+ const kleuren=[];tel.forEach((n,i)=>{if(n>0)kleuren.push(i)});
+ if(kleuren.length<2)return null; // waarschijnlijk geen kleuren-emoji op dit toestel
+ return {cel,kleuren};
+}
+function reservePlaatje(){
+ const S=RESERVEPLAATJE.length+1,cel=new Int16Array(S*S).fill(-1),tel=new Array(KLEUREN.length).fill(0);
+ RESERVEPLAATJE.forEach((rij,y)=>[...rij].forEach((ch,x)=>{const i=KLEUREN.findIndex(k=>k.l==ch);if(i>=0){cel[y*S+x]=i;tel[i]++}}));
+ return {S,...beperk(cel,tel,9)};
+}
+
+// ---------- achtergrond: vanaf level 4 wordt het een schilderijtje met een gekleurde achtergrond ----------
+// Daardoor zit het plaatje 'ingepakt' en moeten de pikkertjes eerst de achtergrond wegpikken.
+function achtergrond(p,S,lvl){
+ const r=rng(lvl*31+7),kandidaat=['b','G','P','l','t','k','y','h','o','B','w'].map(l=>KLEUREN.findIndex(k=>k.l==l)).filter(i=>!p.kleuren.includes(i));
+ for(let i=kandidaat.length-1;i>0;i--){const j=(r()*(i+1))|0;[kandidaat[i],kandidaat[j]]=[kandidaat[j],kandidaat[i]]}
+ const n=lvl<8?1:lvl<14?2:3,kl=kandidaat.slice(0,n),vorm=lvl%4,band=3+((r()*3)|0),m=(S-1)/2;
+ for(let i=0;i<S*S;i++){if(p.cel[i]>=0)continue;const x=i%S,y=(i/S)|0;let v;
+  if(vorm==0)v=Math.floor(y/band);
+  else if(vorm==1)v=Math.floor(Math.max(Math.abs(x-m),Math.abs(y-m))/band);
+  else if(vorm==2)v=Math.floor((x+y)/band);
+  else v=Math.floor(x/4)+Math.floor(y/4);
+  p.cel[i]=kl[v%n]}
+ for(const k of kl)p.kleuren.push(k);
+}
+
+// ---------- hokjes aan de buitenkant ----------
+// stand: 0 = leeg, 1 = er zit een hokje, 2 = er vliegt al een pikkertje naartoe.
+// Een pikkertje kan een hokje alleen pakken als het er in een rechte lijn (van links, rechts, boven of onder) bij kan.
+function buiten(stand,S,i){const x=i%S,y=(i/S)|0;let j,vrij;
+ vrij=true;for(j=x-1;j>=0;j--)if(stand[y*S+j]){vrij=false;break}if(vrij)return true;
+ vrij=true;for(j=x+1;j<S;j++)if(stand[y*S+j]){vrij=false;break}if(vrij)return true;
+ vrij=true;for(j=y-1;j>=0;j--)if(stand[j*S+x]){vrij=false;break}if(vrij)return true;
+ for(j=y+1;j<S;j++)if(stand[j*S+x])return false;return true}
+
+// welke hokje een pikkertje kiest: eerst die het dichtst bij de rand zitten (maker en spel doen het hetzelfde)
+function kiesHokje(stand,cel,S,c){let best=-1,bs=1e9;
+ for(let i=0;i<S*S;i++){if(stand[i]!=1||cel[i]!=c||!buiten(stand,S,i))continue;const x=i%S,y=(i/S)|0;
+  const sc=Math.min(x,y,S-1-x,S-1-y)*1000+(S-1-y)*S+x;if(sc<bs){bs=sc;best=i}}
+ return best}
+
+// ---------- een oplosbare reeks blokken maken ----------
+// De maker speelt het level zelf (met hooguit `vast` wachtende sporen) en onthoudt welke blokken hij koos.
+function maakBlokken(cel,S,inst,lvl){
+ const r=rng(lvl*7919+13);
+ const stand=new Uint8Array(S*S),rest={};
+ for(let i=0;i<cel.length;i++)if(cel[i]>=0){stand[i]=1;rest[cel[i]]=(rest[cel[i]]||0)+1}
+ const sporen=[],reeks=[];
+ const vrij=c=>{const l=[];for(let i=0;i<cel.length;i++)if(stand[i]==1&&cel[i]==c&&buiten(stand,S,i))l.push(i);return l};
+ const los=()=>{let iets=true;while(iets){iets=false;
+  for(const s of sporen)if(s.n>0){const h=kiesHokje(stand,cel,S,s.c);if(h>=0){stand[h]=0;s.n--;iets=true}}
+  for(let j=sporen.length-1;j>=0;j--)if(sporen[j].n==0)sporen.splice(j,1)}};
+ for(let stap=0;stap<500;stap++){
+  const kans=[];let som=0;
+  for(const c in rest){const over=rest[c];if(over<=0)continue;const v=vrij(+c).length;
+   const w=v>0?v+3:(sporen.length<inst.vast-1?2:0);if(w>0){kans.push([+c,w,over,v]);som+=w}}
+  if(!kans.length)break;
+  let p=r()*som,keus=kans[0];for(const k of kans){p-=k[1];if(p<=0){keus=k;break}}
+  const [c,,over,v]=keus;
+  let n=Math.round(inst.min+r()*(inst.max-inst.min));
+  if(over-n<inst.min)n=over;
+  n=Math.min(n,over);
+  if(sporen.length>=inst.vast-1)n=Math.min(n,Math.max(1,v)); // anders zou de maker zelf vastlopen
+  reeks.push({c,n});rest[c]-=n;sporen.push({c,n});
+  if(rest[c]==0)delete rest[c];
+  los();
+ }
+ // verdelen over kolommen: elke kolom houdt de volgorde van de reeks aan, dus het is altijd op te lossen
+ const kol=Array.from({length:inst.kolommen},()=>[]);
+ reeks.forEach((b,i)=>{b.o=i;
+  // kies een kolom, liefst een korte
+  let best=0,bs=1e9;for(let k=0;k<kol.length;k++){const s=kol[k].length+r()*2.2;if(s<bs){bs=s;best=k}}
+  kol[best].push(b)});
+ return kol;
+}
+
+// ---------- het spel ----------
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+const G={lvl:1,S:0,cel:null,stand:null,kleuren:[],kol:[],sporen:[],pikkers:[],pops:[],vliegers:[],over:0,totaal:0,
+ snel:1,hulp:false,klaar:false,vastTijd:0,klaarTijd:0,schud:[],aanHet:false,gestart:false,tijd:0};
+let L={}; // indeling van het scherm
+
+function startLevel(lvl){
+ const inst=instelling(lvl);
+ const [emoji,naam,grap]=PLAATJES[(lvl-1)%PLAATJES.length];
+ let p=maakPlaatje(emoji,inst.S,inst.maxKleuren),S=inst.S;
+ if(!p){p=reservePlaatje();S=p.S;inst.S=S;inst.kolommen=3}
+ if(lvl>=4)achtergrond(p,S,lvl);
+ G.lvl=lvl;G.S=S;G.cel=p.cel;G.naam=naam;G.emoji=emoji;G.grap=grap;G.kleurLijst=p.kleuren;
+ G.stand=new Uint8Array(S*S);G.totaal=0;
+ for(let i=0;i<S*S;i++)if(G.cel[i]>=0){G.stand[i]=1;G.totaal++}
+ G.over=G.totaal;
+ G.kol=maakBlokken(G.cel,S,inst,lvl);
+ G.sporen=[null,null,null,null,null];G.pikkers=[];G.pops=[];G.vliegers=[];G.schud=G.kol.map(()=>0);
+ G.hulp=false;G.klaar=false;G.vastTijd=0;G.klaarTijd=0;G.aanHet=true;G.gestart=false;G.tijd=0;
+ document.getElementById('menu').hidden=true;sluitDlg();indeling();
+}
+
+function indeling(){
+ DPR=Math.min(2.5,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+ cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);
+ const boven=50,n=G.sporen.length||5,K=Math.max(3,G.kol.length||4);
+ if(W>H*1.05){ // liggend: plaatje links, sporen en blokken rechts
+  const pl=Math.min(H-boven-14,W*0.55);
+  L.plaatje={x:Math.max(12,(W*0.58-pl)/2),y:boven+(H-boven-pl)/2,z:pl};
+  const rx=L.plaatje.x+pl+18,rw=W-rx-12;
+  zetRechts(rx,rw,boven+6,H-10,n,K);
+ }else{
+  const pl=Math.min(W-20,(H-boven)*0.46);
+  L.plaatje={x:(W-pl)/2,y:boven+4,z:pl};
+  zetRechts(10,W-20,L.plaatje.y+pl+12,H-10,n,K);
+ }
+}
+function zetRechts(x,w,y0,y1,n,K){
+ const sw=Math.min(78,(w-(n-1)*8)/n),sh=sw*1.05;
+ const tot=n*sw+(n-1)*8;L.spoor=[];
+ for(let i=0;i<n;i++)L.spoor.push({x:x+(w-tot)/2+i*(sw+8),y:y0,w:sw,h:sh});
+ const by=y0+sh+18,beschikbaar=y1-by;
+ let bw=Math.min(76,(w-(K-1)*10)/K);
+ let rijen=Math.max(2,Math.min(5,Math.floor((beschikbaar+10)/(bw*0.86+10))));
+ if(rijen<3){bw=Math.min(bw,(beschikbaar-20)/3/0.86);rijen=3}
+ const bh=bw*0.86,totk=K*bw+(K-1)*10;
+ L.blok={x:x+(w-totk)/2,y:by,w:bw,h:bh,gat:10,rijen,K};
+}
+addEventListener('resize',()=>{if(G.aanHet)indeling()});
+
+// ---------- tikken ----------
+cv.addEventListener('pointerdown',e=>{
+ if(!G.aanHet||G.klaar)return;geluid.start();
+ const x=e.clientX,y=e.clientY;
+ // knoppen bovenaan
+ for(const k of knoppen())if(x>=k.x&&x<=k.x+k.w&&y>=k.y&&y<=k.y+k.h){k.doe();return}
+ const B=L.blok;
+ for(let k=0;k<G.kol.length;k++){const bx=B.x+k*(B.w+B.gat);
+  if(x>=bx-4&&x<=bx+B.w+4&&y>=B.y-4&&y<=B.y+B.h+4&&G.kol[k].length){kiesBlok(k);return}}
+});
+function kiesBlok(k){
+ const plek=G.sporen.findIndex(s=>s===null);
+ if(plek<0){G.schud[k]=0.4;geluid.bonk();return}
+ const b=G.kol[k].shift();G.gestart=true;
+ const B=L.blok,van={x:B.x+k*(B.w+B.gat),y:B.y,w:B.w,h:B.h};
+ G.sporen[plek]={c:b.c,n:b.n,wacht:0.2,komt:0.2,van,cd:0,laatst:0};
+ geluid.tik();
+}
+function knoppen(){
+ const y=8,h=34;
+ return [
+  {x:W-44,y,w:36,h,tekst:'↻',doe:()=>{if(confirm('Dit level opnieuw beginnen?'))startLevel(G.lvl)}},
+  {x:W-88,y,w:36,h,tekst:geluidAan?'🔊':'🔇',doe:()=>{geluidAan=!geluidAan;opslag.zet('pixelpikkers_geluid',geluidAan?'1':'0')}},
+  {x:W-142,y,w:46,h,tekst:G.snel==1?'▶▶1x':'▶▶2x',doe:()=>{G.snel=G.snel==1?2:1}},
+ ];
+}
+
+// ---------- spel bijwerken ----------
+function spoorMidden(i){const s=L.spoor[i];return {x:s.x+s.w/2,y:s.y+s.h*0.35}}
+function zoekDoel(c){return kiesHokje(G.stand,G.cel,G.S,c)}
+function kanPikken(c){const S=G.S;for(let j=0;j<S*S;j++)if(G.stand[j]==1&&G.cel[j]==c&&buiten(G.stand,S,j))return true;return false}
+function update(dt){
+ if(!G.aanHet)return;
+ G.tijd+=dt;
+ const S=G.S,P=L.plaatje,cz=P.z/S;
+ for(let k=0;k<G.schud.length;k++)G.schud[k]=Math.max(0,G.schud[k]-dt);
+ // sporen: pikkertjes de wereld in sturen
+ for(let i=0;i<G.sporen.length;i++){const s=G.sporen[i];if(!s)continue;
+  if(s.komt>0){s.komt=Math.max(0,s.komt-dt);continue}
+  if(s.n>0){s.cd-=dt*G.snel;
+   while(s.cd<=0&&s.n>0){const doel=zoekDoel(s.c);if(doel<0){s.cd=0.12;break}
+    G.stand[doel]=2;s.n--;s.cd+=0.075;s.laatst=G.tijd;
+    const m=spoorMidden(i);
+    G.pikkers.push({x0:m.x,y0:m.y,doel,t:0,dur:0.35+Math.random()*0.2,c:s.c,spoor:i});s.weg=(s.weg||0)+1}}
+  if(s.n==0&&!s.weg){s.einde=(s.einde||0)+dt;if(s.einde>0.15)G.sporen[i]=null}
+ }
+ // pikkertjes vliegen
+ for(let j=G.pikkers.length-1;j>=0;j--){const p=G.pikkers[j];p.t+=dt*G.snel/p.dur;
+  if(p.t>=1){G.stand[p.doel]=0;G.over--;G.pikkers.splice(j,1);const s=G.sporen[p.spoor];if(s)s.weg--;
+   const x=P.x+(p.doel%S+0.5)*cz,y=P.y+((p.doel/S|0)+0.5)*cz;
+   G.pops.push({x,y,c:p.c,t:0});geluid.pik()}}
+ for(let j=G.pops.length-1;j>=0;j--){G.pops[j].t+=dt*2.5;if(G.pops[j].t>=1)G.pops.splice(j,1)}
+ // klaar?
+ if(G.over<=0&&!G.pikkers.length){G.klaarTijd+=dt;if(G.klaarTijd>0.7&&!G.klaar)gewonnen();return}
+ // vast?
+ const bezig=G.pikkers.length||G.sporen.some(s=>s&&(s.komt>0||(s.n>0&&kanPikken(s.c))));
+ const vrijSpoor=G.sporen.some(s=>s===null),blokken=G.kol.some(k=>k.length);
+ if(!bezig&&!(vrijSpoor&&blokken)){G.vastTijd+=dt;if(G.vastTijd>0.8&&!G.klaar)vast()}else G.vastTijd=0;
+}
+
+// ---------- tekenen ----------
+function rond(x,y,w,h,r){ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h)}
+function tekenBlokje(x,y,w,h,kleur,n,actief,dicht){
+ const hex=KLEUREN[kleur].hex;
+ ctx.save();
+ if(!actief)ctx.globalAlpha=0.55;
+ rond(x,y+h*0.12,w,h*0.88,w*0.2);ctx.fillStyle=lichter(hex,-0.35);ctx.fill();
+ rond(x,y,w,h*0.84,w*0.2);ctx.fillStyle=hex;ctx.fill();
+ rond(x+w*0.08,y+h*0.05,w*0.84,h*0.18,w*0.1);ctx.fillStyle='rgba(255,255,255,.25)';ctx.fill();
+ if(actief&&!dicht){rond(x-3,y-3,w+6,h+6,w*0.24);ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.stroke()}
+ if(n!=null){ctx.font=`900 ${Math.round(w*0.38)}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.lineJoin='round';ctx.lineWidth=Math.max(3,w*0.07);ctx.strokeStyle='#2b1a0e';ctx.strokeText(n,x+w/2,y+h*0.44);
+  ctx.fillStyle='#fff';ctx.fillText(n,x+w/2,y+h*0.44)}
+ ctx.restore();
+}
+function tekenPikker(x,y,r,kleur,kijk){
+ const hex=KLEUREN[kleur].hex;
+ ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle=hex;ctx.fill();ctx.lineWidth=Math.max(1,r*0.22);ctx.strokeStyle=lichter(hex,-0.45);ctx.stroke();
+ // snaveltje en oogje
+ ctx.beginPath();ctx.moveTo(x+r*0.75*kijk,y-r*0.15);ctx.lineTo(x+r*1.45*kijk,y+r*0.1);ctx.lineTo(x+r*0.75*kijk,y+r*0.35);ctx.fillStyle='#ffb020';ctx.fill();
+ ctx.beginPath();ctx.arc(x+r*0.32*kijk,y-r*0.25,r*0.28,0,7);ctx.fillStyle='#fff';ctx.fill();
+ ctx.beginPath();ctx.arc(x+r*0.4*kijk,y-r*0.22,r*0.14,0,7);ctx.fillStyle='#111';ctx.fill();
+}
+function teken(){
+ ctx.clearRect(0,0,W,H);
+ // zandachtergrond met steentjes
+ ctx.fillStyle='#f6e3c4';ctx.fillRect(0,0,W,H);
+ if(!G.aanHet)return;
+ const S=G.S,P=L.plaatje,cz=P.z/S;
+ // kop
+ ctx.fillStyle='#5b3a1a';ctx.font='800 16px system-ui,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
+ ctx.fillText(`Level ${G.lvl} · ${G.naam}`,50,22);
+ const pw=Math.max(60,W-50-160-12),pr=1-G.over/G.totaal;
+ rond(50,36,pw,7,4);ctx.fillStyle='#e6cfa8';ctx.fill();rond(50,36,Math.max(7,pw*pr),7,4);ctx.fillStyle='#41b75b';ctx.fill();
+ for(const k of knoppen()){rond(k.x,k.y,k.w,k.h,10);ctx.fillStyle='rgba(120,80,40,.18)';ctx.fill();
+  ctx.fillStyle='#5b3a1a';ctx.font=`800 ${k.tekst.length>2?12:17}px system-ui,sans-serif`;ctx.textAlign='center';ctx.fillText(k.tekst,k.x+k.w/2,k.y+k.h/2+1)}
+ // bord
+ rond(P.x-8,P.y-8,P.z+16,P.z+16,16);ctx.fillStyle='#d9c3a0';ctx.fill();
+ rond(P.x-5,P.y-5,P.z+10,P.z+10,13);ctx.fillStyle='#efe1c9';ctx.fill();
+ const gat=cz>7?1:0;
+ for(let i=0;i<S*S;i++){if(!G.stand[i])continue;const x=P.x+(i%S)*cz,y=P.y+((i/S)|0)*cz,hex=KLEUREN[G.cel[i]].hex;
+  ctx.fillStyle=hex;ctx.fillRect(x+gat*0.5,y+gat*0.5,cz-gat,cz-gat);
+  if(cz>7){ctx.fillStyle='rgba(255,255,255,.28)';ctx.fillRect(x+gat*0.5,y+gat*0.5,cz-gat,cz*0.2);
+   ctx.fillStyle='rgba(0,0,0,.16)';ctx.fillRect(x+gat*0.5,y+cz*0.78,cz-gat,cz*0.22-gat*0.5)}}
+ // ploppen
+ for(const p of G.pops){const s=cz*(1-p.t)*0.9;ctx.globalAlpha=1-p.t;ctx.fillStyle=KLEUREN[p.c].hex;
+  for(let a=0;a<4;a++){const ang=a*Math.PI/2+0.6,d=p.t*cz*1.4;ctx.fillRect(p.x+Math.cos(ang)*d-s/4,p.y+Math.sin(ang)*d-s/4,s/2,s/2)}
+  ctx.globalAlpha=1}
+ // sporen
+ for(let i=0;i<L.spoor.length;i++){const r=L.spoor[i],s=G.sporen[i];
+  rond(r.x,r.y+r.h*0.1,r.w,r.h*0.9,r.w*0.2);ctx.fillStyle='#e2cba6';ctx.fill();
+  rond(r.x,r.y,r.w,r.h*0.86,r.w*0.2);ctx.fillStyle='#fffaf0';ctx.fill();
+  if(!s)continue;
+  let x=r.x,y=r.y,w=r.w,h=r.h;
+  if(s.komt>0){const t=1-s.komt/0.2,e=t*t*(3-2*t);x=s.van.x+(r.x-s.van.x)*e;y=s.van.y+(r.y-s.van.y)*e;w=s.van.w+(r.w-s.van.w)*e;h=s.van.h+(r.h-s.van.h)*e}
+  if(s.n>0||s.komt>0){
+   const vastgelopen=s.komt<=0&&s.n>0&&!s.weg&&G.tijd-s.laatst>0.3&&!kanPikken(s.c);
+   tekenBlokje(x,y,w,h,s.c,s.n,true,true);
+   if(vastgelopen){ctx.font=`${Math.round(w*0.3)}px system-ui`;ctx.textAlign='center';ctx.fillText('💤',x+w*0.85,y+h*0.05)}
+  }else{ // leeg, pikkertjes nog onderweg
+   ctx.globalAlpha=0.5;tekenBlokje(x,y,w,h,s.c,null,true,true);ctx.globalAlpha=1}
+ }
+ // blokken onderin
+ const B=L.blok;
+ for(let k=0;k<G.kol.length;k++){const kol=G.kol[k],sch=G.schud[k]>0?Math.sin(G.schud[k]*60)*5:0;
+  const bx=B.x+k*(B.w+B.gat)+sch;
+  for(let r=Math.min(kol.length,B.rijen)-1;r>=0;r--){const by=B.y+r*(B.h+B.gat);tekenBlokje(bx,by,B.w,B.h,kol[r].c,kol[r].n,r==0,false)}
+  if(kol.length>B.rijen){ctx.fillStyle='#8a6a48';ctx.font='800 13px system-ui';ctx.textAlign='center';
+   ctx.fillText('+'+(kol.length-B.rijen),bx+B.w/2,B.y+B.rijen*(B.h+B.gat)-2)}
+ }
+ if(G.lvl==1&&!G.gestart){ctx.fillStyle='#5b3a1a';ctx.font='800 17px system-ui';ctx.textAlign='center';
+  const bounce=Math.sin(G.tijd*5)*4;ctx.fillText('👇 Tik op een blok!',B.x+(B.K*(B.w+B.gat)-B.gat)/2,B.y-8+bounce-0.0001)}
+ // pikkertjes
+ for(const p of G.pikkers){const tx=P.x+(p.doel%S+0.5)*cz,ty=P.y+((p.doel/S|0)+0.5)*cz,t=p.t;
+  const x=p.x0+(tx-p.x0)*t,y=p.y0+(ty-p.y0)*t-Math.sin(t*Math.PI)*40;
+  tekenPikker(x,y,Math.max(4,Math.min(9,cz*0.6)),p.c,tx>=p.x0?1:-1)}
+}
+
+// ---------- einde ----------
+function plaatjeCanvas(){const S=G.S,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');
+ for(let i=0;i<S*S;i++)if(G.cel[i]>=0){g.fillStyle=KLEUREN[G.cel[i]].hex;g.fillRect(i%S,(i/S)|0,1,1)}return c}
+function gewonnen(){
+ G.klaar=true;
+ if(G.lvl+1>besteLevel){besteLevel=G.lvl+1;opslag.zet(SLEUTEL,String(besteLevel))}
+ geluid.feest();
+ toonDlg(`<h2>Klaar! ${G.emoji}</h2><div id="pl"></div><p><b>${G.naam}</b>. ${G.grap}</p>
+  <div class="knoppen"><button class="knop" id="dv">Volgend level ›</button><button class="knop grijs" id="dm">Menu</button></div>`);
+ document.getElementById('pl').append(plaatjeCanvas());
+ document.getElementById('dv').onclick=()=>startLevel(G.lvl+1);
+ document.getElementById('dm').onclick=naarMenu;
+}
+function vast(){
+ G.klaar=true;geluid.bonk();
+ toonDlg(`<h2>Vast! 😵</h2><p>Alle sporen staan vol en niemand kan nog pikken.</p>
+  <div class="knoppen">${G.hulp?'':'<button class="knop oranje" id="dh">Hulpspoor erbij (1x)</button>'}
+  <button class="knop" id="do">Opnieuw</button><button class="knop grijs" id="dm">Menu</button></div>`);
+ const h=document.getElementById('dh');if(h)h.onclick=()=>{G.hulp=true;G.sporen.push(null);G.klaar=false;G.vastTijd=0;sluitDlg();indeling()};
+ document.getElementById('do').onclick=()=>startLevel(G.lvl);
+ document.getElementById('dm').onclick=naarMenu;
+}
+function toonDlg(html){document.getElementById('doos').innerHTML=html;document.getElementById('dlg').hidden=false}
+function sluitDlg(){document.getElementById('dlg').hidden=true}
+
+// ---------- menu ----------
+function naarMenu(){
+ G.aanHet=false;sluitDlg();
+ const m=document.getElementById('menu');m.hidden=false;
+ const v=document.getElementById('verder');v.textContent=`Speel level ${besteLevel} ${PLAATJES[(besteLevel-1)%PLAATJES.length][0]}`;
+ v.onclick=()=>startLevel(besteLevel);
+ const n=Math.max(PLAATJES.length,besteLevel);let h='';
+ for(let l=1;l<=n;l++){const p=PLAATJES[(l-1)%PLAATJES.length];
+  h+=`<button data-l="${l}" ${l>besteLevel?'disabled':''} class="${l==besteLevel?'nu':''}" title="${p[1]}"><b>${l>besteLevel?'🔒':p[0]}</b><small>${l}</small></button>`}
+ const lv=document.getElementById('levels');lv.innerHTML=h;
+ lv.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>startLevel(+b.dataset.l));
+}
+// terugknop: tijdens het spelen eerst naar het menu, vanuit het menu naar de startpagina
+document.querySelector('.terug').addEventListener('click',e=>{if(G.aanHet||!document.getElementById('dlg').hidden){e.preventDefault();naarMenu()}});
+
+// ---------- geluid ----------
+const geluid={ac:null,laatste:0,
+ start(){if(!this.ac){try{this.ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(this.ac&&this.ac.state=='suspended')this.ac.resume()},
+ toon(f,d,type='sine',v=0.08,glij=0){if(!geluidAan||!this.ac)return;const a=this.ac,t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(glij)o.frequency.exponentialRampToValueAtTime(f*glij,t+d);
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d)},
+ pik(){const n=performance.now();if(n-this.laatste<35)return;this.laatste=n;this.toon(700+Math.random()*500,0.06,'triangle',0.05,1.6)},
+ tik(){this.toon(440,0.1,'square',0.04,1.5)},
+ bonk(){this.toon(160,0.25,'sawtooth',0.05,0.5)},
+ feest(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.toon(f,0.25,'triangle',0.08),i*110))}};
+
+// ---------- lus ----------
+let vorige=performance.now();
+function lus(nu){const dt=Math.min(0.05,(nu-vorige)/1000);vorige=nu;update(dt);teken();requestAnimationFrame(lus)}
+requestAnimationFrame(lus);
+naarMenu();
+window.__test={G,update,startLevel,kiesBlok,L:()=>L};
+</script>
+</body>
+</html>
