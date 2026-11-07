@@ -47,6 +47,9 @@ bedenk dat de site openbaar is.
   In Fladderfeest en Orkenstorm 3D gaat die knop tijdens het spelen eerst terug naar het menu van het spel; alleen
   vanuit dat menu naar de startpagina.
 
+## Uitjes (geen spel)
+- `uitjes/boijmans.html`: fotopresentatie van een bezoek aan het Depot Boijmans (Marisol, Van Gogh, collectie), één los bestand met de foto's erin (base64), Verder/Terug-knop. Niet op de startpagina en `noindex`; alleen via de link te vinden.
+
 ## Online scorebord (voor alle spellen)
 Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
 `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`
