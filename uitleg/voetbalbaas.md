@@ -1,4 +1,4 @@
-# Voetbalbaas (`voetbalbaas.html`, concept)
+# Voetbalbaas (`voetbalbaas.html`)
 
 Eigen voetbalmanager in de stijl van de oude managerspellen uit de jaren 80 (zoals Football Manager van Kevin Toms),
 maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courier-lettertype, alles in één HTML-bestand.
@@ -62,6 +62,14 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
   veldspeler een pijntje (`lo.pijn`): in de tweede helft half zo goed (`lijnen(ids,pijn)`); blijft hij erin, dan daarna 2 weken geblesseerd.
 - `afmaken` rekent de tweede helft uit met de nieuwe opstelling/tactiek en geeft het door aan `weekAfmaken` (competitie) of `bekerAfmaken`.
   "Naar de uitslag" in de eerste helft = zonder wissels doorspelen.
+
+## Eigenschappen en topscorers
+- `p.eig` (`EIG`, `geefEig`: 35% van de nieuwe spelers, passend bij de positie): ⚡ snel (scoort vaker, +15% bij counter),
+  🧱 muur (V, +20%), Ⓒ kapitein (team +4%), 🥚 glas (+2 kracht, blessurekans 9% i.p.v. 3,5%), 🍺 kater/Feestbeest (vaker kater
+  in `gebeurtenis`, 20% goedkoper), 🔥 joker/Supersub (+30% als hij in de rust invalt, `lo.inv`), 🧤 killer (K, beter bij strafschoppen).
+  Uitleg in een uitklapper (`eigUitleg`) bij opstelling en transfers. Oude opslag kreeg eenmalig eigenschappen (`S.eigVerdeeld`, zonder de +2).
+- Topscorers: `S.goals` (per naam, dit seizoen; competitie + beker), `p.goals` (carrière). In het standscherm de top 5.
+  Einde seizoen: clubtopscorer krijgt de Gouden Frikandel (kracht +1), staat in de erelijst (`e.top`).
 
 ## Managerpunten en scorebord
 - `S.punten` (carrière) en `S.prijzen` (titels + bekers); `seizoenPunten(div,plek,promo)` = (9 − plek) × 10 × (5 − div), kampioen

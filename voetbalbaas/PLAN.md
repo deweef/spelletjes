@@ -102,8 +102,9 @@ op het scherm "Einde seizoen" bij promotie.
 - ~~Beker~~ (gedaan: De Gouden Bierpul).
 - ~~Online scorebord~~ (gedaan: managerpunten en prijzen).
 - ~~Wissels en tactiek in de rust~~ (gedaan, met pijntjes).
-- Spelers met een eigenschap (Snelle Sem, Muur, Kater-gevoelig).
-- Topscorerslijst per seizoen, prijsje voor de topscorer.
+- ~~Spelers met een eigenschap~~ (gedaan: 7 eigenschappen).
+- ~~Topscorerslijst~~ (gedaan: Gouden Frikandel).
+- ~~Concept-label weg~~ (gedaan, 8 nov).
 - Training kiezen (conditie of kracht), jeugdspelers uit de eigen jeugd.
 - ~~Managers kiezen met portret~~ (gedaan).
 
@@ -141,3 +142,20 @@ strafschoppen, 3 feest bij BEKERWINNAAR.
 > HARRIE DOOR: …
 > HARRIE ERUIT: …
 > (enzovoort voor MIEKE, JORDY en BERTUS)
+
+## Opdracht 9 – Nieuwsplaatjes, vel 4
+> Maak een vel met 4 liggende plaatjes in een raster van 2 naast elkaar en 2 onder elkaar, elk precies even groot, met een dunne
+> witte rand eromheen en ruimte ertussen, in precies dezelfde stijl als de vorige vellen (die stuur ik mee). Elk plaatje is een klein
+> grappig krantenplaatje over een amateurvoetbalclub. De spelers dragen dezelfde oranje shirts met een zwarte streep.
+> 1. (linksboven) Een nieuwe speler zet trots zijn handtekening onder een contract op de bar van de kantine, de voorzitter met
+>    strikje schudt hem enthousiast de hand, iemand houdt een oranje shirt omhoog, flitslicht van een fotograaf.
+> 2. (rechtsboven) Afscheid: een oudere voetballer met grijze slapen en een buikje staat in zijn oude clubshirt achter de bar en tapt
+>    een biertje, met een ontroerde traan; aan de muur hangt zijn ingelijste shirt, teamgenoten applaudisseren.
+> 3. (linksonder) Een voetballer houdt met een pijnlijk gezicht de achterkant van zijn bovenbeen vast op het veld, een oude
+>    verzorger rent erheen met een tasje, een spons en een spuitbus koelspray.
+> 4. (rechtsonder) De topscorer van de club staat op een krat bier als podium en houdt een gouden trofee in de vorm van een
+>    frikandel omhoog, confetti, teamgenoten juichen.
+> Geen tekst, geen letters, geen cijfers, geen logo's of merknamen in het plaatje.
+
+*Gebruik:* bij de berichten ✍️ (nieuwe speler getekend), 👋 (speler stopt of is verkocht), 🤕 (doorgespeeld met een pijntje) en 🌭
+(clubtopscorer) — vakjes 12-15 in `nieuws.jpg`.
