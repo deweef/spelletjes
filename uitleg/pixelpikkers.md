@@ -51,16 +51,29 @@ maar met eigen naam, plaatjes en uiterlijk).
   de kleuren die het minst op het schilderij lijken; `LIJST`). De eigen kleuren worden achter `KLEUREN` gezet
   (`kunstPlaatje`). Moeilijkheid als eten-level 8 tot 20, maar de maker laat zelf maar 2 sporen wachten (`vast=2`).
 
+## Wereldwonderen (wens van Marcel)
+- Derde reeks: 🌍 Wereldwonderen, eigen voortgang in `pixelpikkers_wonder:<naam>`, `startLevel(n,'wonder')`.
+  Schilderijen en wereldwonderen delen dezelfde code via `REEKS` (data, sleutel, woorden, emoji, knop en rooster in het menu).
+- `WONDEREN`: 15 foto's: de zeven nieuwe wereldwonderen (Chinese Muur, Petra, Christus de Verlosser, Machu Picchu,
+  Chichén Itzá, Colosseum, Taj Mahal), de piramides van Gizeh, Eiffeltoren, Vrijheidsbeeld, Big Ben, Operagebouw van
+  Sydney, Moai van Paaseiland, Akropolis en Uluru. Veld `f` = maker en licentie van de foto (meest CC BY-SA); dat
+  staat op het eindscherm, want bij CC BY(-SA) hoort naamsvermelding.
+- Bronnen (via raw.githubusercontent.com, kopieën van Commons met bronvermelding): mojeebahmed/triventurex
+  (`game_editions/world-tour/images/landmarks/`, CREDITS.md daar) en blayckik/-----------2
+  (`apps/web/public/images/guess/`, CREDITS.md daar; Chinese Muur, Taj Mahal, Colosseum, Eiffeltoren, Vrijheidsbeeld).
+  Lijst met uitsneden: `extra/pixelkunst-wonderen.json`. Afgevallen omdat ze als pixelplaatje onherkenbaar werden:
+  Sagrada Família, Angkor Wat, Neuschwanstein.
+
 ## Altijd oplosbaar, maar niet met wild tikken
 - `maakBlokkenEen` speelt het level zelf en onthoudt de blokken in volgorde (`o`); de kolommen houden die volgorde aan.
 - `maakBlokken` maakt tot 30 puzzels (vast zaadje per level, dus elke keer dezelfde puzzel). Alleen puzzels die
-  `proef` in de goede volgorde haalt (meteen doortikken zodra er een spoor vrij is, met maar **4** sporen en met
-  12 rondes looptijd per pikkertje, zoals in het echte spel) tellen. Zonder die speling liep het echte spel soms
+  `proef` in de goede volgorde haalt (meteen doortikken zodra er een spoor vrij is, met maar **4** sporen tegelijk en met
+  looptijd per pikkertje zoals in het echte spel, ook nog eens 0,4 en 2,5 keer zo snel) tellen. Zonder die speling liep het echte spel soms
   vast doordat de pikkertjes onderweg zijn en dus later pikken dan de proef. Daarvan wordt de puzzel
   gekozen waarbij **wild tikken** (`proef` met toeval, `toets` = 10 keer) het vaakst vastloopt, tot het `doel` gehaald is
   (level 2-4: hooguit de helft lukt, 5-9: een derde, 10+: een zesde). Kost ongeveer 0,2 seconde.
 - Gemeten in het echte spel (wild tikken, 8 keer): level 2-3 lukt bijna altijd, level 5 de helft, level 8+ meestal
-  vast (0-3 van de 8). In de goede volgorde lukken alle 46 levels en alle 15 schilderijen.
+  vast (0-3 van de 8). In de goede volgorde lukken alle 46 levels, 15 schilderijen en 15 wereldwonderen.
 - Eerder waren er twee versies: pikkertjes die over de hokjes heen vlogen en alleen in een rechte lijn konden pakken
   (gaf "ruimte maar hij pakt ze niet"), en zonder lijst (veel te makkelijk: wild tikken won altijd).
 

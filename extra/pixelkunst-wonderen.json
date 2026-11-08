@@ -1,0 +1,101 @@
+[
+ {
+  "t": "Chinese Muur",
+  "m": "China",
+  "bestand": "bl_great-wall.jpg"
+ },
+ {
+  "t": "Petra",
+  "m": "Jordanië",
+  "bestand": "tv_petra.jpg"
+ },
+ {
+  "t": "Christus de Verlosser",
+  "m": "Rio de Janeiro, Brazilië",
+  "bestand": "tv_christ-the-redeemer.jpg",
+  "crop": [
+   0.3,
+   0,
+   0.85,
+   0.75
+  ]
+ },
+ {
+  "t": "Machu Picchu",
+  "m": "Peru",
+  "bestand": "tv_machu-picchu.jpg"
+ },
+ {
+  "t": "Chichén Itzá",
+  "m": "Mexico",
+  "bestand": "tv_chichen-itza.jpg"
+ },
+ {
+  "t": "Colosseum",
+  "m": "Rome, Italië",
+  "bestand": "bl_colosseum.jpg",
+  "crop": [
+   0.08,
+   0,
+   0.9,
+   1
+  ]
+ },
+ {
+  "t": "Taj Mahal",
+  "m": "Agra, India",
+  "bestand": "bl_taj-mahal.jpg",
+  "crop": [
+   0,
+   0,
+   1,
+   0.78
+  ]
+ },
+ {
+  "t": "Piramides van Gizeh",
+  "m": "Egypte",
+  "bestand": "tv_pyramids-of-giza.jpg"
+ },
+ {
+  "t": "Eiffeltoren",
+  "m": "Parijs, Frankrijk",
+  "bestand": "bl_eiffel-tower.jpg",
+  "crop": [
+   0.12,
+   0.02,
+   0.88,
+   0.82
+  ]
+ },
+ {
+  "t": "Vrijheidsbeeld",
+  "m": "New York, Verenigde Staten",
+  "bestand": "bl_statue-of-liberty.jpg"
+ },
+ {
+  "t": "Big Ben",
+  "m": "Londen, Engeland",
+  "bestand": "tv_big-ben.jpg"
+ },
+ {
+  "t": "Operagebouw van Sydney",
+  "m": "Sydney, Australië",
+  "bestand": "tv_sydney-opera-house.jpg"
+ },
+ {
+  "t": "Moai van Paaseiland",
+  "m": "Paaseiland, Chili",
+  "bestand": "tv_moai-easter-island.jpg"
+ },
+ {
+  "t": "Akropolis",
+  "m": "Athene, Griekenland",
+  "bestand": "tv_acropolis.jpg"
+ },
+ {
+  "t": "Uluru",
+  "m": "Australië",
+  "bestand": "tv_uluru.jpg"
+ }
+]
