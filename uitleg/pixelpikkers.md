@@ -41,7 +41,7 @@ maar met eigen naam, plaatjes en uiterlijk).
   Om te testen kan `window.__afstel = {...}` instellingen overschrijven.
 
 ## Eén volgorde (wens van Marcel)
-- Geen aparte reeksen meer: alle plaatjes (nu 83) staan in één volgorde (`VOLGORDE`, `itemVan(lvl)`). Eerst 6 keer eten/
+- Geen aparte reeksen meer: alle plaatjes (nu 87) staan in één volgorde (`VOLGORDE`, `itemVan(lvl)`). Eerst 6 keer eten/
   beestjes, daarna regelmatig een schilderij of wereldwonder ertussen (om en om), zo'n 2 op de 5 levels.
   Schilderijen en wereldwonderen met weinig kleuren komen eerst (Amandelbloesem, Petra, Zelfportret...), de drukste
   (Sterrennacht, Caféterras, Colosseum...) achteraan. Na level 76 begint de lijst opnieuw.
@@ -55,10 +55,20 @@ maar met eigen naam, plaatjes en uiterlijk).
   meestal niet (0-2 van 10).
 
 ## Star Wars (wens van Anja)
-- `STARWARS`: 7 zelf getekende pixelplaatjes (geen filmbeelden): Darth Vader, Stormtrooper, Yoda, R2-D2, Lichtzwaard,
-  Doodsster, BB-8, op een ruimte-achtergrond met sterretjes. Tekeningen staan als letters in
+- `STARWARS`: 11 zelf getekende pixelplaatjes (geen filmbeelden): Darth Vader, Stormtrooper, Yoda, R2-D2, Lichtzwaard,
+  Doodsster, BB-8, Chewbacca, C-3PO, X-wing, Baby Yoda, op een ruimte-achtergrond met sterretjes. Tekeningen staan als letters in
   `extra/pixelkunst-starwars.py` (22x22, Yoda 24x22). Soort `sw` in `REEKS`.
-- In `VOLGORDE` gelijkmatig tussen de schilderijen en wereldwonderen (levels 11, 21, 29, 42, 52, 65, 77). Totaal nu 83 levels.
+- In `VOLGORDE` gelijkmatig tussen de schilderijen en wereldwonderen (levels 10, 16, 22, 28, 36, 42, 50, 58, 66, 76, 84).
+  Totaal nu 87 levels.
+
+## Familiescorebord: hoe ver is iedereen?
+- In het menu onder de speelknop (`#familie`, `tekenBord`). Zelfde Google-script als Fladderfeest (`extra/scorebord.gs`,
+  `BORD_URL`), zonder aanpassing: insturen met `onderdeel=pixelpikkers`, `modus=level`, `score` = aantal gehaalde
+  levels (het script houdt per naam de hoogste). Lijst komt terug als `pixelpikkers_level`.
+- Insturen gebeurt automatisch na een gehaald level (`instuuren`), alleen met een gekozen naam en alleen als het meer
+  is dan wat al ingestuurd is (`pixelpikkers_ingestuurd:<naam>`). Laatste lijst in `pixelpikkers_bord` (offline).
+- `herstelVanBord`: staat deze naam (hoofdletters maken niet uit) verder op het scorebord dan lokaal (nieuwe telefoon,
+  gewiste browser, andere website), dan gaat de voortgang omhoog. Alleen verhogen.
 
 ## Schilderijen (wens van Marcel; Anja is dol op Van Gogh)
 - `KUNST` in `pixelpikkers.html`: 15 schilderijen als pixeldata (titel `t`, maker `m`, grapje `g`, kleuren `pal`,
@@ -90,7 +100,7 @@ maar met eigen naam, plaatjes en uiterlijk).
 ## Altijd oplosbaar, maar niet met wild tikken
 - `maakBlokkenEen` speelt het level zelf en onthoudt de blokken in volgorde (`o`); de kolommen houden die volgorde aan.
 - `maakBlokken` maakt tot 30 puzzels (vast zaadje per level, dus elke keer dezelfde puzzel). Alleen puzzels die
-  `proef` in de goede volgorde haalt (meteen doortikken zodra er een spoor vrij is, met maar **4** sporen tegelijk en met
+  `proef` in de goede volgorde haalt (meteen doortikken zodra er een spoor vrij is, met maar **3** sporen tegelijk en met
   looptijd per pikkertje zoals in het echte spel, ook nog eens 0,4 en 2,5 keer zo snel) tellen. Zonder die speling liep het echte spel soms
   vast doordat de pikkertjes onderweg zijn en dus later pikken dan de proef. Daarvan wordt de puzzel
   gekozen waarbij **wild tikken** (`proef` met toeval, `toets` = 10 keer) het vaakst vastloopt, tot het `doel` gehaald is
