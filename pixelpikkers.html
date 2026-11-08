@@ -29,6 +29,7 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 #levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:9px;max-width:520px;margin:22px auto 0}
 #levels button{font:inherit;border:0;border-radius:14px;background:#fff8ec;box-shadow:0 3px 0 #d9bf98;padding:6px 0 4px;cursor:pointer;color:#5b3a1a}
 #levels button b{display:block;font-size:28px;line-height:36px}
+#levels button img{display:block;height:30px;max-width:52px;margin:3px auto 3px;image-rendering:pixelated;border:2px solid #c9952c;border-radius:2px}
 #levels button small{font-size:12px;font-weight:700}
 #levels button:disabled{opacity:.45;cursor:default}
 #levels button.nu{background:#ffe08a;box-shadow:0 3px 0 #d6a52a}
@@ -50,19 +51,9 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
   <p class="uitleg">Tik onderin op een blok. De pikkertjes rennen naar een spoor en pikken van het plaatje alle hokjes in hun kleur weg,
   maar ze lopen er omheen en kunnen niet over andere hokjes heen: ze pakken alleen hokjes waar ze bij kunnen. Kunnen ze niet verder, dan wachten ze tot er weer iets vrijkomt.
   Je hebt <b>5 sporen</b>: staan ze allemaal vol met wachtende pikkertjes, dan zit je vast!</p>
-  <h2 class="soort">🍓 Eten en beestjes</h2>
+  <p class="uitleg klein">Eten, beestjes, schilderijen van onder anderen Van Gogh en wereldwonderen, door elkaar. Het wordt steeds een beetje moeilijker.</p>
   <button class="knop" id="verder">Speel level 1</button>
-  <h2 class="soort">🖼️ Schilderijen</h2>
-  <p class="uitleg klein">Van Gogh en een paar andere beroemde schilderijen, in een lijst. Groter en pittiger!</p>
-  <button class="knop oranje" id="kverder">Speel schilderij 1</button>
-  <h2 class="soort">🌍 Wereldwonderen</h2>
-  <p class="uitleg klein">De zeven nieuwe wereldwonderen, de piramides en nog meer beroemde plekken. Ook groot en pittig!</p>
-  <button class="knop oranje" id="wverder">Speel wereldwonder 1</button>
-  <h2 class="soort klein">Alle schilderijen</h2>
-  <div id="kunstlevels" class="rooster"></div>
-  <h2 class="soort klein">Alle wereldwonderen</h2>
-  <div id="wonderlevels" class="rooster"></div>
-  <h2 class="soort klein">Alle levels met eten en beestjes</h2>
+  <h2 class="soort klein">Alle levels</h2>
   <div id="levels"></div>
 </div>
 <div id="dlg" hidden><div class="doos" id="doos"></div></div>
@@ -131,10 +122,22 @@ const KUNST=[{"t":"De sterrennacht","m":"Vincent van Gogh, 1889","pal":["#181d1a
 // ---------- wereldwonderen (foto's van Wikimedia Commons, zie f voor maker en licentie; ook omgezet met extra/pixelkunst.py) ----------
 const WONDEREN=[{"t":"Chinese Muur","m":"China","pal":["#202212","#525518","#605543","#846f51","#a68a71","#8cc1fe","#d7e9fb"],"rijen":["5555555555555555555555555555555555","5555555555555555555555555555555555","5555555555555555555555555555555555","5555555555555555555555555555555555","5555555555555555555555555522422454","6666666665555555555654555523311111","6666666646666555666522234321133111","4555554212456666544112243211133111","1111110113443333111111133321134211","1111111113443111111111023444234311","1111113324442332333332333334234311","1112444423443322444444433334211111","0013433434431114444444333311111111","0002432443111111111111111111111111","0110343231111111111111111111111111","0110033021111111111111111111111131","0100142031111111111111011111111131","1100142041111111111111111111111111","1100243032111211111111111111111111","1110244324221211111111111111111111","1110024014401111111111111111111111","0111013014301131111111111111111101","0111011004300121111111111111111111"],"f":"Foto: Jakub Hałun (CC BY-SA 3.0, Wikimedia Commons)","g":"Meer dan 20.000 kilometer lang. Daar loop je niet even in een middag omheen."},{"t":"Petra","m":"Jordanië","pal":["#360c03","#8a3a0b","#9f5625","#ce712e","#ea9249","#fbbe75"],"rijen":["3333332234451111111112455543443333","3333333345553112222223555554443333","3333334455544222443333455554443443","3333333344443444454443445554443333","2233332234443344444433444333343333","2333332244443333444343344433433233","2333332443442224434322343444443213","2323333344442214434321344344443202","2323333454542214554222355444443211","2223333455543224555332455444433211","2223333444443334555433354444433311","2222333444443334554433344444433312","3223333444443324444333344444432211","3233332333333323334333344433331211","2222323333433332322234444443333312","2122212322322233443322333443333322","2222111111222233333332222222233232","2222113333344444444444443443233222","2222123222332343333433343333333222","1222213111310140000320032113322322","2222213222310230000320043323223321","1123223332310231110320043323322211","1223223332310231111320043323322221","2222123332311330000330043433322221","1232123332311330000330043333322222","2222122332311330000330033333323222"],"f":"Foto: Vyacheslav Argenberg (CC BY 4.0, Wikimedia Commons)","g":"Een hele stad uitgehakt in roze rots. Bekend uit Indiana Jones."},{"t":"Christus de Verlosser","m":"Rio de Janeiro, Brazilië","pal":["#1a0a04","#3d2a27","#594f52","#877169","#d38759","#f89535","#b2957f","#f8bd65","#e8c38d","#fee6b0"],"rijen":["333333333332222222222222222222111","333333333333333322222222222222211","666663333333333333322222222222222","666666666666666333333332222222222","668886666666666663333333333222222","888888866666666666666633663333323","998888888888886666666666666633333","999999998888888888888888666333333","999999998888888888888888666666643","999999999998998888888888666666666","999999999999998888888888886664444","999999999999998888888888777744444","999999999888888888877777777777444","777788888877777777777777777777554","777777777777777777774555555555555","755555555555555555551155555555555","555555555555555554100001455555555","555555555555555555420024554444444","555555555555444444440144444333333","555555544444444444440144444333333","444444444444444444630163333333333","332233366666444788860166663363333","333332333366648866660166663333333","333333333366666633320026666633333","222222222336301112210013333233333","211122233332000012310002232222223","662211111220000001111111011222222","666663211110000000110110000012222","663366633210000000000000000001111","336633266200000000000000000000111","444866631000000000000000000000111","777776210000001000000000000000001","888883000000000000000000000100000","777883000000000000000000012320000"],"f":"Foto: Donatas Dabravolskas (CC BY-SA 4.0, Wikimedia Commons)","g":"Staat met open armen boven Rio. Wacht hij op een knuffel?"},{"t":"Machu Picchu","m":"Peru","pal":["#211d19","#4f4211","#504b44","#836b33","#5782ab","#ceb70a","#bc975f","#a9bcd3","#c7d2e2","#e7e9ef"],"rijen":["9999888998888888999999988889999999","9999888998888888899999888888899999","9999999988888888899998888888888899","9999984248887887888888888788788899","9899722204877788777788877777778899","8884002202777899877777777777888999","9962003200487878888888889999888899","9832223000277444777477878777788888","8222230000024444444444444444478777","4023322000002744444444444444444444","2023222000000444444444444444444444","0222222000000024444444444444444444","0232330000000000444444644446346344","2333300000000010026626624636626624","1101301212133666333666633666600002","3620263663036666630136666666600000","6321366663136666311101236666602101","6136556613655663111000000133636311","1666663336666661100000000012363111","5555553666313633101000010000136313","5555555566331111110001331110013631","5555555555553233300000361000001222","5311311110000166313111361000000122","1110000011135556616165555331110012","1111111555555555555556661000000001","1111111113355553311100361000000000"],"f":"Foto: Diego Delso (CC BY-SA 4.0, Wikimedia Commons)","g":"Een Incastad hoog in de bergen. Neem je wandelschoenen mee, en een lama."},{"t":"Chichén Itzá","m":"Mexico","pal":["#31342b","#65645b","#8c9349","#7f7f78","#9e9a8a","#7baddb","#b1aea6","#9abdde","#c0d5e8","#dfedf8"],"rijen":["7778987777777777555777777555577777","7878998877777777555777775555777555","7779999987777777555555755577755555","7779999998777775555555555555555555","7778999999777775555555555555555557","7899999999987775555555555555555575","8999888899899531333465555555575555","9999888888883111133334755555555555","9998888888881001441314857777555887","9888888888981103663666777778557888","9888888888633314416666675557755755","8888888888111134414666443557755555","8888888861333346661464443777755777","8888888713313364461164443138887777","8878886134333466666036444436898877","8888863343333466666404644643488888","8887633333333464666610644443336888","8776333311333444444430164444444641","7733333133313644646661016444466410","3433111133334666664663003644446643","3333131333334466666466400444446666","3331113433344444463444310164644666","3331113110044433333333430036444664","4222222222222222222222222222222444","4424444444442222222222222222222222","2222222222222222222222222222222222"],"f":"Foto: Daniel Schwen (CC BY-SA 4.0, Wikimedia Commons)","g":"Een Mayapiramide. Klap je ervoor in je handen, dan klinkt de echo als een vogeltje."},{"t":"Colosseum","m":"Rome, Italië","pal":["#231a29","#593a17","#403549","#0c3c99","#0145b8","#6c5a5a","#0153d5","#bb7a3a","#9a8687","#d3b698"],"rijen":["6666666666666666664444444444444333","6666666336666666664444444444333333","4466645552666666664444444444333333","4444355888366666664444444443333333","4463588889886666644446644443333333","4435858888994666664466644433333333","4458888857996666664446644444444444","4388888977898666644444446644444444","4598889895698434644444666664444444","3898899898888552332325223346644444","3899999999855551001225202022344444","4599999987857751755558502222252444","3899999957577755777118522205555534","3899997777771155007215555525888954","3899997777751155005335257705589984","4877777755525552002585221705759994","4577855522222220000782000505758993","0255555200221522120772222522255990","0022555505527725710575275202025980","0025555525527725850075275200022550","0255555525555552222255255200022552","1225555225555552022222222200022222","1111111115515522222222222200002110","7111111111111111111112222222211111"],"f":"Foto: Diliff (CC BY-SA 2.5, Wikimedia Commons)","g":"Hier vochten gladiatoren. Nu vechten toeristen om de beste selfie."},{"t":"Taj Mahal","m":"Agra, India","pal":["#212018","#757275","#a79d99","#829dc7","#78aef4","#aabfe0","#ccc3bd","#e6ded7"],"rijen":["4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444434444444444444444","4444444444444445763444444444444444","4444444444444457776344444444444444","4443444444444577776134444444445444","4441344444444777762114444444441344","4442344444444576221114444444442344","4452343444457277621067344443446344","4456342345452177766221145432456344","4452346342252166677721212452452344","4452346347766667666767611456456344","4456352346661672112762611452357331","4452356346621672112721611456356100","4452356347726772126766711452356000","4356156346622672127762711452357000","3452016336621671117762711356357100","1162016277777777777667776767772011","0001001010101112212106110111200000","0000000000000212111112000000000000","0000000010001222212222000000000010"],"f":"Foto: Dhirad, bewerkt door J. A. Knudsen (CC BY-SA 3.0, Wikimedia Commons)","g":"Een sultan bouwde het voor zijn overleden vrouw. Dat is nog eens een cadeau."},{"t":"Piramides van Gizeh","m":"Egypte","pal":["#82593a","#a17b5b","#c3a482","#eebf7e","#8abdf0","#adbcd1","#f5d09b","#b9d0ed"],"rijen":["4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444447444454444444444444","4444444777777755774512444444444555","4477777777777710277211277774455555","7777777777777200016101027777555555","7777777777773100001111112725755555","7777777777722000000011111111275555","7777777777221000000001111111115555","5577777772320000011101011111111555","5577510263310100011012001111111155","5555000012102100011121000111111112","3221000000222000001221000016221212","3121011122662212226666622226666226","3336666666666666666666666666663333","3333333666666666666666666666366666","3333333333666666666666666666666333","3333333333333336666666666633333333","3333333333333333333333333333333333","3333333333333333333333333333333333"],"f":"Foto: Ricardo Liberato (CC BY-SA 2.0, Wikimedia Commons)","g":"Het enige van de zeven oude wereldwonderen dat er nog staat."},{"t":"Eiffeltoren","m":"Parijs, Frankrijk","pal":["#1d261a","#153a69","#555441","#245891","#736b60","#316da6","#4a87b8","#67a6ce","#a5b3a7"],"rijen":["11111111111111111","11111111111111111","11111111111111111","11111111111111111","11111111211111111","11111111211111111","11111111211111111","11111111211111111","11111111211111111","11111111211111111","11111111211111111","11111111211111111","33111111211113333","33333332213333333","33333332233333333","53333334433333333","55533354433333333","55555554445335555","55555554445555555","55555554445555555","66555532225555555","66666522222555555","66666644244666666","66666622024666666","77766624622666666","77777426742676666","77776426742467777","77772224422247777","77774444444447777","77744444444448777","77824422002424777","28442067772042462","22240488888422000","22200288488200000"],"f":"Foto: Benh Lieu Song (publiek domein, Wikimedia Commons)","g":"Zou eigenlijk na twintig jaar weer afgebroken worden. Gelukkig niet."},{"t":"Vrijheidsbeeld","m":"New York, Verenigde Staten","pal":["#363b35","#36708f","#8d7a5e","#7e9ca4","#89b8e8","#b3c8e1"],"rijen":["4555555555555555555555555555555555","5555545555555455555555555455555555","5555555554444443445455544455555444","5555554444444443444455444554444444","4444444444444443344555544444444444","4444444444455555115544444444444444","4444445544555554314444444444444555","4444445444555544511455554444444444","4444445445555544511555555444444444","4444444445444455315555555555455555","5544555554445555313555555555555555","5554555555555555315555555555555555","5555555555555555313555555555555555","5555555555555552220555444444444444","5555555555555532220154444444444444","5555555555555552220355555555555555","5555555555555552220355555555555555","5555555555555532220155555555555555","5555555555532222220035555555533355","5555553233200222222000255553000000","5555520000222222222200022232000000","1111122222200000002220000000000000","0000002202200000002220000000000000","0020000000000000000000000000000000","1110000000000000000000000000000000","1111111111111110000111111111111111"],"f":"Foto: Daniel Schwen (publiek domein, Wikimedia Commons)","g":"Een cadeau van Frankrijk. Ze is groen omdat ze van koper is."},{"t":"Big Ben","m":"Londen, Engeland","pal":["#1f120b","#503f40","#13589f","#a25225","#3e77b7","#837875","#5c89be","#7996b6","#a39b92"],"rijen":["2222222222222222222222222222222222","2222222222222222222222222222222222","2222222222222222222222222222222222","2222222222222222222222222222222222","2222222222222222222222222222222222","2222222222222222222222212222222222","2424444444444444444444202422222222","4444444444444444444444201444444442","4444444444444444444444201444444444","4444444444444444444444100444444444","6666666666666666666666333464444444","6666666666666666666665383166666666","6666666666666666666665883566666666","7777777777777777777765330166666666","7777777777777777777775300177777766","7777777775777777777778330577777777","7777777510175151577778330577777777","8888888100055000588878333588888888","8888558000015000888888333588888885","5555115110000000888158333585555555","1111111111111111011013338855555555","8333333333311111133311333301530101","3333333333533331333333333300101000","0000000000000111031333333111000130","1000000000011113010000000000000013","0000000000000000000000000000000000"],"f":"Foto: Colin (CC BY-SA 4.0, Wikimedia Commons)","g":"Eigenlijk heet alleen de klok Big Ben, niet de toren. Betweter-weetje!"},{"t":"Operagebouw van Sydney","m":"Sydney, Australië","pal":["#21201d","#1a3b51","#4d4c4b","#6c6868","#ab907c","#7c93a8","#5ab7fc","#78bbec","#e4d9ca"],"rijen":["6666666666666666666666666666666666","6666666666666666666666666666666666","6666666666666666666666666666666666","6666666666666666666666666666666666","7777777777777777777777777777777777","7777777777777777777777777777777777","7777777777777777777777777777777777","7777777777777777777777777777777577","7777777755555534855555555553533453","5553333333324820883233323333232333","3323223322440482284022222334323222","5554200243384248348248800000000000","1111222248028848838888832112100000","1111111103200884888888814888200003","1111111100000344444434420444200002","3111111100004444434434444444222333","1111333200024444844433334444323333","1111102222344444444444433333211111","1111111110022222323333322222111111","1111111111002222223333311111111111","1111111111111223544222211111111111","1111111111111215885531111111111111","1111111111111112558553111111111111","1111111111111111123555551111111111","1111111111111111111135555511111111","1111111111111111121111135555311111"],"f":"Foto: Bernard Gagnon (CC BY-SA 3.0, Wikimedia Commons)","g":"Lijkt op zeilen. Of op schillen van een sinaasappel."},{"t":"Moai van Paaseiland","m":"Paaseiland, Chili","pal":["#3d2a1a","#7a5d3b","#b5a710","#999287","#68affb","#95c7fa","#b4cde9","#e2ecf8"],"rijen":["7777777777777777754444444444444444","7777777777777777764444544444444444","7777777777777777775444444444444444","7777777777777777777754444544444444","7777777777777776777775444544444444","7777777777777777777777655454444444","7666777777777777777777766544444444","7777777777777777777777775554444444","7777777777777777677666556777544457","7777777777777777777777756777544577","7777777776677777777777766776555456","7776775757777777775677777755555556","7775555777777777765777777633555531","7776555677777777765771037300355511","7776557677777766763771017311356311","7665551663713710631370037310477600","6663330610303711610670037300167300","5361330601303601710371116311047311","3110310300110111331133106110067311","1111110130110110131033106100077300","3111110110100100110011003000077300","1010000100100100100010003000066300","1011110111111111111111111111111111","1111101111111101111110100011110000","1222222222222222222222222222222222","2222222222222222222212111211111111"],"f":"Foto: Vanessa.blasco (CC BY-SA 3.0, Wikimedia Commons)","g":"Grote stenen hoofden. Ze hebben ook lijven, maar die zitten onder de grond."},{"t":"Akropolis","m":"Athene, Griekenland","pal":["#3e2f21","#013c84","#6a5541","#225d94","#517495","#8c7864","#ac967f","#ccab8a","#e4c19c"],"rijen":["1111111111111111111111111111111111","1111111111111111111111111111111111","1111111111111141111111111111111111","1111111111111576311111111111111111","1111111111145005754311111111111111","3111111111320020256553111111111111","3333111111100586005551111111111111","3333331113622688850064111111111111","3333331166557668887202411111111111","3333334666662252688860051111111111","3333367667500582027887222411111111","3334776620201686022068872053111111","3336765200751688666005788502431111","4346500523861675268556028872055311","4450021853773684077567022288622611","4442573763783684286566175022885211","4466484773784684277257366662258411","4467584784784686277058678676522411","4768686784784687287058576666676311","6878686774786787277057276666667311","6777786886885786587567676676667411","5878786786780686578768776676668413","7878786872780787587678776676768413","8888685775777667888888786676778433","7878667677766677788888888888888633","7788666566665578787788776778878755"],"f":"Foto: Jebulon (CC0, Wikimedia Commons)","g":"Het Parthenon in Athene, bijna 2500 jaar oud. Ouder dan opa."},{"t":"Uluru","m":"Australië","pal":["#361c00","#932f01","#ea1e01","#d04d16","#6491c6","#c49f81","#a4a7b1","#cab69c"],"rijen":["4444444444444444444444444444444444","4444444444444444444444444444444444","4444444444444444444444444444444444","4446644466664444444444444444444466","6666666666444466666666666666666666","6656665666666666766666666666666666","5575555555777677556666666777667766","5555655556556557555777775577777777","6666666777777677777777767775775557","7777777775555553333335555555555777","7777755333222222222222222233577777","5533322212222222222222222222223357","3222222222222222222222222222222225","2222222222222222222222222222222223","2222222222222222222222222222222222","2222121222222222222222222211222222","1111111111111113133333333311131133","1110001111110011113333333311111133","0000000000000000000000000000000011","0000000000000000000000000000000000","0000000000000000000000000000000000","0000000000000000000000000000000000","0000000000000000000000000000000000","0000000000000000000000000000000000","0000000000000000000000000000000000","0000000000000000000000000000000000"],"f":"Foto: Brett Stanley (CC BY-SA 4.0, Wikimedia Commons)","g":"Een gigantische rode rots midden in Australië. Heilig voor de Aboriginals."}];
 // de reeksen met vaste plaatjes; elke reeks heeft zijn eigen voortgang (hoogste vrijgespeelde nummer)
-const REEKS={
- kunst:{data:KUNST,sleutel:'pixelpikkers_kunst',woord:'schilderij',Woord:'Schilderij',emoji:'🖼️',knop:'kverder',rooster:'kunstlevels'},
- wonder:{data:WONDEREN,sleutel:'pixelpikkers_wonder',woord:'wereldwonder',Woord:'Wereldwonder',emoji:'🌍',knop:'wverder',rooster:'wonderlevels'}};
-for(const r of Object.values(REEKS)){r.sleutel+=speler?':'+speler:'';r.beste=+opslag.lees(r.sleutel,'1')||1}
+const REEKS={kunst:{data:KUNST,emoji:'🖼️'},wonder:{data:WONDEREN,emoji:'🌍'}};
+// ---------- de volgorde van alle levels ----------
+// Eén lijst: eerst 6 keer eten/beestjes, daarna regelmatig een schilderij of wereldwonder ertussen (om en om).
+// Schilderijen en wereldwonderen met weinig kleuren komen eerst (makkelijker). Elk item: {soort:'eten'|'kunst'|'wonder', i}.
+const VOLGORDE=(()=>{const v=[],extra=[],BEGIN=6;
+ const opKleur=data=>data.map((k,i)=>({i,n:k.pal.length})).sort((a,b)=>a.n-b.n||a.i-b.i).map(x=>x.i);
+ const ks=opKleur(KUNST),ws=opKleur(WONDEREN);
+ for(let i=0;i<Math.max(ks.length,ws.length);i++){if(i<ks.length)extra.push({soort:'kunst',i:ks[i]});if(i<ws.length)extra.push({soort:'wonder',i:ws[i]})}
+ const E=PLAATJES.length,rest=E-BEGIN+extra.length;let e=0,x=0;
+ for(;e<BEGIN;e++)v.push({soort:'eten',i:e});
+ for(let j=0;j<rest;j++){const wilX=Math.floor((j+1)*extra.length/rest)>Math.floor(j*extra.length/rest);
+  if((wilX&&x<extra.length)||e>=E)v.push(extra[x++]);else v.push({soort:'eten',i:e++})}
+ return v})();
+function itemVan(lvl){return VOLGORDE[(lvl-1)%VOLGORDE.length]}
+// moeilijkheid: loopt op met het level, maar langzamer dan het levelnummer (de oude 46 eten-levels zijn nu over 76 verdeeld)
+function moeite(lvl){return 1+Math.floor((lvl-1)*0.62)}
 function kunstPlaatje(data,nr){
  const k=data[nr],h=k.rijen.length,w=k.rijen[0].length,S=Math.max(w,h),cel=new Int16Array(S*S).fill(-1);
  KLEUREN.length=VAST_KLEUREN;const begin=KLEUREN.length;
@@ -180,8 +183,8 @@ function helderheid(hex){const v=parseInt(hex.slice(1),16);return ((v>>16)*.3+((
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 
 // ---------- instellingen per level ----------
-function instelling(lvl){
- const S=Math.min(32,14+2*lvl);
+function instelling(lvl,bord){
+ const S=bord||Math.min(32,14+2*lvl);
  return {S,
   maxKleuren:Math.min(10,3+lvl),
   min:Math.max(3,Math.round(S*(lvl<3?0.25:lvl<8?0.4:0.6))),
@@ -387,15 +390,16 @@ const G={lvl:1,S:0,cel:null,stand:null,kleuren:[],kol:[],sporen:[],pikkers:[],po
  snel:1,hulp:false,klaar:false,vastTijd:0,klaarTijd:0,schud:[],aanHet:false,gestart:false,tijd:0};
 let L={}; // indeling van het scherm
 
-function startLevel(lvl,soort='eten'){
+function startLevel(lvl){
+ const item=itemVan(lvl),soort=item.soort,d=moeite(lvl);
  G.soort=soort;
  let p,S,naam,emoji,grap,inst,zaad=lvl;
  const R=REEKS[soort];
- if(R){ // schilderij of wereldwonder in een lijst van 3 ringen; even moeilijk als de latere eten-levels
-  const k=R.data[(lvl-1)%R.data.length];
-  inst=instelling(Math.min(20,6+lvl*2));zaad=1000+lvl;
-  inst.vast=2;inst.doel=0.2; // veel kleuren, dus de maker laat zelf minder sporen wachten
-  p=kunstPlaatje(R.data,(lvl-1)%R.data.length);const rand=3;S=p.S+2*rand;
+ if(R){ // schilderij of wereldwonder in een lijst van 2 of 3 ringen
+  const k=R.data[item.i];
+  p=kunstPlaatje(R.data,item.i);const rand=d<10?2:3;S=p.S+2*rand;
+  inst=instelling(Math.max(3,d),S);
+  inst.vast=Math.min(inst.vast,2); // veel kleuren, dus de maker laat zelf minder sporen wachten
   p=inlijsten(p,rand);const verschil=i=>Math.min(...p.kleuren.map(j=>afstand(KLEUREN[i],KLEUREN[j])));
   let lijst=LIJST.filter(i=>verschil(i)>5000).slice(0,4);
   if(lijst.length<3)lijst=[...LIJST].sort((a,b)=>verschil(b)-verschil(a)).slice(0,3);
@@ -403,15 +407,15 @@ function startLevel(lvl,soort='eten'){
   naam=k.t;emoji=R.emoji;grap=k.g;G.maker=k.m;G.foto=k.f||'';
  }else{
   KLEUREN.length=VAST_KLEUREN;
-  inst=instelling(lvl);
-  [emoji,naam,grap]=PLAATJES[(lvl-1)%PLAATJES.length];
+  inst=instelling(d);
+  [emoji,naam,grap]=PLAATJES[item.i];
   // het plaatje komt in een lijst: rondom ringen in achtergrondkleuren, zodat het eerst 'ingepakt' zit
   const rand=inst.achtergrond?Math.max(2,Math.round(inst.S*inst.lijst)):0;
   p=maakPlaatje(emoji,inst.S-2*rand,inst.maxKleuren);
   if(!p)p=reservePlaatje();
   S=p.S+2*rand;
   if(rand)p=inlijsten(p,rand);
-  if(inst.achtergrond)achtergrond(p,S,lvl,inst.achtergrond,rand);
+  if(inst.achtergrond)achtergrond(p,S,d,inst.achtergrond,rand);
  }
  inst.S=S;
  G.lvl=lvl;G.S=S;G.cel=p.cel;G.naam=naam;G.emoji=emoji;G.grap=grap;G.kleurLijst=p.kleuren;
@@ -476,7 +480,7 @@ function kiesBlok(k){
 function knoppen(){
  const y=(L.top||0)+8,h=34;
  return [
-  {x:W-44,y,w:36,h,tekst:'↻',doe:()=>{if(confirm('Dit level opnieuw beginnen?'))startLevel(G.lvl,G.soort)}},
+  {x:W-44,y,w:36,h,tekst:'↻',doe:()=>{if(confirm('Dit level opnieuw beginnen?'))startLevel(G.lvl)}},
   {x:W-88,y,w:36,h,tekst:geluidAan?'🔊':'🔇',doe:()=>{geluidAan=!geluidAan;opslag.zet('pixelpikkers_geluid',geluidAan?'1':'0')}},
   {x:W-142,y,w:46,h,tekst:G.snel==1?'▶▶1x':'▶▶2x',doe:()=>{G.snel=G.snel==1?2:1}},
  ];
@@ -563,7 +567,7 @@ function teken(){
  // kop
  ctx.fillStyle='#5b3a1a';ctx.font='800 16px system-ui,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
  const T=L.top||0;
- const kop=`${REEKS[G.soort]?REEKS[G.soort].Woord:'Level'} ${G.lvl} · ${G.naam}`,ruimte=W-50-150;let fs=16;
+ const kop=`Level ${G.lvl} · ${G.naam}`,ruimte=W-50-150;let fs=16;
  ctx.font=`800 ${fs}px system-ui,sans-serif`;while(fs>11&&ctx.measureText(kop).width>ruimte){fs--;ctx.font=`800 ${fs}px system-ui,sans-serif`}
  ctx.fillText(kop,50,T+22);
  const pw=Math.max(60,W-50-160-12),pr=1-G.over/G.totaal;
@@ -604,7 +608,7 @@ function teken(){
   if(kol.length>B.rijen){ctx.fillStyle='#8a6a48';ctx.font='800 13px system-ui';ctx.textAlign='center';
    ctx.fillText('+'+(kol.length-B.rijen),bx+B.w/2,B.y+B.rijen*(B.h+B.gat)-2)}
  }
- if(G.lvl==1&&!REEKS[G.soort]&&!G.gestart){ctx.fillStyle='#5b3a1a';ctx.font='800 17px system-ui';ctx.textAlign='center';
+ if(G.lvl==1&&!G.gestart){ctx.fillStyle='#5b3a1a';ctx.font='800 17px system-ui';ctx.textAlign='center';
   const bounce=Math.sin(G.tijd*5)*4;ctx.fillText('👇 Tik op een blok!',B.x+(B.K*(B.w+B.gat)-B.gat)/2,B.y-8+bounce-0.0001)}
  // pikkertjes
  for(const p of G.pikkers){const hup=Math.abs(Math.sin((G.tijd*14+p.doel)%6.283))*Math.min(3,cz*0.25);
@@ -617,13 +621,12 @@ function plaatjeCanvas(){const S=G.S,c=document.createElement('canvas');c.width=
 function gewonnen(){
  G.klaar=true;
  const R=REEKS[G.soort];
- if(R){if(G.lvl+1>R.beste){R.beste=G.lvl+1;opslag.zet(R.sleutel,String(R.beste))}}
- else if(G.lvl+1>besteLevel){besteLevel=G.lvl+1;opslag.zet(SLEUTEL,String(besteLevel))}
+ if(G.lvl+1>besteLevel){besteLevel=G.lvl+1;opslag.zet(SLEUTEL,String(besteLevel))}
  geluid.feest();
  toonDlg(`<h2>Klaar! ${G.emoji}</h2><div id="pl"></div><p><b>${G.naam}</b>${R?`<br><i>${G.maker}</i><br>`:'. '}${G.grap}${R&&G.foto?`<br><small style="opacity:.7">${G.foto}</small>`:''}</p>
-  <div class="knoppen"><button class="knop" id="dv">${R?'Volgend '+R.woord:'Volgend level'} ›</button><button class="knop grijs" id="dm">Menu</button></div>`);
+  <div class="knoppen"><button class="knop" id="dv">Volgend level ›</button><button class="knop grijs" id="dm">Menu</button></div>`);
  document.getElementById('pl').append(plaatjeCanvas());
- document.getElementById('dv').onclick=()=>startLevel(G.lvl+1,G.soort);
+ document.getElementById('dv').onclick=()=>startLevel(G.lvl+1);
  document.getElementById('dm').onclick=naarMenu;
 }
 function vast(){
@@ -632,34 +635,26 @@ function vast(){
   <div class="knoppen">${G.hulp?'':'<button class="knop oranje" id="dh">Hulpspoor erbij (1x)</button>'}
   <button class="knop" id="do">Opnieuw</button><button class="knop grijs" id="dm">Menu</button></div>`);
  const h=document.getElementById('dh');if(h)h.onclick=()=>{G.hulp=true;G.sporen.push(null);G.klaar=false;G.vastTijd=0;sluitDlg();indeling()};
- document.getElementById('do').onclick=()=>startLevel(G.lvl,G.soort);
+ document.getElementById('do').onclick=()=>startLevel(G.lvl);
  document.getElementById('dm').onclick=naarMenu;
 }
 function toonDlg(html){document.getElementById('doos').innerHTML=html;document.getElementById('dlg').hidden=false}
 function sluitDlg(){document.getElementById('dlg').hidden=true}
 
 // ---------- menu ----------
+// hoe een level eruitziet in het menu: emoji, of een klein plaatje van het schilderij of wereldwonder
+function levelIcoon(lvl){const it=itemVan(lvl),R=REEKS[it.soort];
+ return R?{html:`<img src="${kunstPlaatjeURL(R.data,it.i)}" alt="">`,tekst:'',naam:R.data[it.i].t}:{html:`<b>${PLAATJES[it.i][0]}</b>`,tekst:PLAATJES[it.i][0],naam:PLAATJES[it.i][1]}}
 function naarMenu(){
  G.aanHet=false;sluitDlg();
  const m=document.getElementById('menu');m.hidden=false;
- const v=document.getElementById('verder');v.textContent=`Speel level ${besteLevel} ${PLAATJES[(besteLevel-1)%PLAATJES.length][0]}`;
+ const v=document.getElementById('verder'),ic=levelIcoon(besteLevel);v.textContent=`Speel level ${besteLevel}: ${ic.naam} ${ic.tekst}`;
  v.onclick=()=>startLevel(besteLevel);
- const n=Math.max(PLAATJES.length,besteLevel);let h='';
- for(let l=1;l<=n;l++){const p=PLAATJES[(l-1)%PLAATJES.length];
-  h+=`<button data-l="${l}" ${l>besteLevel?'disabled':''} class="${l==besteLevel?'nu':''}" title="${p[1]}"><b>${l>besteLevel?'🔒':p[0]}</b><small>${l}</small></button>`}
+ const n=Math.max(VOLGORDE.length,besteLevel);let h='';
+ for(let l=1;l<=n;l++){const open=l<=besteLevel,ic=open?levelIcoon(l):null;
+  h+=`<button data-l="${l}" ${open?'':'disabled'} class="${l==besteLevel?'nu':''}" title="${open?ic.naam:''}">${open?ic.html:'<b>🔒</b>'}<small>${l}</small></button>`}
  const lv=document.getElementById('levels');lv.innerHTML=h;
  lv.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>startLevel(+b.dataset.l));
- // schilderijen en wereldwonderen: alleen vrijgespeelde laten we zien, de rest zit nog onder een slotje
- for(const [soort,R] of Object.entries(REEKS)){
-  const kv=document.getElementById(R.knop),klaar=R.beste>R.data.length;
-  kv.textContent=klaar?`Alle ${R.woord=='schilderij'?'schilderijen':'wereldwonderen'} klaar! Nog eens?`:`Speel ${R.woord} ${R.beste}: ${R.data[R.beste-1].t}`;
-  kv.onclick=()=>startLevel(klaar?1:R.beste,soort);
-  let kh='';
-  R.data.forEach((k,i)=>{const l=i+1,open=l<=R.beste;
-   kh+=`<button data-k="${l}" ${open?'':'disabled'} class="${l==R.beste?'nu':''}">${open?`<img src="${kunstPlaatjeURL(R.data,i)}" alt="">`:'<b>🔒</b>'}<small>${open?k.t:R.Woord+' '+l}</small></button>`});
-  const kl=document.getElementById(R.rooster);kl.innerHTML=kh;
-  kl.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>startLevel(+b.dataset.k,soort));
- }
 }
 // terugknop: tijdens het spelen eerst naar het menu, vanuit het menu naar de startpagina
 document.querySelector('.terug').addEventListener('click',e=>{if(G.aanHet||!document.getElementById('dlg').hidden){e.preventDefault();naarMenu()}});

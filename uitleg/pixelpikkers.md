@@ -35,8 +35,21 @@ maar met eigen naam, plaatjes en uiterlijk).
   laat wachten), `lastig`, `spreiding` (blokken 'van later' bovenop), `lijst`, kolommen (3-5), `toets` en `doel`.
   Om te testen kan `window.__afstel = {...}` instellingen overschrijven.
 
+## Eén volgorde (wens van Marcel)
+- Geen aparte reeksen meer: alle 76 plaatjes staan in één volgorde (`VOLGORDE`, `itemVan(lvl)`). Eerst 6 keer eten/
+  beestjes, daarna regelmatig een schilderij of wereldwonder ertussen (om en om), zo'n 2 op de 5 levels.
+  Schilderijen en wereldwonderen met weinig kleuren komen eerst (Amandelbloesem, Petra, Zelfportret...), de drukste
+  (Sterrennacht, Caféterras, Colosseum...) achteraan. Na level 76 begint de lijst opnieuw.
+- Eén voortgang: `pixelpikkers_lvl:<naam>` (de oude sleutels `pixelpikkers_kunst`/`_wonder` worden niet meer gebruikt).
+- Moeilijkheid loopt op met `moeite(lvl) = 1 + (lvl-1)*0.62` (zo liep het eerst over 46 eten-levels). Eten-levels
+  gebruiken `instelling(moeite)`. Schilderijen/wereldwonderen: `instelling(moeite, bordgrootte)`, lijst van 2 ringen
+  tot moeite 10, daarna 3, en de maker laat zelf hooguit 2 sporen wachten.
+- **Afstemmen met Anja**: Marcel vraagt Anja welke levels écht te moeilijk of te makkelijk zijn. Pas dan per level
+  of per soort aan (bijvoorbeeld `moeite`, `doel` in `instelling`, of de plek in `VOLGORDE`). Noteer hier wat ze zei.
+  Gemeten (wild tikken, 10 keer, bij het maken): level 3-7 lukt nog vaak (4-8 van 10), level 9-16 soms, daarna
+  meestal niet (0-2 van 10).
+
 ## Schilderijen (wens van Marcel; Anja is dol op Van Gogh)
-- Tweede reeks in het menu: 🖼️ Schilderijen, eigen voortgang in `pixelpikkers_kunst:<naam>`. `startLevel(n,'kunst')`.
 - `KUNST` in `pixelpikkers.html`: 15 schilderijen als pixeldata (titel `t`, maker `m`, grapje `g`, kleuren `pal`,
   `rijen` met per hokje een teken 0-9/a-j). 13 van Van Gogh (Sterrennacht, Zonnebloemen, Amandelbloesem, Slaapkamer,
   Caféterras, Zelfportret 1889, Irissen, Sterrennacht boven de Rhône, Korenveld met cipressen, De oogst, Camille
@@ -52,8 +65,7 @@ maar met eigen naam, plaatjes en uiterlijk).
   (`kunstPlaatje`). Moeilijkheid als eten-level 8 tot 20, maar de maker laat zelf maar 2 sporen wachten (`vast=2`).
 
 ## Wereldwonderen (wens van Marcel)
-- Derde reeks: 🌍 Wereldwonderen, eigen voortgang in `pixelpikkers_wonder:<naam>`, `startLevel(n,'wonder')`.
-  Schilderijen en wereldwonderen delen dezelfde code via `REEKS` (data, sleutel, woorden, emoji, knop en rooster in het menu).
+- Schilderijen en wereldwonderen delen dezelfde code via `REEKS` (data en emoji).
 - `WONDEREN`: 15 foto's: de zeven nieuwe wereldwonderen (Chinese Muur, Petra, Christus de Verlosser, Machu Picchu,
   Chichén Itzá, Colosseum, Taj Mahal), de piramides van Gizeh, Eiffeltoren, Vrijheidsbeeld, Big Ben, Operagebouw van
   Sydney, Moai van Paaseiland, Akropolis en Uluru. Veld `f` = maker en licentie van de foto (meest CC BY-SA); dat
