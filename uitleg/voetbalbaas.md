@@ -48,6 +48,12 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Uitspraken `BEKERPRAAT` per manager: door (5), eruit (5), straf (3, door na strafschoppen), finale (3). Met Gemini bedacht, grove woorden eruit.
 - Gewonnen = `S.bekers` (lijst seizoenen), te zien in de erelijst. Kantoor: melding + knop "🍺 Speel de achtste finale" enz.
 
+## Terugknop en beeld
+- Terugknop linksboven = een stap terug (`terugNaar`, standaard gezet in `teken`): scherm → kantoor → beginscherm → startpagina.
+  Tijdens een wedstrijd naar het beginscherm (Verder = terug in de wedstrijd/rust).
+- Het veld tussen de kansen toont onze echte opstelling (`tekenStil`) tegen hun 4-4-2. Bij een kans (`aantalInBeeld`): wij met
+  aanvallers + 1 (2-4 poppetjes) tegen 2 verdedigers; zij met 3 tegen onze verdedigers − 2 (1-4).
+
 ## Rust en wissels
 - Een wedstrijd gaat in twee helften (`startWedstrijd`, `helft`, `afmaken`): bij het begin wordt alleen de eerste helft uitgerekend en
   bewaard in `S.lopend` {beker, teg, thuis, tv, hunL, ev1, pijn, wissels, bijRust}. Herladen = terug in de rust (`kantoor` → `wedstrijd`).

@@ -376,7 +376,7 @@ function scorebord(terug){
   <div class="vak klein">Managerpunten verdien je aan het eind van elk seizoen: hoe hoger je eindigt en hoe hoger de divisie, hoe meer.
   Kampioen, promotie en de beker leveren extra op. ${NAAM?`Jouw score gaat er vanzelf op als je record beter is (als <b class="wit">${esc(NAAM)}</b>).`:'Kies op de startpagina een naam, anders komt je score er niet op.'}
   ${S?`<br>Jij nu: <b class="wit">${S.punten||0}</b> managerpunten, <b class="wit">${S.prijzen||0}</b> ${S.prijzen==1?'prijs':'prijzen'}.`:''}</div>
-  <button class="knop groot" id="klaar">Terug</button>`);$('#klaar').onclick=terug};
+  <button class="knop groot" id="klaar">Terug</button>`);$('#klaar').onclick=terug;terugNaar=terug};
  toon('Laden…');
  fetch(BORD_URL,{redirect:'follow'}).then(r=>r.json()).then(d=>{bord=d;try{localStorage.setItem('voetbalbaas_bord',JSON.stringify(d))}catch(e){}if($('#klaar'))toon('')})
   .catch(()=>{if($('#klaar'))toon(bord?'Geen internet: dit is de laatst bekende stand.':'Geen internet, het scorebord kan nu niet geladen worden.')});
@@ -392,7 +392,11 @@ const trap=()=>toon(140,.08,'square',.06,-60);
 
 // ---------- schermen ----------
 const scherm=$('#scherm');
-function teken(html){scherm.innerHTML=html;scrollTo(0,0)}
+// De terugknop linksboven gaat een stap terug: vanuit een scherm naar het kantoor, vanuit het kantoor naar het beginscherm,
+// en pas vanaf het beginscherm naar de startpagina met alle spellen. teken() zet de standaard; schermen kunnen terugNaar overschrijven.
+let terugNaar=null;
+function teken(html){if(anim){cancelAnimationFrame(anim);anim=null}scherm.innerHTML=html;scrollTo(0,0);terugNaar=S&&!S.lopend&&!S.ontslagen?kantoor:beginScherm}
+document.querySelector('.terug').addEventListener('click',e=>{if(terugNaar){e.preventDefault();geluidAan();terugNaar()}});
 const clubTag=c=>`<span class="club" style="background:linear-gradient(90deg,${c.k1} 50%,${c.k2} 50%)"></span>${esc(c.naam)}`;
 function ster(L){const n=clamp(Math.round((L-BASIS[S.div])/1.2+3),1,5);return'★'.repeat(n)+'☆'.repeat(5-n)}
 
@@ -412,6 +416,7 @@ function beginScherm(){
  Moe? Laat een speler een weekje rusten. Thuiswedstrijden leveren geld op, maar je spelers willen ook salaris.
  Kom je onder de ${euro(-25000)}, dan ontslaat het bestuur je. Nummer 1 en 2 promoveren, de laatste twee degraderen.</p>`);
  if(S)$('#verder').onclick=kantoor;
+ terugNaar=null; // vanaf het beginscherm: naar de startpagina
  $('#eigen').onclick=()=>clubMaken(false);$('#bordknop').onclick=()=>scorebord(beginScherm);
  scherm.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;const c=+b.dataset.c;managerKiezen(m=>{nieuwSpel(c);S.manager=m;bewaar();kantoor()},beginScherm)});
 }
@@ -437,7 +442,7 @@ function clubMaken(bestaand){
  scherm.querySelectorAll('.kl').forEach(b=>b.onclick=()=>{if(b.dataset.v==1)k1=b.dataset.k;else k2=b.dataset.k;toon()});
  scherm.querySelectorAll('input[type=color]').forEach(i=>i.oninput=()=>{if(i.dataset.v==1)k1=i.value;else k2=i.value;toon()});
  $('#cnaam').oninput=toon;toon();
- $('#annuleer').onclick=bestaand?kantoor:beginScherm;
+ $('#annuleer').onclick=terugNaar=bestaand?kantoor:beginScherm;
  $('#ok').onclick=()=>{const naam=$('#cnaam').value.trim().replace(/\s+/g,' ');if(!naam){$('#cnaam').focus();return}
   if(bestaand){Object.assign(mijn(),{naam,k1,k2});bewaar();return kantoor()}
   if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;
@@ -465,7 +470,7 @@ function managerKiezen(klaar,terug){
  teken(`<h1 style="font-size:20px">KIES JE MANAGER</h1><p class="sub">Wie wordt de baas op de bank?</p>
  ${MANAGERS.map((m,i)=>`<button class="knop mgr" data-m="${i}">${portret(i,false)}<span style="flex:1"><span class="geel">${esc(m.naam)}</span><br><span class="klein">${esc(m.over)}</span></span></button>`).join('')}
  <button class="knop" id="terugm">Terug</button>`);
- scherm.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>klaar(+b.dataset.m));$('#terugm').onclick=terug;
+ scherm.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>klaar(+b.dataset.m));$('#terugm').onclick=terug;terugNaar=terug;
 }
 function kantoor(){
  if(S.ontslagen)return ontslagen();
@@ -490,7 +495,7 @@ function kantoor(){
  <button class="knop" id="ere">🏆 Erelijst</button>
  ${S.berichten.length?`<h2>Berichten</h2>${S.berichten.slice(-4).reverse().map(b=>melding(b,true)).join('')}`:''}
  <div style="margin-top:16px"><button class="knop klein" id="kleuren">🎨 Clubnaam en kleuren</button><button class="knop klein" id="andermgr">🧢 Andere manager</button><button class="knop klein" id="opnieuw">Opnieuw beginnen</button></div>`);
- $('#kleuren').onclick=()=>clubMaken(true);$('#andermgr').onclick=()=>managerKiezen(m=>{S.manager=m;bewaar();kantoor()},kantoor);
+ terugNaar=beginScherm;$('#kleuren').onclick=()=>clubMaken(true);$('#andermgr').onclick=()=>managerKiezen(m=>{S.manager=m;bewaar();kantoor()},kantoor);
  $('#spelen').onclick=()=>{if(opstellingFout())return opstelling(true);startWedstrijd();wedstrijd()};
  $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;scherm.querySelectorAll('[data-naar]').forEach(b=>b.onclick=()=>$('#'+b.dataset.naar).click());$('#geld').onclick=geldScherm;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
 }
@@ -727,31 +732,38 @@ function poppetje(ctx,x,y,k1,k2,loop,juich=0){
  ctx.restore();
 }
 function bal(ctx,x,y,h=0){ctx.save();ctx.translate(Math.round(x+20),Math.round(y+20));ctx.scale(PS,PS);ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(-3,2,6,2);ctx.fillStyle='#fff';ctx.fillRect(-3,-3-h,6,6);ctx.fillStyle='#111';ctx.fillRect(-1,-1-h,2,2);ctx.restore()}
-function tekenStil(ctx,ons,hunK){ // aftrap-stand tussen de kansen
- const opp=[[60,180],[150,90],[150,270],[230,180]],wij=[[540,180],[450,90],[450,270],[370,180]];
- opp.forEach(([x,y],i)=>poppetje(ctx,600-x,y,hunK,'#fff',0));wij.forEach(([x,y])=>poppetje(ctx,600-x,y,ons.k1,ons.k2,0));
+// stand tussen de kansen: wij links in onze echte opstelling (keeper, verdedigers, middenveld, aanvallers), zij rechts in 4-4-2
+function tekenStil(ctx,ons,hunK){
+ const n=lijnen(S.opstelling).n,rij=(k,x,kl1,kl2)=>{const sp=Math.min(280,(k-1)*80);for(let i=0;i<k;i++)poppetje(ctx,x,k==1?180:180-sp/2+i*sp/(k-1),kl1,kl2,0)};
+ poppetje(ctx,22,180,'#ffe66b','#222',0);rij(n.V,95,ons.k1,ons.k2);rij(n.M,180,ons.k1,ons.k2);rij(n.A,265,ons.k1,ons.k2);
+ poppetje(ctx,578,180,'#ffe66b','#222',0);rij(4,505,hunK,'#fff');rij(4,420,hunK,'#fff');rij(2,345,hunK,'#fff');
 }
 // Een kans: drie aanvallers lopen naar het doel rechts, passen, en eentje schiet.
 // Voor de tegenstander wordt alles gespiegeld (zij vallen naar links aan).
+// Een kans met k aanvallers tegen d verdedigers (plus keeper). Het aantal volgt de opstelling: veel aanvallers = meer poppetjes
+// voorin, veel verdedigers = meer poppetjes achterin als de tegenstander aanvalt (zie aantalInBeeld).
+function aantalInBeeld(e){const n=lijnen(S.opstelling).n;
+ return e.wij?{k:clamp(n.A+1,2,4),d:2}:{k:3,d:clamp(n.V-2,1,4)}}
 function maakActie(e){
- const y0=[ri(100,125),ri(165,195),ri(235,260)],x0=ri(200,280);
- const att=y0.map((y,i)=>[x0+ri(-20,20)+(i==1?20:0),y]),def=[[ri(420,450),ri(130,160)],[ri(420,450),ri(200,230)]],kp=[588,GY];
- let hold=1;const frames=[];const ballOp=(a,i)=>[a[i][0]+6,a[i][1]+4];
+ const{k,d}=aantalInBeeld(e),x0=ri(200,280);
+ const y0=Array.from({length:k},(_,i)=>k==1?180:100+i*160/(k-1)+ri(-12,12));
+ const att=y0.map((y,i)=>[x0+ri(-20,20)+(i==Math.floor(k/2)?20:0),y]),def=Array.from({length:d},(_,i)=>[ri(420,450),d==1?180:125+i*110/(d-1)+ri(-8,8)]),kp=[588,GY];
+ let hold=Math.floor(k/2);const frames=[];const ballOp=(a,i)=>[a[i][0]+6,a[i][1]+4];
  const push=(d,a,de,k,bl,extra={})=>frames.push(Object.assign({d,att:a.map(p=>p.slice()),def:de.map(p=>p.slice()),kp:k.slice(),bal:bl.slice()},extra));
  push(0,att,def,kp,ballOp(att,hold));
- const passes=ri(1,2);let a=att;
+ const passes=k>1?ri(1,2):0;let a=att;
  for(let s=0;s<passes;s++){
   // lopen
   const n=a.map(([x,y],i)=>[Math.min(500,x+ri(70,110)),clamp(y+ri(-25,25),85,275)]);
   const h=n[hold],d=def.map(([x,y])=>[x+(h[0]+40-x)*0.3,y+(h[1]-y)*0.4]);
   push(0.9,n,d,[kp[0],GY+(h[1]-GY)*0.3],ballOp(n,hold),{loop:1});a=n;
   // pass
-  let naar=kies([0,1,2].filter(i=>i!=hold));hold=naar;
+  let naar=kies(att.map((_,i)=>i).filter(i=>i!=hold));hold=naar;
   const n2=a.map(([x,y])=>[x+25,y]);push(0.45,n2,d,[kp[0],GY+(n2[hold][1]-GY)*0.3],ballOp(n2,hold),{loop:1,kick:1});a=n2;
  }
  // laatste loopje naar de zestien
  const s=a.map(([x,y],i)=>[i==hold?ri(470,510):x+40,i==hold?clamp(y,110,250):y]);
- const dd=def.map(([x,y],i)=>[Math.min(560,s[hold][0]+20),s[hold][1]+(i?18:-18)]);
+ const dd=def.map(([x,y],i)=>[Math.min(560,s[hold][0]+20+Math.abs(i-(d-1)/2)*14),s[hold][1]+(i-(d-1)/2)*30]);
  push(0.7,s,dd,[kp[0],GY+(s[hold][1]-GY)*0.3],ballOp(s,hold),{loop:1});
  const schotTijd=frames.reduce((t,f)=>t+f.d,0);
  // schot
