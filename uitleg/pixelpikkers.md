@@ -41,7 +41,7 @@ maar met eigen naam, plaatjes en uiterlijk).
   Om te testen kan `window.__afstel = {...}` instellingen overschrijven.
 
 ## Eén volgorde (wens van Marcel)
-- Geen aparte reeksen meer: alle 76 plaatjes staan in één volgorde (`VOLGORDE`, `itemVan(lvl)`). Eerst 6 keer eten/
+- Geen aparte reeksen meer: alle plaatjes (nu 83) staan in één volgorde (`VOLGORDE`, `itemVan(lvl)`). Eerst 6 keer eten/
   beestjes, daarna regelmatig een schilderij of wereldwonder ertussen (om en om), zo'n 2 op de 5 levels.
   Schilderijen en wereldwonderen met weinig kleuren komen eerst (Amandelbloesem, Petra, Zelfportret...), de drukste
   (Sterrennacht, Caféterras, Colosseum...) achteraan. Na level 76 begint de lijst opnieuw.
@@ -53,6 +53,12 @@ maar met eigen naam, plaatjes en uiterlijk).
   of per soort aan (bijvoorbeeld `moeite`, `doel` in `instelling`, of de plek in `VOLGORDE`). Noteer hier wat ze zei.
   Gemeten (wild tikken, 10 keer, bij het maken): level 3-7 lukt nog vaak (4-8 van 10), level 9-16 soms, daarna
   meestal niet (0-2 van 10).
+
+## Star Wars (wens van Anja)
+- `STARWARS`: 7 zelf getekende pixelplaatjes (geen filmbeelden): Darth Vader, Stormtrooper, Yoda, R2-D2, Lichtzwaard,
+  Doodsster, BB-8, op een ruimte-achtergrond met sterretjes. Tekeningen staan als letters in
+  `extra/pixelkunst-starwars.py` (22x22, Yoda 24x22). Soort `sw` in `REEKS`.
+- In `VOLGORDE` gelijkmatig tussen de schilderijen en wereldwonderen (levels 11, 21, 29, 42, 52, 65, 77). Totaal nu 83 levels.
 
 ## Schilderijen (wens van Marcel; Anja is dol op Van Gogh)
 - `KUNST` in `pixelpikkers.html`: 15 schilderijen als pixeldata (titel `t`, maker `m`, grapje `g`, kleuren `pal`,
