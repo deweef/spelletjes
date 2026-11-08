@@ -107,7 +107,8 @@ op het scherm "Einde seizoen" bij promotie.
 - ~~Concept-label weg~~ (gedaan, 8 nov).
 - ~~Training~~ (gedaan: schema, extra training, uithouding, ontwikkeling).
 - Jeugdspelers uit de eigen jeugd.
-- Spelersprofiel met opgebouwd poppetje (lichamen + 36 hoofden staan klaar: `lichamen-gemini.jpg`, `hoofden1/2-gemini.jpg`).
+- ~~Spelersprofiel met opgebouwd poppetje~~ (gedaan).
+- Idee: de opgebouwde poppetjes ook groot bij de opstelling (veld met de 11) of in de wedstrijd.
 - ~~Managers kiezen met portret~~ (gedaan).
 
 ## Opdracht 7 – De beker (plaatjes) – KLAAR (`beker.jpg`)

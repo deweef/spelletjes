@@ -74,6 +74,17 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Getest (30 × 4 seizoenen, geen aankopen): rustig gem. 4,6e in seizoen 1 en na 4 seizoenen gem. divisie 3,6; normaal 4,2e / 3,2;
   keihard 5,4e / 3,0 (eerst moe, op den duur het sterkst).
 
+## Uiterlijk en spelersprofiel
+- Elke speler heeft `p.kop` (0-35) en `p.lijf` (0 dun, 1 gewoon, 2 buikje, 3 lang, 4 keeper). `voetbalbaas/lichamen.webp` (5 vakjes van
+  161,4 x 427,8, wit tenue, uit `lichamen-gemini.jpg`) en `voetbalbaas/hoofden.webp` (36 vakjes van 95,86 x 130,05, hals onderaan in het
+  midden, uit `hoofden1-gemini.jpg` en `hoofden2-gemini.jpg`; uitgeknipt met een eigen scriptje, groen weg, schaal 0,6 en 0,51).
+- `tekenPop(p)`: tekent het lichaam, kleurt wit → clubkleuren (shirt k1 met baan k2, broek k2, kousen k1; keeper `KEEPKLEUR`, handschoenen
+  wit) volgens `LIJF.shirt`/`LIJF.sok` (y-grenzen), kleurt de huid naar `HUID[kop]` (gemeten op de wangen; 31 en 32 met de hand) en zet
+  het hoofd op `LIJF.kraag`. Uitkomst gecachet in `popCache`.
+- `kopje(p)`: klein hoofdje in elke spelersrij; tik = `profiel(p, terug)` (via `schermNu`, staat aan in opstelling, transfers en
+  training, uit in de rust). Profiel: poppetje, kracht, uithouding, conditie, leeftijd, gespeeld, goals, salaris, waarde, eigenschap,
+  kracht per seizoen (`p.hist`), knop extra training.
+
 ## Eigenschappen en topscorers
 - `p.eig` (`EIG`, `geefEig`: 35% van de nieuwe spelers, passend bij de positie): ⚡ snel (scoort vaker, +15% bij counter),
   🧱 muur (V, +20%), Ⓒ kapitein (team +4%), 🥚 glas (+2 kracht, blessurekans 9% i.p.v. 3,5%), 🍺 kater/Feestbeest (vaker kater
