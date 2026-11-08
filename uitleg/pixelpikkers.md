@@ -12,6 +12,11 @@ maar met eigen naam, plaatjes en uiterlijk).
   Een hokje is te pakken als het aan de buitenrand of naast een lege plek ligt; een gat in het plaatje geeft dus toegang
   naar binnen. Ingesloten gaatjes worden bij het maken opgevuld (`vulGaatjes`), zodat elke lege plek bereikbaar is.
   Welke hokjes te pakken zijn wordt per kleur bijgehouden in `bord.rand` (`nieuwBord`, `haalWeg`, `telVrij`).
+- **Oppakken en opruimen** (wens van Marcel): een pikkertje loopt naar zijn hokje, pikt het op (fase `pik`, even
+  pikken; het hokje gaat dan van het bord), draagt het boven zijn kop langs dezelfde weg terug en gooit het in het
+  **opruimgat** (`L.gat`, rond gat tussen het plaatje en de sporen; liggend boven de sporen) met een plonsje
+  (`G.plons`, `geluid.plons`). Een spoor is pas vrij als al zijn pikkertjes hun hokje in het gat hebben gegooid.
+  Het tempo is daardoor rustiger: elke 0,11 s een pikkertje per spoor (was 0,075) en iets langzamer lopen.
 - Ze kiezen altijd het **dichtstbijzijnde** hokje vanaf hun ingang (spoor j van n komt op x = (j+0.5)/n van de
   onderrand binnen; `kiesHokje`).
 - Kan een spoor niet verder, dan blijft het staan met een 💤 en gaat vanzelf verder zodra er iets vrijkomt.

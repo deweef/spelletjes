@@ -327,14 +327,15 @@ function maakBlokken(cel,S,inst,lvl){
 // speelt de puzzel na zonder plaatjes: zonder r in de goede volgorde, met r door lukraak een kolom te tikken
 function proef(cel,S,kol,r,traag=1){
  // In de goede volgorde met maar 4 sporen tegelijk: zo is er in het echte spel een spoor speling. Net als in het spel is
- // een hokje pas weg als het pikkertje er is (looptijd: 1 ronde = 0,075 s, ongeveer 5 + 0,45 per hokje afstand);
- // tot dan staat het op 2 (gereserveerd).
+ // een hokje pas weg als het pikkertje er is (1 ronde = 0,11 s; heen ongeveer 3 + 0,35 per hokje afstand), tot dan
+ // staat het op 2 (gereserveerd). Het spoor is pas vrij als alle pikkertjes hun hokje in het gat hebben gegooid
+ // (terug ongeveer 7 + 0,8 per hokje afstand).
  const NS=r?5:4;
  const b=nieuwBord(cel,S),onderweg=[];
  const k2=kol.map(k=>k.slice()),sporen=Array(5).fill(null);
  for(let t=0;t<60000&&b.over>0;t++){
   let iets=false;
-  while(onderweg.length&&onderweg[0].t<=t){const o=onderweg.shift();haalWeg(b,o.i);o.s.weg--;iets=true}
+  while(onderweg.length&&onderweg[0].t<=t){const o=onderweg.shift();if(o.i>=0)haalWeg(b,o.i);else o.s.weg--;iets=true}
   const k=sporen.indexOf(null);
   if(k>=0&&sporen.filter(Boolean).length<NS){let kies=-1;
    if(r){const vol=[];k2.forEach((x,i)=>{if(x.length)vol.push(i)});if(vol.length)kies=vol[(r()*vol.length)|0]}
@@ -343,7 +344,7 @@ function proef(cel,S,kol,r,traag=1){
   for(let j=0;j<5;j++){const s=sporen[j];if(!s)continue;
    if(s.n>0){const h=kiesHokje(b,s.c,j,5);if(h>=0){b.stand[h]=2;s.n--;s.weg++;
     const e=ingangXY(j,5,S),d=Math.abs(h%S-e.x)+Math.abs(((h/S)|0)-e.y);
-    onderweg.push({t:t+Math.round((5+0.45*d)*traag),i:h,s});onderweg.sort((a,b)=>a.t-b.t);iets=true}}
+    onderweg.push({t:t+Math.round((3+0.35*d)*traag),i:h,s},{t:t+Math.round((7+0.8*d)*traag),i:-1,s});onderweg.sort((a,b)=>a.t-b.t);iets=true}}
    if(s.n==0&&s.weg==0)sporen[j]=null}
   if(!iets&&!onderweg.length)return false}
  return b.over==0;
@@ -422,7 +423,7 @@ function startLevel(lvl){
  vulGaatjes(G.cel,S);
  G.bord=nieuwBord(G.cel,S);G.stand=G.bord.stand;G.totaal=G.over=G.bord.over;
  G.kol=maakBlokken(G.cel,S,inst,zaad);
- G.sporen=[null,null,null,null,null];G.pikkers=[];G.pops=[];G.vliegers=[];G.schud=G.kol.map(()=>0);
+ G.sporen=[null,null,null,null,null];G.pikkers=[];G.pops=[];G.plons=[];G.vliegers=[];G.schud=G.kol.map(()=>0);
  G.hulp=false;G.klaar=false;G.vastTijd=0;G.klaarTijd=0;G.aanHet=true;G.gestart=false;G.tijd=0;
  document.getElementById('menu').hidden=true;sluitDlg();indeling();
 }
@@ -439,11 +440,13 @@ function indeling(){
   const pl=Math.min(onder-boven-4,W*0.55);
   zet(Math.max(12,(W*0.58-pl)/2),boven+(onder-boven-pl)/2,pl);
   const rx=L.plaatje.x-L.plaatje.z/S+pl+18,rw=W-rx-12;
-  zetRechts(rx,rw,boven+6,onder,n,K);
+  L.gat={x:rx+rw/2,y:boven+20,rx:22,ry:11};
+  zetRechts(rx,rw,boven+46,onder,n,K);
  }else{
-  const pl=Math.min(W-16,(onder-boven)*0.48);
+  const pl=Math.min(W-16,(onder-boven)*0.46);
   zet((W-pl)/2,boven,pl);
-  zetRechts(10,W-20,boven+pl+10,onder,n,K);
+  L.gat={x:W/2,y:boven+pl+22,rx:Math.min(24,W*0.06),ry:Math.min(12,W*0.03)};
+  zetRechts(10,W-20,boven+pl+42,onder,n,K);
  }
 }
 function zetRechts(x,w,y0,y1,n,K){
@@ -511,21 +514,29 @@ function update(dt){
   if(s.komt>0){s.komt=Math.max(0,s.komt-dt);continue}
   if(s.n>0){s.cd-=dt*G.snel;
    while(s.cd<=0&&s.n>0){const doel=kiesHokje(G.bord,s.c,i,G.sporen.length);if(doel<0){s.cd=0.12;break}
-    G.stand[doel]=2;s.n--;s.cd+=0.075;s.laatst=G.tijd;
+    G.stand[doel]=2;s.n--;s.cd+=0.11;s.laatst=G.tijd;
     const m=spoorMidden(i);
-    G.pikkers.push({pad:looppad(i,doel,m),stuk:0,f:0,doel,c:s.c,spoor:i,x:m.x,y:m.y,kijk:1});s.weg=(s.weg||0)+1}}
+    G.pikkers.push({pad:looppad(i,doel,m),fase:'heen',stuk:0,f:0,doel,c:s.c,spoor:i,x:m.x,y:m.y,kijk:1});s.weg=(s.weg||0)+1}}
   if(s.n==0&&!s.weg){s.einde=(s.einde||0)+dt;if(s.einde>0.15)G.sporen[i]=null}
  }
- // pikkertjes vliegen
- const loop=Math.max(260,cz*30)*G.snel*dt;
- for(let j=G.pikkers.length-1;j>=0;j--){const p=G.pikkers[j];let rest=loop;
+ // pikkertjes lopen heen, pikken het hokje op, lopen terug en gooien het in het gat
+ const loop=Math.max(220,cz*26)*G.snel*dt;
+ for(let j=G.pikkers.length-1;j>=0;j--){const p=G.pikkers[j];
+  if(p.fase=='pik'){p.wacht-=dt*G.snel;if(p.wacht<=0){p.fase='terug';p.pad=p.terugPad;p.stuk=0;p.f=0}continue}
+  let rest=loop*(p.fase=='terug'?0.85:1);
   while(rest>0&&p.stuk<p.pad.length-1){const a=p.pad[p.stuk],b=p.pad[p.stuk+1],len=Math.hypot(b.x-a.x,b.y-a.y)||0.001;
    const stap=Math.min(rest,len*(1-p.f));p.f+=stap/len;rest-=stap;
    if(Math.abs(b.x-a.x)>0.5)p.kijk=b.x>a.x?1:-1;
    p.x=a.x+(b.x-a.x)*p.f;p.y=a.y+(b.y-a.y)*p.f;if(p.f>=0.999){p.stuk++;p.f=0}}
-  if(p.stuk>=p.pad.length-1){haalWeg(G.bord,p.doel);G.over=G.bord.over;G.pikkers.splice(j,1);const s=G.sporen[p.spoor];if(s)s.weg--;
-   const x=P.x+(p.doel%S+0.5)*cz,y=P.y+((p.doel/S|0)+0.5)*cz;
-   G.pops.push({x,y,c:p.c,t:0});geluid.pik()}}
+  if(p.stuk<p.pad.length-1)continue;
+  if(p.fase=='heen'){ // oppakken: het hokje gaat van het bord af en het pikkertje draagt het
+   haalWeg(G.bord,p.doel);G.over=G.bord.over;p.fase='pik';p.wacht=0.14;p.draagt=true;
+   p.terugPad=[p.pad[p.pad.length-1],...p.pad.slice(1,-1).reverse(),{x:L.gat.x,y:L.gat.y+L.gat.ry*0.6},{x:L.gat.x,y:L.gat.y}];
+   G.pops.push({x:p.x,y:p.y,c:p.c,t:0,klein:true});geluid.pik();
+  }else{ // in het gat gegooid
+   G.pikkers.splice(j,1);const s=G.sporen[p.spoor];if(s)s.weg--;
+   G.plons.push({x:L.gat.x,y:L.gat.y,c:p.c,t:0});geluid.plons()}}
+ for(let j=G.plons.length-1;j>=0;j--){G.plons[j].t+=dt*3;if(G.plons[j].t>=1)G.plons.splice(j,1)}
  for(let j=G.pops.length-1;j>=0;j--){G.pops[j].t+=dt*2.5;if(G.pops[j].t>=1)G.pops.splice(j,1)}
  // klaar?
  if(G.over<=0&&!G.pikkers.length){G.klaarTijd+=dt;if(G.klaarTijd>0.7&&!G.klaar)gewonnen();return}
@@ -583,7 +594,7 @@ function teken(){
   if(cz>7){ctx.fillStyle='rgba(255,255,255,.28)';ctx.fillRect(x+gat*0.5,y+gat*0.5,cz-gat,cz*0.2);
    ctx.fillStyle='rgba(0,0,0,.16)';ctx.fillRect(x+gat*0.5,y+cz*0.78,cz-gat,cz*0.22-gat*0.5)}}
  // ploppen
- for(const p of G.pops){const s=cz*(1-p.t)*0.9;ctx.globalAlpha=1-p.t;ctx.fillStyle=KLEUREN[p.c].hex;
+ for(const p of G.pops){const s=cz*(1-p.t)*(p.klein?0.45:0.9);ctx.globalAlpha=1-p.t;ctx.fillStyle=KLEUREN[p.c].hex;
   for(let a=0;a<4;a++){const ang=a*Math.PI/2+0.6,d=p.t*cz*1.4;ctx.fillRect(p.x+Math.cos(ang)*d-s/4,p.y+Math.sin(ang)*d-s/4,s/2,s/2)}
   ctx.globalAlpha=1}
  // sporen
@@ -610,9 +621,22 @@ function teken(){
  }
  if(G.lvl==1&&!G.gestart){ctx.fillStyle='#5b3a1a';ctx.font='800 17px system-ui';ctx.textAlign='center';
   const bounce=Math.sin(G.tijd*5)*4;ctx.fillText('👇 Tik op een blok!',B.x+(B.K*(B.w+B.gat)-B.gat)/2,B.y-8+bounce-0.0001)}
- // pikkertjes
- for(const p of G.pikkers){const hup=Math.abs(Math.sin((G.tijd*14+p.doel)%6.283))*Math.min(3,cz*0.25);
-  tekenPikker(p.x,p.y-hup,Math.max(3.5,Math.min(9,cz*0.45)),p.c,p.kijk)}
+ // het opruimgat: daar gooien de pikkertjes hun hokjes in
+ const g=L.gat;
+ ctx.beginPath();ctx.ellipse(g.x,g.y+2,g.rx+5,g.ry+4,0,0,7);ctx.fillStyle='#e2c79c';ctx.fill();
+ ctx.beginPath();ctx.ellipse(g.x,g.y,g.rx,g.ry,0,0,7);const gr=ctx.createRadialGradient(g.x,g.y+g.ry*0.4,1,g.x,g.y,g.rx);
+ gr.addColorStop(0,'#1e120a');gr.addColorStop(1,'#6b4527');ctx.fillStyle=gr;ctx.fill();
+ for(const q of G.plons){const z=Math.max(3,cz*0.8)*(1-q.t);ctx.globalAlpha=1-q.t*0.6;ctx.fillStyle=KLEUREN[q.c].hex;
+  ctx.fillRect(q.x-z/2,q.y-z/2+q.t*g.ry*0.6,z,z);
+  ctx.globalAlpha=(1-q.t)*0.7;ctx.strokeStyle='#f6e3c4';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(q.x,q.y,g.rx*(0.5+q.t*0.7),g.ry*(0.5+q.t*0.7),0,0,7);ctx.stroke();ctx.globalAlpha=1}
+ // pikkertjes (met hun hokje boven hun kop als ze terug lopen)
+ const r=Math.max(3.5,Math.min(9,cz*0.45));
+ for(const p of G.pikkers){const hup=p.fase=='pik'?0:Math.abs(Math.sin((G.tijd*14+p.doel)%6.283))*Math.min(3,cz*0.25);
+  const pikt=p.fase=='pik'?Math.sin((0.14-p.wacht)*45)*r*0.3:0;
+  tekenPikker(p.x+pikt*p.kijk,p.y-hup,r,p.c,p.kijk);
+  if(p.draagt&&p.fase!='pik'){const z=Math.max(4,Math.min(cz*0.9,r*1.6)),hex=KLEUREN[p.c].hex;
+   const bx=p.x-z/2,by=p.y-hup-r-z+1;ctx.fillStyle=hex;ctx.fillRect(bx,by,z,z);
+   ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(bx,by,z,z*0.25);ctx.strokeStyle=lichter(hex,-0.45);ctx.lineWidth=1;ctx.strokeRect(bx+0.5,by+0.5,z-1,z-1)}}
 }
 
 // ---------- einde ----------
@@ -667,6 +691,7 @@ const geluid={ac:null,laatste:0,
   g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d)},
  pik(){const n=performance.now();if(n-this.laatste<35)return;this.laatste=n;this.toon(700+Math.random()*500,0.06,'triangle',0.05,1.6)},
  tik(){this.toon(440,0.1,'square',0.04,1.5)},
+ plons(){const n=performance.now();if(n-(this.laatstePlons||0)<45)return;this.laatstePlons=n;this.toon(320+Math.random()*120,0.12,'sine',0.06,0.45)},
  bonk(){this.toon(160,0.25,'sawtooth',0.05,0.5)},
  feest(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.toon(f,0.25,'triangle',0.08),i*110))}};
 
