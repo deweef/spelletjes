@@ -128,8 +128,6 @@ let soortNu='heren';try{soortNu=localStorage.getItem('voetbalbaas_soort')||'here
 const soort=()=>(S&&S.soort)||soortNu;
 const nieuwV=()=>soort()=='dames'||(soort()=='gemengd'&&R()<0.5);
 const hij=p=>p&&p.v?'zij':'hij',Hij=p=>p&&p.v?'Zij':'Hij',hem=p=>p&&p.v?'haar':'hem';
-// tijdelijke hoofden voor speelsters zolang er nog geen eigen vel is (gladgeschoren mannenhoofden)
-const KOP_V_TIJDELIJK=[0,2,7,9,10,13,14,21,24,25,26,32,33];
 const praat=q=>soort()=='dames'?q.replace(/jongens/g,'meiden').replace(/mannen/g,'meiden').replace(/\bboys\b/g,'girls'):q;
 // Eigenschappen (p.eig): ongeveer 1 op de 3 spelers heeft er een. Effecten: lijnen() (muur, snel, kapitein, supersub),
 // zetSchutters (snel scoort vaker), naAfloop (glas: vaker geblesseerd), gebeurtenis (kater), waarde (kater goedkoper), strafschoppen (killer).
@@ -621,7 +619,10 @@ const KEEPKLEUR=['#d7f52a','#39e639','#ff5fa2','#ff8a1f','#29c7e8'];
 const lijfImg=new Image(),kopImg=new Image(),lijfVImg=new Image();lijfImg.src='voetbalbaas/lichamen.webp';kopImg.src='voetbalbaas/hoofden.webp';lijfVImg.src='voetbalbaas/lichamen-v.webp';
 // speelsters: voetbalbaas/lichamen-v.webp (uit lichamen-v-gemini.jpg, zelfde vakjes en schaal als de mannen, eigen maten in LIJF_V)
 const LIJF_V={w:161.4,h:427.8,kraag:[116.4,111.6,111,87.6,102.6],cx:[80.1,80.7,80.1,79.8,80.4],shirt:[235.2,229.2,229.8,214.8,210],sok:[328.8,327,327,321,384]},LIJFHUID_V=[230,172,137];
-const kopNr=p=>p.v?KOP_V_TIJDELIJK[(p.kop||0)%KOP_V_TIJDELIJK.length]:(p.kop||0);
+// hoofden van speelsters: voetbalbaas/hoofden-v.webp (36 vakjes van 132,09 x 133,11, uit hoofden-v1-/hoofden-v2-gemini.jpg)
+const KOPV={w:132.09,h:133.11,breed:4755.24},HUID_V=["#f5bfa3", "#795038", "#e2a97f", "#de9f6f", "#ebbb8b", "#795139", "#f2baa0", "#dd9e71", "#dca270", "#79513b", "#f4bda3", "#efbb8b", "#754e37", "#f2ba9f", "#dda275", "#7e523b", "#d99d6b", "#f1b99e", "#c9936f", "#724c36", "#edba9f", "#ecb785", "#f1ba9c", "#714b36", "#f1ba9d", "#d69766", "#c88a60", "#734d37", "#f0b89c", "#f6c0a7", "#714c37", "#f2b99d", "#cd8f5e", "#6f4a35", "#c07f5d", "#f0b998"];
+const kopVImg=new Image();kopVImg.src='voetbalbaas/hoofden-v.webp';
+const kopNr=p=>(p.kop||0)%36;
 const plaatjeKlaar=img=>img.complete&&img.naturalWidth?Promise.resolve():new Promise((ok,nee)=>{img.addEventListener('load',ok,{once:true});img.addEventListener('error',nee,{once:true})});
 const hex=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
 const popCache={};
@@ -630,7 +631,7 @@ function tekenPop(p){ // geeft een canvas van 170 x 470 met de speler in onze cl
  const L=p.lijf??(p.pos=='K'?4:1),M=p.v?LIJF_V:LIJF,BH=p.v?LIJFHUID_V:LIJFHUID,PAD=42,cv=document.createElement('canvas');cv.width=170;cv.height=Math.ceil(M.h)+PAD;
  const x=cv.getContext('2d'),ox=(170-M.w)/2;x.drawImage(p.v?lijfVImg:lijfImg,L*M.w,0,M.w,M.h,ox,PAD,M.w,M.h);
  const d=x.getImageData(0,0,cv.width,cv.height),px=d.data,keeper=L==4;
- const k1=hex(keeper?KEEPKLEUR[p.id%5]:c.k1),k2=hex(keeper?KEEPKLEUR[p.id%5]:c.k2),broek=keeper?k1:k2,huid=hex(HUID[kopNr(p)]);
+ const k1=hex(keeper?KEEPKLEUR[p.id%5]:c.k1),k2=hex(keeper?KEEPKLEUR[p.id%5]:c.k2),broek=keeper?k1:k2,huid=hex((p.v?HUID_V:HUID)[kopNr(p)]);
  for(let i=0;i<px.length;i+=4){if(!px[i+3])continue;const r=px[i],g=px[i+1],b=px[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b),lum=(r+g+b)/3;
   const xx=(i/4)%cv.width-ox,yy=Math.floor(i/4/cv.width)-PAD;
   if(r>g&&g>b&&r-b>40&&lum>90){for(let k=0;k<3;k++)px[i+k]=clamp(px[i+k]*huid[k]/BH[k],0,255);continue}
@@ -639,10 +640,10 @@ function tekenPop(p){ // geeft een canvas van 170 x 470 met de speler in onze cl
    const kl=yy<M.shirt[L]?(Math.abs(xx-M.cx[L])<9&&!keeper?k2:k1):yy<M.sok[L]?broek:k1,f=Math.min(1.08,lum/235);
    for(let k=0;k<3;k++)px[i+k]=clamp(kl[k]*f,0,255)}}
  x.putImageData(d,0,0);
- const k=kopNr(p);x.drawImage(kopImg,k*KOP.w,0,KOP.w,KOP.h,ox+M.cx[L]-KOP.w/2,PAD+M.kraag[L]+3-KOP.h,KOP.w,KOP.h);
+ const k=kopNr(p),KK=p.v?KOPV:KOP;x.drawImage(p.v?kopVImg:kopImg,k*KK.w,0,KK.w,KK.h,ox+M.cx[L]-KK.w/2,PAD+M.kraag[L]+3-KK.h,KK.w,KK.h);
  return popCache[key]=cv;
 }
-const kopje=p=>{const sc=34/KOP.h;return`<span class="kop" data-prof="${p.id}" title="Profiel van ${esc(p.naam)}" style="background-size:${3451*sc}px 34px;background-position:${-kopNr(p)*KOP.w*sc+(26-KOP.w*sc)/2}px 1px"></span>`};
+const kopje=p=>{const KK=p.v?KOPV:KOP,br=p.v?KOPV.breed:3451,sc=34/KK.h;return`<span class="kop" data-prof="${p.id}" title="Profiel van ${esc(p.naam)}" style="${p.v?'background-image:url(voetbalbaas/hoofden-v.webp);':''}background-size:${br*sc}px 34px;background-position:${-kopNr(p)*KK.w*sc+(26-KK.w*sc)/2}px 1px"></span>`};
 // tik op een hoofdje = profiel (schermNu = het scherm om naar terug te gaan; in de rust staat het uit)
 let schermNu=null;
 scherm.addEventListener('click',e=>{const t=e.target.closest('[data-prof]');if(!t||!schermNu)return;e.stopPropagation();e.preventDefault();
@@ -667,7 +668,7 @@ function profiel(p,terug){
  <button class="knop groot" id="klaar">Terug</button>`);
  terugNaar=terug;$('#klaar').onclick=terug;
  if($('#extra'))$('#extra').onclick=()=>{S.extra=S.extra==p.id?null:p.id;bewaar();profiel(p,terug)};
- Promise.all([plaatjeKlaar(lijfImg),plaatjeKlaar(kopImg),plaatjeKlaar(lijfVImg)]).then(()=>{const pop=$('#pop');if(pop)pop.appendChild(tekenPop(p))}).catch(()=>{});
+ Promise.all([plaatjeKlaar(lijfImg),plaatjeKlaar(kopImg),plaatjeKlaar(lijfVImg),plaatjeKlaar(kopVImg)]).then(()=>{const pop=$('#pop');if(pop)pop.appendChild(tekenPop(p))}).catch(()=>{});
 }
 const eigUitleg=()=>`<details class="vak klein"><summary class="geel" style="cursor:pointer">Wat betekenen de tekentjes bij sommige spelers?</summary>${Object.values(EIG).map(x=>`<p style="margin:5px 0">${x.t} <b class="wit">${x.naam}</b>: ${x.uitleg}</p>`).join('')}</details>`;
 function spelerRij(p,aan,knop){

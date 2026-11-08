@@ -79,7 +79,8 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
   Dames: alle clubnamen + " Vrouwen" (eigen club niet). Gemengd: elke nieuwe speler 50% kans speelster. `p.v` = speelster.
 - Speelsters: voornamen `VOOR_V`, lichamen `voetbalbaas/lichamen-v.webp` (`LIJF_V`, uit `lichamen-v-gemini.jpg`, geschaald naar de
   mannen), in de wedstrijd een paardenstaartje (`poppetje(...,staart)`, `staart(i)`: dames altijd, gemengd om en om).
-- Hoofden van speelsters: TIJDELIJK gladgeschoren mannenhoofden (`KOP_V_TIJDELIJK` in `kopNr`) tot er een eigen vel is (Gemini-opdracht 10).
+- Hoofden van speelsters: `voetbalbaas/hoofden-v.webp` (36 vakjes van 132,09 x 133,11, `KOPV`, huid `HUID_V`; uit `hoofden-v1-gemini.jpg`
+  en `hoofden-v2-gemini.jpg`, rijen en kolommen geknipt op de rustigste plek omdat een lange vlecht doorloopt).
 - Teksten: `hij/Hij/hem(p)`; managersuitspraken via `praat()` (dames: jongens/mannen → meiden, boys → girls).
 
 ## Uiterlijk en spelersprofiel
