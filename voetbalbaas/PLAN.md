@@ -105,7 +105,9 @@ op het scherm "Einde seizoen" bij promotie.
 - ~~Spelers met een eigenschap~~ (gedaan: 7 eigenschappen).
 - ~~Topscorerslijst~~ (gedaan: Gouden Frikandel).
 - ~~Concept-label weg~~ (gedaan, 8 nov).
-- Training kiezen (conditie of kracht), jeugdspelers uit de eigen jeugd.
+- ~~Training~~ (gedaan: schema, extra training, uithouding, ontwikkeling).
+- Jeugdspelers uit de eigen jeugd.
+- Spelersprofiel met opgebouwd poppetje (lichamen + 36 hoofden staan klaar: `lichamen-gemini.jpg`, `hoofden1/2-gemini.jpg`).
 - ~~Managers kiezen met portret~~ (gedaan).
 
 ## Opdracht 7 – De beker (plaatjes) – KLAAR (`beker.jpg`)

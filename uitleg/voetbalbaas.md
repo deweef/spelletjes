@@ -64,6 +64,16 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - `afmaken` rekent de tweede helft uit met de nieuwe opstelling/tactiek en geeft het door aan `weekAfmaken` (competitie) of `bekerAfmaken`.
   "Naar de uitslag" in de eerste helft = zonder wissels doorspelen.
 
+## Training en ontwikkeling
+- `S.training` (`TRAINING`: rustig / normaal / conditie / hard) per competitieweek, `trainen()` na `naAfloop` in `weekAfmaken`:
+  conditie eraf (`moe`), herstel van wie niet speelde (`rust`), trainingspunten `p.tr`, kans op +1 kracht (`groeiKans`: jong ×1,5,
+  oud ×0,5, topspeler ×0,5) en op uithouding +1. `S.extra` = één speler extra training (−20 conditie, 25% kans op +1), geldt één week.
+- `p.uit` = uithouding 1-5: vermoeidheid per wedstrijd × (1,3 − 0,15 × uit). `p.sp` = wedstrijden dit seizoen.
+- Einde seizoen (`seizoenKlaar`): kracht + leeftijd (jong 0/+1, 24-30 30% kans −1, oud −0..2) + speeltijd (≥7 wedstrijden 50% +1,
+  ≤2 wedstrijden 50% −1) + training (≥12 punten 40% +1, ≥24 nog 30% +1). `p.hist` = kracht per seizoen. Grote sprong = bericht 📈.
+- Getest (30 × 4 seizoenen, geen aankopen): rustig gem. 4,6e in seizoen 1 en na 4 seizoenen gem. divisie 3,6; normaal 4,2e / 3,2;
+  keihard 5,4e / 3,0 (eerst moe, op den duur het sterkst).
+
 ## Eigenschappen en topscorers
 - `p.eig` (`EIG`, `geefEig`: 35% van de nieuwe spelers, passend bij de positie): ⚡ snel (scoort vaker, +15% bij counter),
   🧱 muur (V, +20%), Ⓒ kapitein (team +4%), 🥚 glas (+2 kracht, blessurekans 9% i.p.v. 3,5%), 🍺 kater/Feestbeest (vaker kater

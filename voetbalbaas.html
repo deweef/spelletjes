@@ -128,7 +128,7 @@ const EIG={
  joker:{t:'🔥',naam:'Supersub',uitleg:'Valt hij in de rust in, dan speelt hij de tweede helft 30% beter.',pos:'MA'},
  killer:{t:'🧤',naam:'Penaltykiller',uitleg:'Stopt veel vaker strafschoppen.',pos:'K'}};
 function geefEig(p){const opties=Object.keys(EIG).filter(k=>EIG[k].pos.includes(p.pos));if(R()<0.35&&opties.length){p.eig=kies(opties);if(p.eig=='glas')p.kracht=clamp(p.kracht+2,1,20)}else p.eig='';return p}
-function nieuweSpeler(pos,kr){return geefEig({id:volgId++,naam:kies(VOOR)+' '+kies(ACHTER),pos,kracht:clamp(Math.round(kr),1,20),leeftijd:ri(18,32),cond:100,blessure:0,schorsing:0,goals:0})}
+function nieuweSpeler(pos,kr){return geefEig({id:volgId++,naam:kies(VOOR)+' '+kies(ACHTER),pos,kracht:clamp(Math.round(kr),1,20),leeftijd:ri(18,32),cond:100,blessure:0,schorsing:0,goals:0,uit:ri(2,4),sp:0,tr:0})}
 const waarde=p=>Math.round(p.kracht*p.kracht*350*(p.leeftijd<24?1.2:p.leeftijd>30?0.7:1)*(p.eig=='kater'?0.8:1)/500)*500;
 const salaris=p=>Math.round(p.kracht*p.kracht*5/10)*10;
 const kun=p=>!p.blessure&&!p.schorsing;
@@ -137,6 +137,7 @@ const eff=p=>p.kracht*(0.5+0.5*p.cond/100);
 // ---------- spelstatus ----------
 let S=lees();if(S)volgId=S.volgId||1000;
 if(S&&!S.eigVerdeeld){S.spelers.forEach(p=>{if(p.eig==null){geefEig(p);if(p.eig=='glas')p.kracht-=2}});(S.markt||[]).forEach(p=>{if(p.eig==null)p.eig=''});S.eigVerdeeld=true} // oude opslag: geen gratis +2
+if(S)S.spelers.concat(S.markt||[]).forEach(p=>{if(p.uit==null){p.uit=ri(2,4);p.sp=p.sp||0;p.tr=p.tr||0}}); // uithouding voor oude opslag
 
 function nieuwSpel(clubId,eigen){ // eigen = {naam,k1,k2}: eigen club, neemt de plek van een club in de Kelderklasse in
  const clubs=CLUBS.map((c,i)=>({id:i,naam:c[0],k1:c[1],k2:c[2],div:4-Math.floor(i/8),niveau:0}));
@@ -234,11 +235,51 @@ function zetSchutters(ev,wijThuis){
 // conditie, blessures, schorsingen na een wedstrijd (week = er gaat ook een week voorbij: blessures tellen af, rust herstelt)
 function naAfloop(berichten,week){
  S.spelers.forEach(p=>{if(week){if(p.blessure)p.blessure--;if(p.schorsing)p.schorsing--}
-  if(S.opstelling.includes(p.id)){p.cond=clamp(p.cond-ri(5,11),20,100);
+  if(S.opstelling.includes(p.id)){p.cond=clamp(p.cond-Math.round(ri(5,11)*(1.3-0.15*(p.uit||3))),20,100);p.sp=(p.sp||0)+1;
    if(R()<(p.eig=='glas'?0.09:0.035)){p.blessure=ri(1,3);berichten.push(`🩹 ${p.naam} is geblesseerd geraakt (${p.blessure} ${p.blessure>1?'weken':'week'}).`)}
    else if(R()<0.012){p.schorsing=1;berichten.push(`🟥 ${p.naam} kreeg rood voor een sliding op de scheids. 1 week geschorst.`)}}
-  else if(week)p.cond=clamp(p.cond+25,0,100)});
+  else if(week)p.cond=clamp(p.cond+(TRAINING[S.training||'normaal'].rust),0,100)});
  S.opstelling=S.opstelling.filter(id=>{const p=S.spelers.find(x=>x.id==id);return p&&kun(p)});
+}
+
+// ---------- training ----------
+// Elke competitieweek: schema voor de hele groep (S.training) en eventueel extra training voor één speler (S.extra, geldt één week).
+// p.uit = uithouding 1-5 (hoe snel hij moe wordt), p.tr = trainingspunten en p.sp = gespeelde wedstrijden dit seizoen (voor de
+// ontwikkeling aan het eind van het seizoen, zie seizoenKlaar).
+const TRAINING={
+ rustig:{naam:'Rustig aan',uitleg:'Lekker bijkomen. Wie niet speelt herstelt extra goed. Niemand wordt beter.',rust:35,moe:0,tr:0,kracht:0,uith:0},
+ normaal:{naam:'Normaal',uitleg:'Gewoon trainen. Langzaam maar zeker beter worden.',rust:25,moe:0,tr:1,kracht:0.02,uith:0.01},
+ conditie:{naam:'Conditie',uitleg:'Rondjes rennen! Iedereen wat moe, maar kans dat spelers minder snel moe worden (uithouding +1).',rust:20,moe:5,tr:1,kracht:0,uith:0.08},
+ hard:{naam:'Keihard',uitleg:'Afzien! Iedereen moe, kans op +1 kracht per speler. Spelers van glas kunnen geblesseerd raken.',rust:18,moe:6,tr:2,kracht:0.09,uith:0}};
+const groeiKans=(p,k)=>k*(p.leeftijd<23?1.5:p.leeftijd>30?0.5:1)*(p.kracht>=BASIS[S.div]+5?0.5:1);
+function trainen(berichten){
+ const t=TRAINING[S.training||'normaal'],beter=[],fitter=[];
+ S.spelers.forEach(p=>{if(p.blessure)return;
+  p.cond=clamp(p.cond-t.moe,10,100);p.tr=(p.tr||0)+t.tr;
+  if(R()<groeiKans(p,t.kracht)&&p.kracht<20){p.kracht++;beter.push(p.naam)}
+  if(R()<t.uith&&(p.uit||3)<5){p.uit=(p.uit||3)+1;fitter.push(p.naam)}
+  if(S.training=='hard'&&p.eig=='glas'&&R()<0.1){p.blessure=1;berichten.push(`🩹 ${p.naam} verrekte iets op de keiharde training (1 week).`)}});
+ if(beter.length)berichten.push(`💪 Training: ${beter.join(', ')} ${beter.length>1?'zijn':'is'} sterker geworden (+1 kracht)!`);
+ if(fitter.length)berichten.push(`🏃 Conditietraining: ${fitter.join(', ')} ${fitter.length>1?'worden':'wordt'} minder snel moe.`);
+ const x=S.extra&&S.spelers.find(p=>p.id==S.extra);
+ if(x&&!x.blessure){x.cond=clamp(x.cond-20,10,100);x.tr=(x.tr||0)+3;
+  if(R()<groeiKans(x,0.25)&&x.kracht<20){x.kracht++;berichten.push(`💪 Extra training: ${x.naam} is sterker geworden (+1 kracht)!`)}
+  else berichten.push(`🏋️ Extra training: ${x.naam} heeft zich kapot gewerkt, maar is nog niet sterker.`)}
+ S.extra=null;
+}
+function trainingScherm(){
+ const t=S.training||'normaal',lijst=S.spelers.slice().sort((a,b)=>VOLG[a.pos]-VOLG[b.pos]||b.kracht-a.kracht);
+ teken(`<h1 style="font-size:20px">🏋️ TRAINING</h1><p class="sub">Geldt voor de komende competitieweek</p>
+ <h2>Schema voor de hele groep</h2>
+ ${Object.entries(TRAINING).map(([k,x])=>`<button class="knop" data-tr="${k}" style="${k==t?'background:var(--geel);color:#222':''}"><b>${x.naam}</b><br><span class="klein">${x.uitleg}</span></button>`).join('')}
+ <h2>Extra training voor één speler</h2>
+ <p class="klein">Hij wordt flink moe (−20 conditie), maar heeft een goede kans op +1 kracht. Jonge spelers groeien sneller, voor topspelers is het lastiger. Handig voor iemand die op de bank zit.</p>
+ <div>${lijst.map(p=>spelerRij(p,p.id==S.extra,`<span class="vink">${p.id==S.extra?'✓':''}</span>`).replace('class="naam">',`class="naam">`).replace('<span class="kr"',`<span class="klein" title="uithouding" style="width:30px">🏃${p.uit||3}</span><span class="kr"`)).join('')}</div>
+ <p class="klein">🏃 = uithouding (1-5): hoe hoger, hoe minder snel moe. Spelers die veel spelen en trainen worden aan het eind van het seizoen eerder beter.</p>
+ <button class="knop groot" id="klaar">Klaar</button>`);
+ scherm.querySelectorAll('[data-tr]').forEach(b=>b.onclick=()=>{S.training=b.dataset.tr;bewaar();const y=scrollY;trainingScherm();scrollTo(0,y)});
+ scherm.querySelectorAll('.speler').forEach(rw=>rw.onclick=()=>{const id=+rw.dataset.id,p=S.spelers.find(x=>x.id==id);if(p.blessure)return;S.extra=S.extra==id?null:id;bewaar();const y=scrollY;trainingScherm();scrollTo(0,y)});
+ $('#klaar').onclick=kantoor;
 }
 
 // ---------- de beker: De Gouden Bierpul ----------
@@ -316,6 +357,7 @@ function weekAfmaken(mijnEv,lo,berichten){
  const lonen=S.spelers.reduce((t,p)=>t+salaris(p),0);
  S.geld+=inkomsten-lonen;
  naAfloop(berichten,true);
+ trainen(berichten);
  // gebeurtenis
  if(R()<0.4)berichten.push(gebeurtenis());
  const res=voor>tegen?'w':voor<tegen?'v':'g';
@@ -368,7 +410,12 @@ function seizoenKlaar(){
  S.div=mijn().div;
  // spelers worden ouder
  const weg=[];
- S.spelers.forEach(p=>{p.leeftijd++;p.kracht=clamp(p.kracht+(p.leeftijd<24?ri(0,2):p.leeftijd<=30?ri(-1,1):-ri(0,2)),1,20);p.cond=100;p.blessure=0;p.schorsing=0;
+ S.spelers.forEach(p=>{p.leeftijd++;
+  // ontwikkeling: leeftijd + speeltijd + training (p.sp, p.tr)
+  const leeft=p.leeftijd<24?ri(0,1):p.leeftijd<=30?(R()<0.3?-1:0):-ri(0,2),speel=p.sp>=7?(R()<0.5?1:0):p.sp<=2?-(R()<0.5?1:0):0,train=((p.tr||0)>=12&&R()<0.4?1:0)+((p.tr||0)>=24&&R()<0.3?1:0);
+  const oud=p.kracht;p.kracht=clamp(p.kracht+leeft+speel+train,1,20);(p.hist=p.hist||[]).push(p.kracht);
+  if(p.kracht-oud>=2)info.push(`📈 ${p.naam} maakte een flinke sprong: kracht ${oud} → ${p.kracht}.`);
+  p.sp=0;p.tr=0;p.cond=100;p.blessure=0;p.schorsing=0;
   if(p.leeftijd>=35&&R()<0.6)weg.push(p)});
  weg.forEach(p=>{S.spelers.splice(S.spelers.indexOf(p),1);info.push(`👋 ${p.naam} (${p.leeftijd}) stopt met voetballen en gaat achter de bar staan.`)});
  S.seizoen++;S.opstelling=besteElf();nieuwSeizoen();nieuweMarkt();
@@ -522,6 +569,7 @@ function kantoor(){
  ${fout?`<p class="melding">${fout}</p>`:''}
  <button class="knop groot" id="spelen">${bk?'🍺 Speel de '+br.toLowerCase():'⚽ Speel de wedstrijd'}</button>
  <button class="knop" id="opst">📋 Opstelling</button>
+ <button class="knop" id="train">🏋️ Training <span class="klein geel">(${TRAINING[S.training||'normaal'].naam}${S.extra?', extra: '+esc((S.spelers.find(p=>p.id==S.extra)||{}).naam||''):''})</span></button>
  <button class="knop" id="geld">🎟️ Kaartjes en geld</button>
  <button class="knop" id="trans">💰 Transfers (kopen en verkopen)</button>
  <button class="knop" id="stand">📊 Stand en uitslagen</button>
@@ -530,7 +578,7 @@ function kantoor(){
  <div style="margin-top:16px"><button class="knop klein" id="kleuren">🎨 Clubnaam en kleuren</button><button class="knop klein" id="andermgr">🧢 Andere manager</button><button class="knop klein" id="opnieuw">Opnieuw beginnen</button></div>`);
  terugNaar=beginScherm;$('#kleuren').onclick=()=>clubMaken(true);$('#andermgr').onclick=()=>managerKiezen(m=>{S.manager=m;bewaar();kantoor()},kantoor);
  $('#spelen').onclick=()=>{if(opstellingFout())return opstelling(true);startWedstrijd();wedstrijd()};
- $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;scherm.querySelectorAll('[data-naar]').forEach(b=>b.onclick=()=>$('#'+b.dataset.naar).click());$('#geld').onclick=geldScherm;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
+ $('#opst').onclick=()=>opstelling();$('#trans').onclick=transfers;$('#train').onclick=trainingScherm;scherm.querySelectorAll('[data-naar]').forEach(b=>b.onclick=()=>$('#'+b.dataset.naar).click());$('#geld').onclick=geldScherm;$('#stand').onclick=standScherm;$('#ere').onclick=erelijst;$('#opnieuw').onclick=beginScherm;
 }
 
 function balken(){
