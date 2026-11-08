@@ -396,7 +396,17 @@ const scherm=$('#scherm');
 // en pas vanaf het beginscherm naar de startpagina met alle spellen. teken() zet de standaard; schermen kunnen terugNaar overschrijven.
 let terugNaar=null;
 function teken(html){if(anim){cancelAnimationFrame(anim);anim=null}scherm.innerHTML=html;scrollTo(0,0);terugNaar=S&&!S.lopend&&!S.ontslagen?kantoor:beginScherm}
-document.querySelector('.terug').addEventListener('click',e=>{if(terugNaar){e.preventDefault();geluidAan();terugNaar()}});
+document.querySelector('.terug').addEventListener('click',e=>{e.preventDefault();geluidAan();if(terugNaar)return terugNaar();vraagVerlaten()});
+// vanaf het beginscherm eerst vragen of je echt naar de startpagina wilt
+function vraagVerlaten(){if($('#verlaat'))return;
+ const d=document.createElement('div');d.id='verlaat';
+ d.innerHTML=`<div class="vak" style="max-width:320px;margin:0 auto;border:2px solid var(--geel);text-align:center;padding:16px">
+  <p class="wit" style="font-size:17px;margin:0 0 6px">Je verlaat Voetbalbaas.</p><p class="klein" style="margin:0 0 12px">${S?'Je club is bewaard, je kunt later verder. ':''}Terug naar alle spellen?</p>
+  <div class="rij" style="justify-content:center;gap:10px"><button class="knop klein" id="verlaatJa" style="width:110px;text-align:center;font-size:16px">Ja</button><button class="knop klein" id="verlaatNee" style="width:110px;text-align:center;font-size:16px;background:var(--geel);color:#222">Nee</button></div></div>`;
+ d.style.cssText='position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.6);display:flex;align-items:center;padding:16px';
+ document.body.appendChild(d);
+ $('#verlaatJa').onclick=()=>{location.href='./'};$('#verlaatNee').onclick=()=>d.remove();d.onclick=e=>{if(e.target==d)d.remove()};
+}
 const clubTag=c=>`<span class="club" style="background:linear-gradient(90deg,${c.k1} 50%,${c.k2} 50%)"></span>${esc(c.naam)}`;
 function ster(L){const n=clamp(Math.round((L-BASIS[S.div])/1.2+3),1,5);return'★'.repeat(n)+'☆'.repeat(5-n)}
 

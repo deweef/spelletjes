@@ -49,7 +49,8 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Gewonnen = `S.bekers` (lijst seizoenen), te zien in de erelijst. Kantoor: melding + knop "🍺 Speel de achtste finale" enz.
 
 ## Terugknop en beeld
-- Terugknop linksboven = een stap terug (`terugNaar`, standaard gezet in `teken`): scherm → kantoor → beginscherm → startpagina.
+- Terugknop linksboven = een stap terug (`terugNaar`, standaard gezet in `teken`): scherm → kantoor → beginscherm → startpagina
+  (die laatste stap vraagt eerst "Je verlaat Voetbalbaas… Ja/Nee", `vraagVerlaten`).
   Tijdens een wedstrijd naar het beginscherm (Verder = terug in de wedstrijd/rust).
 - Het veld tussen de kansen toont onze echte opstelling (`tekenStil`) tegen hun 4-4-2. Bij een kans (`aantalInBeeld`): wij met
   aanvallers + 1 (2-4 poppetjes) tegen 2 verdedigers; zij met 3 tegen onze verdedigers − 2 (1-4).
