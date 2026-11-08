@@ -35,14 +35,32 @@ maar met eigen naam, plaatjes en uiterlijk).
   laat wachten), `lastig`, `spreiding` (blokken 'van later' bovenop), `lijst`, kolommen (3-5), `toets` en `doel`.
   Om te testen kan `window.__afstel = {...}` instellingen overschrijven.
 
+## Schilderijen (wens van Marcel; Anja is dol op Van Gogh)
+- Tweede reeks in het menu: 🖼️ Schilderijen, eigen voortgang in `pixelpikkers_kunst:<naam>`. `startLevel(n,'kunst')`.
+- `KUNST` in `pixelpikkers.html`: 15 schilderijen als pixeldata (titel `t`, maker `m`, grapje `g`, kleuren `pal`,
+  `rijen` met per hokje een teken 0-9/a-j). 13 van Van Gogh (Sterrennacht, Zonnebloemen, Amandelbloesem, Slaapkamer,
+  Caféterras, Zelfportret 1889, Irissen, Sterrennacht boven de Rhône, Korenveld met cipressen, De oogst, Camille
+  Roulin, Armand Roulin, La Mousmé), plus De schreeuw (Munch) en De grote golf (Hokusai). Allemaal publiek domein.
+- Gemaakt met `extra/pixelkunst.py` (lijst in `extra/pixelkunst-lijst.json`): verkleinen tot max 34 hokjes, iets
+  feller, kleuren terugbrengen (mediancut, max 10, te gelijke en te kleine kleuren samenvoegen).
+  Bronplaatjes: Wikimedia is vanuit de cloud niet bereikbaar; ze kwamen via raw.githubusercontent.com uit
+  giatin110406-pixel/MobileDev (`Neo-Brutalism Locket/server/styles/van_gogh/`, kopieën van Commons op 1280 px) en
+  jcjohnson/neural-style (`examples/inputs/the_scream.jpg`), lengstrom/fast-style-transfer (`examples/style/wave.jpg`).
+  Nieuwe schilderijen zoeken: `gh api -X GET search/code -f q='"bestandsnaam.jpg"'` en dan via raw ophalen.
+- Het schilderij komt midden op een bord van 40x40 met een lijst van 3 ringen (goud, hout, zwart, zilver of wijnrood:
+  de kleuren die het minst op het schilderij lijken; `LIJST`). De eigen kleuren worden achter `KLEUREN` gezet
+  (`kunstPlaatje`). Moeilijkheid als eten-level 8 tot 20, maar de maker laat zelf maar 2 sporen wachten (`vast=2`).
+
 ## Altijd oplosbaar, maar niet met wild tikken
 - `maakBlokkenEen` speelt het level zelf en onthoudt de blokken in volgorde (`o`); de kolommen houden die volgorde aan.
 - `maakBlokken` maakt tot 30 puzzels (vast zaadje per level, dus elke keer dezelfde puzzel). Alleen puzzels die
-  `proef` in de goede volgorde haalt (meteen doortikken zodra er een spoor vrij is) tellen. Daarvan wordt de puzzel
+  `proef` in de goede volgorde haalt (meteen doortikken zodra er een spoor vrij is, met maar **4** sporen en met
+  12 rondes looptijd per pikkertje, zoals in het echte spel) tellen. Zonder die speling liep het echte spel soms
+  vast doordat de pikkertjes onderweg zijn en dus later pikken dan de proef. Daarvan wordt de puzzel
   gekozen waarbij **wild tikken** (`proef` met toeval, `toets` = 10 keer) het vaakst vastloopt, tot het `doel` gehaald is
   (level 2-4: hooguit de helft lukt, 5-9: een derde, 10+: een zesde). Kost ongeveer 0,2 seconde.
 - Gemeten in het echte spel (wild tikken, 8 keer): level 2-3 lukt bijna altijd, level 5 de helft, level 8+ meestal
-  vast (0-3 van de 8). In de goede volgorde lukken alle 46 levels.
+  vast (0-3 van de 8). In de goede volgorde lukken alle 46 levels en alle 15 schilderijen.
 - Eerder waren er twee versies: pikkertjes die over de hokjes heen vlogen en alleen in een rechte lijn konden pakken
   (gaf "ruimte maar hij pakt ze niet"), en zonder lijst (veel te makkelijk: wild tikken won altijd).
 

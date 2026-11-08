@@ -16,6 +16,16 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 .knop:active{transform:translateY(3px);box-shadow:0 2px 0 #23803a}
 .knop.oranje{background:#f39a22;box-shadow:0 5px 0 #b5650a}
 .knop.grijs{background:#a08a72;box-shadow:0 5px 0 #6f5c47}
+#menu h2.soort{margin:30px 0 10px;font-size:23px;color:#7a3b17}
+#menu h2.soort.klein{font-size:17px;margin:34px 0 0}
+#menu .uitleg.klein{font-size:14.5px;margin-bottom:12px}
+#kunstlevels{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;max-width:520px;margin:18px auto 0}
+#kunstlevels button{font:inherit;border:0;border-radius:12px;background:#fff8ec;box-shadow:0 3px 0 #d9bf98;padding:6px 6px 5px;cursor:pointer;color:#5b3a1a;display:flex;flex-direction:column;align-items:center;gap:4px}
+#kunstlevels img{height:60px;max-width:84px;image-rendering:pixelated;border:3px solid #c9952c;border-radius:2px}
+#kunstlevels b{font-size:34px;line-height:66px}
+#kunstlevels small{font-size:11.5px;font-weight:700;line-height:1.2}
+#kunstlevels button:disabled{opacity:.5;cursor:default}
+#kunstlevels button.nu{background:#ffe08a;box-shadow:0 3px 0 #d6a52a}
 #levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:9px;max-width:520px;margin:22px auto 0}
 #levels button{font:inherit;border:0;border-radius:14px;background:#fff8ec;box-shadow:0 3px 0 #d9bf98;padding:6px 0 4px;cursor:pointer;color:#5b3a1a}
 #levels button b{display:block;font-size:28px;line-height:36px}
@@ -40,7 +50,14 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
   <p class="uitleg">Tik onderin op een blok. De pikkertjes rennen naar een spoor en pikken van het plaatje alle hokjes in hun kleur weg,
   maar ze lopen er omheen en kunnen niet over andere hokjes heen: ze pakken alleen hokjes waar ze bij kunnen. Kunnen ze niet verder, dan wachten ze tot er weer iets vrijkomt.
   Je hebt <b>5 sporen</b>: staan ze allemaal vol met wachtende pikkertjes, dan zit je vast!</p>
+  <h2 class="soort">🍓 Eten en beestjes</h2>
   <button class="knop" id="verder">Speel level 1</button>
+  <h2 class="soort">🖼️ Schilderijen</h2>
+  <p class="uitleg klein">Van Gogh en een paar andere beroemde schilderijen, in een lijst. Groter en pittiger!</p>
+  <button class="knop oranje" id="kverder">Speel schilderij 1</button>
+  <h2 class="soort klein">Alle schilderijen</h2>
+  <div id="kunstlevels"></div>
+  <h2 class="soort klein">Alle levels met eten en beestjes</h2>
   <div id="levels"></div>
 </div>
 <div id="dlg" hidden><div class="doos" id="doos"></div></div>
@@ -51,6 +68,8 @@ const opslag={lees(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}
 const speler=opslag.lees('speler','');
 const SLEUTEL='pixelpikkers_lvl'+(speler?':'+speler:'');
 let besteLevel=+opslag.lees(SLEUTEL,opslag.lees('pixelpikkers_lvl','1'))||1; // hoogste vrijgespeelde level
+const KSLEUTEL='pixelpikkers_kunst'+(speler?':'+speler:'');
+let besteKunst=+opslag.lees(KSLEUTEL,'1')||1; // hoogste vrijgespeelde schilderij
 let geluidAan=opslag.lees('pixelpikkers_geluid','1')=='1';
 
 // ---------- de plaatjes ----------
@@ -102,6 +121,19 @@ const PLAATJES=[ // vooral eten en beestjes (wens van Anja)
  ['🌵','Cactus','Niet tegenaan plassen. Au.'],
  ['🦄','Eenhoorn','Bestaat echt. Zegt de eenhoorn.'],
 ];
+// ---------- schilderijen (publiek domein, van Wikimedia Commons; omgezet met extra/pixelkunst.py) ----------
+// per schilderij: titel t, maker m, grapje g, kleuren pal en rijen met per hokje een teken (0-9, a-j = kleur uit pal)
+const KUNST=[{"t":"De sterrennacht","m":"Vincent van Gogh, 1889","pal":["#181d1a","#293341","#253c83","#3a4e63","#3b5b9a","#4f75a7","#708687","#6788a8","#bdb749","#9eb199"],"rijen":["1256622632466424542222422444444446","2278622332466664222466444244579966","2245421222442432422786422457988899","4244221342222222222465222459988899","5444421884224567744424244459888899","6444423664455666775752566559888889","7742221455776644455474499547988899","5567553677773244547545457554799977","7557771377662577575774444545557557","6775760374665557557774444445555447","6777730341245774457545767555555569","6555510122245777444455547755779999","6655910035777757555555757745999999","5457930035999944544445757549999966","4244400035999954444445775599975101","6464400033699955575666997997761001","6699400013477666666676677543112333","6579600001376675575422213311245555","6455710001035423442222212444455554","3354410000001221222421222333344333","1121100000000101332332331333333333","1111100000000113113333331133334333","1111000000000011133111111111131133","1113000000000000111310011311111111","1111000000000000011011001113313313","1011100000000000111111113111131011","1111110000000000111111133311111113"],"g":"Vincent schilderde hem vanuit zijn raam in de inrichting in Saint-Rémy. Zonder telescoop, met heel veel krullen."},{"t":"Zonnebloemen","m":"Vincent van Gogh, 1888","pal":["#7e580f","#9e660a","#8b882a","#b3840c","#b99a2e","#cbac42","#e4cd63"],"rijen":["666666666666653146666666666","666666666666610001666666666","666666666556500110466666666","666666663114401100366666666","666666610001501100566666666","666666400000530001656666666","666556300011563015315666666","533322500011356464031666666","533100540111114344011565436","531000464100113333003443313","640000466100131110001331113","663112666510111010221311115","664646522444301010434445356","666666411135420112564356656","666544331013442025643334666","666631113000354113433233666","666663001101111111133233666","666666401111111101133335666","666666651111111100134356666","666666651111001111156666666","666666622531101111366666666","666666646411111111566666666","666656666211111136444466666","666622566231111332201346666","666622466533333310022346666","666652266433333313313566666","666666566233335333355666666","455555666423335334566666666","333333333355444455334444444","333333333346666665333333333","333333333335556664333333333","333333333334666653333333333","333333333333444433333333333","333333333333333333333333333"],"g":"Hij schilderde er een hele serie van. Hooikoorts had hij gelukkig niet."},{"t":"Amandelbloesem","m":"Vincent van Gogh, 1890","pal":["#5f8061","#759983","#67a6af","#89b2a7","#abbfa2"],"rijen":["2232222222222322222222222422232222","2233222222243343333332443322332222","2222322222244343333433233223222222","2232222222433323332311222222222222","2223232223442324311122212234222322","2223222222222332223332311124411432","2222222222222222234442323322222432","3333212222223433444343223332222222","2222212222223332343222223442222222","2222212222222222223234323322222222","2222243234223332223223332222222222","2224432333443223412223332222212222","2234322322222222212223322321112222","2223432222211222222233322121222222","2223422112211114322234431122132222","2222222211212101211222211212233122","2234220210120100221333121221222222","2234210001021122121331112222122222","2322222113422222121110122221122222","2212343212122141134221122221222222","3222241122213133113110000102222222","4333133034201122122100010122222222","2343133101000001014412212111212222","2334331220223211001122112222222222","3443221113234431100122112222222222","3322222112232221110011111122222222","2222222112222221111110000002222222"],"g":"Een cadeau voor zijn pasgeboren neefje. Mooier dan een rompertje."},{"t":"De slaapkamer","m":"Vincent van Gogh, 1889","pal":["#4e6753","#aa7e09","#978046","#727a84","#a79b4d","#a08d77","#7087c0","#afa491","#a6b5d5","#cdce99"],"rijen":["6667888880400408888888852285005866","6667888680420908886888874287245866","6667888683400408877786875578294666","6667886750420908575476875578778666","6665986970420908544476889888888866","6665783973420408544256889989999866","6665986783440906333322889999999866","6665786680000008620344725989999766","6665986666666676624999944744787166","6665973333578746649991441111111166","6637975142112447649921111111111166","6125975111117711549211111111111136","4425785745557711444111111111111136","4445985525555411211111111111111136","4447852222222222221111111111111136","2222255225522552552111111111111136","2111125525555555552111111111111136","3111125555555755575211111111111136","2211125555557775577511111111111156","4222125555757777575521111111111126","4244127777777777555551111112225115","4554457779777777777551125557777425","5775457779777777777552177557777577","7775577977777777777575277777777779","7777777777777777777777777777777777","7777777777777777777757557777777777"],"g":"Zijn eigen kamer in Arles. Opgeruimd! Dat zien we hier thuis niet vaak."},{"t":"Caféterras bij nacht","m":"Vincent van Gogh, 1888","pal":["#312c2c","#56592d","#56565b","#915f18","#84774f","#a88f26","#6f778b","#d7b123","#b8a45d","#7492c5"],"rijen":["202222666999999999996660000","216222666999999999999920000","446226996999999999999900062","854696266699999999999920221","851466266666999999999602211","855444222266629999999002111","885555422266666699999022111","775555842266666699966222111","255777578422269999900121111","624577777744229969200111111","662257777777546962000111111","226257777777775960000111111","126577777777775200000011111","322577777777775000000022664","122577777557771000000022666","122577777777771000000000011","322577777777771000000311151","102577777755510000000311150","102577777557510000000331150","102555777535531000010100000","302555375344158443111110111","302353154444338855441444444","502155144333213588454444444","502155543333103558888888888","502135533355533555888788588","502133333335533355588888888","302333333333331138888888885","002141133111111334888888885","002244244444444444888888888","002244442224122244444888588","001448442222422424444444453","144448442211412122444444453","444444422111411224444444444","444444422111542444444444444"],"g":"Een terrasje in Arles. Vincent dronk er liever absint dan een biertje."},{"t":"Zelfportret","m":"Vincent van Gogh, 1889","pal":["#72662a","#939559","#799785","#85ad9d","#bbba80"],"rijen":["3333333333333333333333333333","3333333333333333333233333333","2333333333333333333333333333","3333333333333333333333333333","3333333333333322333333333333","2333333333333200023333333333","3333333333330000002333333333","3333333333300014100233333333","3333333333201144410033333333","3333333333211444410023333333","3333333333211144410023333333","3333333332011111441003333333","3333333332001101441003333333","3333333333124114441143333333","3333333333114411411443333333","3333333333211111001433333333","3333333333200010001133333333","3333333333201000011133333333","3333333333300000143233333333","3333333333320001133222333333","3333333333222111132223223333","3333333332223444232322222333","3333333232224442322323222233","3333332332224432222223322223","3333323232224322222333233332","3333322232222223332332323332","3333322232222233232322223332","3333322223222233233222223333","3333332233222322233222323332","3333222232222322223222222332","3333222222222222223322222332","3333222222222322322222222232","3333222222222222232222222332","3332222222222222332222223332"],"g":"Kijk goed: hier heeft hij nog allebei zijn oren."},{"t":"Irissen","m":"Vincent van Gogh, 1889","pal":["#3d4f78","#657234","#536b7a","#906846","#536aa4","#678980","#8c9b52","#7ba087","#a8baa1"],"rijen":["1111111111111166666666656666665566","1111111111111111161666544656620456","1111111111111111111655442655242056","1111111111111111555650205666202542","1111111111156651525472504455200620","1111166111105655566442154400002676","1001688514455666555404225255055755","1111788120254255444755525022076552","1544688152555555452556254255544275","5442555242565525205522554552022588","2021555402455525555254552222000575","5255655200244577775252445525525785","6665755775554255775255255555525775","5757755752554057772755555555557777","7777755752555575755755755557577777","7777755755555577525525552557775775","5775755777772277527551572257825755","6557775577772440255553575255444272","5775775575785420027787674740044275","3355577775577252445557774225525227","3313357765777765445244577202502755","3333315763577773322244077700220445","3333333553333673330052054220200445","3333333333333333331030004402422222","3333333333333333330033004200022200","3333333333333333330053005200002555"],"g":"Geschilderd in de tuin van de inrichting, vlak nadat hij er was opgenomen."},{"t":"Sterrennacht boven de Rhône","m":"Vincent van Gogh, 1888","pal":["#192b3e","#2d4147","#163d65","#20527d","#3e5959","#446c72","#296da4","#6a805e","#5f9590","#428bc0"],"rijen":["0000120222225323224202242200000000","2223533333356666633333363322000000","3233233333335866666666663322022202","3233335355668868868666883332222222","3553363388996669968896666322222222","3563663669999999999988886323222424","3363333666699999999988666333322221","3333333699999999999996666663332222","3333336669999999999999966666333233","3234323666696666669966966666333233","4011245355358665666666666666332222","3010477177457777424514533332211111","4111444111001001004535771011111000","1211011014001107338865782224211021","1110144227325527438765783024211111","1011475237327537325735773021211111","1111175357337737427735452002211111","0110044347437727424735432003201114","1101144344437414114745541102221111","1111344357457411777777741100100110","0114344324434117777777544410000000","1111211011134555557555454444410000","1110011044458757555555451144441000","0111114366557877577555454004544111","0111456566557777744575554101444441","4453555566655777544455554411443441"],"g":"Sterren boven de rivier, en onderaan een verliefd stelletje."},{"t":"Korenveld met cipressen","m":"Vincent van Gogh, 1889","pal":["#132a16","#4e652b","#9c6d0a","#6f8861","#c59216","#6999b8","#a9b6b3","#95b7d4","#bcced7","#e7e4db"],"rijen":["6666665555555666668877555558887776","6775775577777887789877655579757775","5555777877877885777777775578708855","6669889999877777787787788888509975","6778999999987888999888758878608999","5558999999888999988888887779606898","6889999899989999888888998789505777","6998888889989999888887888899105888","6888887888888878777777787799003888","5568877677777777778899888798000875","6767776777877777888999999883000755","6866667778888688868889999950000355","6766777778988886689888998700000155","6667776687669999877775777500000175","6667776666689988535755575000000076","6666666311167555757500351000000033","6866111111113533330100011000000121","6883113333333121010010000000001101","6751033333333310100000000000000001","3333013111111114224222131000011111","1131111111111244444444444444444444","2444421242244444444444444444422422","4444444444442244224422422222211111","4444444224222222242222222222111111","2444444422222222222222221111111111","2442222222222224311121111111111111","2222222222221333333311111111111111"],"g":"Die cipres is net een groene vlam. Niet aansteken."},{"t":"De oogst","m":"Vincent van Gogh, 1888","pal":["#404d15","#65632b","#887224","#687163","#aa8318","#9d8543","#c09c1b","#b8a346","#79a792","#c5b472"],"rijen":["8888888888888888888888888888888888","8888888888888888888888888888888888","8888888888888888888888888888888888","8888888888888888888888888888888888","8888888888888888888888888888888888","3333333333833833883333333333333333","5522535555521111101221331111159511","2252211255654675122444422222279331","1554424446666666679554666661279511","7755546666667576666664444422111577","7755555777777777774444422224422244","5255552146666666466666664444666444","1035552019966662331666666666666533","1111131133113333331254466424444533","1115200111110255522111222255544255","1552210001210122100010221122222112","7951210000000000000000132111010001","5555555211100000000000000251110000","5555555555555222531111111125211111","5255555252555252555555557555555553","4444442444222222222525555552225222","6644466666644444424744455212252122","4444444444466666666666646444444421","7777444444444444444444444666444444","5577779977777554774447444424442422","2222255424457799999999977555555555","2222222222222222445799999999999755"],"g":"Volgens Vincent zelf een van zijn beste. Hij had gelijk."},{"t":"Camille Roulin","m":"Vincent van Gogh, 1888","pal":["#485d67","#726d31","#6c8e2c","#9e8121","#829849","#aaa11c","#bfb812","#6f8c96"],"rijen":["555556666655566666665566555","555665666666666666666666665","556655666666566666666666665","555556666666666666666666666","566556666655666666666666666","566666651447444566666666666","556666547777777745666666666","556665777707777777436666666","556657777777770777701566666","566617777777770007707066666","666507077777777707700016666","665177777777777700777005666","547777777777777770077701666","477777777777777777000004655","777777700007700000000015555","077770001333331111311456565","310000133555555533334455555","655553133335553333354366655","555555153113553113551565555","555555335415533413333556555","555555535535535333355555655","555555555335553333312555555","556556655553333333311135555","555556653555333333301241133","555555651155333333412224422","555565314415553334422424444","355532244422555342222444442","355324444222234222224422242","552224422224211222224424442","322444542222211222222244444","322442222222222222222222222","122222222222422222222244222","122222222222242222224422222","122222222222242222222222222"],"g":"Het zoontje van de postbode. Pet scheef, net als bij sommige tieners."},{"t":"Armand Roulin","m":"Vincent van Gogh, 1888","pal":["#202f33","#2c492a","#346328","#48833b","#9e8148","#9bac9f"],"rijen":["223333333333333333333333333","323333333333333333333333333","333333333333333333333333333","333333331111112233333333333","333333300000000002333333333","333333300000000000333333333","333333200000000000333333333","333333300000000000133333333","333333000000000000000133333","333320013554200000001333333","333100015444420000023333333","333222214444441041133333333","333333334544443441333333333","333333334444444421333333333","333333334444444432333333333","333333333444444430133333333","333333333444444453003333333","333333333344444430002333333","333333333335444300000233333","333333333315545300000002333","222333332003545000000000133","222223320035555000000000013","222222200035553000000000001","222222100005550000000000000","222222000005530000000000000","222221000005300000000000000","222221000005000000000000000","222221000000000000000000000","222220000000000000000000000","222220000000000000000000000","222120000000000000000000000","222110000000000000000000000","222210000000000000000000000","222210000000000000000000000"],"g":"De oudste zoon van de postbode, op zijn zondags."},{"t":"La Mousmé","m":"Vincent van Gogh, 1888","pal":["#21201d","#403a3d","#704638","#5a565c","#898066","#97af95","#c2b678","#bbe1c0"],"rijen":["7777777777777777777777777777","7777777762233477777777777777","7777777740001337777777777777","7777777740036665777777777777","7777777640046665777777777777","7777777771443645777777777777","7777777774446667777777777777","7777777773146667777777777777","7777777775446667777777777777","7777777777566677777777777777","7777777522377577777777777777","7777774222234225777777777777","7777732222122222477777777777","7775122222112222257777777777","7750122232212222257777777777","7500223212222222257777777777","7301222122122222247777777777","5112223022222221214777777777","3112220112222231321377777777","0122241012222243221013113577","0222143012342243122103553047","0222244112232224322104777514","0122476622232244312203777741","1011466666424267312201577773","4010132346644344435620477775","1003111213662353146630377777","0001113333664354126633157777","0100111331466354126433357777","1100131131365313136433347777","1110011113164111146433335755","1111001113044121366333333575","1111000111113313666333333375","1111100122111334665333333345","1111100013111335643232333345"],"g":"Een meisje uit Arles. Vincent gaf haar een Japans woord als naam."},{"t":"De schreeuw","m":"Edvard Munch, 1893","pal":["#0e1a11","#203a38","#3c3821","#504e35","#745b34","#af4f1a","#ee4c0a","#927747","#e06e24","#d58a3c"],"rijen":["999997589999888899989899995","566555897799888999868999888","999799888899999999999998995","668868866666666666668866698","566666666666666666688886688","899988866668888899999886898","888999999888899998666666888","666666668999998666666688685","566666666666666668855433458","854445586666688542000110136","431000122233321111111111136","477744477477443334333313338","334999999779731111011111138","322799999999777431001111118","332777777774743110011013715","322331113111111111011137738","432334311111123110131377318","433422231111277711333474318","447223224313477733337747736","447320222433477733334477736","447402022044444723134477746","444420202313434413134477776","444442020230224223334477776","434334022220200022333447746","443234302310000005423447975","444334420420000000453444775","443432340020000000025434745","442442332000000002002554445","333343234200000004300045535","333244233300000000431002555","333244333300000000054200045","333234323300000202005422025","324224334400000222200424205","423324433420320043220024204"],"g":"Zo voel je je als de wifi het niet doet."},{"t":"De grote golf","m":"Katsushika Hokusai, rond 1831","pal":["#28425c","#4e6366","#887f58","#698781","#83a695","#a5a486","#a5bca1","#c6bb94","#e3dbad"],"rijen":["8777777777777777777777777777777777","7757777777777777777777777777755777","7777777778887447777777777777777777","7777777886441466677777777777777777","7666778843000066677777777777777777","8777888800000004676677777777777777","3458768874000036666677777777777777","3477446746530177776677777777777777","8643134431361177777777777777777777","6233014343000077777777777777787788","4440011011034137777777777777755874","4645210000588813555555555553138830","3011222237876873211127710012573103","7311555687644667621013521255443346","8768687444444434333345566664311431","8643314467666402330014464331048300","7100013466413610123111110013643110","5000000044331133002222225333101331","7100000011344303531113434333334444"],"g":"Surfen? Liever niet. Zie je de berg Fuji op de achtergrond?"}];
+function kunstPlaatje(nr){
+ const k=KUNST[nr],h=k.rijen.length,w=k.rijen[0].length,S=Math.max(w,h),cel=new Int16Array(S*S).fill(-1);
+ KLEUREN.length=VAST_KLEUREN;const begin=KLEUREN.length;
+ for(const hex of k.pal){const v=parseInt(hex.slice(1),16);KLEUREN.push({l:'kunst',hex,r:v>>16,g:(v>>8)&255,b:v&255})}
+ const ox=Math.floor((S-w)/2),oy=Math.floor((S-h)/2);
+ k.rijen.forEach((rij,y)=>[...rij].forEach((ch,x)=>{cel[(y+oy)*S+x+ox]=begin+parseInt(ch,20)}));
+ return {S,cel,kleuren:k.pal.map((_,i)=>begin+i)};
+}
+function kunstPlaatjeURL(nr){const k=KUNST[nr],c=document.createElement('canvas');c.width=k.rijen[0].length;c.height=k.rijen.length;const g=c.getContext('2d');
+ k.rijen.forEach((rij,y)=>[...rij].forEach((ch,x)=>{g.fillStyle=k.pal[parseInt(ch,20)];g.fillRect(x,y,1,1)}));return c.toDataURL()}
 // reserve als het toestel geen kleuren-emoji heeft (letters = kleuren uit KLEUREN)
 const RESERVEPLAATJE=[
  '..rr...rr..',
@@ -121,8 +153,13 @@ const KLEUREN=[
  ['t','#26a69a'],['b','#64b5f6'],['B','#1e63c8'],['D','#1f2a7a'],['p','#8e44ad'],['P','#ce93d8'],['k','#f48fb1'],['h','#f3c99a'],
  ['u','#9a5a2a'],['U','#4e2a14'],['z','#2a2a2e'],['y','#9e9e9e'],['w','#fafafa']].map(([l,hex])=>{
   const v=parseInt(hex.slice(1),16);return {l,hex,r:v>>16,g:(v>>8)&255,b:v&255}});
+const BASIS=KLEUREN.length; // alleen deze kleuren gebruiken we voor de emoji-plaatjes
+// goudkleuren voor de lijst om de schilderijen; daarna komen per schilderij zijn eigen kleuren (kunstPlaatje)
+// (lichtgoud, goud, donkergoud, hout, zwart, zilver, wijnrood): we nemen de kleuren die niet op het schilderij lijken
+for(const hex of ['#f6dc8a','#e0b33a','#a8741c','#5a3412','#1d1d1f','#c7ccd1','#7d2a2a']){const v=parseInt(hex.slice(1),16);KLEUREN.push({l:'lijst',hex,r:v>>16,g:(v>>8)&255,b:v&255})}
+const VAST_KLEUREN=KLEUREN.length,LIJST=[...Array(VAST_KLEUREN-BASIS).keys()].map(i=>BASIS+i);
 function afstand(a,b){const rm=(a.r+b.r)/2,dr=a.r-b.r,dg=a.g-b.g,db=a.b-b.b;return (2+rm/256)*dr*dr+4*dg*dg+(2+(255-rm)/256)*db*db}
-function dichtste(r,g,b){let best=0,bd=1e18;const p={r,g,b};for(let i=0;i<KLEUREN.length;i++){const d=afstand(p,KLEUREN[i]);if(d<bd){bd=d;best=i}}return best}
+function dichtste(r,g,b){let best=0,bd=1e18;const p={r,g,b};for(let i=0;i<BASIS;i++){const d=afstand(p,KLEUREN[i]);if(d<bd){bd=d;best=i}}return best}
 function lichter(hex,f){const v=parseInt(hex.slice(1),16);let r=v>>16,g=(v>>8)&255,b=v&255;
  if(f>0){r+=(255-r)*f;g+=(255-g)*f;b+=(255-b)*f}else{r*=1+f;g*=1+f;b*=1+f}
  return `rgb(${r|0},${g|0},${b|0})`}
@@ -198,10 +235,10 @@ function reservePlaatje(){
 function inlijsten(p,rand){const E=p.S,S=E+2*rand,cel=new Int16Array(S*S).fill(-1);
  for(let i=0;i<E*E;i++)cel[((i/E|0)+rand)*S+i%E+rand]=p.cel[i];
  return {S,cel,kleuren:p.kleuren}}
-function achtergrond(p,S,lvl,n,rand){
+function achtergrond(p,S,lvl,n,rand,eigen){
  const r=rng(lvl*31+7),kandidaat=['b','G','P','l','t','k','y','h','o','B','w'].map(l=>KLEUREN.findIndex(k=>k.l==l)).filter(i=>!p.kleuren.includes(i));
  for(let i=kandidaat.length-1;i>0;i--){const j=(r()*(i+1))|0;[kandidaat[i],kandidaat[j]]=[kandidaat[j],kandidaat[i]]}
- const kl=kandidaat.slice(0,n),vorm=lvl%5==4?3:1,band=Math.max(2,Math.ceil(rand/n)),m=(S-1)/2;
+ const kl=eigen||kandidaat.slice(0,n),vorm=eigen?1:lvl%5==4?3:1,band=eigen?1:Math.max(2,Math.ceil(rand/n)),m=(S-1)/2;n=kl.length;
  for(let i=0;i<S*S;i++){if(p.cel[i]>=0)continue;const x=i%S,y=(i/S)|0;let v;
   if(vorm==0)v=Math.floor(y/band);
   else if(vorm==1)v=Math.floor(Math.max(Math.abs(x-m),Math.abs(y-m))/band);
@@ -274,17 +311,23 @@ function maakBlokken(cel,S,inst,lvl){
 }
 // speelt de puzzel na zonder plaatjes: zonder r in de goede volgorde, met r door lukraak een kolom te tikken
 function proef(cel,S,kol,r){
- const b=nieuwBord(cel,S);
- const k2=kol.map(k=>k.slice()),sporen=[null,null,null,null,null];
- for(let t=0;t<40000&&b.over>0;t++){
-  let iets=false;const k=sporen.indexOf(null);
+ // In de goede volgorde met maar 4 sporen: zo is er in het echte spel een spoor speling. Net als in het spel is een
+ // hokje pas weg als het pikkertje er is (LOOP rondes later); tot dan staat het op 2 (gereserveerd).
+ const NS=r?5:4,LOOP=12;
+ const b=nieuwBord(cel,S),onderweg=[];
+ const k2=kol.map(k=>k.slice()),sporen=Array(NS).fill(null);
+ for(let t=0;t<60000&&b.over>0;t++){
+  let iets=false;
+  while(onderweg.length&&onderweg[0].t<=t){const o=onderweg.shift();haalWeg(b,o.i);o.s.weg--;iets=true}
+  const k=sporen.indexOf(null);
   if(k>=0){let kies=-1;
    if(r){const vol=[];k2.forEach((x,i)=>{if(x.length)vol.push(i)});if(vol.length)kies=vol[(r()*vol.length)|0]}
    else{let bo=1e9;k2.forEach((x,i)=>{if(x.length&&x[0].o<bo){bo=x[0].o;kies=i}})}
-   if(kies>=0){const x=k2[kies].shift();sporen[k]={c:x.c,n:x.n};iets=true}}
-  for(let j=0;j<5;j++){const s=sporen[j];if(!s)continue;const h=kiesHokje(b,s.c,j,5);
-   if(h>=0){haalWeg(b,h);s.n--;iets=true}if(s.n==0)sporen[j]=null}
-  if(!iets)return false}
+   if(kies>=0){const x=k2[kies].shift();sporen[k]={c:x.c,n:x.n,weg:0};iets=true}}
+  for(let j=0;j<NS;j++){const s=sporen[j];if(!s)continue;
+   if(s.n>0){const h=kiesHokje(b,s.c,j,5);if(h>=0){b.stand[h]=2;s.n--;s.weg++;onderweg.push({t:t+LOOP,i:h,s});iets=true}}
+   if(s.n==0&&s.weg==0)sporen[j]=null}
+  if(!iets&&!onderweg.length)return false}
  return b.over==0;
 }
 function maakBlokkenEen(cel,S,inst,zaad){
@@ -329,20 +372,36 @@ const G={lvl:1,S:0,cel:null,stand:null,kleuren:[],kol:[],sporen:[],pikkers:[],po
  snel:1,hulp:false,klaar:false,vastTijd:0,klaarTijd:0,schud:[],aanHet:false,gestart:false,tijd:0};
 let L={}; // indeling van het scherm
 
-function startLevel(lvl){
- const inst=instelling(lvl);
- const [emoji,naam,grap]=PLAATJES[(lvl-1)%PLAATJES.length];
- // het plaatje komt in een lijst: rondom ringen in achtergrondkleuren, zodat het eerst 'ingepakt' zit
- const rand=inst.achtergrond?Math.max(2,Math.round(inst.S*inst.lijst)):0;
- let p=maakPlaatje(emoji,inst.S-2*rand,inst.maxKleuren);
- if(!p)p=reservePlaatje();
- const S=p.S+2*rand;inst.S=S;
- if(rand)p=inlijsten(p,rand);
- if(inst.achtergrond)achtergrond(p,S,lvl,inst.achtergrond,rand);
+function startLevel(lvl,soort='eten'){
+ G.soort=soort;
+ let p,S,naam,emoji,grap,inst,zaad=lvl;
+ if(soort=='kunst'){ // schilderij in een gouden lijst van 3 ringen; even moeilijk als de latere eten-levels
+  const k=KUNST[(lvl-1)%KUNST.length];
+  inst=instelling(Math.min(20,6+lvl*2));zaad=1000+lvl;
+  inst.vast=2;inst.doel=0.2; // veel kleuren, dus de maker laat zelf minder sporen wachten
+  p=kunstPlaatje((lvl-1)%KUNST.length);const rand=3;S=p.S+2*rand;
+  p=inlijsten(p,rand);const verschil=i=>Math.min(...p.kleuren.map(j=>afstand(KLEUREN[i],KLEUREN[j])));
+  let lijst=LIJST.filter(i=>verschil(i)>5000).slice(0,4);
+  if(lijst.length<3)lijst=[...LIJST].sort((a,b)=>verschil(b)-verschil(a)).slice(0,3);
+  achtergrond(p,S,lvl,0,rand,lijst);
+  naam=k.t;emoji='🖼️';grap=k.g;G.maker=k.m;
+ }else{
+  KLEUREN.length=VAST_KLEUREN;
+  inst=instelling(lvl);
+  [emoji,naam,grap]=PLAATJES[(lvl-1)%PLAATJES.length];
+  // het plaatje komt in een lijst: rondom ringen in achtergrondkleuren, zodat het eerst 'ingepakt' zit
+  const rand=inst.achtergrond?Math.max(2,Math.round(inst.S*inst.lijst)):0;
+  p=maakPlaatje(emoji,inst.S-2*rand,inst.maxKleuren);
+  if(!p)p=reservePlaatje();
+  S=p.S+2*rand;
+  if(rand)p=inlijsten(p,rand);
+  if(inst.achtergrond)achtergrond(p,S,lvl,inst.achtergrond,rand);
+ }
+ inst.S=S;
  G.lvl=lvl;G.S=S;G.cel=p.cel;G.naam=naam;G.emoji=emoji;G.grap=grap;G.kleurLijst=p.kleuren;
  vulGaatjes(G.cel,S);
  G.bord=nieuwBord(G.cel,S);G.stand=G.bord.stand;G.totaal=G.over=G.bord.over;
- G.kol=maakBlokken(G.cel,S,inst,lvl);
+ G.kol=maakBlokken(G.cel,S,inst,zaad);
  G.sporen=[null,null,null,null,null];G.pikkers=[];G.pops=[];G.vliegers=[];G.schud=G.kol.map(()=>0);
  G.hulp=false;G.klaar=false;G.vastTijd=0;G.klaarTijd=0;G.aanHet=true;G.gestart=false;G.tijd=0;
  document.getElementById('menu').hidden=true;sluitDlg();indeling();
@@ -401,7 +460,7 @@ function kiesBlok(k){
 function knoppen(){
  const y=(L.top||0)+8,h=34;
  return [
-  {x:W-44,y,w:36,h,tekst:'↻',doe:()=>{if(confirm('Dit level opnieuw beginnen?'))startLevel(G.lvl)}},
+  {x:W-44,y,w:36,h,tekst:'↻',doe:()=>{if(confirm('Dit level opnieuw beginnen?'))startLevel(G.lvl,G.soort)}},
   {x:W-88,y,w:36,h,tekst:geluidAan?'🔊':'🔇',doe:()=>{geluidAan=!geluidAan;opslag.zet('pixelpikkers_geluid',geluidAan?'1':'0')}},
   {x:W-142,y,w:46,h,tekst:G.snel==1?'▶▶1x':'▶▶2x',doe:()=>{G.snel=G.snel==1?2:1}},
  ];
@@ -488,7 +547,7 @@ function teken(){
  // kop
  ctx.fillStyle='#5b3a1a';ctx.font='800 16px system-ui,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
  const T=L.top||0;
- const kop=`Level ${G.lvl} · ${G.naam}`,ruimte=W-50-150;let fs=16;
+ const kop=`${G.soort=='kunst'?'Schilderij':'Level'} ${G.lvl} · ${G.naam}`,ruimte=W-50-150;let fs=16;
  ctx.font=`800 ${fs}px system-ui,sans-serif`;while(fs>11&&ctx.measureText(kop).width>ruimte){fs--;ctx.font=`800 ${fs}px system-ui,sans-serif`}
  ctx.fillText(kop,50,T+22);
  const pw=Math.max(60,W-50-160-12),pr=1-G.over/G.totaal;
@@ -529,7 +588,7 @@ function teken(){
   if(kol.length>B.rijen){ctx.fillStyle='#8a6a48';ctx.font='800 13px system-ui';ctx.textAlign='center';
    ctx.fillText('+'+(kol.length-B.rijen),bx+B.w/2,B.y+B.rijen*(B.h+B.gat)-2)}
  }
- if(G.lvl==1&&!G.gestart){ctx.fillStyle='#5b3a1a';ctx.font='800 17px system-ui';ctx.textAlign='center';
+ if(G.lvl==1&&G.soort!='kunst'&&!G.gestart){ctx.fillStyle='#5b3a1a';ctx.font='800 17px system-ui';ctx.textAlign='center';
   const bounce=Math.sin(G.tijd*5)*4;ctx.fillText('👇 Tik op een blok!',B.x+(B.K*(B.w+B.gat)-B.gat)/2,B.y-8+bounce-0.0001)}
  // pikkertjes
  for(const p of G.pikkers){const hup=Math.abs(Math.sin((G.tijd*14+p.doel)%6.283))*Math.min(3,cz*0.25);
@@ -541,12 +600,14 @@ function plaatjeCanvas(){const S=G.S,c=document.createElement('canvas');c.width=
  for(let i=0;i<S*S;i++)if(G.cel[i]>=0){g.fillStyle=KLEUREN[G.cel[i]].hex;g.fillRect(i%S,(i/S)|0,1,1)}return c}
 function gewonnen(){
  G.klaar=true;
- if(G.lvl+1>besteLevel){besteLevel=G.lvl+1;opslag.zet(SLEUTEL,String(besteLevel))}
+ const kunst=G.soort=='kunst';
+ if(kunst){if(G.lvl+1>besteKunst){besteKunst=G.lvl+1;opslag.zet(KSLEUTEL,String(besteKunst))}}
+ else if(G.lvl+1>besteLevel){besteLevel=G.lvl+1;opslag.zet(SLEUTEL,String(besteLevel))}
  geluid.feest();
- toonDlg(`<h2>Klaar! ${G.emoji}</h2><div id="pl"></div><p><b>${G.naam}</b>. ${G.grap}</p>
-  <div class="knoppen"><button class="knop" id="dv">Volgend level ›</button><button class="knop grijs" id="dm">Menu</button></div>`);
+ toonDlg(`<h2>Klaar! ${G.emoji}</h2><div id="pl"></div><p><b>${G.naam}</b>${kunst?`<br><i>${G.maker}</i><br>`:'. '}${G.grap}</p>
+  <div class="knoppen"><button class="knop" id="dv">${kunst?'Volgend schilderij':'Volgend level'} ›</button><button class="knop grijs" id="dm">Menu</button></div>`);
  document.getElementById('pl').append(plaatjeCanvas());
- document.getElementById('dv').onclick=()=>startLevel(G.lvl+1);
+ document.getElementById('dv').onclick=()=>startLevel(G.lvl+1,G.soort);
  document.getElementById('dm').onclick=naarMenu;
 }
 function vast(){
@@ -555,7 +616,7 @@ function vast(){
   <div class="knoppen">${G.hulp?'':'<button class="knop oranje" id="dh">Hulpspoor erbij (1x)</button>'}
   <button class="knop" id="do">Opnieuw</button><button class="knop grijs" id="dm">Menu</button></div>`);
  const h=document.getElementById('dh');if(h)h.onclick=()=>{G.hulp=true;G.sporen.push(null);G.klaar=false;G.vastTijd=0;sluitDlg();indeling()};
- document.getElementById('do').onclick=()=>startLevel(G.lvl);
+ document.getElementById('do').onclick=()=>startLevel(G.lvl,G.soort);
  document.getElementById('dm').onclick=naarMenu;
 }
 function toonDlg(html){document.getElementById('doos').innerHTML=html;document.getElementById('dlg').hidden=false}
@@ -572,6 +633,15 @@ function naarMenu(){
   h+=`<button data-l="${l}" ${l>besteLevel?'disabled':''} class="${l==besteLevel?'nu':''}" title="${p[1]}"><b>${l>besteLevel?'🔒':p[0]}</b><small>${l}</small></button>`}
  const lv=document.getElementById('levels');lv.innerHTML=h;
  lv.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>startLevel(+b.dataset.l));
+ // schilderijen: alleen vrijgespeelde laten we zien, de rest zit nog onder een slotje
+ const kn=Math.min(besteKunst,KUNST.length),kv=document.getElementById('kverder');
+ kv.textContent=besteKunst>KUNST.length?'Alle schilderijen klaar! Nog eens?':`Speel schilderij ${besteKunst}: ${KUNST[besteKunst-1].t}`;
+ kv.onclick=()=>startLevel(besteKunst>KUNST.length?1:besteKunst,'kunst');
+ let kh='';
+ KUNST.forEach((k,i)=>{const l=i+1,open=l<=besteKunst;
+  kh+=`<button data-k="${l}" ${open?'':'disabled'} class="${l==besteKunst?'nu':''}">${open?`<img src="${kunstPlaatjeURL(i)}" alt="">`:'<b>🔒</b>'}<small>${open?k.t:'Schilderij '+l}</small></button>`});
+ const kl=document.getElementById('kunstlevels');kl.innerHTML=kh;
+ kl.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>startLevel(+b.dataset.k,'kunst'));
 }
 // terugknop: tijdens het spelen eerst naar het menu, vanuit het menu naar de startpagina
 document.querySelector('.terug').addEventListener('click',e=>{if(G.aanHet||!document.getElementById('dlg').hidden){e.preventDefault();naarMenu()}});
