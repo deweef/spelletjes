@@ -34,10 +34,11 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 <body>
 <a class="terug" href="./" aria-label="Terug naar de spellen">‹</a>
 <canvas id="c"></canvas>
+<div id="veilig" style="position:fixed;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)"></div>
 <div id="menu">
   <h1>Pixelpikkers</h1>
   <p class="uitleg">Tik onderin op een blok. De pikkertjes rennen naar een spoor en pikken van het plaatje alle hokjes in hun kleur weg,
-  maar alleen hokjes waar ze in een rechte lijn bij kunnen. Kunnen ze niet verder, dan wachten ze tot er weer iets vrijkomt.
+  maar ze lopen er omheen en kunnen niet over andere hokjes heen: ze pakken alleen hokjes waar ze bij kunnen. Kunnen ze niet verder, dan wachten ze tot er weer iets vrijkomt.
   Je hebt <b>5 sporen</b>: staan ze allemaal vol met wachtende pikkertjes, dan zit je vast!</p>
   <button class="knop" id="verder">Speel level 1</button>
   <div id="levels"></div>
@@ -53,37 +54,53 @@ let besteLevel=+opslag.lees(SLEUTEL,opslag.lees('pixelpikkers_lvl','1'))||1; // 
 let geluidAan=opslag.lees('pixelpikkers_geluid','1')=='1';
 
 // ---------- de plaatjes ----------
-const PLAATJES=[
+const PLAATJES=[ // vooral eten en beestjes (wens van Anja)
  ['🍓','Aardbei','Zoet, rood en vol pitjes.'],
- ['🐸','Kikker','Kwaak! Nog steeds geen prinses gevonden die hem wil zoenen.'],
- ['🍄','Paddenstoel','Niet van eten in het bos, dan ga je rare dingen zien.'],
- ['🌻','Zonnebloem','Van Gogh zou trots zijn.'],
- ['🍔','Hamburger','Met extra pikkertjes-saus.'],
- ['🍺','Biertje','Proost! De pikkertjes nemen alleen het schuim.'],
- ['🐙','Octopus','Acht armen, dus acht keer zo goed knuffelen.'],
- ['🍩','Donut','Het gat in het midden is gratis.'],
- ['🦄','Eenhoorn','Bestaat echt. Zegt de eenhoorn.'],
- ['🐝','Bij','Zoem. Hij doet niks, hij wil alleen even kijken.'],
- ['🍕','Pizza','Ananas erop? Daar is in dit huis ruzie over.'],
- ['🌷','Tulp','Hollandser wordt het niet.'],
- ['🐢','Schildpad','Langzaam, maar hij komt er wel.'],
- ['🧀','Kaas','Goudse, belegen. Met gaatjes van de pikkertjes.'],
- ['🚀','Raket','Drie, twee, één… pik!'],
- ['🍉','Watermeloen','Pitjes spugen mag, maar niet naar je broer.'],
- ['🦊','Vos','Sluw. Maar de pikkertjes zijn sluwer.'],
- ['🎂','Taart','Wie is er jarig? Iedereen, vandaag.'],
- ['🐷','Biggetje','Knor. Rolt graag door de modder, net als na het tuinfeest.'],
- ['🌈','Regenboog','De pot met goud ligt aan het eind. Zeggen ze.'],
- ['🦜','Papegaai','Lorre wil een koekje. En een biertje.'],
- ['🍦','IJsje','Snel opeten voor hij smelt!'],
- ['🐳','Walvis','Het grootste dier van de zee, nu in hokjes.'],
- ['🌵','Cactus','Niet tegenaan plassen. Au.'],
- ['🎸','Gitaar','Rock and roll, pikkertjes!'],
- ['🦩','Flamingo','Staat op één poot. Probeer maar eens.'],
- ['🍷','Wijntje','Voor Anja, na een lange dag. Proost!'],
  ['🐞','Lieveheersbeestje','Tel de stippen. Of pik ze weg.'],
+ ['🍌','Banaan','Krom, geel en vol kalium.'],
+ ['🐝','Bij','Zoem. Hij doet niks, hij wil alleen even kijken.'],
+ ['🍔','Hamburger','Met extra pikkertjes-saus.'],
+ ['🐛','Rups','Rupsje Nooitgenoeg. Herkenbaar na een feestje.'],
+ ['🍉','Watermeloen','Pitjes spugen mag, maar niet naar je broer.'],
+ ['🦋','Vlinder','Was eerst een rups. Er is hoop voor iedereen.'],
+ ['🍕','Pizza','Ananas erop? Daar is in dit huis ruzie over.'],
+ ['🐌','Slak','Neemt zijn huis gewoon mee. Handig op vakantie.'],
+ ['🍩','Donut','Het gat in het midden is gratis.'],
+ ['🐜','Mier','Tilt vijftig keer zijn eigen gewicht. Jij de boodschappen?'],
+ ['🍺','Biertje','Proost! De pikkertjes nemen alleen het schuim.'],
+ ['🕷️','Spin','Niet gillen, hij is banger voor jou.'],
+ ['🧀','Kaas','Goudse, belegen. Met gaatjes van de pikkertjes.'],
+ ['🦗','Krekel','Tsjirp. Houdt de hele camping wakker.'],
+ ['🍒','Kersen','Altijd met z\'n tweetjes.'],
+ ['🪲','Kever','Glimt als een autootje.'],
+ ['🍟','Patat','Met mayo, uiteraard.'],
+ ['🦟','Mug','Bzzz. Deze mag je met plezier wegpikken.'],
+ ['🍦','IJsje','Snel opeten voor hij smelt!'],
+ ['🪳','Kakkerlak','Overleeft alles. Behalve de pikkertjes.'],
+ ['🎂','Taart','Wie is er jarig? Iedereen, vandaag.'],
+ ['🦂','Schorpioen','Kijk uit voor zijn staart.'],
  ['🥑','Avocado','Hip, groen en altijd net niet rijp.'],
- ['🦋','Vlinder','Fladder fladder.'],
+ ['🪰','Vlieg','Gaat altijd net op jouw boterham zitten.'],
+ ['🍜','Noedels','Slurpen mag.'],
+ ['🐸','Kikker','Lust wel een vliegje na al die beestjes.'],
+ ['🍷','Wijntje','Voor Anja, na een lange dag. Proost!'],
+ ['🍣','Sushi','Rauwe vis, maar dan chique.'],
+ ['🥕','Wortel','Goed voor je ogen. Zegt oma.'],
+ ['🌭','Hotdog','Met uitjes en ketchup.'],
+ ['🍪','Koekje','Eentje maar. Nou ja, twee.'],
+ ['🍇','Druiven','Even wachten en het is wijn.'],
+ ['🧁','Cupcake','Te mooi om op te eten. Bijna.'],
+ ['🍋','Citroen','Zuur! Trek maar een gek gezicht.'],
+ ['🍿','Popcorn','Voor de film. Of tijdens de ruzie van de buren.'],
+ ['🥐','Croissant','Ooh là là.'],
+ ['🍳','Eitje','Spiegelei, zonnige kant boven.'],
+ ['🍫','Chocola','Troost in een reep.'],
+ ['🌽','Maïs','Op de barbecue, met boter.'],
+ ['🥨','Pretzel','Een knoop om op te knabbelen.'],
+ ['🍄','Paddenstoel','Niet van eten in het bos, dan ga je rare dingen zien.'],
+ ['🐙','Octopus','Acht armen, dus acht keer zo goed knuffelen.'],
+ ['🌵','Cactus','Niet tegenaan plassen. Au.'],
+ ['🦄','Eenhoorn','Bestaat echt. Zegt de eenhoorn.'],
 ];
 // reserve als het toestel geen kleuren-emoji heeft (letters = kleuren uit KLEUREN)
 const RESERVEPLAATJE=[
@@ -118,13 +135,19 @@ function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.i
 function instelling(lvl){
  const S=Math.min(32,14+2*lvl);
  return {S,
-  maxKleuren:Math.min(10,2+lvl),
-  min:Math.max(3,Math.round(S*(lvl<6?0.2:lvl<12?0.4:0.6))),
-  max:Math.round(S*(lvl<4?0.8:lvl<8?1.5:lvl<12?2.2:3)),
-  vast:lvl<3?1:lvl<7?2:3,       // hoeveel sporen de maker maximaal laat wachten (jij hebt er 5)
-  kolommen:S<=20?3:S<=26?4:5};
+  maxKleuren:Math.min(10,3+lvl),
+  min:Math.max(3,Math.round(S*(lvl<3?0.25:lvl<8?0.4:0.6))),
+  max:Math.round(S*(lvl<3?1:lvl<8?1.8:lvl<14?2.4:3)),
+  vast:lvl<2?1:lvl<4?2:3,           // hoeveel sporen de maker zelf maximaal laat wachten (jij hebt er 5)
+  lastig:lvl<2?0:lvl<6?0.3:0.6,      // hoe vaak de maker een kleur kiest waar je nog niet bij kunt
+  spreiding:lvl<2?0:Math.min(0.85,0.35+lvl*0.05), // hoeveel blokken 'van later' er bovenop liggen
+  achtergrond:lvl<2?0:lvl<5?3:lvl<15?4:5, // aantal kleuren in de lijst
+  lijst:lvl<2?0:lvl<5?0.12:0.17,     // hoe dik de lijst om het plaatje is
+  kolommen:lvl<2?3:lvl<6?4:5,
+  toets:lvl<2?0:10,                  // zoveel keer wild tikken uitproberen bij het maken
+  doel:lvl<5?0.5:lvl<10?0.34:0.17,   // hoe vaak wild tikken hooguit mag lukken
+  ...(window.__afstel||{})};
 }
-
 // ---------- emoji omzetten naar een pixelplaatje ----------
 function maakPlaatje(emoji,S,maxKleuren){
  const groot=document.createElement('canvas');groot.width=groot.height=220;
@@ -149,7 +172,7 @@ function maakPlaatje(emoji,S,maxKleuren){
   if(dekking<F*F*0.45)continue;
   let best=-1,bn=0;for(const[c,n]of stem)if(n>bn){bn=n;best=c}
   cel[cy*S+cx]=best;tel[best]++}
- return beperk(cel,tel,maxKleuren);
+ const p=beperk(cel,tel,maxKleuren);if(p)p.S=S;return p;
 }
 // te veel of te kleine kleuren samenvoegen met de kleur die er het meest op lijkt
 function beperk(cel,tel,maxKleuren){
@@ -170,12 +193,15 @@ function reservePlaatje(){
  return {S,...beperk(cel,tel,9)};
 }
 
-// ---------- achtergrond: vanaf level 4 wordt het een schilderijtje met een gekleurde achtergrond ----------
+// ---------- achtergrond: vanaf level 2 wordt het een schilderijtje met een gekleurde lijst (ringen) eromheen ----------
 // Daardoor zit het plaatje 'ingepakt' en moeten de pikkertjes eerst de achtergrond wegpikken.
-function achtergrond(p,S,lvl){
+function inlijsten(p,rand){const E=p.S,S=E+2*rand,cel=new Int16Array(S*S).fill(-1);
+ for(let i=0;i<E*E;i++)cel[((i/E|0)+rand)*S+i%E+rand]=p.cel[i];
+ return {S,cel,kleuren:p.kleuren}}
+function achtergrond(p,S,lvl,n,rand){
  const r=rng(lvl*31+7),kandidaat=['b','G','P','l','t','k','y','h','o','B','w'].map(l=>KLEUREN.findIndex(k=>k.l==l)).filter(i=>!p.kleuren.includes(i));
  for(let i=kandidaat.length-1;i>0;i--){const j=(r()*(i+1))|0;[kandidaat[i],kandidaat[j]]=[kandidaat[j],kandidaat[i]]}
- const n=lvl<8?1:lvl<14?2:3,kl=kandidaat.slice(0,n),vorm=lvl%4,band=3+((r()*3)|0),m=(S-1)/2;
+ const kl=kandidaat.slice(0,n),vorm=lvl%5==4?3:1,band=Math.max(2,Math.ceil(rand/n)),m=(S-1)/2;
  for(let i=0;i<S*S;i++){if(p.cel[i]>=0)continue;const x=i%S,y=(i/S)|0;let v;
   if(vorm==0)v=Math.floor(y/band);
   else if(vorm==1)v=Math.floor(Math.max(Math.abs(x-m),Math.abs(y-m))/band);
@@ -185,52 +211,113 @@ function achtergrond(p,S,lvl){
  for(const k of kl)p.kleuren.push(k);
 }
 
-// ---------- hokjes aan de buitenkant ----------
-// stand: 0 = leeg, 1 = er zit een hokje, 2 = er vliegt al een pikkertje naartoe.
-// Een pikkertje kan een hokje alleen pakken als het er in een rechte lijn (van links, rechts, boven of onder) bij kan.
-function buiten(stand,S,i){const x=i%S,y=(i/S)|0;let j,vrij;
- vrij=true;for(j=x-1;j>=0;j--)if(stand[y*S+j]){vrij=false;break}if(vrij)return true;
- vrij=true;for(j=x+1;j<S;j++)if(stand[y*S+j]){vrij=false;break}if(vrij)return true;
- vrij=true;for(j=y-1;j>=0;j--)if(stand[j*S+x]){vrij=false;break}if(vrij)return true;
- for(j=y+1;j<S;j++)if(stand[j*S+x])return false;return true}
-
-// welke hokje een pikkertje kiest: eerst die het dichtst bij de rand zitten (maker en spel doen het hetzelfde)
-function kiesHokje(stand,cel,S,c){let best=-1,bs=1e9;
- for(let i=0;i<S*S;i++){if(stand[i]!=1||cel[i]!=c||!buiten(stand,S,i))continue;const x=i%S,y=(i/S)|0;
-  const sc=Math.min(x,y,S-1-x,S-1-y)*1000+(S-1-y)*S+x;if(sc<bs){bs=sc;best=i}}
+// ---------- het bord: welke hokjes kunnen de pikkertjes pakken? ----------
+// stand: 0 = leeg, 1 = er zit een hokje, 2 = er loopt al een pikkertje naartoe.
+// De pikkertjes lopen over lege plekken en kunnen niet over hokjes heen. Ingesloten gaatjes vullen we bij het maken op
+// (vulGaatjes), dus elke lege plek hangt aan de buitenkant vast: een hokje is te pakken als het aan de buitenrand of
+// naast een leeg hokje ligt. Die hokjes houden we per kleur bij in bord.rand.
+const RICHTING=[[0,1],[1,0],[-1,0],[0,-1]];
+function nieuwBord(cel,S){const b={S,cel,stand:new Uint8Array(S*S),rand:{},over:0};
+ for(let i=0;i<S*S;i++)if(cel[i]>=0){b.stand[i]=1;b.over++}
+ for(let i=0;i<S*S;i++)if(b.stand[i]==1&&aanRand(b,i))voegToe(b,i);
+ return b}
+function aanRand(b,i){const S=b.S,x=i%S,y=(i/S)|0;return x==0||y==0||x==S-1||y==S-1||!b.stand[i-1]||!b.stand[i+1]||!b.stand[i-S]||!b.stand[i+S]}
+function voegToe(b,i){const c=b.cel[i];(b.rand[c]||(b.rand[c]=new Set())).add(i)}
+function haalWeg(b,i){const S=b.S,x=i%S,y=(i/S)|0;b.stand[i]=0;b.over--;b.rand[b.cel[i]].delete(i);
+ if(x>0&&b.stand[i-1])voegToe(b,i-1);if(x<S-1&&b.stand[i+1])voegToe(b,i+1);
+ if(y>0&&b.stand[i-S])voegToe(b,i-S);if(y<S-1&&b.stand[i+S])voegToe(b,i+S)}
+function telVrij(b,c){let n=0;const r=b.rand[c];if(r)for(const i of r)if(b.stand[i]==1)n++;return n}
+// spoor j van n stuurt zijn pikkertjes via de onderkant het bord op; ze kiezen het hokje dat daar het dichtst bij ligt
+function ingangXY(j,n,S){return {x:(j+0.5)/n*S-0.5,y:S}}
+function kiesHokje(b,c,j,n){const r=b.rand[c];if(!r)return -1;const e=ingangXY(j,n,b.S);let best=-1,bd=1e18;
+ for(const i of r){if(b.stand[i]!=1)continue;const dx=i%b.S-e.x,dy=((i/b.S)|0)-e.y,d=dx*dx+dy*dy;
+  if(d<bd||(d==bd&&i<best)){bd=d;best=i}}
  return best}
+// ingesloten lege gaatjes opvullen met de kleur ernaast
+function vulGaatjes(cel,S){
+ const buiten=new Uint8Array(S*S),q=[];
+ for(let i=0;i<S*S;i++){const x=i%S,y=(i/S)|0;if(cel[i]<0&&(x==0||y==0||x==S-1||y==S-1)){buiten[i]=1;q.push(i)}}
+ while(q.length){const i=q.pop(),x=i%S,y=(i/S)|0;
+  for(const[dx,dy]of RICHTING){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=S||ny>=S)continue;const n=ny*S+nx;
+   if(cel[n]<0&&!buiten[n]){buiten[n]=1;q.push(n)}}}
+ for(let ronde=0;ronde<S;ronde++){let iets=false;
+  for(let i=0;i<S*S;i++){if(cel[i]>=0||buiten[i])continue;const x=i%S,y=(i/S)|0;
+   for(const[dx,dy]of RICHTING){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=S||ny>=S)continue;const c=cel[ny*S+nx];if(c>=0){cel[i]=c;iets=true;break}}}
+  if(!iets)break}
+}
+// looproute voor het plaatje (alleen voor het tekenen): rooster van (S+2)x(S+2), het plaatje met een lege rand eromheen
+function looprooster(stand,S,start){
+ const M=S+2,afst=new Int16Array(M*M).fill(-1),van=new Int32Array(M*M).fill(-1),q=new Int32Array(M*M);
+ let h=0,t=0;q[t++]=start;afst[start]=0;
+ while(h<t){const g=q[h++],x=g%M,y=(g/M)|0;
+  for(const[dx,dy]of RICHTING){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=M||ny>=M)continue;const n=ny*M+nx;
+   if(afst[n]>=0)continue;
+   if(nx>0&&ny>0&&nx<=S&&ny<=S&&stand[(ny-1)*S+nx-1]!=0)continue;
+   afst[n]=afst[g]+1;van[n]=g;q[t++]=n}}
+ return {afst,van,M};
+}
 
 // ---------- een oplosbare reeks blokken maken ----------
 // De maker speelt het level zelf (met hooguit `vast` wachtende sporen) en onthoudt welke blokken hij koos.
 function maakBlokken(cel,S,inst,lvl){
- const r=rng(lvl*7919+13);
- const stand=new Uint8Array(S*S),rest={};
- for(let i=0;i<cel.length;i++)if(cel[i]>=0){stand[i]=1;rest[cel[i]]=(rest[cel[i]]||0)+1}
- const sporen=[],reeks=[];
- const vrij=c=>{const l=[];for(let i=0;i<cel.length;i++)if(stand[i]==1&&cel[i]==c&&buiten(stand,S,i))l.push(i);return l};
+ // Een paar puzzels maken; alleen puzzels die in de goede volgorde lukken tellen mee. Daarvan nemen we de puzzel
+ // waarbij wild tikken (proef met toeval) het vaakst vastloopt, tot hij moeilijk genoeg is (inst.doel).
+ let best=null,bw=1e9,kol;
+ for(let poging=0;poging<(inst.pogingen||30);poging++){kol=maakBlokkenEen(cel,S,inst,lvl*7919+13+poging*101);
+  if(!proef(cel,S,kol))continue;
+  if(!inst.toets){best=kol;break}
+  let w=0;for(let t=0;t<inst.toets;t++)if(proef(cel,S,kol,rng(lvl*13+t*7)))w++;
+  if(w<bw){bw=w;best=kol}
+  if(w<=inst.doel*inst.toets)break}
+ G.wildWint=bw; // voor de test
+ return best||kol;
+}
+// speelt de puzzel na zonder plaatjes: zonder r in de goede volgorde, met r door lukraak een kolom te tikken
+function proef(cel,S,kol,r){
+ const b=nieuwBord(cel,S);
+ const k2=kol.map(k=>k.slice()),sporen=[null,null,null,null,null];
+ for(let t=0;t<40000&&b.over>0;t++){
+  let iets=false;const k=sporen.indexOf(null);
+  if(k>=0){let kies=-1;
+   if(r){const vol=[];k2.forEach((x,i)=>{if(x.length)vol.push(i)});if(vol.length)kies=vol[(r()*vol.length)|0]}
+   else{let bo=1e9;k2.forEach((x,i)=>{if(x.length&&x[0].o<bo){bo=x[0].o;kies=i}})}
+   if(kies>=0){const x=k2[kies].shift();sporen[k]={c:x.c,n:x.n};iets=true}}
+  for(let j=0;j<5;j++){const s=sporen[j];if(!s)continue;const h=kiesHokje(b,s.c,j,5);
+   if(h>=0){haalWeg(b,h);s.n--;iets=true}if(s.n==0)sporen[j]=null}
+  if(!iets)return false}
+ return b.over==0;
+}
+function maakBlokkenEen(cel,S,inst,zaad){
+ const r=rng(zaad);
+ const bord=nieuwBord(cel,S),rest={};
+ for(let i=0;i<cel.length;i++)if(cel[i]>=0)rest[cel[i]]=(rest[cel[i]]||0)+1;
+ const sporen=[null,null,null,null,null],reeks=[];
+ const bezet=()=>sporen.filter(Boolean).length;
  const los=()=>{let iets=true;while(iets){iets=false;
-  for(const s of sporen)if(s.n>0){const h=kiesHokje(stand,cel,S,s.c);if(h>=0){stand[h]=0;s.n--;iets=true}}
-  for(let j=sporen.length-1;j>=0;j--)if(sporen[j].n==0)sporen.splice(j,1)}};
- for(let stap=0;stap<500;stap++){
+  for(let k=0;k<5;k++){const s=sporen[k];if(!s)continue;const h=kiesHokje(bord,s.c,k,5);
+   if(h>=0){haalWeg(bord,h);s.n--;iets=true}if(s.n==0)sporen[k]=null}}};
+ for(let stap=0;stap<800;stap++){
   const kans=[];let som=0;
-  for(const c in rest){const over=rest[c];if(over<=0)continue;const v=vrij(+c).length;
-   const w=v>0?v+3:(sporen.length<inst.vast-1?2:0);if(w>0){kans.push([+c,w,over,v]);som+=w}}
+  for(const c in rest){const over=rest[c];if(over<=0)continue;const v=telVrij(bord,+c);
+   const w=v>0?v+3:(bezet()<inst.vast-1?v+3+inst.lastig*20:0);if(w>0){kans.push([+c,w,over,v]);som+=w}}
   if(!kans.length)break;
   let p=r()*som,keus=kans[0];for(const k of kans){p-=k[1];if(p<=0){keus=k;break}}
   const [c,,over,v]=keus;
   let n=Math.round(inst.min+r()*(inst.max-inst.min));
   if(over-n<inst.min)n=over;
   n=Math.min(n,over);
-  if(sporen.length>=inst.vast-1)n=Math.min(n,Math.max(1,v)); // anders zou de maker zelf vastlopen
-  reeks.push({c,n});rest[c]-=n;sporen.push({c,n});
+  if(bezet()>=inst.vast-1)n=Math.min(n,Math.max(1,v)); // anders zou de maker zelf vastlopen
+  reeks.push({c,n});rest[c]-=n;sporen[sporen.indexOf(null)]={c,n};
   if(rest[c]==0)delete rest[c];
   los();
  }
  // verdelen over kolommen: elke kolom houdt de volgorde van de reeks aan, dus het is altijd op te lossen
  const kol=Array.from({length:inst.kolommen},()=>[]);
  reeks.forEach((b,i)=>{b.o=i;
-  // kies een kolom, liefst een korte
-  let best=0,bs=1e9;for(let k=0;k<kol.length;k++){const s=kol[k].length+r()*2.2;if(s<bs){bs=s;best=k}}
+  // met kans `spreiding` in 'zijn eigen stuk' van de reeks: dan liggen er bovenop ook blokken die pas veel later kunnen
+  let best=0;
+  if(r()<inst.spreiding)best=Math.min(kol.length-1,Math.floor(i*kol.length/reeks.length));
+  else{let bs=1e9;for(let k=0;k<kol.length;k++){const s=kol[k].length+r()*2.2;if(s<bs){bs=s;best=k}}}
   kol[best].push(b)});
  return kol;
 }
@@ -245,32 +332,39 @@ let L={}; // indeling van het scherm
 function startLevel(lvl){
  const inst=instelling(lvl);
  const [emoji,naam,grap]=PLAATJES[(lvl-1)%PLAATJES.length];
- let p=maakPlaatje(emoji,inst.S,inst.maxKleuren),S=inst.S;
- if(!p){p=reservePlaatje();S=p.S;inst.S=S;inst.kolommen=3}
- if(lvl>=4)achtergrond(p,S,lvl);
+ // het plaatje komt in een lijst: rondom ringen in achtergrondkleuren, zodat het eerst 'ingepakt' zit
+ const rand=inst.achtergrond?Math.max(2,Math.round(inst.S*inst.lijst)):0;
+ let p=maakPlaatje(emoji,inst.S-2*rand,inst.maxKleuren);
+ if(!p)p=reservePlaatje();
+ const S=p.S+2*rand;inst.S=S;
+ if(rand)p=inlijsten(p,rand);
+ if(inst.achtergrond)achtergrond(p,S,lvl,inst.achtergrond,rand);
  G.lvl=lvl;G.S=S;G.cel=p.cel;G.naam=naam;G.emoji=emoji;G.grap=grap;G.kleurLijst=p.kleuren;
- G.stand=new Uint8Array(S*S);G.totaal=0;
- for(let i=0;i<S*S;i++)if(G.cel[i]>=0){G.stand[i]=1;G.totaal++}
- G.over=G.totaal;
+ vulGaatjes(G.cel,S);
+ G.bord=nieuwBord(G.cel,S);G.stand=G.bord.stand;G.totaal=G.over=G.bord.over;
  G.kol=maakBlokken(G.cel,S,inst,lvl);
  G.sporen=[null,null,null,null,null];G.pikkers=[];G.pops=[];G.vliegers=[];G.schud=G.kol.map(()=>0);
  G.hulp=false;G.klaar=false;G.vastTijd=0;G.klaarTijd=0;G.aanHet=true;G.gestart=false;G.tijd=0;
  document.getElementById('menu').hidden=true;sluitDlg();indeling();
 }
 
+function veilig(){const d=document.getElementById('veilig'),c=getComputedStyle(d);return {boven:parseFloat(c.paddingTop)||0,onder:parseFloat(c.paddingBottom)||0}}
 function indeling(){
  DPR=Math.min(2.5,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);ctx.setTransform(DPR,0,0,DPR,0,0);
- const boven=50,n=G.sporen.length||5,K=Math.max(3,G.kol.length||4);
+ const v=veilig();L.top=v.boven;
+ const boven=v.boven+50,onder=H-10-v.onder,n=G.sporen.length||5,K=Math.max(3,G.kol.length||4),S=G.S||16;
+ // het plaatje krijgt een lege rand van 1 hokje: daar lopen de pikkertjes omheen
+ const zet=(x,y,z)=>{const cz=z/(S+2);L.plaatje={x:x+cz,y:y+cz,z:cz*S,rand:z}};
  if(W>H*1.05){ // liggend: plaatje links, sporen en blokken rechts
-  const pl=Math.min(H-boven-14,W*0.55);
-  L.plaatje={x:Math.max(12,(W*0.58-pl)/2),y:boven+(H-boven-pl)/2,z:pl};
-  const rx=L.plaatje.x+pl+18,rw=W-rx-12;
-  zetRechts(rx,rw,boven+6,H-10,n,K);
+  const pl=Math.min(onder-boven-4,W*0.55);
+  zet(Math.max(12,(W*0.58-pl)/2),boven+(onder-boven-pl)/2,pl);
+  const rx=L.plaatje.x-L.plaatje.z/S+pl+18,rw=W-rx-12;
+  zetRechts(rx,rw,boven+6,onder,n,K);
  }else{
-  const pl=Math.min(W-20,(H-boven)*0.46);
-  L.plaatje={x:(W-pl)/2,y:boven+4,z:pl};
-  zetRechts(10,W-20,L.plaatje.y+pl+12,H-10,n,K);
+  const pl=Math.min(W-16,(onder-boven)*0.48);
+  zet((W-pl)/2,boven,pl);
+  zetRechts(10,W-20,boven+pl+10,onder,n,K);
  }
 }
 function zetRechts(x,w,y0,y1,n,K){
@@ -305,7 +399,7 @@ function kiesBlok(k){
  geluid.tik();
 }
 function knoppen(){
- const y=8,h=34;
+ const y=(L.top||0)+8,h=34;
  return [
   {x:W-44,y,w:36,h,tekst:'↻',doe:()=>{if(confirm('Dit level opnieuw beginnen?'))startLevel(G.lvl)}},
   {x:W-88,y,w:36,h,tekst:geluidAan?'🔊':'🔇',doe:()=>{geluidAan=!geluidAan;opslag.zet('pixelpikkers_geluid',geluidAan?'1':'0')}},
@@ -315,8 +409,19 @@ function knoppen(){
 
 // ---------- spel bijwerken ----------
 function spoorMidden(i){const s=L.spoor[i];return {x:s.x+s.w/2,y:s.y+s.h*0.35}}
-function zoekDoel(c){return kiesHokje(G.stand,G.cel,G.S,c)}
-function kanPikken(c){const S=G.S;for(let j=0;j<S*S;j++)if(G.stand[j]==1&&G.cel[j]==c&&buiten(G.stand,S,j))return true;return false}
+function kanPikken(c){return telVrij(G.bord,c)>0}
+// looppad voor het tekenen: van het spoor naar de onderrand, dan over lege plekken naar het lege plekje naast het doel
+function looppad(i,doel,m){
+ const S=G.S,M=S+2,P=L.plaatje,cz=P.z/S,e=ingangXY(i,G.sporen.length,S);
+ const start=(M-1)*M+Math.max(0,Math.min(M-1,Math.round(e.x)+1)),R=looprooster(G.stand,S,start);
+ const x=doel%S+1,y=((doel/S)|0)+1;let bij=-1,bd=1e9;
+ for(const[dx,dy]of RICHTING){const n=(y+dy)*M+x+dx,a=R.afst[n];if(a>=0&&a<bd){bd=a;bij=n}}
+ const pad=[];if(bij>=0)for(let g=bij;g>=0;g=R.van[g])pad.push(roosterXY(g));pad.reverse();
+ pad.unshift({x:m.x,y:m.y});pad.push({x:P.x+(doel%S+0.5)*cz,y:P.y+((doel/S|0)+0.5)*cz});
+ return pad;
+}
+// schermpositie van een cel in het looprooster (met rand)
+function roosterXY(g){const M=G.S+2,P=L.plaatje,cz=P.z/G.S;return {x:P.x+(g%M-1+0.5)*cz,y:P.y+(((g/M)|0)-1+0.5)*cz}}
 function update(dt){
  if(!G.aanHet)return;
  G.tijd+=dt;
@@ -326,15 +431,20 @@ function update(dt){
  for(let i=0;i<G.sporen.length;i++){const s=G.sporen[i];if(!s)continue;
   if(s.komt>0){s.komt=Math.max(0,s.komt-dt);continue}
   if(s.n>0){s.cd-=dt*G.snel;
-   while(s.cd<=0&&s.n>0){const doel=zoekDoel(s.c);if(doel<0){s.cd=0.12;break}
+   while(s.cd<=0&&s.n>0){const doel=kiesHokje(G.bord,s.c,i,G.sporen.length);if(doel<0){s.cd=0.12;break}
     G.stand[doel]=2;s.n--;s.cd+=0.075;s.laatst=G.tijd;
     const m=spoorMidden(i);
-    G.pikkers.push({x0:m.x,y0:m.y,doel,t:0,dur:0.35+Math.random()*0.2,c:s.c,spoor:i});s.weg=(s.weg||0)+1}}
+    G.pikkers.push({pad:looppad(i,doel,m),stuk:0,f:0,doel,c:s.c,spoor:i,x:m.x,y:m.y,kijk:1});s.weg=(s.weg||0)+1}}
   if(s.n==0&&!s.weg){s.einde=(s.einde||0)+dt;if(s.einde>0.15)G.sporen[i]=null}
  }
  // pikkertjes vliegen
- for(let j=G.pikkers.length-1;j>=0;j--){const p=G.pikkers[j];p.t+=dt*G.snel/p.dur;
-  if(p.t>=1){G.stand[p.doel]=0;G.over--;G.pikkers.splice(j,1);const s=G.sporen[p.spoor];if(s)s.weg--;
+ const loop=Math.max(260,cz*30)*G.snel*dt;
+ for(let j=G.pikkers.length-1;j>=0;j--){const p=G.pikkers[j];let rest=loop;
+  while(rest>0&&p.stuk<p.pad.length-1){const a=p.pad[p.stuk],b=p.pad[p.stuk+1],len=Math.hypot(b.x-a.x,b.y-a.y)||0.001;
+   const stap=Math.min(rest,len*(1-p.f));p.f+=stap/len;rest-=stap;
+   if(Math.abs(b.x-a.x)>0.5)p.kijk=b.x>a.x?1:-1;
+   p.x=a.x+(b.x-a.x)*p.f;p.y=a.y+(b.y-a.y)*p.f;if(p.f>=0.999){p.stuk++;p.f=0}}
+  if(p.stuk>=p.pad.length-1){haalWeg(G.bord,p.doel);G.over=G.bord.over;G.pikkers.splice(j,1);const s=G.sporen[p.spoor];if(s)s.weg--;
    const x=P.x+(p.doel%S+0.5)*cz,y=P.y+((p.doel/S|0)+0.5)*cz;
    G.pops.push({x,y,c:p.c,t:0});geluid.pik()}}
  for(let j=G.pops.length-1;j>=0;j--){G.pops[j].t+=dt*2.5;if(G.pops[j].t>=1)G.pops.splice(j,1)}
@@ -377,14 +487,17 @@ function teken(){
  const S=G.S,P=L.plaatje,cz=P.z/S;
  // kop
  ctx.fillStyle='#5b3a1a';ctx.font='800 16px system-ui,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
- ctx.fillText(`Level ${G.lvl} · ${G.naam}`,50,22);
+ const T=L.top||0;
+ const kop=`Level ${G.lvl} · ${G.naam}`,ruimte=W-50-150;let fs=16;
+ ctx.font=`800 ${fs}px system-ui,sans-serif`;while(fs>11&&ctx.measureText(kop).width>ruimte){fs--;ctx.font=`800 ${fs}px system-ui,sans-serif`}
+ ctx.fillText(kop,50,T+22);
  const pw=Math.max(60,W-50-160-12),pr=1-G.over/G.totaal;
- rond(50,36,pw,7,4);ctx.fillStyle='#e6cfa8';ctx.fill();rond(50,36,Math.max(7,pw*pr),7,4);ctx.fillStyle='#41b75b';ctx.fill();
+ rond(50,T+36,pw,7,4);ctx.fillStyle='#e6cfa8';ctx.fill();rond(50,T+36,Math.max(7,pw*pr),7,4);ctx.fillStyle='#41b75b';ctx.fill();
  for(const k of knoppen()){rond(k.x,k.y,k.w,k.h,10);ctx.fillStyle='rgba(120,80,40,.18)';ctx.fill();
   ctx.fillStyle='#5b3a1a';ctx.font=`800 ${k.tekst.length>2?12:17}px system-ui,sans-serif`;ctx.textAlign='center';ctx.fillText(k.tekst,k.x+k.w/2,k.y+k.h/2+1)}
- // bord
- rond(P.x-8,P.y-8,P.z+16,P.z+16,16);ctx.fillStyle='#d9c3a0';ctx.fill();
- rond(P.x-5,P.y-5,P.z+10,P.z+10,13);ctx.fillStyle='#efe1c9';ctx.fill();
+ // bord (met de looprand eromheen)
+ rond(P.x-cz-3,P.y-cz-3,P.z+2*cz+6,P.z+2*cz+6,16);ctx.fillStyle='#d9c3a0';ctx.fill();
+ rond(P.x-cz,P.y-cz,P.z+2*cz,P.z+2*cz,13);ctx.fillStyle='#efe1c9';ctx.fill();
  const gat=cz>7?1:0;
  for(let i=0;i<S*S;i++){if(!G.stand[i])continue;const x=P.x+(i%S)*cz,y=P.y+((i/S)|0)*cz,hex=KLEUREN[G.cel[i]].hex;
   ctx.fillStyle=hex;ctx.fillRect(x+gat*0.5,y+gat*0.5,cz-gat,cz-gat);
@@ -419,9 +532,8 @@ function teken(){
  if(G.lvl==1&&!G.gestart){ctx.fillStyle='#5b3a1a';ctx.font='800 17px system-ui';ctx.textAlign='center';
   const bounce=Math.sin(G.tijd*5)*4;ctx.fillText('👇 Tik op een blok!',B.x+(B.K*(B.w+B.gat)-B.gat)/2,B.y-8+bounce-0.0001)}
  // pikkertjes
- for(const p of G.pikkers){const tx=P.x+(p.doel%S+0.5)*cz,ty=P.y+((p.doel/S|0)+0.5)*cz,t=p.t;
-  const x=p.x0+(tx-p.x0)*t,y=p.y0+(ty-p.y0)*t-Math.sin(t*Math.PI)*40;
-  tekenPikker(x,y,Math.max(4,Math.min(9,cz*0.6)),p.c,tx>=p.x0?1:-1)}
+ for(const p of G.pikkers){const hup=Math.abs(Math.sin((G.tijd*14+p.doel)%6.283))*Math.min(3,cz*0.25);
+  tekenPikker(p.x,p.y-hup,Math.max(3.5,Math.min(9,cz*0.45)),p.c,p.kijk)}
 }
 
 // ---------- einde ----------
