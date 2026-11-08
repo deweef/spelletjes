@@ -804,7 +804,7 @@ function wedstrijd(){
  <div class="rij"><button class="knop klein" id="sneller">Sneller ▸▸</button><button class="knop klein" id="einde">Naar de uitslag</button></div></div>
  <div id="rust"></div>`);
  const cv=$('#veld'),ctx=cv.getContext('2d');
- const st={ev:lo.ev1,i:-1,score:[0,0],min:0,snel:1,fase:'wacht',t:0,actie:null,helft:1};
+ const st={ev:lo.ev1,i:-1,score:[0,0],min:0,snel:1,fase:'wacht',t:0,actie:null,helft:1};tweedeHelft=false;
  const ons=mijn(),hun=club(lo.teg);
  let hunK1=hun.k1;if(kleurAfstand(hun.k1,ons.k1)<120)hunK1=hun.k2;if(kleurAfstand(hunK1,ons.k1)<120)hunK1='#222222';
  tekenVeld(ctx);tekenStil(ctx,ons,hunK1);
@@ -867,7 +867,7 @@ function wedstrijd(){
   $('#rust').querySelectorAll('[data-tak]').forEach(b=>b.onclick=()=>{S.tactiek=b.dataset.tak;bewaar();rust()});
   $('#tweede2').onclick=()=>$('#tweede').click();
   $('#tweede').onclick=()=>{if(opstellingFout()){rust();const m=$('#rust .melding.slecht');if(m)m.scrollIntoView({block:'center'});return}
-   afmaken();const L=S.laatste;st.ev=L.ev;st.helft=2;st.min=45;$('#rust').innerHTML='';$('#knoppen').style.display='';
+   afmaken();const L=S.laatste;st.ev=L.ev;st.helft=2;tweedeHelft=true;st.min=45;$('#rust').innerHTML='';$('#knoppen').style.display='';
    $('#verslag').innerHTML='De tweede helft begint!';fluit(1);knoppen();begin();window.scrollTo(0,0)};
  }
  if(lo.bijRust){ // terug na herladen: meteen de rust, met de stand van de eerste helft
@@ -911,21 +911,23 @@ function poppetje(ctx,x,y,k1,k2,loop,juich=0,staart=0){
 function bal(ctx,x,y,h=0){ctx.save();ctx.translate(Math.round(x+20),Math.round(y+20));ctx.scale(PS,PS);ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(-3,2,6,2);ctx.fillStyle='#fff';ctx.fillRect(-3,-3-h,6,6);ctx.fillStyle='#111';ctx.fillRect(-1,-1-h,2,2);ctx.restore()}
 // stand tussen de kansen: wij links in onze echte opstelling (keeper, verdedigers, middenveld, aanvallers), zij rechts in 4-4-2
 const staart=i=>soort()=='dames'?1:soort()=='gemengd'?i%2:0;
+// tweede helft: de teams wisselen van kant (wij spelen dan naar links). Gezet in wedstrijd(), gebruikt in tekenStil en speelActie.
+let tweedeHelft=false;const kx=x=>tweedeHelft?600-x:x;
 function tekenStil(ctx,ons,hunK){
- const n=lijnen(S.opstelling).n,rij=(k,x,kl1,kl2)=>{const sp=Math.min(280,(k-1)*80);for(let i=0;i<k;i++)poppetje(ctx,x,k==1?180:180-sp/2+i*sp/(k-1),kl1,kl2,0,0,staart(i+x))};
- poppetje(ctx,22,180,'#ffe66b','#222',0,0,staart(1));rij(n.V,95,ons.k1,ons.k2);rij(n.M,180,ons.k1,ons.k2);rij(n.A,265,ons.k1,ons.k2);
- poppetje(ctx,578,180,'#ffe66b','#222',0,0,staart(0));rij(4,505,hunK,'#fff');rij(4,420,hunK,'#fff');rij(2,345,hunK,'#fff');
+ const n=lijnen(S.opstelling).n,rij=(k,x,kl1,kl2)=>{const sp=Math.min(280,(k-1)*80);for(let i=0;i<k;i++)poppetje(ctx,kx(x),k==1?180:180-sp/2+i*sp/(k-1),kl1,kl2,0,0,staart(i+x))};
+ poppetje(ctx,kx(22),180,'#ffe66b','#222',0,0,staart(1));rij(n.V,95,ons.k1,ons.k2);rij(n.M,180,ons.k1,ons.k2);rij(n.A,265,ons.k1,ons.k2);
+ poppetje(ctx,kx(578),180,'#ffe66b','#222',0,0,staart(0));rij(4,505,hunK,'#fff');rij(4,420,hunK,'#fff');rij(2,345,hunK,'#fff');
 }
 // Een kans: drie aanvallers lopen naar het doel rechts, passen, en eentje schiet.
 // Voor de tegenstander wordt alles gespiegeld (zij vallen naar links aan).
-// Een kans met k aanvallers tegen d verdedigers (plus keeper). Het aantal volgt de opstelling: veel aanvallers = meer poppetjes
-// voorin, veel verdedigers = meer poppetjes achterin als de tegenstander aanvalt (zie aantalInBeeld).
+// Een kans met k aanvallers tegen d verdedigers (plus keeper). Het aantal volgt de opstelling: al onze aanvallers (+1) tegen hun
+// 4 verdedigers, en bij hun kans al onze verdedigers (zie aantalInBeeld).
 function aantalInBeeld(e){const n=lijnen(S.opstelling).n;
- return e.wij?{k:clamp(n.A+1,2,4),d:2}:{k:3,d:clamp(n.V-2,1,4)}}
+ return e.wij?{k:clamp(n.A+1,2,5),d:4}:{k:3,d:clamp(n.V,1,6)}} // wij: aanvallers + 1 middenvelder tegen hun 4 verdedigers; zij: 3 tegen al onze verdedigers
 function maakActie(e){
  const{k,d}=aantalInBeeld(e),x0=ri(200,280);
  const y0=Array.from({length:k},(_,i)=>k==1?180:100+i*160/(k-1)+ri(-12,12));
- const att=y0.map((y,i)=>[x0+ri(-20,20)+(i==Math.floor(k/2)?20:0),y]),def=Array.from({length:d},(_,i)=>[ri(420,450),d==1?180:125+i*110/(d-1)+ri(-8,8)]),kp=[588,GY];
+ const att=y0.map((y,i)=>[x0+ri(-20,20)+(i==Math.floor(k/2)?20:0),y]),def=Array.from({length:d},(_,i)=>[ri(420,455),d==1?180:180-Math.min(170,(d-1)*42)/2+i*Math.min(170,(d-1)*42)/(d-1)+ri(-6,6)]),kp=[588,GY];
  let hold=Math.floor(k/2);const frames=[];const ballOp=(a,i)=>[a[i][0]+6,a[i][1]+4];
  const push=(d,a,de,k,bl,extra={})=>frames.push(Object.assign({d,att:a.map(p=>p.slice()),def:de.map(p=>p.slice()),kp:k.slice(),bal:bl.slice()},extra));
  push(0,att,def,kp,ballOp(att,hold));
@@ -941,7 +943,7 @@ function maakActie(e){
  }
  // laatste loopje naar de zestien
  const s=a.map(([x,y],i)=>[i==hold?ri(470,510):x+40,i==hold?clamp(y,110,250):y]);
- const dd=def.map(([x,y],i)=>[Math.min(560,s[hold][0]+20+Math.abs(i-(d-1)/2)*14),s[hold][1]+(i-(d-1)/2)*30]);
+ const dd=def.map(([x,y],i)=>[Math.min(565,s[hold][0]+20+Math.abs(i-(d-1)/2)*12),clamp(s[hold][1]+(i-(d-1)/2)*26,40,320)]);
  push(0.7,s,dd,[kp[0],GY+(s[hold][1]-GY)*0.3],ballOp(s,hold),{loop:1});
  const schotTijd=frames.reduce((t,f)=>t+f.d,0);
  // schot
@@ -962,17 +964,17 @@ function speelActie(ctx,a,t,ons,hunK){
  const klaar=i>=a.frames.length;if(klaar){i=a.frames.length-1;tt=a.frames[i].d}
  const f0=a.frames[i-1],f1=a.frames[i],u=f1.d?clamp(tt/f1.d,0,1):1,e=f1.kick?u:u<.5?2*u*u:1-2*(1-u)*(1-u);
  const L=(p,q)=>[p[0]+(q[0]-p[0])*e,p[1]+(q[1]-p[1])*e];
- const sp=p=>a.wij?p:[600-p[0],p[1]]; // spiegelen voor de tegenstander
+ const rechts=a.wij!==tweedeHelft,sp=p=>rechts?p:[600-p[0],p[1]]; // spiegelen: tegenstander, of wij in de tweede helft
  const kA=a.wij?ons.k1:hunK,kA2=a.wij?ons.k2:'#fff',kD=a.wij?hunK:ons.k1,kD2=a.wij?'#fff':ons.k2;
  // camera: zoom in op de helft waar de kans is en volg de bal een beetje in de hoogte
- const bb=sp(L(f0.bal,f1.bal)),zs=640/440,vx=a.wij?200:0,vy=clamp(bb[1]+20,137.5,262.5)-137.5;
+ const bb=sp(L(f0.bal,f1.bal)),zs=640/440,vx=rechts?200:0,vy=clamp(bb[1]+20,137.5,262.5)-137.5;
  a.vy=a.vy==null?vy:a.vy+(vy-a.vy)*0.08;
  ctx.save();ctx.setTransform(zs,0,0,zs,-vx*zs,-a.vy*zs);
  tekenVeld(ctx);
  const loopt=f1.loop?t:0;
  f1.def.forEach((p,j)=>{const q=sp(L(f0.def[j],p));poppetje(ctx,q[0],q[1],kD,kD2,loopt,0,staart(j+1))});
  const k=sp(L(f0.kp,f1.kp));
- if(f1.duik&&Math.abs(f1.kp[1]-GY)>8){ctx.save();ctx.translate(k[0]+20,k[1]+20);ctx.rotate((f1.kp[1]>GY?1:-1)*(a.wij?1:-1)*1.2*e);ctx.translate(-k[0]-20,-k[1]-20);poppetje(ctx,k[0],k[1],'#ffe66b','#222',0,0,staart(0));ctx.restore()}
+ if(f1.duik&&Math.abs(f1.kp[1]-GY)>8){ctx.save();ctx.translate(k[0]+20,k[1]+20);ctx.rotate((f1.kp[1]>GY?1:-1)*(rechts?1:-1)*1.2*e);ctx.translate(-k[0]-20,-k[1]-20);poppetje(ctx,k[0],k[1],'#ffe66b','#222',0,0,staart(0));ctx.restore()}
  else poppetje(ctx,k[0],k[1],'#ffe66b','#222',0,0,staart(0));
  f1.att.forEach((p,j)=>{const q=sp(L(f0.att[j],p));poppetje(ctx,q[0],q[1],kA,kA2,loopt,f1.juich?Math.sin(t*10)>0:0,staart(j))});
  bal(ctx,bb[0],bb[1],f1.hoog?Math.sin(u*Math.PI)*10:0);

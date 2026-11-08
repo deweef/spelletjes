@@ -54,7 +54,8 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
   (die laatste stap vraagt eerst "Je verlaat Voetbalbaas… Ja/Nee", `vraagVerlaten`).
   Tijdens een wedstrijd naar het beginscherm (Verder = terug in de wedstrijd/rust).
 - Het veld tussen de kansen toont onze echte opstelling (`tekenStil`) tegen hun 4-4-2. Bij een kans (`aantalInBeeld`): wij met
-  aanvallers + 1 (2-4 poppetjes) tegen 2 verdedigers; zij met 3 tegen onze verdedigers − 2 (1-4).
+  al onze aanvallers + 1 middenvelder (2-5) tegen hun 4 verdedigers; zij met 3 tegen al onze verdedigers (1-6).
+- Tweede helft: de teams wisselen van kant (`tweedeHelft`, `kx` in `tekenStil`, `rechts` in `speelActie`).
 
 ## Rust en wissels
 - Een wedstrijd gaat in twee helften (`startWedstrijd`, `helft`, `afmaken`): bij het begin wordt alleen de eerste helft uitgerekend en
