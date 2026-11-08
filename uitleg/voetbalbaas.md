@@ -29,8 +29,9 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Nieuwsplaatjes: `voetbalbaas/nieuws.jpg` (strook van vakjes 480x260, uit `voetbalbaas/nieuws1-gemini.jpg`): 0 kantine/tap 🍺, 1 kater 🥴,
   2 plassen in het bos 🌲, 3 koeien op het veld 🐄; uit `voetbalbaas/nieuws2-gemini.jpg`: 4 lekkende douche 🚿, 5 snackbar-reclamebord 📣,
   6 spandoek 🎉, 7 'sigaretje' achter de dug-out 🌿;
-  uit `voetbalbaas/nieuws3-gemini.jpg`: 8 clubloterij 🎟 (sleutel zonder het onzichtbare FE0F-teken), 9 extra training 💪, 10 rode kaart 🟥, 11 blessure 🩹. `NIEUWSFOTO` koppelt het eerste teken van een bericht aan een vakje; `melding(b,klein)`
-  toont het groot na de wedstrijd en klein in het kantoor. Nieuwe vakjes achteraan in de strook bijzetten (en `1200%` in `.nieuwsfoto` en `100/11` in `melding` aanpassen).
+  uit `voetbalbaas/nieuws3-gemini.jpg`: 8 clubloterij 🎟 (sleutel zonder het onzichtbare FE0F-teken), 9 extra training 💪, 10 rode kaart 🟥, 11 blessure 🩹;
+  uit `voetbalbaas/nieuws4-gemini.jpg`: 12 nieuwe speler tekent ✍, 13 afscheid achter de bar 👋, 14 pijntje 🤕, 15 Gouden Frikandel 🌭. `NIEUWSFOTO` koppelt het eerste teken van een bericht aan een vakje; `melding(b,klein)`
+  toont het groot na de wedstrijd en klein in het kantoor. Nieuwe vakjes achteraan in de strook bijzetten (en `1600%` in `.nieuwsfoto` en `100/15` in `melding` aanpassen).
 - Willekeurig nieuws (`gebeurtenis`): kantine, kater, plassen in het bos, 'sigaretje' achter de dug-out, koeien op het veld enz.
 - Einde seizoen (`seizoenKlaar`): spelers worden ouder (jong = beter, oud = minder, 35+ stopt soms), clubs wisselen van divisie.
 

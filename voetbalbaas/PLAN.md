@@ -143,7 +143,7 @@ strafschoppen, 3 feest bij BEKERWINNAAR.
 > HARRIE ERUIT: …
 > (enzovoort voor MIEKE, JORDY en BERTUS)
 
-## Opdracht 9 – Nieuwsplaatjes, vel 4
+## Opdracht 9 – Nieuwsplaatjes, vel 4 – KLAAR (vakjes 12-15 in `nieuws.jpg`)
 > Maak een vel met 4 liggende plaatjes in een raster van 2 naast elkaar en 2 onder elkaar, elk precies even groot, met een dunne
 > witte rand eromheen en ruimte ertussen, in precies dezelfde stijl als de vorige vellen (die stuur ik mee). Elk plaatje is een klein
 > grappig krantenplaatje over een amateurvoetbalclub. De spelers dragen dezelfde oranje shirts met een zwarte streep.
