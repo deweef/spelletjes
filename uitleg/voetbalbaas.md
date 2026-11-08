@@ -74,6 +74,13 @@ maar geen kopie: eigen clubs, regels en beeld. Retro C64-kleuren (blauw), Courie
 - Getest (30 × 4 seizoenen, geen aankopen): rustig gem. 4,6e in seizoen 1 en na 4 seizoenen gem. divisie 3,6; normaal 4,2e / 3,2;
   keihard 5,4e / 3,0 (eerst moe, op den duur het sterkst).
 
+## Moeilijkheid
+- Keuze op het beginscherm (`niveauNu`, onthouden in `voetbalbaas_niveau`), bewaard als `S.niveau` (oude opslag = normaal), `MOE()`.
+  `MOEI`: makkelijk (tegenstanders −2,5 kracht via `tegenPloeg`, eigen spelers +1,5 bij de start, € 80.000, ontslag onder € −60.000,
+  groei ×2,5, managerpunten ×0,5), normaal (zoals het was), moeilijk (+1, −0,5, € 20.000, € −10.000, ×0,8, punten ×1,5).
+- Getest (30 × 4 seizoenen, zonder aankopen): makkelijk altijd kampioen in seizoen 1 en na 4 seizoenen gem. divisie 1,6; normaal
+  4,5e / 3,1; moeilijk 7,3e / 3,7 (nooit promotie in seizoen 1).
+
 ## Heren, dames of gemengd
 - Keuze op het beginscherm (`soortNu`, onthouden in localStorage `voetbalbaas_soort`), bewaard als `S.soort` (oude opslag = 'heren').
   Dames: alle clubnamen + " Vrouwen" (eigen club niet). Gemengd: elke nieuwe speler 50% kans speelster. `p.v` = speelster.

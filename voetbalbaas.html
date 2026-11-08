@@ -127,6 +127,13 @@ let volgId=1;
 let soortNu='heren';try{soortNu=localStorage.getItem('voetbalbaas_soort')||'heren'}catch(e){}
 const soort=()=>(S&&S.soort)||soortNu;
 const nieuwV=()=>soort()=='dames'||(soort()=='gemengd'&&R()<0.5);
+// Moeilijkheid (S.niveau, gekozen op het beginscherm; oude opslag = normaal). teg = verschil in kracht van de tegenstanders,
+// start = extra kracht eigen spelers bij het begin, groei = factor op trainingskansen, punten = factor op managerpunten.
+const MOEI={makkelijk:{naam:'😎 Makkelijk',uitleg:'Zwakkere tegenstanders, sterkere spelers en meer geld. Lekker snel naar de top (wel minder managerpunten).',teg:-2.5,start:1.5,geld:80000,ontslag:-60000,groei:2.5,punten:0.5},
+ normaal:{naam:'⚽ Normaal',uitleg:'Zoals het spel bedoeld is.',teg:0,start:0,geld:40000,ontslag:-25000,groei:1,punten:1},
+ moeilijk:{naam:'🔥 Moeilijk',uitleg:'Sterkere tegenstanders, weinig geld en een streng bestuur. Wel 1,5 keer zoveel managerpunten.',teg:1,start:-0.5,geld:20000,ontslag:-10000,groei:0.8,punten:1.5}};
+let niveauNu='normaal';try{niveauNu=localStorage.getItem('voetbalbaas_niveau')||'normaal'}catch(e){}
+const MOE=()=>MOEI[(S&&S.niveau)||niveauNu]||MOEI.normaal;
 const hij=p=>p&&p.v?'zij':'hij',Hij=p=>p&&p.v?'Zij':'Hij',hem=p=>p&&p.v?'haar':'hem';
 const praat=q=>soort()=='dames'?q.replace(/jongens/g,'meiden').replace(/mannen/g,'meiden').replace(/\bboys\b/g,'girls'):q;
 // Eigenschappen (p.eig): ongeveer 1 op de 3 spelers heeft er een. Effecten: lijnen() (muur, snel, kapitein, supersub),
@@ -149,6 +156,7 @@ const eff=p=>p.kracht*(0.5+0.5*p.cond/100);
 // ---------- spelstatus ----------
 let S=lees();if(S)volgId=S.volgId||1000;
 if(S&&!S.soort)S.soort='heren'; // oude opslag = herencompetitie
+if(S&&!S.niveau)S.niveau='normaal';
 if(S&&!S.eigVerdeeld){S.spelers.forEach(p=>{if(p.eig==null){geefEig(p);if(p.eig=='glas')p.kracht-=2}});(S.markt||[]).forEach(p=>{if(p.eig==null)p.eig=''});S.eigVerdeeld=true} // oude opslag: geen gratis +2
 if(S)S.spelers.concat(S.markt||[]).forEach(p=>{if(p.uit==null){p.uit=ri(2,4);p.sp=p.sp||0;p.tr=p.tr||0}if(p.kop==null){p.kop=p.id%36;p.lijf=p.pos=='K'?4:[0,1,1,2,3][(p.id*7)%5]}}); // uithouding en uiterlijk voor oude opslag
 
@@ -159,8 +167,8 @@ function nieuwSpel(clubId,eigen){ // eigen = {naam,k1,k2}: eigen club, neemt de 
  if(eigen)Object.assign(clubs[clubId],eigen);
  clubs.forEach(c=>c.niveau=BASIS[c.div]+rnd(-1.5,1.5));
  const sp=[];const b=BASIS[4];
- [['K',2],['V',5],['M',5],['A',4]].forEach(([pos,n])=>{for(let i=0;i<n;i++)sp.push(nieuweSpeler(pos,b+rnd(-1.5,2)))});
- S={soort:soortNu,club:clubId,clubs,spelers:sp,opstelling:[],geld:40000,seizoen:1,week:0,div:4,berichten:['Welkom bij '+clubs[clubId].naam+'! Het bestuur verwacht dat je niet degradeert. Succes, baas!'],erelijst:[],markt:[],volgId};
+ [['K',2],['V',5],['M',5],['A',4]].forEach(([pos,n])=>{for(let i=0;i<n;i++)sp.push(nieuweSpeler(pos,b+MOEI[niveauNu].start+rnd(-1.5,2)))});
+ S={soort:soortNu,niveau:niveauNu,club:clubId,clubs,spelers:sp,opstelling:[],geld:MOEI[niveauNu].geld,seizoen:1,week:0,div:4,berichten:['Welkom bij '+clubs[clubId].naam+'! Het bestuur verwacht dat je niet degradeert. Succes, baas!'],erelijst:[],markt:[],volgId};
  S.opstelling=besteElf();nieuwSeizoen();nieuweMarkt();bewaar();
 }
 function nieuwSeizoen(){
@@ -196,7 +204,7 @@ function lijnen(ids,pijn,inv){const l={K:0,V:0,M:0,A:0},n={K:0,V:0,M:0,A:0};let 
 // Kans op een goal ~ (qA/qD)^1.3 × √(nA/3) / (nD/5)^1.5: meer aanvallers = meer goals, meer verdedigers = minder tegengoals.
 function sterkte(l,n){const nA=n.A+0.25*n.M,nD=n.V+0.25*n.M;
  return{qA:nA?(l.A+0.25*l.M)/nA:0,nA,qD:0.75*(nD?(l.V+0.25*l.M)/nD:0)+0.25*l.K,nD,M:l.M+0.15*(l.V+l.A),K:l.K}}
-const tegenPloeg=L=>sterkte({K:L,V:4*L,M:4*L,A:2*L},{K:1,V:4,M:4,A:2}); // tegenstanders spelen 4-4-2
+const tegenPloeg=L=>{L=Math.max(1,L+MOE().teg);return sterkte({K:L,V:4*L,M:4*L,A:2*L},{K:1,V:4,M:4,A:2})}; // tegenstanders spelen 4-4-2 (kracht volgens de moeilijkheid)
 const aanvalWaarde=s=>s.qA*Math.pow(s.nA/3,0.5/1.3),verdWaarde=s=>s.qD*Math.pow(s.nD/5,1.5/1.3);
 // Tactiek: counter = minder vaak de bal, maar gevaarlijker als de tegenstander veel aanvalt (ruimte achterin bij hen);
 // aanvallen = vaker de bal, maar meer ruimte achterin bij ons.
@@ -266,7 +274,7 @@ const TRAINING={
  normaal:{naam:'Normaal',uitleg:'Gewoon trainen. Langzaam maar zeker beter worden.',rust:25,moe:0,tr:1,kracht:0.02,uith:0.01},
  conditie:{naam:'Conditie',uitleg:'Rondjes rennen! Iedereen wat moe, maar kans dat spelers minder snel moe worden (uithouding +1).',rust:20,moe:5,tr:1,kracht:0,uith:0.08},
  hard:{naam:'Keihard',uitleg:'Afzien! Iedereen moe, kans op +1 kracht per speler. Spelers van glas kunnen geblesseerd raken.',rust:18,moe:6,tr:2,kracht:0.09,uith:0}};
-const groeiKans=(p,k)=>k*(p.leeftijd<23?1.5:p.leeftijd>30?0.5:1)*(p.kracht>=BASIS[S.div]+5?0.5:1);
+const groeiKans=(p,k)=>MOE().groei*k*(p.leeftijd<23?1.5:p.leeftijd>30?0.5:1)*(p.kracht>=BASIS[S.div]+5?0.5:1);
 function trainen(berichten){
  const t=TRAINING[S.training||'normaal'],beter=[],fitter=[];
  S.spelers.forEach(p=>{if(p.blessure)return;
@@ -326,7 +334,7 @@ function bekerAfmaken(ev,berichten){
  S.geld+=inkomsten+prijsgeld;
  naAfloop(berichten,false);
  const ronde=BEKERRONDE[b.ronde];
- if(door){b.ronde++;b.tegen=null;if(b.ronde==4){S.bekers=(S.bekers||[]).concat(S.seizoen);S.prijzen=(S.prijzen||0)+1;S.punten=(S.punten||0)+50*(5-S.div);setTimeout(insturen,0);berichten.unshift(`🏆 ${mijn().naam} wint ${BEKERNAAM}! Er wordt de hele nacht uit de beker gedronken.`)}}
+ if(door){b.ronde++;b.tegen=null;if(b.ronde==4){S.bekers=(S.bekers||[]).concat(S.seizoen);S.prijzen=(S.prijzen||0)+1;S.punten=(S.punten||0)+Math.round(50*(5-S.div)*MOE().punten);setTimeout(insturen,0);berichten.unshift(`🏆 ${mijn().naam} wint ${BEKERNAAM}! Er wordt de hele nacht uit de beker gedronken.`)}}
  else b.eruit=true;
  b.gespeeldWeek=S.week;
  S.laatste={ev,h:b.thuis?S.club:t.id,a:b.thuis?t.id:S.club,dh,da,res:voor>tegen?'w':voor<tegen?'v':'g',inkomsten,toesch,lonen:0,berichten,week:S.week,
@@ -379,7 +387,7 @@ function weekAfmaken(mijnEv,lo,berichten){
  S.laatste={ev:mijnEv,h:u.h,a:u.a,dh:u.dh,da:u.da,res,inkomsten,toesch,lonen,berichten,week:S.week+1};
  S.week++;
  nieuweMarkt();
- if(S.geld<-25000)S.ontslagen=true;
+ if(S.geld<MOE().ontslag)S.ontslagen=true;
  bewaar();
 }
 function gebeurtenis(){
@@ -408,7 +416,7 @@ function seizoenKlaar(){
  if(top){const sp=S.spelers.find(x=>x.naam==top[0]);if(sp)sp.kracht=clamp(sp.kracht+1,1,20);
   info.push(`🌭 Clubtopscorer: ${top[0]} met ${top[1]} ${top[1]==1?'goal':'goals'}! ${Hij(sp)} krijgt de Gouden Frikandel${sp?' (kracht +1)':''}.`)}
  S.erelijst.push({seizoen:S.seizoen,div:d,plek:p,top:top?{naam:top[0],n:top[1]}:null});
- const promo=d>1&&p<=2,pnt=seizoenPunten(d,p,promo);S.punten=(S.punten||0)+pnt;if(p==1)S.prijzen=(S.prijzen||0)+1;
+ const promo=d>1&&p<=2,pnt=Math.round(seizoenPunten(d,p,promo)*MOE().punten);S.punten=(S.punten||0)+pnt;if(p==1)S.prijzen=(S.prijzen||0)+1;
  info.push(`⭐ Managerpunten dit seizoen: +${pnt} (totaal ${S.punten}).`);
  // promotie en degradatie
  const omhoog=d>1?st.slice(0,2).map(r=>r.id):[],omlaag=d<4?st.slice(6).map(r=>r.id):[];
@@ -504,6 +512,9 @@ function beginScherm(){
  <div class="klein" style="margin-bottom:4px">Welke competitie?</div>
  <div class="rij" style="gap:6px;margin-bottom:6px">${[['heren','👨 Heren'],['dames','👩 Dames'],['gemengd','👫 Gemengd']].map(([k,t])=>`<button class="knop klein" data-soort="${k}" style="flex:1;text-align:center;margin:0;${soortNu==k?'background:var(--geel);color:#222':''}">${t}</button>`).join('')}</div>
  <p class="klein">${{heren:'Mannenteams, zoals vroeger.',dames:'Vrouwenteams: alle clubs spelen met speelsters.',gemengd:'Teams met spelers én speelsters door elkaar.'}[soortNu]}</p>
+ <div class="klein" style="margin:8px 0 4px">Hoe moeilijk?</div>
+ <div class="rij" style="gap:6px;margin-bottom:6px">${Object.entries(MOEI).map(([k,m])=>`<button class="knop klein" data-niveau="${k}" style="flex:1;text-align:center;margin:0;${niveauNu==k?'background:var(--geel);color:#222':''}">${m.naam}</button>`).join('')}</div>
+ <p class="klein">${MOEI[niveauNu].uitleg}</p>
  <p class="klein">Je begint onderaan in de Kelderklasse. Kies een club en probeer die naar de Ereklasse te brengen.</p>
  <button class="knop groot" id="eigen" style="background:var(--groen)">✏️ Eigen club maken (naam en kleuren)</button>
  ${voorbeeld.map((c,i)=>`<button class="knop" data-c="${i}"><span class="club" style="background:linear-gradient(90deg,${c[1]} 50%,${c[2]} 50%)"></span>${esc(c[0])}${soortNu=='dames'?' Vrouwen':''}</button>`).join('')}
@@ -512,9 +523,10 @@ function beginScherm(){
  Daar zie je de hoogtepunten: jouw aanvallers (in je clubkleuren) proberen te scoren, en de tegenstander ook.
  Sterke aanvallers = meer goals, sterke verdediging en keeper = minder tegengoals, een sterk middenveld = vaker de bal.
  Moe? Laat een speler een weekje rusten. Thuiswedstrijden leveren geld op, maar je spelers willen ook salaris.
- Kom je onder de ${euro(-25000)}, dan ontslaat het bestuur je. Nummer 1 en 2 promoveren, de laatste twee degraderen.</p>`);
+ Kom je onder de ${euro(MOEI[niveauNu].ontslag)}, dan ontslaat het bestuur je. Nummer 1 en 2 promoveren, de laatste twee degraderen.</p>`);
  if(S)$('#verder').onclick=kantoor;
  terugNaar=null; // vanaf het beginscherm: naar de startpagina
+ scherm.querySelectorAll('[data-niveau]').forEach(b=>b.onclick=()=>{niveauNu=b.dataset.niveau;try{localStorage.setItem('voetbalbaas_niveau',niveauNu)}catch(e){}const y=scrollY;beginScherm();scrollTo(0,y)});
  scherm.querySelectorAll('[data-soort]').forEach(b=>b.onclick=()=>{soortNu=b.dataset.soort;try{localStorage.setItem('voetbalbaas_soort',soortNu)}catch(e){}const y=scrollY;beginScherm();scrollTo(0,y)});
  $('#eigen').onclick=()=>clubMaken(false);$('#bordknop').onclick=()=>scorebord(beginScherm);
  scherm.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(S&&!confirm('Weet je het zeker? Je huidige club en voortgang gaan verloren.'))return;const c=+b.dataset.c;managerKiezen(m=>{nieuwSpel(c);S.manager=m;bewaar();kantoor()},beginScherm)});
@@ -577,13 +589,13 @@ function kantoor(){
  if(S.week>=14){seizoenKlaar();return seizoenScherm()}
  const v=tegenNu(),t=club(v.teg),c=mijn(),p=plek(),fout=opstellingFout(),bk=v.beker,br=bk&&BEKERRONDE[S.beker.ronde];
  teken(`<h1 style="font-size:20px">${clubTag(c)}</h1>
- <p class="sub">Seizoen ${S.seizoen} · ${DIVNAAM[S.div]} · Week ${S.week+1}/14${NAAM?' · baas '+esc(NAAM):''}</p>
+ <p class="sub">Seizoen ${S.seizoen} · ${DIVNAAM[S.div]} · Week ${S.week+1}/14 · ${MOE().naam}${NAAM?' · baas '+esc(NAAM):''}</p>
  <div class="kantoor"><img src="voetbalbaas/kantoor.jpg" alt="Het kantoor van de baas" onerror="this.parentNode.remove()">${KANTOOR.map(([id,t,x,y,b,h])=>`<button data-naar="${id}" style="left:${x}%;top:${y}%;width:${b}%;height:${h}%" aria-label="${t}"><span>${t}</span></button>`).join('')}</div>
  <div class="vak mgr">${portret(mgr(),S.laatste&&S.laatste.res=='v')}<div style="flex:1;min-width:0"><div class="rij"><span style="flex:1">Bank</span><span class="${S.geld<0?'slecht':'goed'}">${euro(S.geld)}</span></div>
  <div class="rij"><span style="flex:1">Plaats in de stand</span><span class="wit">${S.week?p+'e':'-'}</span></div>
  <div class="rij"><span style="flex:1">Volgende wedstrijd</span><span class="wit">${bk?(S.beker.ronde==3?'🍺 finale':'🍺 beker, '+(v.thuis?'thuis':'uit')):v.thuis?'thuis':'uit'}</span></div>
  <div class="rij"><span style="flex:1">${clubTag(t)}</span><span class="geel">${ster(t.niveau)}</span></div></div></div>
- ${S.geld<0?`<p class="melding slecht">Let op: je staat rood! Onder de ${euro(-25000)} ontslaat het bestuur je. Verkoop een speler?</p>`:''}
+ ${S.geld<0?`<p class="melding slecht">Let op: je staat rood! Onder de ${euro(MOE().ontslag)} ontslaat het bestuur je. Verkoop een speler?</p>`:''}
  ${bk?`<p class="melding">${bekerFoto(S.beker.ronde==3?0:1)}🍺 <b class="geel">${BEKERNAAM}</b>: deze week eerst de ${br.toLowerCase()}${S.beker.ronde==3?' in het grote stadion':''} tegen ${esc(t.naam)} uit de ${DIVNAAM[t.div]}. Gelijk = strafschoppen. Winnen levert ${euro(BEKERPRIJS[S.beker.ronde]*BEKERFACTOR[S.div])} op. Daarna gewoon de competitie.</p>`:''}
  ${fout?`<p class="melding">${fout}</p>`:''}
  <button class="knop groot" id="spelen">${bk?'🍺 Speel de '+br.toLowerCase():'⚽ Speel de wedstrijd'}</button>

@@ -98,6 +98,7 @@ op het scherm "Einde seizoen" bij promotie.
 1 (kantoor) en 3 (nieuws vel 1) eerst: daar zie je het meeste verschil. Daarna 2 (managers), 4, 5 en 6.
 
 ## Open ideeën (spel)
+- ~~Moeilijkheidsgraad~~ (gedaan: makkelijk / normaal / moeilijk).
 - ~~Kaartjesprijs zelf instellen~~ (gedaan).
 - ~~Beker~~ (gedaan: De Gouden Bierpul).
 - ~~Online scorebord~~ (gedaan: managerpunten en prijzen).
