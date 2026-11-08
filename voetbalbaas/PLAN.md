@@ -162,3 +162,16 @@ strafschoppen, 3 feest bij BEKERWINNAAR.
 
 *Gebruik:* bij de berichten ✍️ (nieuwe speler getekend), 👋 (speler stopt of is verkocht), 🤕 (doorgespeeld met een pijntje) en 🌭
 (clubtopscorer) — vakjes 12-15 in `nieuws.jpg`.
+
+## Opdracht 10 – Hoofden van speelsters (twee keer) – NOG TE DOEN
+> Maak een vel met 18 hoofden van voetbalsters (alleen hoofd en hals, recht van voren, kijkt naar de kijker) in een net raster van
+> 6 naast elkaar en 3 rijen onder elkaar. Alle hoofden even groot en op dezelfde hoogte, met ruimte ertussen, niets overlapt. Effen
+> felgroene achtergrond (#00FF00), geen schaduwen, geen kleding. Precies dezelfde tekenstijl als het voorbeeldvel met mannenhoofden dat
+> ik meestuur. Maak ze allemaal heel verschillend: jong en wat ouder (18 tot 35), verschillende huidskleuren, kapsels (paardenstaart,
+> vlechten, knotje, kort koppie, krullen, afro met haarband, gekleurde lokken, opgeschoren zijkant), sommigen met sproeten, een
+> haarband, een pleister of oorknopjes, en verschillende uitdrukkingen (stoer, lachend, vastberaden, verbaasd, chagrijnig). Grappig
+> maar niet gemeen. Geen tekst.
+> (Tweede vel: "achttien heel andere voetbalsters dan op het vorige vel".)
+
+*Inbouwen:* zelfde knipwerk als de mannen (`hoofden-v.webp`, 36 vakjes), huidskleuren meten, `kopNr` naar het eigen vel laten wijzen.
+Later eventueel nieuwsplaatjes met speelsters (kater, bos, rode kaart, blessure, tekenen, afscheid, topscorer).
