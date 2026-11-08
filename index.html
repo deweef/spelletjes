@@ -54,8 +54,8 @@ h1{font:bold clamp(44px,11vw,76px)/.95 Georgia,"Times New Roman",serif;color:var
 html{scroll-behavior:smooth}
 #overzicht{background:rgba(255,255,255,.05);border:1px solid rgba(255,226,168,.18);border-radius:16px;padding:12px 14px 6px;margin:0 0 26px}
 #overzicht h3{font:bold 15px system-ui,sans-serif;color:var(--zacht);margin:0 0 8px;letter-spacing:.03em;text-transform:uppercase}
-#overzicht .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
-#overzicht a{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;background:rgba(255,226,168,.1);border:1px solid rgba(255,226,168,.25);color:var(--maan);text-decoration:none;font-size:14.5px;font-weight:600}
+#overzicht .chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:8px;margin:0 0 10px}
+#overzicht a{display:flex;min-width:0;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;background:rgba(255,226,168,.1);border:1px solid rgba(255,226,168,.25);color:var(--maan);text-decoration:none;font-size:14.5px;font-weight:600}
 #overzicht a:hover{background:rgba(255,226,168,.22)}
 #overzicht img{width:44px;height:28px;object-fit:cover;border-radius:999px;background:#211c40}
 .lijst li{scroll-margin-top:16px}
@@ -85,11 +85,13 @@ const tegel=s=>`<li id="${anker(s)}"><a class="spel" href="${esc(s.bestand)}">
    <div class="tekst">${s.concept?'<span class="concept">Concept, nog in de maak</span>':''}<h2>${esc(s.naam)}</h2><p>${esc(s.omschrijving||'')}</p>${s.stand?`<span class="stand">${s.stand=='liggend'?'Telefoon liggend houden':'Telefoon rechtop houden'}</span>`:''}</div></a></li>`;
 // Twee blokken: de 3D-spellen bovenaan (ook op een telefoon), daaronder de 2D-spellen
 async function laad(){let lijst;try{lijst=await (await fetch('spellen.json',{cache:'no-cache'})).json()}catch(e){lijst=RESERVE}
+ // op alfabet, zowel in het overzicht als bij de tegels
+ lijst=[...lijst].sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
  const blok=(titel,uitleg,spellen)=>spellen.length?`<section class="blok"><a class="naarboven" href="#overzicht">↑ overzicht</a><h2 class="kop">${titel}</h2><p class="uitleg">${uitleg}</p><ul class="lijst">${spellen.map(tegel).join('')}</ul></section>`:'';
  const twee=blok('2D-spellen','Snel even spelen, ook onderweg.',lijst.filter(s=>s.soort!='3d'));
  const drie=blok('3D-spellen','Op een groot scherm het mooist, maar ook prima op je telefoon of tablet.',lijst.filter(s=>s.soort=='3d'));
- // overzicht bovenaan: per blok de spellen als knopjes, tik = naar dat spel scrollen
- const groep=(titel,spellen)=>spellen.length?`<h3>${titel}</h3><div class="chips">${spellen.map(s=>`<a href="#${anker(s)}">${s.plaatje?`<img src="${esc(s.plaatje)}" alt="">`:''}${esc(s.naam)}</a>`).join('')}</div>`:'';
+ // overzicht bovenaan: per blok de spellen als knopjes op alfabet, tik = meteen naar dat spel
+ const groep=(titel,spellen)=>spellen.length?`<h3>${titel}</h3><div class="chips">${spellen.map(s=>`<a href="${esc(s.bestand)}">${s.plaatje?`<img src="${esc(s.plaatje)}" alt="">`:''}${esc(s.naam)}</a>`).join('')}</div>`:'';
  const g2=groep('2D',lijst.filter(s=>s.soort!='3d')),g3=groep('3D',lijst.filter(s=>s.soort=='3d')),ga=groep('Van Arnold',ARNOLD);
  const arnold=blok('Spelletjes van Arnold','Op de website van Arnold. Hiervoor heb je internet nodig.',ARNOLD);
  const overzicht=`<nav id="overzicht" aria-label="Overzicht van de spellen">${g3+g2+ga}</nav>`;

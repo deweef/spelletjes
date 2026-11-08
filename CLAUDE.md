@@ -42,8 +42,9 @@ bedenk dat de site openbaar is.
   plaatje in de hoofdmap (`arnold-boerderij.jpg`, schermafbeelding 640x400).
 - De spellen staan in twee blokken: 3D (`"soort": "3d"` in spellen.json; mooist op de pc, maar werkt ook op een
   telefoon) en 2D. 3D staat altijd bovenaan, ook in het overzicht.
-  Bovenaan staat een overzicht (`#overzicht`) met per blok de spellen als knopjes; een tik scrollt naar dat spel
-  (anker `spel-<bestandsnaam>`, de tegel licht even op), en elk blok heeft een link "↑ overzicht".
+  Bovenaan staat een overzicht (`#overzicht`) met per blok de spellen als knopjes in een raster; een tik opent meteen
+  het spel. Overzicht en tegels staan op alfabet (`laad` sorteert op naam). Elk blok heeft een link "↑ overzicht";
+  de tegels hebben nog een anker `spel-<bestandsnaam>` (licht op als je ernaar linkt).
 - Elk spel heeft linksboven een terugknop `<a class="terug" href="./">‹</a>` (in een submap: `href="../"`).
   In Fladderfeest en Orkenstorm 3D gaat die knop tijdens het spelen eerst terug naar het menu van het spel; alleen
   vanuit dat menu naar de startpagina.
