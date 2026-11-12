@@ -13,13 +13,14 @@ bedenk dat de site openbaar is.
   uit `spellen.json`; alle andere bestanden (zoals de JS en modellen van Orkenstorm 3D) worden bewaard
   zodra ze een keer met internet geladen zijn. Niet aanpassen tenzij nodig.
 - Elk 2D-spel is één los HTML-bestand in de hoofdmap (kasteelsprong, koekjesschuiver, kikkersprong,
-  skirun, piratenbluf, orkenstorm, fladderfeest, pixelpikkers). Laat die ongemoeid tenzij erom gevraagd wordt.
+  skirun, piratenbluf, orkenstorm, fladderfeest, pixelpikkers, hobbelrace). Laat die ongemoeid tenzij erom gevraagd wordt.
 - Elk spel heeft een eigen uitlegbestand met de details. **Lees dat eerst als je aan dat spel werkt** (en werk het bij):
   | Spel | Uitleg | Plan / open punten |
   |---|---|---|
   | Fladderfeest | `uitleg/fladderfeest.md` | |
   | Fotopuzzel | `uitleg/fotopuzzel.md` | |
   | Pixelpikkers | `uitleg/pixelpikkers.md` | |
+  | Hobbelrace | `uitleg/hobbelrace.md` | |
   | Zoekplaatje | `zoek/CLAUDE.md` | `zoek/IDEEEN.md` |
   | Pizzabaas | `pizza/CLAUDE.md` | `pizza/PLAN.md` |
   | Songfestival-hits | `songfestival/CLAUDE.md` | `songfestival/PLAN.md` |

@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Hobbelrace</title>
+<meta name="theme-color" content="#7ec8f0">
+<style>
+html,body{margin:0;height:100%;background:#7ec8f0;overflow:hidden;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+.terug{position:fixed;z-index:30;top:calc(7px + env(safe-area-inset-top));left:calc(7px + env(safe-area-inset-left));width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.75);color:#fff;font:bold 20px/30px Georgia,serif;text-align:center;text-decoration:none}
+.scherm{position:fixed;inset:0;z-index:20;overflow:auto;padding:calc(54px + env(safe-area-inset-top)) 16px 30px;box-sizing:border-box;text-align:center;color:#3b2a14;background:linear-gradient(#8fd3f7,#cdeefc 60%,#9bd36a 60%,#6fb246)}
+.scherm[hidden]{display:none}
+.scherm h1{margin:0;font-size:46px;color:#f7c948;text-shadow:3px 3px 0 #b5651d,5px 5px 0 rgba(0,0,0,.2);letter-spacing:1px}
+.scherm h2{margin:6px 0 10px;font-size:26px}
+.doos{max-width:430px;margin:14px auto 0;background:rgba(255,250,235,.93);border-radius:20px;padding:14px 16px 18px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.doos p{margin:6px 0 10px;line-height:1.4}
+.knop{font:inherit;font-weight:800;font-size:19px;border:0;border-radius:16px;padding:12px 24px;color:#fff;background:#41b75b;box-shadow:0 5px 0 #23803a;cursor:pointer;margin:6px}
+.knop:active{transform:translateY(3px);box-shadow:0 2px 0 #23803a}
+.knop.oranje{background:#f39a22;box-shadow:0 5px 0 #b5650a}
+.knop.grijs{background:#9a8a76;box-shadow:0 5px 0 #6c5d4a}
+.knop:disabled{opacity:.45}
+.munten{font-weight:800;font-size:20px;color:#b5651d}
+.upg{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px;text-align:left}
+.upg div{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:8px 10px;box-shadow:0 2px 0 #e5d6b8}
+.upg .ic{font-size:30px;width:40px;text-align:center}
+.upg .tk{flex:1}
+.upg .tk b{display:block}
+.upg .balk{height:8px;background:#eee2c8;border-radius:4px;margin-top:5px;overflow:hidden}
+.upg .balk i{display:block;height:100%;background:#41b75b}
+.upg button{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 10px;background:#f39a22;color:#fff;min-width:78px;cursor:pointer}
+.upg button:disabled{background:#c9bba3}
+</style>
+</head>
+<body>
+<a class="terug" href="./" aria-label="Terug naar de spellen">‹</a>
+<canvas id="c"></canvas>
+<div id="veilig" style="position:fixed;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)"></div>
+
+<div class="scherm" id="menu">
+  <h1>Hobbelrace</h1>
+  <div class="doos">
+    <p>Rij met je gele bolide zo ver mogelijk over de hobbels van de polder. <b>Gas</b> rechts, <b>rem</b> links
+    (of de pijltjes). In de lucht kantel je met gas en rem. Pak benzine ⛽ en munten 🪙, en land niet op je kop!</p>
+    <p class="munten" id="mMunten"></p>
+    <p id="mRecord"></p>
+    <button class="knop" id="start">Rijden!</button>
+    <button class="knop oranje" id="naarGarage">🔧 Garage</button>
+  </div>
+</div>
+
+<div class="scherm" id="garage" hidden>
+  <h2>🔧 Garage</h2>
+  <p class="munten" id="gMunten"></p>
+  <div class="doos"><div class="upg" id="upg"></div></div>
+  <button class="knop" id="gStart">Rijden!</button>
+  <button class="knop grijs" id="gTerug">Terug</button>
+</div>
+
+<div class="scherm" id="einde" hidden>
+  <div class="doos">
+    <h2 id="eKop"></h2>
+    <p id="eTekst"></p>
+    <p class="munten" id="eMunten"></p>
+    <button class="knop" id="eNog">Nog een keer</button>
+    <button class="knop oranje" id="eGarage">🔧 Garage</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ---------- speler en opslag (per naam, zoals de andere spellen) ----------
+const opslag={lees(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},zet(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const speler=opslag.lees('speler','');
+const SL=k=>'hobbel_'+k+(speler?':'+speler:'');
+let munten=+opslag.lees(SL('munten'),'0')||0;
+let record=+opslag.lees(SL('record'),'0')||0;
+let upg={motor:0,banden:0,vering:0,tank:0};
+try{Object.assign(upg,JSON.parse(opslag.lees(SL('upg'),'{}'))||{})}catch(e){}
+let geluidAan=opslag.lees('hobbel_geluid','1')=='1';
+function bewaar(){opslag.zet(SL('munten'),String(munten));opslag.zet(SL('record'),String(Math.floor(record)));opslag.zet(SL('upg'),JSON.stringify(upg))}
+
+// ---------- garage ----------
+const UPG=[
+ {id:'motor',ic:'⚙️',naam:'Motor',uitleg:'Meer kracht en een hogere topsnelheid'},
+ {id:'banden',ic:'🛞',naam:'Banden',uitleg:'Meer grip, minder doorslippen op steile bulten'},
+ {id:'vering',ic:'🌀',naam:'Vering',uitleg:'Zachter landen, minder stuiteren'},
+ {id:'tank',ic:'⛽',naam:'Benzinetank',uitleg:'Langer rijden op één tank'}];
+const MAXUPG=10;
+const prijs=l=>Math.round(120*Math.pow(l+1,1.65)/10)*10;
+
+// ---------- toeval met zaadje: de weg is elke keer hetzelfde, dan kun je hem leren ----------
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const ruis=(()=>{const r=rng(20261112),w=[];for(let i=0;i<4000;i++)w.push(r()*2-1);
+ return x=>{const i=Math.floor(x),f=x-i,a=w[((i%4000)+4000)%4000],b=w[(((i+1)%4000)+4000)%4000],t=(1-Math.cos(f*Math.PI))/2;return a+(b-a)*t}})();
+
+// ---------- de weg: hoogte per halve meter, wordt steeds verder aangemaakt ----------
+const D=0.5;let grond=[];
+function hoogteBij(x){ // de vorm van de polder: eerst vlak, daarna steeds grotere bulten
+ if(x<12)return 0;
+ const op=Math.min(1,(x-12)/40),a1=0.55+Math.min(1.9,x/600),a2=0.35+Math.min(1.3,x/500);
+ return op*(9*ruis(x/52)*a1+3.2*ruis(x/17+100)*a2+0.5*ruis(x/5.5+300))+op*(x*0.004);
+}
+function maakGrond(tot){while(grond.length*D<tot)grond.push(hoogteBij(grond.length*D))}
+function hoogte(x){const i=Math.max(0,Math.floor(x/D)),f=x/D-i;maakGrond((i+2)*D);return grond[i]+(grond[i+1]-grond[i])*f}
+function helling(x){return (hoogte(x+0.05)-hoogte(x-0.05))/0.1}
+
+// ---------- de auto ----------
+// natuurkunde in meters, y omhoog. Een carrosserie (vast lichaam) met twee wielen aan veren.
+const AUTO={
+ M:260,I:230,                       // massa en traagheid carrosserie
+ wm:24,wr:0.42,                     // wielmassa en straal
+ ophang:[{x:-1.08,y:-0.42},{x:1.08,y:-0.42}],
+ vorm:[{x:-1.55,y:-0.22},{x:1.6,y:-0.22},{x:1.66,y:0.2},{x:0.75,y:0.34},{x:0.5,y:0.72},{x:0.36,y:0.36},{x:-1.25,y:0.42},{x:-1.6,y:0.32}],
+ hoofd:{x:-0.22,y:1.02,r:0.27}};
+function eigenschappen(){return {
+ kracht:620+60*upg.motor,          // Nm per wiel
+ topw:30+2.2*upg.motor,             // max hoekssnelheid wiel (rad/s)
+ grip:0.95+0.09*upg.banden,
+ k:15000+700*upg.vering,c:1100+170*upg.vering,
+ tank:16+3.5*upg.tank}}             // seconden rijden op een volle tank
+const G={};
+function nieuwSpel(){
+ const e=eigenschappen();
+ Object.assign(G,{e,bezig:true,klaar:false,t:0,
+  x:4,y:hoogte(4)+1.1,a:0,vx:0,vy:0,va:0,
+  wielen:AUTO.ophang.map(o=>({x:4+o.x,y:hoogte(4+o.x)+AUTO.wr+0.02,vx:0,vy:0,w:0,hoek:0,raakt:false})),
+  benzine:1,muntenRit:0,verst:0,stil:0,verstOud:0,verstTijd:0,
+  items:[],volgendBlik:130,volgendeMunt:30,schud:0,tekst:null,
+  rook:[],vonk:[]});
+ maakGrond(300);
+ camX=G.x;camY=G.y;
+}
+function wereld(px,py){const c=Math.cos(G.a),s=Math.sin(G.a);return {x:G.x+px*c-py*s,y:G.y+px*s+py*c}}
+
+// munten en benzineblikken langs de weg neerzetten
+function vulItems(){
+ const tot=G.x+80;
+ while(G.volgendeMunt<tot){const n=4+Math.floor(Math.random()*4),waarde=G.volgendeMunt>1500?25:G.volgendeMunt>600?10:5;
+  for(let i=0;i<n;i++){const x=G.volgendeMunt+i*0.9;G.items.push({soort:'munt',x,y:hoogte(x)+1.0,waarde,weg:false})}
+  G.volgendeMunt+=n*0.9+45+Math.random()*40}
+ while(G.volgendBlik<tot){G.items.push({soort:'blik',x:G.volgendBlik,y:hoogte(G.volgendBlik)+0.75,weg:false});
+  G.volgendBlik+=200+G.volgendBlik*0.3}
+ G.items=G.items.filter(it=>it.x>G.x-30);
+}
+
+// ---------- invoer: gas en rem ----------
+const knop={gas:false,rem:false};const vingers=new Map();
+function zetPedalen(){knop.gas=[...vingers.values()].includes('gas')||toets.gas;knop.rem=[...vingers.values()].includes('rem')||toets.rem}
+const toets={gas:false,rem:false};
+addEventListener('keydown',e=>{if(e.key=='ArrowRight'||e.key=='ArrowUp'||e.key=='d')toets.gas=true;if(e.key=='ArrowLeft'||e.key=='ArrowDown'||e.key=='a')toets.rem=true;zetPedalen()});
+addEventListener('keyup',e=>{if(e.key=='ArrowRight'||e.key=='ArrowUp'||e.key=='d')toets.gas=false;if(e.key=='ArrowLeft'||e.key=='ArrowDown'||e.key=='a')toets.rem=false;zetPedalen()});
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+cv.addEventListener('pointerdown',e=>{geluid.start();if(!G.bezig)return;
+ // geluidsknop rechtsboven
+ if(e.clientX>W-50&&e.clientY<veiligBoven+50){geluidAan=!geluidAan;opslag.zet('hobbel_geluid',geluidAan?'1':'0');return}
+ vingers.set(e.pointerId,e.clientX<W/2?'rem':'gas');zetPedalen()});
+const los=e=>{vingers.delete(e.pointerId);zetPedalen()};
+cv.addEventListener('pointerup',los);cv.addEventListener('pointercancel',los);cv.addEventListener('pointerleave',los);
+
+// ---------- natuurkunde ----------
+const STAP=1/240,ZWAARTE=11;
+function stap(dt){
+ const e=G.e,M=AUTO.M,I=AUTO.I,m=AUTO.wm,r=AUTO.wr,Iw=0.5*m*r*r;
+ let fx=0,fy=-M*ZWAARTE,koppel=0;
+ const motorAan=G.benzine>0&&G.bezig;
+ // vering: veer zonder rustlengte tussen ophangpunt en wielas
+ for(let i=0;i<2;i++){const W_=G.wielen[i],o=AUTO.ophang[i],P=wereld(o.x,o.y),rx=P.x-G.x,ry=P.y-G.y;
+  const pvx=G.vx-G.va*ry,pvy=G.vy+G.va*rx;
+  const Fx=-e.k*(W_.x-P.x)-e.c*(W_.vx-pvx),Fy=-e.k*(W_.y-P.y)-e.c*(W_.vy-pvy);
+  W_.vx+=Fx/m*dt;W_.vy+=(Fy/m-ZWAARTE)*dt;
+  fx-=Fx;fy-=Fy;koppel+=rx*(-Fy)-ry*(-Fx);
+  // motor en rem
+  if(motorAan&&knop.gas&&W_.w<e.topw){W_.w+=e.kracht/Iw*dt;koppel+=e.kracht*0.2}
+  if(knop.rem){if(W_.w>1)W_.w-=e.kracht*2.2/Iw*dt;else if(motorAan&&W_.w>-e.topw*0.4){W_.w-=e.kracht*0.6/Iw*dt;koppel-=e.kracht*0.2}}
+  W_.w*=1-0.15*dt}                  // een beetje rolweerstand
+ G.vx+=fx/M*dt;G.vy+=fy/M*dt;G.va+=koppel/I*dt;
+ // in de lucht kantelen met gas en rem
+ const inLucht=!G.wielen[0].raakt&&!G.wielen[1].raakt;
+ if(inLucht)G.va+=((knop.gas?1:0)-(knop.rem?1:0))*3.2*dt;
+ G.va*=1-0.25*dt;
+ // wielen tegen de grond
+ for(const W_ of G.wielen){W_.raakt=false;
+  const i0=Math.floor((W_.x-r)/D),i1=Math.ceil((W_.x+r)/D);let beste=null;
+  for(let i=Math.max(0,i0);i<i1;i++){const ax=i*D,ay=hoogte(ax),bx=ax+D,by=hoogte(bx);
+   const dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,((W_.x-ax)*dx+(W_.y-ay)*dy)/(dx*dx+dy*dy)));
+   const qx=ax+dx*t,qy=ay+dy*t,d=Math.hypot(W_.x-qx,W_.y-qy);
+   if(d<r+0.03&&(!beste||d<beste.d))beste={d,qx,qy}}  // 3 cm speling: een wiel dat precies op de grond staat telt ook
+  if(!beste)continue;
+  W_.raakt=true;let nx=(W_.x-beste.qx)/(beste.d||1e-6),ny=(W_.y-beste.qy)/(beste.d||1e-6);
+  if(beste.d<1e-6){nx=0;ny=1}
+  const in_=Math.max(0,r-beste.d);W_.x+=nx*in_;W_.y+=ny*in_;
+  const vn=W_.vx*nx+W_.vy*ny;let jn=0;
+  if(vn<0){W_.vx-=vn*nx;W_.vy-=vn*ny;jn=-vn*m;if(vn<-6)G.schud=Math.min(0.3,-vn*0.02)}
+  const tx=ny,ty=-nx,slip=W_.vx*tx+W_.vy*ty-W_.w*r;
+  let jt=-slip/(1/m+r*r/Iw);const max=e.grip*jn;jt=Math.max(-max,Math.min(max,jt));
+  W_.vx+=jt/m*tx;W_.vy+=jt/m*ty;W_.w-=jt*r/Iw;
+  if(Math.abs(slip)>4&&Math.random()<0.3)G.rook.push({x:beste.qx,y:beste.qy,vx:-Math.sign(W_.w)*1.5,vy:1,t:0})}
+ // carrosserie tegen de grond
+ for(const p of AUTO.vorm){const q=wereld(p.x,p.y),g=hoogte(q.x);if(q.y>=g)continue;
+  const s=helling(q.x),n=Math.hypot(s,1),nx=-s/n,ny=1/n,rx=q.x-G.x,ry=q.y-G.y;
+  const vpx=G.vx-G.va*ry,vpy=G.vy+G.va*rx,vn=vpx*nx+vpy*ny;
+  if(vn<0){const rn=rx*ny-ry*nx,j=-1.2*vn/(1/M+rn*rn/I);G.vx+=j*nx/M;G.vy+=j*ny/M;G.va+=rn*j/I;
+   const tx=ny,ty=-nx,vt=vpx*tx+vpy*ty,rt=rx*ty-ry*tx,jt=Math.max(-0.5*j,Math.min(0.5*j,-vt/(1/M+rt*rt/I)));
+   G.vx+=jt*tx/M;G.vy+=jt*ty/M;G.va+=rt*jt/I;if(vn<-3)G.vonk.push({x:q.x,y:q.y,t:0})}
+  G.x+=nx*(g-q.y)*0.8;G.y+=ny*(g-q.y)*0.8}
+ // alles verplaatsen
+ G.x+=G.vx*dt;G.y+=G.vy*dt;G.a+=G.va*dt;
+ for(const W_ of G.wielen){W_.x+=W_.vx*dt;W_.y+=W_.vy*dt;W_.hoek-=W_.w*dt}
+ // hoofd tegen de grond = au
+ const h=wereld(AUTO.hoofd.x,AUTO.hoofd.y);
+ if(G.bezig&&h.y-AUTO.hoofd.r<hoogte(h.x))einde('kop');
+}
+
+function update(dt){
+ if(!G.e)return;
+ G.t+=dt;
+ for(let s=0;s<Math.round(dt/STAP);s++)stap(STAP);
+ if(!G.bezig){G.eindTijd-=dt;if(G.eindTijd<=0&&!G.klaar)toonEinde();}
+ else{
+  G.benzine=Math.max(0,G.benzine-dt/G.e.tank*(knop.gas?1:0.55));
+  G.verst=Math.max(G.verst,G.x-4);
+  vulItems();
+  for(const it of G.items){if(it.weg)continue;
+   const raakt=[{x:G.x,y:G.y},...G.wielen].some(p=>Math.hypot(p.x-it.x,p.y-it.y)<(it.soort=='blik'?1.1:0.8));
+   if(raakt){it.weg=true;it.t=0;
+    if(it.soort=='munt'){G.muntenRit+=it.waarde;geluid.munt()}else{G.benzine=1;geluid.blik();G.tekst={t:'Vol getankt!',tijd:1.2}}}}
+  // benzine op en stilgevallen
+  const snel=Math.hypot(G.vx,G.vy);
+  // benzine op: klaar als je stilstaat of al een tijdje niet verder komt (heen en weer rollen in een kuil)
+  if(G.verst>G.verstOud+0.5){G.verstOud=G.verst;G.verstTijd=0}else G.verstTijd+=dt;
+  if(G.benzine<=0){G.stil=snel<0.4?G.stil+dt:0;if(G.stil>1.6||G.verstTijd>4)einde('benzine')}
+  if(G.y<-200)einde('kop');
+ }
+ for(const it of G.items)if(it.weg)it.t+=dt;
+ for(const r of G.rook){r.t+=dt;r.x+=r.vx*dt;r.y+=r.vy*dt}G.rook=G.rook.filter(r=>r.t<0.8);
+ for(const v of G.vonk)v.t+=dt;G.vonk=G.vonk.filter(v=>v.t<0.3);
+ if(G.tekst){G.tekst.tijd-=dt;if(G.tekst.tijd<=0)G.tekst=null}
+ G.schud=Math.max(0,G.schud-dt);
+ geluid.motor();
+}
+
+const GRAPPEN={
+ kop:['Au! Op je kop in de klei.','Bonk! Helm gelukkig nog heel.','Je hoofd is geen vijfde wiel.','Even een bloemetje ruiken. Ondersteboven.','De koeien liggen dubbel van het lachen.'],
+ benzine:['Benzine op. Duwen maar!','Op je laatste druppel. Fiets volgende keer mee.','Tank leeg, hart vol.']};
+function einde(waarom){if(!G.bezig)return;G.bezig=false;G.waarom=waarom;G.eindTijd=waarom=='kop'?1.2:0.4;
+ if(waarom=='kop'){geluid.bonk();G.schud=0.4}}
+function toonEinde(){
+ G.klaar=true;const afstand=Math.floor(G.verst),nieuw=afstand>record;
+ munten+=G.muntenRit;if(nieuw)record=afstand;bewaar();
+ const lijst=GRAPPEN[G.waarom];
+ document.getElementById('eKop').textContent=nieuw?'🏆 Nieuw record!':(G.waarom=='kop'?'💥 Oei!':'⛽ Benzine op');
+ document.getElementById('eTekst').innerHTML=`${lijst[Math.floor(Math.random()*lijst.length)]}<br><b style="font-size:24px">${afstand} meter</b>${nieuw?'':`<br>Record: ${Math.floor(record)} m`}`;
+ document.getElementById('eMunten').textContent=`+${G.muntenRit} 🪙  (totaal ${munten})`;
+ toon('einde');
+}
+
+// ---------- schermen ----------
+function toon(id){for(const s of ['menu','garage','einde'])document.getElementById(s).hidden=s!=id;}
+function naarMenu(){G.e=null;toon('menu');document.getElementById('mMunten').textContent=`${munten} 🪙`;
+ document.getElementById('mRecord').textContent=record?`Jouw record: ${Math.floor(record)} meter`:''}
+function naarGarage(){G.e=null;toon('garage');document.getElementById('gMunten').textContent=`${munten} 🪙`;
+ document.getElementById('upg').innerHTML=UPG.map(u=>{const l=upg[u.id],p=prijs(l);
+  return `<div><span class="ic">${u.ic}</span><span class="tk"><b>${u.naam} (${l}/${MAXUPG})</b><small>${u.uitleg}</small><span class="balk"><i style="width:${l*10}%"></i></span></span>
+   <button data-u="${u.id}" ${l>=MAXUPG||munten<p?'disabled':''}>${l>=MAXUPG?'Max':p+' 🪙'}</button></div>`}).join('');
+ document.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const id=b.dataset.u,p=prijs(upg[id]);if(munten<p)return;munten-=p;upg[id]++;bewaar();geluid.munt();naarGarage()})}
+function start(){geluid.start();toon('');nieuwSpel();vingers.clear();zetPedalen()}
+document.getElementById('start').onclick=start;document.getElementById('gStart').onclick=start;document.getElementById('eNog').onclick=start;
+document.getElementById('naarGarage').onclick=naarGarage;document.getElementById('eGarage').onclick=naarGarage;document.getElementById('gTerug').onclick=naarMenu;
+// terugknop: tijdens het rijden of in de garage eerst naar het menu, vanuit het menu naar de startpagina
+document.querySelector('.terug').addEventListener('click',e=>{if(document.getElementById('menu').hidden){e.preventDefault();naarMenu()}});
+
+// ---------- tekenen ----------
+let W=0,H=0,DPR=1,S=30,veiligBoven=0;
+function maat(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+ S=W>H?Math.max(20,Math.min(W/24,H/12)):Math.max(20,W/13); /* staand: verder inzoomen */veiligBoven=parseFloat(getComputedStyle(document.getElementById('veilig')).paddingTop)||0}
+addEventListener('resize',maat);maat();
+let camX=0,camY=0;
+const sx=x=>(x-camX)*S+W*(W>H?0.33:0.3),sy=y=>H*(W>H?0.58:0.55)-(y-camY)*S;
+function tekenLucht(){
+ const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#5fb4ea');g.addColorStop(0.7,'#cdeefc');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#fff6b0';ctx.beginPath();ctx.arc(W*0.82,H*0.16,Math.min(W,H)*0.06,0,7);ctx.fill();
+ // wolken
+ ctx.fillStyle='rgba(255,255,255,.85)';
+ for(let i=0;i<6;i++){const x=((i*370-camX*S*0.08)%(W+400)+W+400)%(W+400)-200,y=H*(0.1+0.07*(i%3));
+  for(const[dx,dy,r]of[[0,0,26],[28,6,20],[-26,8,18],[10,-12,18]]){ctx.beginPath();ctx.arc(x+dx,y+dy,r,0,7);ctx.fill()}}
+ // verre dijken en molens
+ for(const[f,kl,hh]of[[0.15,'#9fcf86',0.62],[0.3,'#86c06a',0.68]]){ctx.fillStyle=kl;ctx.beginPath();ctx.moveTo(0,H);
+  for(let x=0;x<=W;x+=12){const wx=x/S+camX*f;ctx.lineTo(x,H*hh-18*Math.sin(wx*0.3)-10*Math.sin(wx*0.11+1))}ctx.lineTo(W,H);ctx.fill()}
+ for(let i=0;i<4;i++){const x=((i*520-camX*S*0.3+200)%(W+600)+W+600)%(W+600)-300,y=H*0.6;tekenMolen(x,y,0.7+0.15*(i%2))}
+}
+function tekenMolen(x,y,s){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#6b5a4a';
+ ctx.beginPath();ctx.moveTo(-14,0);ctx.lineTo(-8,-60);ctx.lineTo(8,-60);ctx.lineTo(14,0);ctx.fill();
+ ctx.translate(0,-60);ctx.rotate(G.t*0.8+x);ctx.fillStyle='#e8e0d0';
+ for(let i=0;i<4;i++){ctx.rotate(Math.PI/2);ctx.fillRect(-3,0,6,44);ctx.fillRect(3,8,9,34)}ctx.restore()}
+function tekenGrond(){
+ const x0=camX-W*0.33/S-2,x1=x0+W/S+6;
+ ctx.beginPath();ctx.moveTo(sx(x0),H+10);
+ for(let x=Math.floor(x0/D)*D;x<=x1;x+=D)ctx.lineTo(sx(x),sy(hoogte(x)));
+ ctx.lineTo(sx(x1),H+10);ctx.closePath();
+ const g=ctx.createLinearGradient(0,sy(camY),0,H+200);g.addColorStop(0,'#8a5a2b');g.addColorStop(1,'#5a3a1a');ctx.fillStyle=g;ctx.fill();
+ // gras
+ ctx.beginPath();for(let x=Math.floor(x0/D)*D;x<=x1;x+=D){const X=sx(x),Y=sy(hoogte(x));x==Math.floor(x0/D)*D?ctx.moveTo(X,Y):ctx.lineTo(X,Y)}
+ ctx.strokeStyle='#4caf50';ctx.lineWidth=Math.max(6,S*0.35);ctx.lineJoin='round';ctx.stroke();
+ ctx.strokeStyle='#7ed957';ctx.lineWidth=Math.max(2,S*0.1);ctx.stroke();
+ // afstandsbordjes en record
+ for(let m=Math.ceil(x0/50)*50;m<x1;m+=50){if(m<=4)continue;const X=sx(m),Y=sy(hoogte(m));
+  ctx.fillStyle='#fff';ctx.fillRect(X-1.5,Y-S*1.4,3,S*1.4);ctx.fillStyle='#3b2a14';ctx.font=`800 ${Math.round(S*0.45)}px system-ui`;ctx.textAlign='center';ctx.fillText((m-4)+'m',X,Y-S*1.5)}
+ if(record>0){const m=record+4;if(m>x0&&m<x1){const X=sx(m),Y=sy(hoogte(m));ctx.fillStyle='#333';ctx.fillRect(X-1.5,Y-S*2.4,3,S*2.4);
+  ctx.fillStyle='#e53935';ctx.beginPath();ctx.moveTo(X+1.5,Y-S*2.4);ctx.lineTo(X+S*1.1,Y-S*2.1);ctx.lineTo(X+1.5,Y-S*1.8);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font=`800 ${Math.round(S*0.4)}px system-ui`;ctx.fillText('record',X,Y-S*2.55)}}
+}
+function tekenItems(){
+ for(const it of G.items){if(it.weg&&it.t>0.4)continue;const X=sx(it.x),Y=sy(it.y+(it.weg?it.t*3:0));ctx.globalAlpha=it.weg?1-it.t/0.4:1;
+  if(it.soort=='munt'){const br=Math.abs(Math.cos(G.t*3+it.x))*S*0.32+2;ctx.fillStyle='#f5b800';ctx.beginPath();ctx.ellipse(X,Y,br,S*0.32,0,0,7);ctx.fill();
+   ctx.strokeStyle='#b07d00';ctx.lineWidth=2;ctx.stroke();if(br>S*0.2){ctx.fillStyle='#b07d00';ctx.font=`900 ${Math.round(S*0.3)}px system-ui`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(it.waarde,X,Y+1)}}
+  else{const w=S*0.7,h=S*0.9;ctx.fillStyle='#e53935';ctx.beginPath();ctx.roundRect(X-w/2,Y-h/2,w,h,4);ctx.fill();ctx.fillStyle='#fff';ctx.font=`900 ${Math.round(S*0.42)}px system-ui`;
+   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('⛽',X,Y+1);ctx.fillStyle='#b71c1c';ctx.fillRect(X+w*0.15,Y-h/2-4,w*0.25,5)}
+  ctx.globalAlpha=1}
+ ctx.textBaseline='alphabetic';
+}
+function tekenAuto(){
+ // wielen
+ for(const W_ of G.wielen){const X=sx(W_.x),Y=sy(W_.y),r=AUTO.wr*S;
+  ctx.fillStyle='#222';ctx.beginPath();ctx.arc(X,Y,r,0,7);ctx.fill();ctx.fillStyle='#b0b6bf';ctx.beginPath();ctx.arc(X,Y,r*0.55,0,7);ctx.fill();
+  ctx.strokeStyle='#5d636b';ctx.lineWidth=Math.max(1.5,r*0.12);
+  for(let k=0;k<4;k++){const h=-W_.hoek+k*Math.PI/2;ctx.beginPath();ctx.moveTo(X,Y);ctx.lineTo(X+Math.cos(h)*r*0.55,Y+Math.sin(h)*r*0.55);ctx.stroke()}}
+ // veren
+ ctx.strokeStyle='#555';ctx.lineWidth=Math.max(2,S*0.08);
+ G.wielen.forEach((W_,i)=>{const P=wereld(AUTO.ophang[i].x,AUTO.ophang[i].y+0.15);ctx.beginPath();ctx.moveTo(sx(P.x),sy(P.y));ctx.lineTo(sx(W_.x),sy(W_.y));ctx.stroke()});
+ ctx.save();ctx.translate(sx(G.x),sy(G.y));ctx.rotate(-G.a);ctx.scale(S,-S);
+ // bestuurder: lijfje en hoofd met helm
+ const h=AUTO.hoofd;ctx.fillStyle='#2b6cb0';ctx.beginPath();ctx.roundRect(-0.42,0.25,0.4,0.62,0.12);ctx.fill();
+ ctx.fillStyle='#f3c99a';ctx.beginPath();ctx.arc(h.x,h.y,h.r,0,7);ctx.fill();
+ ctx.fillStyle='#e53935';ctx.beginPath();ctx.arc(h.x,h.y+0.03,h.r*1.05,0.1,Math.PI-0.1);ctx.fill();
+ ctx.fillStyle='#fff';ctx.fillRect(h.x-0.05,h.y+0.12,0.1,0.13);
+ ctx.fillStyle='#222';ctx.beginPath();ctx.arc(h.x+0.13,h.y-0.02,0.04,0,7);ctx.fill();
+ ctx.strokeStyle='#222';ctx.lineWidth=0.03;ctx.beginPath();ctx.arc(h.x+0.1,h.y-0.12,0.08,Math.PI+0.4,-0.3);ctx.stroke();
+ // carrosserie
+ ctx.beginPath();AUTO.vorm.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();
+ ctx.fillStyle='#f7c948';ctx.fill();ctx.strokeStyle='#8a5a12';ctx.lineWidth=0.06;ctx.stroke();
+ ctx.fillStyle='#bfe6f7';ctx.beginPath();ctx.moveTo(0.4,0.38);ctx.lineTo(0.52,0.66);ctx.lineTo(0.62,0.36);ctx.fill();
+ ctx.fillStyle='#e8a53a';ctx.fillRect(-1.45,-0.05,3.0,0.08);
+ ctx.fillStyle='#fff7cc';ctx.beginPath();ctx.arc(1.55,0.05,0.09,0,7);ctx.fill();
+ ctx.fillStyle='#e53935';ctx.fillRect(-1.6,0.05,0.08,0.14);
+ ctx.restore();
+}
+function tekenHUD(){
+ const T=veiligBoven;ctx.textAlign='left';ctx.textBaseline='middle';
+ ctx.font='900 22px system-ui';ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.45)';ctx.fillStyle='#fff';
+ const txt=`${Math.floor(G.verst)} m`;ctx.strokeText(txt,52,T+24);ctx.fillText(txt,52,T+24);
+ const mt=`🪙 ${G.muntenRit}`;ctx.font='800 18px system-ui';ctx.strokeText(mt,52,T+52);ctx.fillText(mt,52,T+52);
+ // benzinemeter
+ const bx=150,bw=Math.min(180,W-260);ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.roundRect(bx,T+14,bw,18,9);ctx.fill();
+ ctx.fillStyle=G.benzine<0.25?(G.t%0.5<0.25?'#ff5252':'#ffcc00'):'#ffcc00';ctx.beginPath();ctx.roundRect(bx+3,T+17,(bw-6)*G.benzine,12,6);ctx.fill();
+ ctx.font='16px system-ui';ctx.fillText('⛽',bx-22,T+24);
+ ctx.font='20px system-ui';ctx.textAlign='center';ctx.fillText(geluidAan?'🔊':'🔇',W-26,T+26);
+ // pedalen
+ const pw=Math.min(110,W*0.2),ph=pw*1.15,y=H-ph-14;
+ for(const[kant,x,act,kl,woord]of[['rem',14,knop.rem,'#d84315','REM'],['gas',W-pw-14,knop.gas,'#2e7d32','GAS']]){
+  ctx.globalAlpha=act?0.95:0.6;ctx.fillStyle='#333';ctx.beginPath();ctx.roundRect(x,y+(act?4:0),pw,ph,14);ctx.fill();
+  ctx.fillStyle=kl;ctx.beginPath();ctx.roundRect(x+6,y+6+(act?4:0),pw-12,ph-12,10);ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.25)';for(let k=0;k<4;k++)ctx.fillRect(x+14,y+18+k*ph*0.2+(act?4:0),pw-28,4);
+  ctx.fillStyle='#fff';ctx.font=`900 ${Math.round(pw*0.22)}px system-ui`;ctx.fillText(woord,x+pw/2,y+ph/2+(act?4:0));ctx.globalAlpha=1}
+ if(G.tekst){ctx.font='900 30px system-ui';ctx.fillStyle='#fff';ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=5;ctx.strokeText(G.tekst.t,W/2,H*0.25);ctx.fillText(G.tekst.t,W/2,H*0.25)}
+ if(G.t<2.5&&G.bezig){ctx.font='800 18px system-ui';ctx.fillStyle='#fff';ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=4;const t='Houd GAS ingedrukt om te rijden';ctx.strokeText(t,W/2,H*0.36);ctx.fillText(t,W/2,H*0.36)}
+ ctx.textBaseline='alphabetic';
+}
+function teken(){
+ if(!G.e){ctx.clearRect(0,0,W,H);return}
+ // camera loopt mee, een stukje vooruit kijken
+ const vooruit=Math.min(6,W/S*0.22);camX+=(G.x+Math.max(-2,Math.min(vooruit,G.vx*0.35))-camX)*0.12;camY+=(G.y-camY)*0.1;
+ ctx.save();if(G.schud>0)ctx.translate((Math.random()-0.5)*G.schud*30,(Math.random()-0.5)*G.schud*30);
+ tekenLucht();tekenGrond();tekenItems();
+ for(const r of G.rook){ctx.globalAlpha=0.5*(1-r.t/0.8);ctx.fillStyle='#c9b08f';ctx.beginPath();ctx.arc(sx(r.x),sy(r.y),S*(0.2+r.t*0.4),0,7);ctx.fill()}ctx.globalAlpha=1;
+ tekenAuto();
+ for(const v of G.vonk){ctx.fillStyle='#ffd54f';ctx.beginPath();ctx.arc(sx(v.x)+(Math.random()-0.5)*10,sy(v.y)-v.t*30,3,0,7);ctx.fill()}
+ ctx.restore();
+ tekenHUD();
+}
+
+// ---------- geluid: motor bromt mee met de wielen ----------
+const geluid={ac:null,osc:null,gain:null,
+ start(){if(!this.ac){try{this.ac=new (window.AudioContext||window.webkitAudioContext)();const o=this.ac.createOscillator(),f=this.ac.createBiquadFilter(),g=this.ac.createGain();
+  o.type='sawtooth';f.type='lowpass';f.frequency.value=600;g.gain.value=0;o.connect(f).connect(g).connect(this.ac.destination);o.start();this.osc=o;this.gain=g}catch(e){}}
+  if(this.ac&&this.ac.state=='suspended')this.ac.resume()},
+ motor(){if(!this.osc)return;const t=this.ac.currentTime,aan=geluidAan&&G.e&&G.bezig&&G.benzine>0;
+  const w=G.e?Math.abs((G.wielen[0].w+G.wielen[1].w)/2):0;this.osc.frequency.setTargetAtTime(38+w*3.2+(knop.gas?18:0),t,0.08);
+  this.gain.gain.setTargetAtTime(aan?(knop.gas?0.06:0.03):0,t,0.1)},
+ toon(f,d,type='sine',v=0.08,glij=0){if(!geluidAan||!this.ac)return;const a=this.ac,t=a.currentTime,o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(glij)o.frequency.exponentialRampToValueAtTime(f*glij,t+d);
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d)},
+ munt(){this.toon(1250,0.08,'square',0.04);setTimeout(()=>this.toon(1650,0.1,'square',0.04),60)},
+ blik(){[440,660,880].forEach((f,i)=>setTimeout(()=>this.toon(f,0.12,'triangle',0.07),i*70))},
+ bonk(){this.toon(120,0.4,'sawtooth',0.1,0.4)}};
+
+// ---------- lus ----------
+let vorige=performance.now();
+function lus(nu){const dt=Math.min(1/30,(nu-vorige)/1000);vorige=nu;update(Math.round(dt/STAP)*STAP||STAP);teken();requestAnimationFrame(lus)}
+requestAnimationFrame(lus);
+naarMenu();
+window.__test={G,update,stap,knop,start,AUTO,hoogte,get upg(){return upg},set munten(v){munten=v}};
+</script>
+</body>
+</html>

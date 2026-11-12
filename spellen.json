@@ -111,5 +111,13 @@
     "plaatje": "pixelpikkers.jpg",
     "stand": "staand",
     "concept": true
+  },
+  {
+    "naam": "Hobbelrace",
+    "omschrijving": "Rij met je gele bolide zo ver mogelijk over de hobbels van de polder. Gas, rem, en vooral: niet op je kop landen! Pak benzine en munten en voer je auto op in de garage.",
+    "bestand": "hobbelrace.html",
+    "plaatje": "hobbelrace.jpg",
+    "stand": "liggend",
+    "concept": true
   }
 ]
