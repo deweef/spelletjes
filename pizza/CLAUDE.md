@@ -356,3 +356,10 @@ Afrikaanse vrouw (rij 8, `afrikaanse-onderdelen-chatgpt.png`): opgehaald via de 
 Zakenman (rij 9, `zakenman-onderdelen-chatgpt.png`, broek per paar → `paar=0`). Nu lopen alle 11 klanten naar voren met generatorplaatjes.
 Zitten opzij nieuw: student (rij 1) uit `pizza/student-opzij-chatgpt.png` met `extra/zit_opzij.py <vel> <rij>` (plaatje 1 → vakje 16, plaatje 2 → 17).
 Nieuwe klant "dame in rood" (rij 11 in `pizza/klanten.png`, nog NIET in `FIGUREN`): lopen opzij 0-6 en achter 7-10 uit `pizza/dame2-lopen-chatgpt.png`, staan 11 en voor 18-21 uit de generator (`dame2`), zitten opzij 16/17 uit `dame2-opzij-chatgpt.png`. Nog nodig: zitten voor/achter (vakjes 12-15); daarna `11` in VOORLOOP en in FIGUREN.villa.
+Kinderen (13 nov): stoelsoort `kinder` (Kinderstoel, in het stoelmenu; van boven getekend in `rechteStoel`, met blad aan de tafelkant). Volwassenen
+gaan er niet op zitten (`kan` in `nieuweGroep`). Vanaf dag 4 is 16% van de groepjes van 2-4 een gezinnetje (werker/opa/villa/toerist) met een peuter
+(`m.kind`, `m.fig = 12`): ze zoeken een lege tafel met een vrije kinderstoel; geen = "Geen kinderstoel? Dan gaan we naar Luigi." (`tel.geenKinderstoel`,
+rep −0,3, regel en tip in het dagoverzicht). Peuter: rij 12 in `pizza/klanten.png` (lopen opzij 0-6, achter 7-10, staan 11, voor 18-21 uit
+`pizza/kind-lopen-chatgpt.png`, 100 px hoog; zitten 12-17 = in zijn kinderstoel uit `pizza/kind-stoel-chatgpt.png`, 150 px; de stoel onder hem wordt
+dan niet getekend). Hij gooit soms met eten (`m.gooide`, kruimels) en krijgt een driftbui als het lang duurt (`m.drift`, geduld van de tafel −4).
+Ook: de vervolgvraag van de verstopte wc stond per ongeluk bij `STOELSOORT.streep`; teruggezet in `BELPROB`.
