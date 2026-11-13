@@ -1014,6 +1014,11 @@ const VRAGEN = [
     a: [['Ik ren naar de markt, ook al is het duur.', () => { ge(-45); return '"Spoed? Dan wordt het dubbel," zegt de marktkoopman. € 45 armer, maar alles is vers.'; }],
       ['Gebruik het toch, schraap het groene randje eraf.', () => { if (kans(0.5)) { rep(-4); return 'Twee klanten rennen naar de wc en komen er een tijd niet meer uit. Dat praat rond…'; } return 'Niemand merkt iets. Mario kijkt wel heel schuldig.'; }],
       ['Gooi het weg, vandaag maar zonder.', () => { rep(-1); vandaag.gezellig -= 0.5; if (S.voorraad) S.voorraad[bedorven] = 0; return `Mario bakt alles zonder ${ING[bedorven].n.toLowerCase()}. De klanten mopperen: "Dit is maar een halve pizza."`; }] ] },
+  { id: 'kinderfeest', ik: '🎉', wie: 'Moeder met een uitnodiging', kans: 2, rust: () => 10, als: () => modus == 'open' && S.dag >= 5 && klok < DAG * 0.6 && feestTafel(4),
+    vraag: 'Mijn zoontje wordt vier! Mogen we hier zijn kinderfeestje vieren? Met vijf vriendjes. Ze zijn heel lief. Meestal.',
+    a: [['Ja, gezellig! Feesthoedjes voor iedereen!', () => { ge(40); kinderfeest(1); vandaag.fooi *= 1.1; return 'Een kluitje kinderen met feesthoedjes stormt naar binnen. Het wordt LAWAAI, maar de moeder betaalt € 40 extra en iedereen geeft fooi.'; }],
+      ['Ja, maar wel in een rustig hoekje (€ 10 per kind).', () => { ge(60); kinderfeest(0.4); return 'De moeder betaalt € 60. De kinderen beloven stil te zijn. Ze houden het precies twee minuten vol.'; }],
+      ['Nee, dit is geen speeltuin.', () => { rep(-1); return 'De moeder kijkt je vernietigend aan. "Dan vieren we het bij Luigi. Daar hebben ze een ballenbak."'; }] ] },
   { id: 'voetbalclub', ik: '⚽', foto: 15, wie: 'Trainer van de F-jes', kans: 2, sponsor: true, rust: () => 20, als: () => S.geld > 300,
     vraag: 'Onze voetbalkinderen spelen in shirts met gaten. Wil je hoofdsponsor worden? Dan staat jouw pizzeria op twintig kleine buikjes!',
     a: [['Ja! Zet mijn naam erop (€ 200).', () => { ge(-200); rep(5); morgenKl(1.1); for (const z of S.zaken) if (z && z.rep != null) z.rep = Math.min(100, z.rep + 2); return 'Zaterdag rennen twintig kinderen met jouw naam over het veld. De ouders komen daarna pizza eten.'; }],
@@ -2418,6 +2423,16 @@ function toonStad(plek) {
 const KLEUR = ['#e85d4a', '#3f88c5', '#f4b942', '#6ab04c', '#9b59b6', '#e67e22', '#1abc9c', '#ff6fa5', '#34495e'];
 const HUID = ['#f5d0b5', '#e8b48f', '#c98e64', '#8d5a3b', '#5e3a24'];
 const HAAR = ['#2b1b10', '#5a3a1e', '#c8a24a', '#a33c1c', '#888', '#111'];
+// kinderfeestje (vraag 'kinderfeest'): een moeder met tot 5 peuters met feesthoedjes (m.feest) aan de grootste vrije tafel; chaos = kans op gooien
+function feestTafel(min) { const vrij = (s, i) => !mensen.some((m) => m.tafel == s && m.stoel == i) && stoelBereik(stoelPlekken(s)[i].stoel);
+  return S.spullen.filter(isTafel).filter((s) => !mensen.some((m) => m.tafel == s)).map((s) => ({ s, vrij: stoelen(s).map((p, i) => i).filter((i) => vrij(s, i)) }))
+    .filter((t) => t.vrij.length >= min).sort((a, b) => b.vrij.length - a.vrij.length)[0]; }
+function kinderfeest(chaos) {
+  const t = feestTafel(2); if (!t) return; const n = Math.min(6, t.vrij.length), groep = { mensen: [], t: 0, geduld: GEDULD + 30, besteld: false, opgehaald: false, feest: chaos };
+  for (let i = 0; i < n; i++) { const kind = i > 0, m = maakMens(t.s, t.vrij[i], kind ? 'student' : 'villa'); if (kind) { m.kind = true; m.fig = 12; m.feest = true; m.chaos = chaos; }
+    m.groep = groep; groep.mensen.push(m); m.x += (i % 3) * 0.3; m.y += i * 0.35; mensen.push(m); }
+  zeg(groep.mensen[1] || groep.mensen[0], R(['Hiep hiep HOERAAA!', 'Feestjeeee!', 'Ik wil de grootste punt!'])); vandaag.gezellig -= 0.5; // lawaai: de rest van de zaak vindt het iets minder gezellig
+}
 function nieuweGroep() {
   const k = Math.random(), n = k < 0.38 ? 1 : k < 0.68 ? 2 : k < 0.8 ? 3 : k < 0.92 ? 4 : k < 0.97 ? 5 : 6;
   // zoek een tafel met genoeg vrije stoelen (de kleinste die past)
@@ -2788,7 +2803,7 @@ function stap(dt) {
         if (Math.random() < 0.25) { const g = gezellig(m.tafel); if (g >= 4) zeg(m, R(ZEG.gezellig)); else if (g <= 1) zeg(m, R(ZEG.kaal)); }
       }
       bestel(m.groep);
-    } else if (m.kind && m.st == 'eet' && !m.gooide && m.t > 1.5 && Math.random() < dt * 0.25) { m.gooide = true; nieuweVlek(m.x, m.y + 0.6, 'kruimels'); zeg(m, R(['Wiiiii!', 'Hihihi!', 'Pizza vliegt!'])); // de peuter gooit met eten
+    } else if (m.kind && m.st == 'eet' && !m.gooide && m.t > 1.5 && Math.random() < dt * (m.feest ? 0.5 * m.chaos : 0.25)) { m.gooide = true; nieuweVlek(m.x, m.y + 0.6, 'kruimels'); zeg(m, R(['Wiiiii!', 'Hihihi!', 'Pizza vliegt!'])); // de peuter gooit met eten
     } else if (m.st == 'eet' && m.t > ETEN) {
       // hoe lekker (0-6) bepaalt de fooi en of ze het doorvertellen
       const o = m.oordeel, prijs = m.pizza.prijs * TELT, fooi = Math.max(0, gezellig(m.tafel) * 0.4 + (o - 2) * 0.5 + (m.wacht < 18 ? 1 : 0)) * vandaag.fooi * TELT + (m.chef ? 3 : 0); // TELT: anderhalve klant; m.chef: de kok kwam even flirten
@@ -3075,15 +3090,19 @@ const VOORLOOP = { 12: [18, 19, 20, 21], 0: [18, 19, 20, 21], 1: [18, 19, 20, 21
 const KLANTVEL = (rij, m) => { const vl = VOORLOOP[rij], twee = vl && Array.isArray(vl[0]); // twee versies (Chinese dame): per klant vast gekozen
   return { rij, staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], voorLoop: twee ? vl[m && m.versie != null ? m.versie : (m ? (m.versie = Math.random() < 0.5 ? 0 : 1) : 0)] : vl, fps: 9 }; };
 const FIGUREN = { werker: [0, 0, 3], student: [1, 7], villa: [2, 9], toerist: [5, 4, 3, 8], opa: [6, 10] };
+function feestHoed(x, y) { // puntig feesthoedje op een peuter op een kinderfeestje
+  g.fillStyle = '#8e44ad'; g.beginPath(); g.moveTo(x - 7, y + 4); g.lineTo(x + 7, y + 4); g.lineTo(x + 1, y - 13); g.closePath(); g.fill();
+  g.fillStyle = '#f1c40f'; g.fillRect(x - 4, y - 3, 3, 3); g.fillRect(x + 2, y, 3, 3); g.beginPath(); g.arc(x + 1, y - 13, 2.5, 0, 7); g.fill(); }
 function tekenKlantFig(m, nu) { // in wereldcoördinaten (pixels van de zaak); zittend op zijn stoel, of lopend
   const zit = m.st == 'wacht' || m.st == 'eet', v = KLANTVEL(m.fig, m);
   g.save(); g.translate(m.x * T, m.y * T);
-  if (!zit) figuur(KLANTEN, m, false, false, null, v);
+  if (!zit) { figuur(KLANTEN, m, false, false, null, v); if (m.feest) feestHoed(0, -1.85 * T + 6 + 1.85 * T * 90 / SH); }
   else {
     const p = stoelPlekken(m.tafel)[m.stoel], kant = p ? p.kant : 0, eet = m.st == 'eet' && Math.floor(nu / 500 + m.x * 3) % 2;
     const f = kant == 0 ? (eet ? 13 : 12) : kant == 1 ? (eet ? 15 : 14) : (eet ? 17 : 16), h = 1.85 * T, w = h * SW / SH;
     g.translate(0, 14); if (kant == 3) g.scale(-1, 1); // rechts van de tafel: gespiegeld, zodat hij naar links (de tafel) kijkt
     g.drawImage(KLANTEN, f * SW, m.fig * SH, SW, SH, -w / 2, -h + 6, w, h);
+    if (m.feest) feestHoed(kant >= 2 ? 6 : 0, -h + 6 + h * 40 / SH);
     if (kant == 3) g.scale(-1, 1);
     if (m.st == 'wacht') { // geduldbalkje boven het hoofd
       const fr = m.groep && m.groep.besteld && !m.groep.opgehaald ? Math.max(0, 1 - m.groep.t / m.groep.geduld) : 1;
@@ -3380,7 +3399,7 @@ function tekenSpul(s, nu, zitten) {
   }
   if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
   if (s.t == 'stoel') { // losse stoel, met de leuning van zijn tafel af
-    if (stijlVan(s) == 'kinder' && mensen.some((m) => m.kind && (m.st == 'wacht' || m.st == 'eet') && (stoelPlekken(m.tafel)[m.stoel] || {}).stoel == s)) return;
+    if (mensen.some((m) => m.kind && (m.st == 'wacht' || m.st == 'eet') && (stoelPlekken(m.tafel)[m.stoel] || {}).stoel == s)) return;
     const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y, s.bij).kant;
     const pl = indeling().plekVan.get(s); rechteStoel({ sx: pl ? pl.sx : s.x + 0.5, sy: pl ? pl.sy : s.y + 0.5, kant, stijl: stijlVan(s) }); if (false) stoel(x + T / 2, y + T / 2, [0, Math.PI, -Math.PI / 2, Math.PI / 2][kant]);
     return;

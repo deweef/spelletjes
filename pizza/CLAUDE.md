@@ -363,3 +363,7 @@ rep −0,3, regel en tip in het dagoverzicht). Peuter: rij 12 in `pizza/klanten.
 `pizza/kind-lopen-chatgpt.png`, 100 px hoog; zitten 12-17 = in zijn kinderstoel uit `pizza/kind-stoel-chatgpt.png`, 150 px; de stoel onder hem wordt
 dan niet getekend). Hij gooit soms met eten (`m.gooide`, kruimels) en krijgt een driftbui als het lang duurt (`m.drift`, geduld van de tafel −4).
 Ook: de vervolgvraag van de verstopte wc stond per ongeluk bij `STOELSOORT.streep`; teruggezet in `BELPROB`.
+Kinderfeestje (13 nov, vraag 'kinderfeest', vanaf dag 5, voor 60% van de dag, alleen als er een lege tafel met ≥ 4 vrije stoelen is `feestTafel`):
+A = € 40 + fooi ×1,1 + `kinderfeest(1)`, B = € 60 + `kinderfeest(0.4)` (rustiger), C = rep −1. `kinderfeest`: een ouder (villa) + tot 5 peuters
+(`m.feest`, `m.chaos`, soort student) aan de grootste vrije tafel, ook op gewone stoelen (die worden dan niet getekend: de peuter zit in zijn eigen
+kinderstoel-plaatje), langer geduld, gezellig −0,5 voor de rest van de dag (lawaai). Feesthoedje getekend in `feestHoed`; feestpeuters gooien vaker.
