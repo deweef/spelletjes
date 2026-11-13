@@ -367,3 +367,8 @@ Kinderfeestje (13 nov, vraag 'kinderfeest', vanaf dag 5, voor 60% van de dag, al
 A = € 40 + fooi ×1,1 + `kinderfeest(1)`, B = € 60 + `kinderfeest(0.4)` (rustiger), C = rep −1. `kinderfeest`: een ouder (villa) + tot 5 peuters
 (`m.feest`, `m.chaos`, soort student) aan de grootste vrije tafel, ook op gewone stoelen (die worden dan niet getekend: de peuter zit in zijn eigen
 kinderstoel-plaatje), langer geduld, gezellig −0,5 voor de rest van de dag (lawaai). Feesthoedje getekend in `feestHoed`; feestpeuters gooien vaker.
+Afhalen (13 nov, vanaf dag 3): `stapAfhaal`/`tekenAfhaler`, `afhalers` (max 2), elke 30-60 s / (populariteit × aankomst) tot 21:00. De afhaler bestelt
+1-3 pizza's (zelfde wachtrij als de bezorging, `bezorg: b` met `b.afhaal`; `gebruik` voor de voorraad), wacht bij de toonbank (`z.plek` naast het
+luik), haalt zijn dozen bij de uitgifte als `b.klaar >= b.n`, betaalt (prijs × TELT, fooi als het snel ging) en loopt met de dozen naar buiten.
+Te lang (`geduld` = GEDULD × 1,6 + 8 s per pizza) = boos weg, rep −1. Dagoverzicht "📦 Afgehaald". Plaatjes `pizza/afhaal.png` (uit
+`pizza/afhaal-chatgpt.png`; indeling bij `AFHAALVEL` in de code).

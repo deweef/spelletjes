@@ -714,7 +714,7 @@ function eindeDag() {
       <tr><td>😋 Tevreden klanten</td><td>${kl(tel.blij)}</td></tr>
       <tr><td>😡 Boos weggelopen</td><td>${kl(tel.boos)}</td></tr>
       ${tel.boos ? `<tr><td style="padding-left:28px;font-size:.9em">waarvan: keuken te traag / ober te druk</td><td>${kl(tel.boosKeuken)} / ${kl(tel.boosOber)}</td></tr>` : ''}
-      <tr><td>🚪 Geen plek</td><td>${kl(tel.vol)}</td></tr>${tel.geenKinderstoel ? `<tr><td>👶 Weg: geen kinderstoel vrij</td><td>${tel.geenKinderstoel}</td></tr>` : ''}
+      <tr><td>🚪 Geen plek</td><td>${kl(tel.vol)}</td></tr>${tel.afgehaald || tel.afhaalBoos ? `<tr><td>📦 Afgehaald${tel.afhaalBoos ? ` (${tel.afhaalBoos} boos weg)` : ''}</td><td>${tel.afgehaald || 0}</td></tr>` : ''}${tel.geenKinderstoel ? `<tr><td>👶 Weg: geen kinderstoel vrij</td><td>${tel.geenKinderstoel}</td></tr>` : ''}
       ${tel.opgeruimd || rommel ? `<tr><td>🧽 Opgeruimd / blijven liggen</td><td>${tel.opgeruimd || 0} / ${rommel}</td></tr>` : ''}
       ${tel.niks ? `<tr><td>🤷 Niks lekkers op de kaart</td><td>${kl(tel.niks)}</td></tr>` : ''}
       ${pofTotaal() ? `<tr><td>📒 Nog op de pof (${S.pof.length} klant${S.pof.length > 1 ? 'en' : ''})</td><td>€ ${pofTotaal()}</td></tr>` : ''}${tel.wijn ? `<tr><td>🍷 Flessen Château verkocht</td><td>${tel.wijn}</td></tr>` : ''}${tel.bezorgd ? `<tr><td>🛵 Bezorgd${tel.koud ? ` (waarvan ${tel.koud} koud)` : ''}</td><td>${tel.bezorgd}</td></tr>` : ''}${(tel.voorval || []).map((t) => `<tr><td colspan="2" style="font-size:.85em;opacity:.8">🛵 ${esc(t)}</td></tr>`).join('')}
@@ -1596,7 +1596,7 @@ const VOORVAL = [
   { kans: 0.02, extra: 0, tekst: 'Bij het afleveren blijkt het een verjaardag: iedereen zingt, de bezorger krijgt taart én een dikke fooi!', fooi: 4 },
   { kans: 0.02, extra: 6, tekst: 'De scooter wil niet starten. Trappen, trappen, trappen… eindelijk!', fooi: 1, pech: 1 } ]; // pech = minder vaak met het onderhoudsabonnement (S.bezorg.abo)
 let bezorgingen = [], bezorger = null, volgendeBestelling = 8;
-function maakBezorger() { bezorger = S.bezorg ? { x: W - 1.3, y: KEUKEN + 0.6, kijk: Math.PI / 2, loopT: 0, st: 'thuis' } : null; bezorgingen = []; volgendeBestelling = 6 + Math.random() * 6; }
+function maakBezorger() { afhalers = []; volgendeAfhaal = 15 + Math.random() * 15; bezorger = S.bezorg ? { x: W - 1.3, y: KEUKEN + 0.6, kijk: Math.PI / 2, loopT: 0, st: 'thuis' } : null; bezorgingen = []; volgendeBestelling = 6 + Math.random() * 6; }
 function nieuweBestelling() {
   const soort = kiesSoort(), n = 1 + Math.floor(Math.random() * (Math.random() < 0.3 ? 4 : 2)), pizzas = [];
   for (let i = 0; i < n; i++) { const k = kiesPizza({ soort }); if (k) { pizzas.push(k.p); gebruik(k.p); } }
@@ -1621,6 +1621,41 @@ function stapBezorg(dt) {
     muntjes.push({ x: DEUR.x + 0.5, y: H - 0.6, t: 1.6, tekst: (koud ? '🥶 Koud! ' : '🛵 ') + '+€' + Math.round(geld + fooi) }); kassa();
     if (v) meld('🛵 ' + v.tekst, 3500); } }
   else if (z.st == 'terug') { if (loopNaar(z, vrijBij([W - 1.3, KEUKEN + 0.6]), snel, dt)) z.st = 'thuis'; }
+}
+// ---------- afhalen: een klant komt zijn bestelling ophalen (vanaf dag 3). Wacht bij de toonbank, de keuken bakt tussen de tafels door (zelfde
+// wachtrij als de bezorging: { m: { pizza }, bezorg: b } met b.afhaal), dan loopt hij met de dozen naar buiten. Te lang wachten = boos weg.
+// pizza/afhaal.png (uit pizza/afhaal-chatgpt.png, vakjes 113 x 192): 0-3 lopen van achteren, 4-7 naar voren met dozen, 8-14 opzij met dozen,
+// 15 wachten bij de toonbank (telefoon), 16 staan met dozen.
+const AFHAALVEL = Object.assign(new Image(), { src: 'pizza/afhaal.png' });
+let afhalers = [], volgendeAfhaal = 20;
+function stapAfhaal(dt) {
+  if (modus == 'open' && klok < DAG * 0.8 && S.dag >= 3) { volgendeAfhaal -= dt; if (volgendeAfhaal <= 0) { volgendeAfhaal = (30 + Math.random() * 30) / ((0.5 + S.rep / 100) * vandaag.aankomst);
+    if (afhalers.length < 2) { const soort = kiesSoort(), n = 1 + Math.floor(Math.random() * 3), pizzas = [];
+      for (let i = 0; i < n; i++) { const k = kiesPizza({ soort }); if (k) { pizzas.push(k.p); gebruik(k.p); } }
+      if (pizzas.length) { const b = { afhaal: true, n: pizzas.length, pizzas, prijs: pizzas.reduce((a, p) => a + p.prijs, 0), klaar: 0, af: false };
+        const z = { x: DEUR.x + 0.5, y: H + 0.4, kijk: -Math.PI / 2, loopT: 0, st: 'in', b, t: 0, fig: -1, geduld: GEDULD * 1.6 + n * 8 };
+        z.plek = vrijBij([LUIK_X + (afhalers.length ? 1.2 : -1.2), KEUKEN + 1.4]); afhalers.push(z); for (const p of pizzas) wachtrij.push({ m: { pizza: p }, bezorg: b });
+        zeg(z, R([`Ik kom ${pizzas.length > 1 ? pizzas.length + ' pizza\'s' : 'een ' + pizzas[0].naam} afhalen!`, 'Afhalen op naam van Jansen.', 'Ik heb gebeld, voor afhalen?'])); } } } }
+  for (const z of [...afhalers]) {
+    if (z.st == 'in') { if (loopNaar(z, z.plek, 2.6, dt)) { z.st = 'wacht'; z.kijk = -Math.PI / 2; } }
+    else if (z.st == 'wacht') { z.t += dt;
+      if (z.b.klaar >= z.b.n) z.st = 'halen';
+      else if (z.t > z.geduld) { z.b.af = true; wachtrij = wachtrij.filter((x) => x.bezorg != z.b); klaar = klaar.filter((x) => x.bezorg != z.b); z.st = 'weg'; tel.afhaalBoos = (tel.afhaalBoos || 0) + 1; rep(-1);
+        zeg(z, R(['Dan ga ik wel naar Ahmet!', 'Een half uur voor drie pizza\'s?!', 'Laat maar zitten!'])); }
+      else if (!z.zucht && z.t > z.geduld * 0.6) { z.zucht = true; zeg(z, R(['Duurt het nog lang?', 'Zucht…', 'Mijn kinderen hebben honger…'])); } }
+    else if (z.st == 'halen') { const nog = klaar.filter((x) => x.bezorg == z.b); if (!nog.length) { z.st = 'weg'; z.draagt = true;
+        const geld = z.b.prijs * TELT, fooi = z.t < z.geduld * 0.5 ? (1 + Math.random() * 2) * TELT : 0; S.geld += geld + fooi; tel.omzet += geld; tel.fooi += fooi; tel.afgehaald = (tel.afgehaald || 0) + 1; rep(0.2); z.b.af = true;
+        muntjes.push({ x: z.x, y: z.y - 0.8, t: 1.4, tekst: '📦 +€' + Math.round(geld + fooi) }); kassa(); zeg(z, R(['Dank je wel!', 'Ruikt heerlijk!', 'Thuis smullen!'])); return; }
+      const hier = nog[0].oven || 0, [ux] = UITGIFTE(hier); if (loopNaar(z, vrijBij([ux + 0.9, KEUKEN + 0.4]), 2.6, dt)) klaar = klaar.filter((x) => !(x.bezorg == z.b && (x.oven || 0) == hier)); }
+    else if (z.st == 'weg' && loopNaar(z, [DEUR.x + 0.5, H + 0.6], 2.6, dt)) afhalers.splice(afhalers.indexOf(z), 1);
+  }
+}
+function tekenAfhaler(z) {
+  if (!AFHAALVEL.complete || !AFHAALVEL.naturalWidth) return; const [x, y] = naarScherm(z.x, z.y);
+  g.save(); g.translate(x, y); g.scale(schaal, schaal);
+  figuur(AFHAALVEL, z, false, z.st == 'wacht', null, z.draagt ? { staan: 16, opzij: [8, 9, 10, 11, 12, 13, 14], rechts: true, rug: 16, rugLoop: [0, 1, 2, 3], voorLoop: [4, 5, 6, 7], fps: 9 }
+    : { staan: 15, opzij: [0, 1, 2, 3], rechts: true, rug: 15, rugLoop: [0, 1, 2, 3], voorLoop: [0, 1, 2, 3], fps: 9 });
+  g.restore();
 }
 // pizza/bezorger.png (uit pizza/bezorger-gemini.jpg, vakjes 170 x 192): 0-6 lopen opzij met pizzadozen, 7-10 lopen van achteren, 11 staan;
 // pizza/scooter.png = op de scooter (rijdt over het balkje linksboven)
@@ -2833,7 +2868,7 @@ function stap(dt) {
   }
   // ovens bakken wat er besteld is
   for (const o of ovens) stapOven(o, dt);
-  stapBezoeker(dt); stapRat(dt); stapManager(dt); stapBezorg(dt);
+  stapBezoeker(dt); stapRat(dt); stapManager(dt); stapBezorg(dt); stapAfhaal(dt);
   if (!luikOpen) luikOpen = ovens.some((o) => Math.abs(o.kok.x - LUIK_X) < 0.6 && o.kok.y < KEUKEN + 1 && o.kok.y > KEUKEN - 1.2) ? 1 : 0; // ook de kok gaat door het luik
   if (vandaag.ovenUit > 0) vandaag.ovenUit -= dt;
   S.vuil = (S.vuil || 0) + mensen.filter((m) => m.st == 'eet').length * dt * 0.0006; // hoe meer er gegeten wordt, hoe viezer
@@ -3235,7 +3270,7 @@ function teken(nu) {
 
   // koks, mensen en obers (in schermpixels, gesorteerd op y)
   const koks = ovs.map((o) => ({ y: o.kok.y, f: () => kok(o.kok, nu) }));
-  const alles = [...spulItems, ...koks, ...mensen.map((m) => ({ y: zitY(m), f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : []), ...(man ? [{ y: man.y, f: tekenManager }] : []), ...(bezorger && bezorger.st != 'rit' ? [{ y: bezorger.y, f: tekenBezorger }] : [])].sort((a, b) => a.y - b.y);
+  const alles = [...spulItems, ...koks, ...mensen.map((m) => ({ y: zitY(m), f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...afhalers.map((z) => ({ y: z.y, f: () => tekenAfhaler(z) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : []), ...(man ? [{ y: man.y, f: tekenManager }] : []), ...(bezorger && bezorger.st != 'rit' ? [{ y: bezorger.y, f: tekenBezorger }] : [])].sort((a, b) => a.y - b.y);
   for (const a of alles) a.f();
   if (modus == 'inrichten') { const k = S.spullen.map((t) => t.t + t.x + ',' + t.y).join('|'); if (k != bereikSleutel) { bezet = null; bereikSleutel = k; } } // verschoven: looppaden opnieuw
   if (modus == 'inrichten') for (const c of S.spullen) if (c.t == 'stoel' && !stoelBereik(c)) { // geen looppad naar deze stoel
@@ -3969,7 +4004,7 @@ function lus(nu) {
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);
-window.__test = { get S() { return S; }, belastingDag, cryptoAvond, crypto, datumLang, get acro() { return acro; }, acroTik, get bezorger() { return bezorger; }, get bezorgingen() { return bezorgingen; }, get toren() { return toren; }, hangX, torenTik, get man() { return man; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
+window.__test = { get S() { return S; }, get afhalers() { return afhalers; }, belastingDag, cryptoAvond, crypto, datumLang, get acro() { return acro; }, acroTik, get bezorger() { return bezorger; }, get bezorgingen() { return bezorgingen; }, get toren() { return toren; }, hangX, torenTik, get man() { return man; }, naarScherm, get dpr() { return doek.width / doek.getBoundingClientRect().width; }, stap, oordeel, smaak, toonKaart, toonMaak, get mensen() { return mensen; }, get tel() { return tel; }, openDeuren, get modus() { return modus; }, get kies() { return kies; }, VRAGEN, toonVraag, toonDrukken, get rat() { return rat; }, toonAchterkamer, toonAtelier, laatBinnen, get bezoeker() { return bezoeker; }, get vlekken() { return vlekken; }, nieuweVlek, get vandaag() { return vandaag; }, get pauze() { return pauze; }, get wachtrij() { return wachtrij; }, get obers() { return obers; }, get klaar() { return klaar; }, get ritten() { return ritten; }, get ovens() { return ovens; }, zoekPad, midden, isTafel };
 </script>
 </body>
 </html>
