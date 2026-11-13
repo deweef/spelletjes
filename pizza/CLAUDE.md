@@ -372,3 +372,8 @@ Afhalen (13 nov, vanaf dag 3): `stapAfhaal`/`tekenAfhaler`, `afhalers` (max 2), 
 luik), haalt zijn dozen bij de uitgifte als `b.klaar >= b.n`, betaalt (prijs × TELT, fooi als het snel ging) en loopt met de dozen naar buiten.
 Te lang (`geduld` = GEDULD × 1,6 + 8 s per pizza) = boos weg, rep −1. Dagoverzicht "📦 Afgehaald". Plaatjes `pizza/afhaal.png` (uit
 `pizza/afhaal-chatgpt.png`; indeling bij `AFHAALVEL` in de code).
+Minispel stinkbom (13 nov, `toonSluip`, in het `#achter`-scherm; Barrie's klus 'stinkbom' start nu dit spel in plaats van `doeKlus`): canvas met
+Luigi achter zijn toonbank (bezoekers.png rij 2: vakje 0 rug, 4 van voren) en Barrie van achteren (rij 4, vakjes 0-3). Knop of doek vasthouden =
+sluipen (`pos`, ±6 s). Luigi: rug → neuriën ♪ (0,55 s waarschuwing) → omkijken 👀 (1-2,6 s, 0,12 s speling): bewegen = betrapt (zelfde gevolgen als
+`doeKlus` bij pech: boete of morgen wraak). Bij de toonbank = `S.klus` stinkbom. Getest: altijd vasthouden = betrapt, loslaten bij ♪ = gelukt.
+`window.__sluip()` voor tests.

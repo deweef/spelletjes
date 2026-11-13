@@ -2135,6 +2135,47 @@ const KLUS = {
 const VREDE = { limoncello: { n: 'Fles limoncello', ik: '🍋', prijs: 30, dagen: 5 }, grappa: { n: 'Fles grappa', ik: '🥃', prijs: 45, dagen: 8 } };
 const klusLoopt = () => S.klus && S.klus.tot >= S.dag;
 let barrieUit = '';
+// minispel bij de stinkbom: Barrie sluipt door Luigi's zaak naar de toonbank (vasthouden = sluipen). Luigi staat met zijn rug naar je toe,
+// neuriet even (waarschuwing) en draait zich om: beweeg je dan, dan ben je betrapt. Bij de toonbank = stinkbom gelegd.
+// Plaatjes: Barrie van achteren (bezoekers.png rij 4, vakjes 0-3), Luigi van voren (rij 2, vakje 4) en van achteren (rij 2, vakje 0).
+function toonSluip() {
+  const d = KLUS.stinkbom; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); kassa(); bewaar(); tekenKnoppen();
+  $('achterkaart').innerHTML = `<h1>💨 De stinkbom</h1><p class="buurt">Barrie sluipt Luigi's zaak binnen. <b>Houd de knop vast</b> om te sluipen. Hoor je Luigi neuriën ♪? Loslaten! Als hij omkijkt, mag je niet bewegen.</p>
+    <canvas id="sluipdoek" width="340" height="420" style="width:100%;max-width:340px;display:block;margin:0 auto;border-radius:12px;touch-action:none"></canvas>
+    <div class="rij"><button class="knop rood" id="sluipknop" style="width:100%;padding:16px;font-size:18px;touch-action:none;user-select:none">🤫 Sluip (vasthouden)</button></div>`;
+  const c = $('sluipdoek'), x = c.getContext('2d'), knop = $('sluipknop'); let houd = false, pos = 0, fase = 'rug', ft = 1.5 + Math.random() * 2, stapT = 0, klaar = false, laatst = performance.now(), grace = 0;
+  const aan = (e) => { e.preventDefault(); houd = true; }, uit = () => { houd = false; };
+  knop.addEventListener('pointerdown', aan); c.addEventListener('pointerdown', aan); for (const el of [knop, c]) { el.addEventListener('pointerup', uit); el.addEventListener('pointerleave', uit); el.addEventListener('pointercancel', uit); }
+  function eind(gelukt) { klaar = true; houd = false;
+    if (gelukt) { S.klus = { k: 'stinkbom', tot: S.dag + d.dagen }; barrieUit = `💨 Gelukt! Barrie legt de stinkbom onder de toonbank en glipt weg. ${d.tekst} (${d.dagen} dagen meer klanten)`; }
+    else if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); barrieUit = '🚨 Luigi zag Barrie en belde de politie! Op het bureau zei Barrie meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).'; }
+    else { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.luigiRust = 0; S.ruzie = Math.min(100, S.ruzie + 15); barrieUit = '😬 Betrapt! Luigi gooit een pan naar Barrie, die net op tijd wegrent. "Dit is OORLOG!" Morgen neemt Luigi wraak…'; }
+    kassa(); bewaar(); tekenKnoppen(); setTimeout(toonAchterkamer, 1600); }
+  function teken() {
+    x.fillStyle = '#2e5e3a'; x.fillRect(0, 0, 340, 420); // Luigi's groene tegelvloer
+    for (let j = 0; j < 14; j++) for (let i = 0; i < 12; i++) if ((i + j) % 2) { x.fillStyle = '#3a7048'; x.fillRect(i * 30, 60 + j * 30, 30, 30); }
+    x.fillStyle = '#244a2e'; x.fillRect(0, 0, 340, 150); x.fillStyle = '#c0392b'; for (let i = 0; i < 340; i += 28) x.fillRect(i, 0, 14, 10); // achterwand met luifelrandje
+    if (BEZOEK.complete && BEZOEK.naturalWidth) { const lf = fase == 'kijk' ? 4 : 0; x.drawImage(BEZOEK, lf * 113, 2 * 192, 113, 192, 128, 18, 84, 143); } // Luigi achter de toonbank
+    x.fillStyle = '#5a3216'; x.fillRect(0, 108, 340, 44); x.fillStyle = '#8b5a2b'; x.fillRect(0, 108, 340, 9); // de toonbank (verbergt zijn benen)
+    x.font = 'bold 15px system-ui'; x.fillStyle = '#ffe08a'; x.textAlign = 'center'; x.fillText('PIZZERIA LUIGI', 170, 140);
+    if (BEZOEK.complete && BEZOEK.naturalWidth) {
+      const by = 400 - pos * 232, bf = houd && fase != 'kijk' ? Math.floor(stapT * 8) % 4 : 0; x.drawImage(BEZOEK, bf * 113, 4 * 192, 113, 192, 130, by - 110, 80, 136); }
+    x.fillStyle = 'rgba(255,255,255,.9)'; x.font = 'bold 22px system-ui';
+    if (fase == 'neurie') x.fillText('♪ ♫', 230, 40);
+    if (fase == 'kijk') { x.fillStyle = 'rgba(255,60,40,.18)'; x.beginPath(); x.moveTo(170, 100); x.lineTo(20, 420); x.lineTo(320, 420); x.closePath(); x.fill(); x.fillStyle = '#fff'; x.fillText('👀', 230, 40); }
+    x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(10, 405, 320, 8); x.fillStyle = '#ffd23f'; x.fillRect(10, 405, 320 * pos, 8);
+  }
+  function stap(nu) {
+    if (klaar || !$('sluipdoek')) return; const dt = Math.min(0.05, (nu - laatst) / 1000); laatst = nu;
+    ft -= dt; if (ft <= 0) { if (fase == 'rug') { fase = 'neurie'; ft = 0.55; } else if (fase == 'neurie') { fase = 'kijk'; ft = 1 + Math.random() * 1.6; grace = 0.12; } else { fase = 'rug'; ft = 0.9 + Math.random() * 2.2; } }
+    if (houd) { pos = Math.min(1, pos + dt * 0.17); stapT += dt; }
+    if (fase == 'kijk') { grace -= dt; if (houd && grace <= 0) { teken(); x.fillStyle = '#e74c3c'; x.font = 'bold 30px system-ui'; x.fillText('BETRAPT!', 170, 260); eind(false); return; } }
+    teken(); if (pos >= 1) { x.fillStyle = '#2ecc71'; x.font = 'bold 26px system-ui'; x.fillText('💨 Stinkbom gelegd!', 170, 260); eind(true); return; }
+    requestAnimationFrame(stap);
+  }
+  window.__sluip = () => ({ fase, pos, klaar }); // voor de test
+  teken(); requestAnimationFrame(stap);
+}
 function doeKlus(k) {
   const d = KLUS[k]; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie);
   if (kans(d.risico)) { if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); return `🚨 Barrie is gesnapt! Op het bureau zei hij meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).`; }
@@ -2174,7 +2215,7 @@ function toonAchterkamer() {
   $('achterkaart').querySelectorAll('[data-verkoopbank]').forEach((b) => b.onclick = () => { const c = crypto(), k = b.dataset.verkoopbank, w = c.bezit[k] * c.koers[k];
     if (!confirm(`Al je ${MUNT[k].n} verkopen voor ${euro(w * (1 - PROVISIE))} (na ${PROVISIE * 100}% provisie)? Het geld komt op je bankrekening.`)) return;
     S.bankSaldo = (S.bankSaldo || 0) + w * (1 - PROVISIE); c.bezit[k] = 0; bewaar(); toonAchterkamer(); });
-  $('achterkaart').querySelectorAll('[data-klus]').forEach((b) => b.onclick = () => { barrieUit = doeKlus(b.dataset.klus); kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); });
+  $('achterkaart').querySelectorAll('[data-klus]').forEach((b) => b.onclick = () => { if (b.dataset.klus == 'stinkbom') { toonSluip(); return; } barrieUit = doeKlus(b.dataset.klus); kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); });
   $('achterkaart').querySelectorAll('[data-vrede]').forEach((b) => b.onclick = () => { const d = VREDE[b.dataset.vrede]; ge(-d.prijs); S.ruzie = 0; S.luigiRust = S.dag + d.dagen;
     barrieUit = `Barrie brengt Luigi een ${d.n.toLowerCase()}. Luigi snuift, drinkt hem in één keer leeg en mompelt: "Va bene. Even geen ruzie." (${d.dagen} dagen wapenstilstand)`; bewaar(); tekenKnoppen(); toonAchterkamer(); });
   if ($('perskoop')) $('perskoop').onclick = () => { S.geld -= PERS; S.pers = true; kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); };
