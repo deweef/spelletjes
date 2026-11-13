@@ -377,3 +377,8 @@ Luigi achter zijn toonbank (bezoekers.png rij 2: vakje 0 rug, 4 van voren) en Ba
 sluipen (`pos`, ±6 s). Luigi: rug → neuriën ♪ (0,55 s waarschuwing) → omkijken 👀 (1-2,6 s, 0,12 s speling): bewegen = betrapt (zelfde gevolgen als
 `doeKlus` bij pech: boete of morgen wraak). Bij de toonbank = `S.klus` stinkbom. Getest: altijd vasthouden = betrapt, loslaten bij ♪ = gelukt.
 `window.__sluip()` voor tests.
+Minispelletjes bij Barrie's klusjes (13 nov, `KLUSSPEL`, `klusBegin`/`klusAf`/`klusScherm`; zonder spel nog `doeKlus`: keuringsdienst tippen):
+ratten (`toonRatten`: 8 ratten rennen uit de doos; tik op een rat die naar de achterdeur rent, dan draait hij om; ≥ 5 in Luigi's eetzaal binnen 12 s),
+scooter (`toonScooter`: 4 banden, 5 tikken per band, binnen 15 s; deur kraakt ♪ → Luigi in de deuropening: dan tikken = betrapt), recensie
+(`toonRecensie`: 3 zinnen, per zin een woord van mild (1) tot overdreven (3); som 4-7 = geloofwaardig, behalve 2-2-2… nee: 2-2-2 = 6 is ook goed;
+te overdreven of te lief = mislukt). Mislukt = zelfde pech als `doeKlus` (boete of morgen wraak). `window.__klus()` voor tests.
