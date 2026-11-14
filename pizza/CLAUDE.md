@@ -523,3 +523,7 @@ portret 21 (met ijshoorntje; css 1870px). Nieuw hulpscript `python3 extra/bezoek
 [portret=19]` voor vellen met de vaste ChatGPT-indeling (rij 1 onderdelen, 2 rug, 3 voor, 4 zitten). Portret ook in de stad (Gelateria Gianni).
 Vraag 'gianniBezoek' (`GIANNIVRAGEN`, met ijssalon, kans 2, rust 12): de vijand van je vijand: deal = `S.gianniDeal` 10 dagen geen streken,
 ruzie met Luigi +10, morgen meer klanten / eigen ijs = morgen zijn ijskar voor je deur / "Hoorntje of bakje?" = rep +1, ijssalon-rep +3.
+Ijskar van Gianni (14 nov, ChatGPT-deellink, `pizza/ijskar-chatgpt.jpg` 1200x630 met zwarte randen): `pizza/ijskar.png` (schuin) en
+`pizza/ijskar-opzij.png`, 240 px hoog. Op een 'kar'-dag van `S.gianniStreek` belt Sofia bij het openen (`karVraag`, plaatje als `ik`): laten staan
+(×0,6) / zelf proevertjes € 15 (`st.f` = 0,85) / Wethouder Wim bellen (55%: kar weg, ×1; anders heeft Gianni een vergunning van Wim zelf). De opzij-kar
+staat ook in de Gelateria in de stad.
