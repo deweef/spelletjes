@@ -504,14 +504,14 @@ function simuleerZaak(z, wd) { // een zaak waar je vandaag niet was: een schatti
   if (!z.manager) return { winst: -huur, tekst: `dicht (geen manager), huur − € ${huur}` };
   const M = MANAGER[z.manager.wie], stoelen = (z.spullen || []).filter((s) => s.t == 'stoel').length, rep = z.rep || 20;
   const keuken = (z.ovens || 1) * 30 * (1 + 0.5 * ((z.groot || []).filter(Boolean).length / Math.max(1, z.ovens || 1))), bediening = (z.obers || 1) * 30;
-  const vraag = stoelen * 2.4 * (0.4 + rep / 100) * DRUKTE[wd] * B.aankomst * (M.gok ? 0.8 : 1) * (reclameAan() ? 1.15 : 1);
+  const sm = buurtSmaak(z.buurt || 'oud'), vraag = stoelen * 2.4 * (0.4 + rep / 100) * (0.4 + 0.8 * sm) * DRUKTE[wd] * B.aankomst * (M.gok ? 0.8 : 1) * (reclameAan() ? 1.15 : 1);
   const vergeten = z.manager.wie == 'kevin' && kans(0.12); // Kevin vergat de bestelling bij de leverancier
   const klanten = Math.round(Math.min(vraag, keuken, bediening) * (0.85 + Math.random() * 0.3) * (z.pech == S.dag ? 0.6 : 1) * (vergeten ? 0.6 : 1)); // pech: telefoontje 'belZaak' niet goed afgelopen
   const prijs = S.menu.reduce((a, p) => a + p.prijs, 0) / S.menu.length, inkoop = S.menu.reduce((a, p) => a + smaak(p).k, 0) / S.menu.length;
   const omzet = Math.round(klanten * prijs), fooi = Math.round(klanten * 0.8 * (M.fooi || 1)), loon = ((z.obers || 1) - 1) * LOON + M.loon + (z.manager.opslag || 0);
   const winst = omzet + fooi - Math.round(klanten * inkoop) - loon - huur;
   z.rep = Math.max(0, Math.min(100, rep + (M.gok ? -0.5 : 0.4) + (vraag > Math.min(keuken, bediening) * 1.3 ? -0.5 : 0))); z.manager.dagen = (z.manager.dagen || 0) + 1; z.omzetGisteren = omzet;
-  return { winst, tekst: `${klanten} klanten, omzet € ${omzet} + fooi € ${fooi}, winst € ${winst} (${M.n}${vergeten ? ', vergat de kaas te bestellen' : ''})` };
+  return { winst, tekst: `${klanten} klanten, omzet € ${omzet} + fooi € ${fooi}, winst € ${winst}${sm < 0.55 ? ', 😕 weinig lekkers op de kaart voor deze buurt' : ''} (${M.n}${vergeten ? ', vergat de kaas te bestellen' : ''})` };
 }
 repareer();
 const gemGezellig = () => { const t = S.spullen.filter(isTafel); return t.length ? t.reduce((a, s) => a + gezellig(s), 0) / t.length : 0; };
@@ -869,9 +869,13 @@ const extraTotaal = () => Object.values(tel.extra || {}).reduce((a, n) => a + n,
 const repRem = (n) => n > 0 ? n * Math.max(0.15, Math.min(1, 1.25 - S.rep / 80)) * (S.zaak && S.rep < 35 ? 1.4 : 1) : n; // een nieuwe zaak (2e, 3e…) groeit in het begin wat sneller: de buurt is nieuwsgierig // 40 → 75%, 60 → 50%, 80 → 25%, 100 → 15%
 const rep = (n) => { S.rep = Math.max(0, Math.min(100, S.rep + repRem(n))); };
 const opDeKaart = () => [...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
-const buurtKans = () => { const w = Object.fromEntries(Object.entries(SOORT).map(([k, d]) => [k, d.kans * ((BUURT[S.buurt] || BUURT.oud).soort[k] ?? 1)])), t = Object.values(w).reduce((a, v) => a + v, 0); for (const k in w) w[k] /= t; return w; }; // wie komen er in deze buurt (0-1)
-const pizzaCijfer = (p) => { const w = buurtKans(); return Object.keys(SOORT).reduce((a, k) => a + oordeel(p, k) * w[k], 0); }; // gemiddeld over alle soorten klanten: hooguit ~3,6
-const pizzaSter = (p) => Math.min(6, pizzaCijfer(p) * 1.6); // sterren 0-6 op de menukaart (de beste mogelijke pizza ≈ 6)
+const buurtKans = (b = S.buurt) => { const w = Object.fromEntries(Object.entries(SOORT).map(([k, d]) => [k, d.kans * ((BUURT[b] || BUURT.oud).soort[k] ?? 1)])), t = Object.values(w).reduce((a, v) => a + v, 0); for (const k in w) w[k] /= t; return w; }; // wie komen er in deze buurt (0-1)
+const pizzaCijfer = (p, b) => { const w = buurtKans(b); return Object.keys(SOORT).reduce((a, k) => a + oordeel(p, k) * w[k], 0); }; // gemiddeld over alle soorten klanten: hooguit ~3,6
+const pizzaSter = (p, b) => Math.min(6, pizzaCijfer(p, b) * 1.6);
+const BUURTIK = { oud: '🍕', studenten: '🎓', toeristen: '📸', villa: '🏡' };
+const mijnBuurten = () => [...new Set(S.zaken.map((z, i) => (i == S.zaak ? S.buurt : z.buurt) || 'oud'))]; // de buurten van al je zaken
+const buurtSmaak = (b) => { const w = buurtKans(b); return S.menu.length ? Object.keys(SOORT).reduce((a, k) => a + w[k] * Math.max(...S.menu.map((p) => oordeel(p, k))), 0) / 6 : 0.3; }; // 0-1: vindt iedereen hier iets lekkers?
+const maxMenu = () => Math.min(9, MAXMENU + S.zaken.length - 1); // per extra zaak één pizza meer op de kaart // sterren 0-6 op de menukaart (de beste mogelijke pizza ≈ 6)
 const besteOordeel = () => Math.max(...S.menu.map(pizzaSter)); // in sterren (recensent)
 function oberWeg() { if (obers.length > 1) { const o = obers.pop(); if (o.taak) ritten.unshift(o.taak); return true; } return false; }
 // hulpjes voor de vragen: morgen meer/minder klanten, de kok of ober trager/sneller, een ingrediënt op
@@ -1177,6 +1181,16 @@ const VRAGEN = [
     a: [['Mario, één scheve toren!', () => { rep(1); return 'Mario bouwt een toren van vijf pizza\'s die heel langzaam scheef zakt. De foto is prachtig. Daarna valt hij om.'; }],
       ['Hou je fototoestel maar scheef.', () => 'Hij doet het. De pizza staat scheef op de foto. Hij is tevreden. Simpel.'],
       ['Een scheve pizza kost € 5 extra.', () => { ge(5); return 'Hij betaalt het zonder te knipperen. Toeristen.'; }] ] },
+  { id: 'smaakklacht', ik: '😒', kans: 4, rust: () => 6, als: () => S.menu.length > 0 && smaakKlager() != null,
+    wie: () => ({ student: 'Student met een koptelefoon', villa: 'Dame met parels', toerist: 'Toerist met een kaart', werker: 'Werker met een helm', opa: 'Opa met een wandelstok' })[smaakKlager()],
+    vraag: () => ({ student: 'Bro. Deze pizza\'s zijn voor oude mensen. Waar is de pizza met extra kaas en spek? Dit is een studentenwijk!',
+      villa: 'Schat, dit is de villawijk. Deze pizza\'s horen in een studentenhuis. Heeft u niets… verfijnds?',
+      toerist: 'Excuse me. Is dit echte Hollandse pizza? Wij willen iets bijzonders proeven! Niet dit.',
+      werker: 'Waar is de pizza voor een harde werker? Vlees! Pittig! Dit is allemaal tuttig spul.',
+      opa: 'Jongen, het is allemaal zo pittig en zo vet. Heb je niet gewoon iets lekkers en zoets?' })[smaakKlager()],
+    a: [['U heeft gelijk. Ik verzin er een speciaal voor u!', () => { const k = smaakKlager() || 'werker'; rep(0.5); return `Goed idee: een ${SOORT[k].n.toLowerCase()} ${wensTekst(k)}. Maak een nieuwe pizza in 📖 Pizza's en kijk naar het gezichtje van de ${SOORT[k].n.toLowerCase()}. Hoe meer 😋, hoe beter.`; }],
+      ['Probeer onze beste pizza eens.', () => { const k = smaakKlager() || 'werker', b = S.menu.reduce((a, p) => (oordeel(p, k) > oordeel(a, k) ? p : a), S.menu[0]); if (oordeel(b, k) >= 2.5) { rep(0.5); return `Een ${b.naam}. "Hmm. Valt mee." Hij eet alles op.`; } rep(-1); return `Een ${b.naam}. Eén hap. "Zie je wel." Hij loopt naar Luigi.`; }],
+      ['Dit is wat de pot schaft.', () => { rep(-1); return 'Hij zucht diep en vertelt het aan iedereen in de buurt.'; }] ] },
   { id: 'gino', ik: '🧑‍🍳', wie: 'Gino, pizzabakker bij Luigi', kans: 3, als: () => S.dag >= 7 && !S.zaak && !(S.luigiDicht >= S.dag) && !(S.ginoNa > S.dag),
     vraag: () => { S.ginoNa = S.dag + 8; S.ginoTip = S.dag % 2 ? 'oven' : 'boer'; /* vast per dag: vraagKort roept dit ook aan */ return S.ginoTip == 'oven' ? `Psst. Ik werk bij Luigi, maar hij betaalt me in oude pizzakorsten. Dus… ${datumLang(ginoDag())} komt de monteur voor zijn oven. Dan is Luigi de hele dag dicht. Zeg niet dat je het van mij hebt.`
       : 'Psst. Ik werk bij Luigi. Hij betaalt zijn mozzarellaboer al weken niet. Die boer is woedend, en zoekt een nieuwe klant. Ik kan je zijn nummer geven…'; },
@@ -1568,7 +1582,7 @@ const VRAGEN = [
       ['Wil je een pizza proeven, Luigi?', () => { ge(-9); S.morgen = { ...(S.morgen || {}), aankomst: 0.9 }; return 'Hij proeft, glimlacht… en morgen staat jouw pizza bij hém op de kaart.'; }],
       ['Ga toch pizza\'s bakken, Luigi.', () => { if (kans(0.4)) { S.sabotage = pak(['rat', 'stinkbom']); return '"Dat zal je berouwen!" (Morgen kun je iets verwachten…)'; } return 'Hij snuift en vertrekt.'; }] ] },
   { id: 'menuraad', ik: '🧑‍🍳', wie: 'Mario, de kok', als: () => S.menu.length < 4, kans: 2, vraag: 'Baas, mag ik een nieuwe pizza verzinnen voor de kaart?',
-    a: [['Ja, verras me!', () => { const nieuw = { naam: vrijeNaam(), prijs: 10, stukjes: [{ i: 'kaas', x: -0.3, y: -0.3, r: 1 }, { i: 'salami', x: 0.4, y: -0.1, r: 2 }, { i: 'champignon', x: -0.2, y: 0.4, r: 3 }, { i: 'tomaat', x: 0.3, y: 0.4, r: 4 }, { i: 'kaas', x: 0.1, y: 0.05, r: 5 }, { i: 'paprika', x: -0.5, y: 0.1, r: 0 }] }; if (S.menu.length < MAXMENU) S.menu.push(nieuw); return `Mario zet de "${nieuw.naam}" op de kaart (salami, champignons, paprika).`; }],
+    a: [['Ja, verras me!', () => { const nieuw = { naam: vrijeNaam(), prijs: 10, stukjes: [{ i: 'kaas', x: -0.3, y: -0.3, r: 1 }, { i: 'salami', x: 0.4, y: -0.1, r: 2 }, { i: 'champignon', x: -0.2, y: 0.4, r: 3 }, { i: 'tomaat', x: 0.3, y: 0.4, r: 4 }, { i: 'kaas', x: 0.1, y: 0.05, r: 5 }, { i: 'paprika', x: -0.5, y: 0.1, r: 0 }] }; if (S.menu.length < maxMenu()) S.menu.push(nieuw); return `Mario zet de "${nieuw.naam}" op de kaart (salami, champignons, paprika).`; }],
       ['Nee, ik maak de kaart zelf.', () => 'Mario haalt zijn schouders op. Knop 📖 Pizza\'s!'],
       ['Alleen als er geen ananas op komt.', () => 'Mario: "Waarom zou ik ananas… o. Ja. Afgesproken."'] ] },
 ];
@@ -2804,10 +2818,10 @@ function toonStad(plek) {
   if ($('torenopen')) $('torenopen').onclick = () => toonToren(true);
   if ($('torenbetaal')) $('torenbetaal').onclick = () => { const t = torenBij(), f = TORENFASE[t.fase]; ge(-f.prijs); t.bouwt = { tot: S.dag + f.dagen }; kassa(); bewaar(); tekenKnoppen(); meld(`De bouwvakkers juichen en gaan aan de slag met ${f.n}!`, 3000); toonStad('bouw'); };
   if ($('naarzaak')) $('naarzaak').onclick = () => { $('stad').classList.add('verborgen'); aanBalie = false; tekenKnoppen(); toonWegLog(); };
-  if ($('wissel')) $('wissel').onclick = () => { wisselZaak(zaakVan(plek)); $('stad').classList.add('verborgen'); meld('Welkom in ' + zaakNaam() + '!', 3000); };
+  if ($('wissel')) $('wissel').onclick = () => { wisselZaak(zaakVan(plek)); $('stad').classList.add('verborgen'); const sm = buurtSmaak(S.buurt); meld('Welkom in ' + zaakNaam() + '!' + (sm < 0.6 ? ` Hmm, voor de mensen hier staat weinig lekkers op je kaart. Kijk eens in 📖 Pizza's.` : ''), sm < 0.6 ? 5000 : 3000); };
   if ($('huren')) $('huren').onclick = () => { if (!confirm(`Dit pand huren voor € ${p.borg} (en € ${p.huur} per dag)?`)) return;
     ge(-p.borg); bewaarZaak(); S.zaken.push({ plek, buurt: p.buurt, huur: p.huur, spullen: BEGIN(), ovens: 1, obers: 1, groot: [], rep: BUURT[p.buurt].rep, manager: null, vuil: 0 });
-    kassa(); bewaar(); tekenKnoppen(); toonStad(plek); meld('Gefeliciteerd, je hebt een tweede pizzeria! Ga er \'s ochtends heen om hem in te richten. Let op: vanaf nu koop je zelf in (📦 Voorraad), Mario doet het niet meer vanzelf.', 7000); };
+    kassa(); bewaar(); tekenKnoppen(); toonStad(plek); meld(`Gefeliciteerd, je hebt een nieuwe pizzeria! ${BUURT[p.buurt].uitleg} Je menukaart geldt overal, maar hier smaakt het anders: kijk in 📖 Pizza's naar de sterren. Ga er 's ochtends heen om in te richten; vanaf nu koop je zelf in (📦 Voorraad).`, 9000); };
   if ($('beleggen')) $('beleggen').onclick = () => { toonStad.app = true; toonStad('bank'); };
   if (plek == 'bank' && k2.querySelector('[data-koop]')) koppelCrypto(k2, APPPROV, () => { toonStad.app = true; toonStad('bank'); });
   if ($('koopTip')) $('koopTip').onclick = () => { crypto(); ge(-20); const k = pak(Object.keys(MUNT)), op = kans(0.55) ? 1 : -1; S.tip = { k, op, dag: S.dag, echt: kans(0.7) }; kassa(); bewaar(); tekenKnoppen(); toonStad('wissel');
@@ -4024,6 +4038,10 @@ function kleinePizza(p) { if (!p || !p.stukjes || !(BODEM_IMG.complete && BODEM_
   const k = JSON.stringify(p.stukjes); let c = pizzaFoto.get(k); if (!c) { c = document.createElement('canvas'); c.width = c.height = 96; tekenPizzaOp(c, p); pizzaFoto.set(k, c); } return c; }
 for (const im of [BODEM_IMG, BELEG_IMG]) im.addEventListener('load', () => { pizzaFoto.clear(); if (!$('pizzas').classList.contains('verborgen')) bewerk ? tekenMaak() : toonKaart(); });
 ING_IMG.onload = () => { if (!$('pizzas').classList.contains('verborgen')) bewerk ? tekenMaak() : toonKaart(); };
+function smaakKlager() { // de soort klant die hier veel komt maar niks lekkers vindt op de kaart (of null)
+  const w = buurtKans(); let slechtst = null, so = 9;
+  for (const k of Object.keys(SOORT)) { if (w[k] < 0.2) continue; const o = Math.max(0, ...S.menu.map((p) => oordeel(p, k))); if (o < 3 && o < so) { so = o; slechtst = k; } }
+  return slechtst; }
 const nieuwstePizza = () => S.menu.reduce((a, p) => ((p.sinds || 0) >= (a.sinds || 0) ? p : a), S.menu[0]); // de laatst verzonnen pizza
 const NAMEN = ['Pizza Baas', 'Pizza Pittig', 'Pizza Bomba', 'Pizza Mamma Mia', 'Pizza Kapsalon', 'Pizza Hawaii', 'Pizza Vulcano', 'Pizza Bellissima',
   'Pizza Zoetekauw', 'Pizza Rotterdam', 'Pizza Bouwvakker', 'Pizza Tentamen', 'Pizza Kunstgebit', 'Pizza Zondag', 'Pizza Rommelbak', 'Pizza Dikke Vette'];
@@ -4054,19 +4072,19 @@ function tekenPizzaOp(cv, p) {
 const oordeelHTML = (p) => `<div class="oordeel">${Object.entries(SOORT).map(([k, d]) => `<span title="${esc(d.n)}"><b>${d.ik}${GEZICHT[Math.round(oordeel(p, k))]}</b>${esc(d.n.split(' ')[0])}</span>`).join('')}</div>`;
 function sluitPizzas() { $('pizzas').classList.add('verborgen'); bewerk = null; tekenKnoppen(); }
 function favVan(p) { // voor welke soorten klanten is dit de lekkerste pizza van de kaart? (zo kiezen klanten: hun hoogste oordeel)
-  return Object.keys(SOORT).filter((k) => { const o = oordeel(p, k), max = Math.max(...S.menu.map((q) => oordeel(q, k))); return o >= 1 && o >= max - 0.25; }); }
+  const bk = buurtKans(); return Object.keys(SOORT).filter((k) => bk[k] >= 0.04).filter((k) => { const o = oordeel(p, k), max = Math.max(...S.menu.map((q) => oordeel(q, k))); return o >= 1 && o >= max - 0.25; }); }
 const sterren = (p) => { const o = pizzaSter(p); return `<span title="gemiddeld oordeel van de klanten">${'⭐'.repeat(Math.round(o))}${'<span style="opacity:.25">⭐</span>'.repeat(6 - Math.round(o))} ${o.toFixed(1).replace('.', ',')}</span>`; };
 function toonKaart() {
   bewerk = null;
   const bk = buurtKans(), buurt = Object.entries(SOORT).map(([k, d]) => `${d.ik} ${esc(d.n)} ${Math.round(bk[k] * 100)}%`).join(' · ');
-  let h = `<h1>📖 De menukaart</h1><p class="buurt">Wie komen er in jouw buurt? ${buurt}</p>`;
+  let h = `<h1>📖 De menukaart</h1><p class="buurt">${S.zaken.length > 1 ? `${BUURTIK[S.buurt || 'oud']} ${esc((BUURT[S.buurt] || BUURT.oud).n)}: w` : 'W'}ie komen er in jouw buurt? ${buurt}</p>`;
   S.menu.forEach((p, i) => {
     const { k } = smaak(p);
     const best = Math.max(1, ...S.menu.map((q) => q.gisteren || 0)), loopt = p.gisteren == null ? '' : p.gisteren >= best * 0.6 ? ' 🔥' : p.gisteren <= best * 0.15 ? ' 💤' : '';
-    h += `<div class="menuregel" data-nr="${i}"><canvas width="108" height="108"></canvas><div class="naam">${esc(p.naam)}<small>${sterren(p)}</small><small>${(() => { const f = favVan(p); return f.length ? `👑 De lekkerste voor: ${f.map((k) => SOORT[k].ik).join(' ')}` : '🙈 Voor niemand de lekkerste: elke klant vindt een andere pizza lekkerder'; })()}</small><small>${geld(p.prijs)} · inkoop ${geld(k)}</small><small>${p.gisteren == null ? 'Nog niet verkocht' : `Gisteren ${kl(p.gisteren)}× verkocht${loopt}`}${p.totaal ? ` · totaal ${kl(p.totaal)}×` : ''}</small></div>${oordeelHTML(p)}</div>`;
+    h += `<div class="menuregel" data-nr="${i}"><canvas width="108" height="108"></canvas><div class="naam">${esc(p.naam)}<small>${sterren(p)}</small>${mijnBuurten().length > 1 ? `<small>Elders: ${mijnBuurten().filter((b) => b != (S.buurt || 'oud')).map((b) => `${BUURTIK[b]} ⭐${pizzaSter(p, b).toFixed(1).replace('.', ',')}`).join(' · ')}</small>` : ''}<small>${(() => { const f = favVan(p); return f.length ? `👑 De lekkerste voor: ${f.map((k) => SOORT[k].ik).join(' ')}` : '🙈 Voor niemand de lekkerste: elke klant vindt een andere pizza lekkerder'; })()}</small><small>${geld(p.prijs)} · inkoop ${geld(k)}</small><small>${p.gisteren == null ? 'Nog niet verkocht' : `Gisteren ${kl(p.gisteren)}× verkocht${loopt}`}${p.totaal ? ` · totaal ${kl(p.totaal)}×` : ''}</small></div>${oordeelHTML(p)}</div>`;
   });
-  h += `<p class="buurt">Tik op een pizza om hem te veranderen. ⭐ = hoe lekker alle klanten hem samen vinden (6 = perfect; vanaf 4 komt de recensent terug voor een foto). Maar elke klant bestelt de pizza die híj het lekkerst vindt: 👑 laat zien voor wie dit de lekkerste van de kaart is. Een pizza zonder 👑 wordt weinig besteld, ook met veel sterren. 😍 = vinden ze heerlijk, 🤢 = bestellen ze nooit. 🔥 = loopt goed, 💤 = bijna niemand bestelt hem: misschien vervangen? Er kunnen maximaal ${MAXMENU} pizza's op de kaart.</p>
-    <div class="rij"><button class="knop rood" id="nieuwePizza" ${S.menu.length >= MAXMENU ? 'disabled' : ''}>➕ Nieuwe pizza</button><button class="knop" id="kaartDicht">Klaar</button></div>`;
+  h += `<p class="buurt">Tik op een pizza om hem te veranderen. ⭐ = hoe lekker alle klanten hem samen vinden (6 = perfect; vanaf 4 komt de recensent terug voor een foto). Maar elke klant bestelt de pizza die híj het lekkerst vindt: 👑 laat zien voor wie dit de lekkerste van de kaart is. Een pizza zonder 👑 wordt weinig besteld, ook met veel sterren. 😍 = vinden ze heerlijk, 🤢 = bestellen ze nooit. 🔥 = loopt goed, 💤 = bijna niemand bestelt hem: misschien vervangen? Er kunnen maximaal ${maxMenu()} pizza's op de kaart${S.zaken.length > 1 ? ' (één extra per zaak)' : ''}. Je kaart geldt in al je zaken, maar in elke buurt wonen andere mensen: een pizza kan hier 2 sterren hebben en in de studentenbuurt 5.</p>
+    <div class="rij"><button class="knop rood" id="nieuwePizza" ${S.menu.length >= maxMenu() ? 'disabled' : ''}>➕ Nieuwe pizza</button><button class="knop" id="kaartDicht">Klaar</button></div>`;
   $('pizzakaart').innerHTML = h; $('pizzas').classList.remove('verborgen');
   $('pizzakaart').querySelectorAll('.menuregel').forEach((el) => { tekenPizzaOp(el.querySelector('canvas'), S.menu[el.dataset.nr]); el.onclick = () => toonMaak(+el.dataset.nr); });
   $('nieuwePizza').onclick = () => toonMaak(-1);
@@ -4101,7 +4119,8 @@ function toonMaak(nr) {
   $('duurder').onclick = () => { bewerk.prijs = Math.min(25, bewerk.prijs + 1); tekenMaak(); };
   $('pterug').onclick = toonKaart;
   $('pbewaar').onclick = bewaarPizza;
-  if ($('pweg')) $('pweg').onclick = () => { if (confirm(bewerk.naam + ' van de kaart halen?')) { S.menu.splice(nr, 1); bewaar(); toonKaart(); } };
+  if ($('pweg')) $('pweg').onclick = () => { const p0 = S.menu[nr], rest = S.menu.filter((q) => q != p0), mis = p0 ? mijnBuurten().filter((b) => b != (S.buurt || 'oud')).filter((b) => { const w = buurtKans(b); return Object.keys(SOORT).some((k) => w[k] >= 0.15 && oordeel(p0, k) >= 3 && Math.max(0, ...rest.map((q) => oordeel(q, k))) < oordeel(p0, k) - 1); }) : [];
+    if (confirm(bewerk.naam + ' van de kaart halen?' + (mis.length ? `\n\nLet op: in je zaak in de ${mis.map((b) => BUURT[b].n.toLowerCase()).join(' en ')} is dit voor veel klanten de lekkerste pizza. Daar hebben ze dan niks lekkers meer.` : ''))) { S.menu.splice(nr, 1); bewaar(); toonKaart(); } };
   tekenMaak();
 }
 function legOp(i) {

@@ -457,3 +457,10 @@ zaak 1. Nu `S.persZaak` (bij opknappen) en `persZaak()` (oude opslag: de zaak in
 `persZaak() == 0`. De achterkamer toont nu bovenaan in welke zaak je bent (📍 `zaakNaam()`).
 Pizza Kimberley (14 nov): vraag 'kimnaam' noemt de nieuwste pizza (`nieuwstePizza()`, hoogste `p.sinds`) en antwoord A hernoemt hem echt; de vraag
 komt niet meer als er al een Pizza Kimberley op de kaart staat.
+Smaak per buurt (14 nov, Marcel): het menu geldt voor de hele keten, maar elke buurt heeft andere klanten (`buurtKans(b)`), dus een pizza heeft per
+zaak andere sterren (`pizzaSter(p, b)`). Op de menukaart: "Elders: 🎓 ⭐4,7 · 🏡 ⭐2,1" (`mijnBuurten()`, `BUURTIK`), 👑 alleen voor soorten die hier
+komen (≥ 4%), en de buurt bovenaan. Weghalen waarschuwt als de pizza in een andere zaak voor een grote groep (≥ 15%) duidelijk de lekkerste is.
+Huren en "Naar deze zaak" geven een tip (bij `buurtSmaak` < 0,6). Andere zaken (`simuleerZaak`) rekenen nu met de smaak: vraag × (0,4 + 0,8 ×
+`buurtSmaak(b)`; 0-1 = gemiddeld beste oordeel per soort / 6), met "😕 weinig lekkers" in het dagoverzicht. Vraag 'smaakklacht' (kans 4, rust 6):
+een soort die hier ≥ 20% is en geen pizza ≥ 3 heeft (`smaakKlager()`) klaagt ("Deze pizza's horen in een studentenhuis"); A geeft de smaaktip
+(`wensTekst`). Per extra zaak mag er één pizza meer op de kaart (`maxMenu()`, max 9).
