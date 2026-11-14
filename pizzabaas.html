@@ -869,7 +869,9 @@ const extraTotaal = () => Object.values(tel.extra || {}).reduce((a, n) => a + n,
 const repRem = (n) => n > 0 ? n * Math.max(0.15, Math.min(1, 1.25 - S.rep / 80)) * (S.zaak && S.rep < 35 ? 1.4 : 1) : n; // een nieuwe zaak (2e, 3e…) groeit in het begin wat sneller: de buurt is nieuwsgierig // 40 → 75%, 60 → 50%, 80 → 25%, 100 → 15%
 const rep = (n) => { S.rep = Math.max(0, Math.min(100, S.rep + repRem(n))); };
 const opDeKaart = () => [...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
-const besteOordeel = () => Math.max(...S.menu.map((p) => Object.keys(SOORT).reduce((a, k) => a + oordeel(p, k) * SOORT[k].kans, 0)));
+const pizzaCijfer = (p) => Object.keys(SOORT).reduce((a, k) => a + oordeel(p, k) * SOORT[k].kans, 0); // gemiddeld over alle soorten klanten: hooguit ~3,6
+const pizzaSter = (p) => Math.min(6, pizzaCijfer(p) * 1.6); // sterren 0-6 op de menukaart (de beste mogelijke pizza ≈ 6)
+const besteOordeel = () => Math.max(...S.menu.map(pizzaSter)); // in sterren (recensent)
 function oberWeg() { if (obers.length > 1) { const o = obers.pop(); if (o.taak) ritten.unshift(o.taak); return true; } return false; }
 // hulpjes voor de vragen: morgen meer/minder klanten, de kok of ober trager/sneller, een ingrediënt op
 const morgenKl = (f) => { S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * f }; };
@@ -4046,6 +4048,7 @@ function tekenPizzaOp(cv, p) {
 }
 const oordeelHTML = (p) => `<div class="oordeel">${Object.entries(SOORT).map(([k, d]) => `<span title="${esc(d.n)}"><b>${d.ik}${GEZICHT[Math.round(oordeel(p, k))]}</b>${esc(d.n.split(' ')[0])}</span>`).join('')}</div>`;
 function sluitPizzas() { $('pizzas').classList.add('verborgen'); bewerk = null; tekenKnoppen(); }
+const sterren = (p) => { const o = pizzaSter(p); return `<span title="gemiddeld oordeel van de klanten">${'⭐'.repeat(Math.round(o))}${'<span style="opacity:.25">⭐</span>'.repeat(6 - Math.round(o))} ${o.toFixed(1).replace('.', ',')}</span>`; };
 function toonKaart() {
   bewerk = null;
   const buurt = Object.values(SOORT).map((d) => `${d.ik} ${esc(d.n)} ${Math.round(d.kans * 100)}%`).join(' · ');
@@ -4053,9 +4056,9 @@ function toonKaart() {
   S.menu.forEach((p, i) => {
     const { k } = smaak(p);
     const best = Math.max(1, ...S.menu.map((q) => q.gisteren || 0)), loopt = p.gisteren == null ? '' : p.gisteren >= best * 0.6 ? ' 🔥' : p.gisteren <= best * 0.15 ? ' 💤' : '';
-    h += `<div class="menuregel" data-nr="${i}"><canvas width="108" height="108"></canvas><div class="naam">${esc(p.naam)}<small>${geld(p.prijs)} · inkoop ${geld(k)}</small><small>${p.gisteren == null ? 'Nog niet verkocht' : `Gisteren ${kl(p.gisteren)}× verkocht${loopt}`}${p.totaal ? ` · totaal ${kl(p.totaal)}×` : ''}</small></div>${oordeelHTML(p)}</div>`;
+    h += `<div class="menuregel" data-nr="${i}"><canvas width="108" height="108"></canvas><div class="naam">${esc(p.naam)}<small>${sterren(p)}</small><small>${geld(p.prijs)} · inkoop ${geld(k)}</small><small>${p.gisteren == null ? 'Nog niet verkocht' : `Gisteren ${kl(p.gisteren)}× verkocht${loopt}`}${p.totaal ? ` · totaal ${kl(p.totaal)}×` : ''}</small></div>${oordeelHTML(p)}</div>`;
   });
-  h += `<p class="buurt">Tik op een pizza om hem te veranderen. 😍 = vinden ze heerlijk, 🤢 = bestellen ze nooit. 🔥 = loopt goed, 💤 = bijna niemand bestelt hem: misschien vervangen? Er kunnen maximaal ${MAXMENU} pizza's op de kaart.</p>
+  h += `<p class="buurt">Tik op een pizza om hem te veranderen. ⭐ = hoe lekker alle klanten hem samen vinden (6 = perfect; vanaf 4 komt de recensent terug voor een foto). 😍 = vinden ze heerlijk, 🤢 = bestellen ze nooit. 🔥 = loopt goed, 💤 = bijna niemand bestelt hem: misschien vervangen? Er kunnen maximaal ${MAXMENU} pizza's op de kaart.</p>
     <div class="rij"><button class="knop rood" id="nieuwePizza" ${S.menu.length >= MAXMENU ? 'disabled' : ''}>➕ Nieuwe pizza</button><button class="knop" id="kaartDicht">Klaar</button></div>`;
   $('pizzakaart').innerHTML = h; $('pizzas').classList.remove('verborgen');
   $('pizzakaart').querySelectorAll('.menuregel').forEach((el) => { tekenPizzaOp(el.querySelector('canvas'), S.menu[el.dataset.nr]); el.onclick = () => toonMaak(+el.dataset.nr); });

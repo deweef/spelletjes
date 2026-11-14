@@ -446,3 +446,6 @@ Achterkamer zaak 2/3/4 (14 nov, Marcel kreeg de printer-vraag 2× en er gebeurde
 'gokker' (`gokRaad`) zet `S.kamer` én gaat meteen naar de achterkamer (`naVraag = naarAchter`); de oude tekst "🗝️ Linksboven zit nu een sleuteltje"
 klopte niet meer (de sleutelknop is sinds 28 okt weg). Dubbel: een vraag uit `S.verplicht` komt niet als hij die dag al gesteld is, printer/gokker/kelder
 niet meer als de kamer al open is, en `kiesVraag` slaat vragen over die in `S.verplicht` staan.
+Sterren op de menukaart (14 nov): `pizzaCijfer(p)` = oordeel gemiddeld over alle soorten (gewogen met `SOORT.kans`), kan hooguit ~3,6 (niet elke soort
+wil hetzelfde); `pizzaSter(p)` = × 1,6, max 6 (getest met 30.000 willekeurige pizza's: beste 5,8, 8% haalt 4). Op de kaart als ⭐⭐⭐⭐☆☆ 4,2.
+`besteOordeel()` (recensent) rekent nu in sterren: vroeger was ≥ 4 onmogelijk, dus kwam de vervolgvraag (foto voor de krant) nooit.
