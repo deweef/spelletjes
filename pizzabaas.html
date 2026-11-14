@@ -523,7 +523,7 @@ const gemGezellig = () => { const t = S.spullen.filter(isTafel); return t.length
 
 // ---------- de dag ----------
 let modus = 'inrichten'; // inrichten | open | sluiten
-let klok = 0, volgendeKlant = 2, mensen = [], obers = [], ovens = [], klaar = [], ritten = [], wolkjes = [], muntjes = [];
+let klok = 0, volgendeKlant = 2, mensen = [], obers = [], ovens = [], klaar = [], ritten = [], wolkjes = [], muntjes = [], fx = []; // fx = losse emoji-deeltjes van de tik-effectjes
 // klaar = pizza's op het uitgiftepunt; ritten = loopjes voor een ober (max. 2 borden, één per hand), pas als de hele tafel klaar is
 let tel = {};
 let kies = null; // wat er gekocht en neergezet wordt
@@ -664,7 +664,7 @@ const NIEUWTEL = () => ({ blij: 0, boos: 0, boosKeuken: 0, boosOber: 0, vol: 0, 
 function openDeuren() {
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
   if (S.dicht) { tel = NIEUWTEL(); tel.dicht = S.dicht; S.dicht = null; mensen = []; eindeDag(); return; } // vandaag blijft de zaak dicht
-  modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = [];
+  modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = []; fx = [];
   tel = NIEUWTEL(); bezet = null; belZ = null; startVoorraad();
 
   { const dicht = S.spullen.filter((c) => c.t == 'stoel' && !stoelBereik(c)).length; if (dicht) setTimeout(() => meld(!toonbankVrij() ? '🚧 De obers kunnen niet weg bij de toonbank: alles ervoor staat vol. Laat een looppad vrij van de toonbank naar de deur!' : `🚧 Bij ${dicht} stoel${dicht > 1 ? 'en' : ''} kan niemand komen: daar gaat niemand zitten. Laat een looppad vrij vanaf de deur!`, 6000), 1200); } // de inrichting kan veranderd zijn: looproutes opnieuw
@@ -1964,6 +1964,37 @@ function raceKlaar(wie) { // wie = 'jij' | 'henk' | 'luigi'
     if (!T) { S.tehuisLuigi = true; t = '😎 Luigi wint! Hij toetert drie keer en rijdt een ererondje over het rozenperk. "De zondagpizza\'s zijn van mij!" Opa Henk zucht. Probeer het morgen nog eens.'; }
     else { T.tevreden = Math.max(0, T.tevreden - 10); t = tehuisCheck('😎 Luigi wint en vertelt de hele middag in de recreatiezaal dat zijn pizza beter is. Een paar oma\'s geloven hem (tevredenheid −10).'); } }
   $('racetekst').textContent = t; bewaar(); tekenKnoppen();
+}
+// ---------- tik-effectjes tijdens het werk (14 nov): tik op de oven, een klant, een ober, een plant, de deurmat of de bel van de uitgifte ----------
+const KLANTPOR = ['Hm?', 'Ja, baas?', 'Lekker hier!', 'Heeft u ook toetjes?', 'Wat een mooie zaak!', 'Mag het raam open?', 'Ik wacht op mijn pizza…', 'Psst, is Luigi beter?'];
+let ovenTik = { n: 0, t: 0 }, pizzaRegenDag = 0;
+const spat = (x, y, e, n, kracht = 3, extra = {}) => { for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2; fx.push({ x, y, vx: Math.cos(a) * kracht * (0.5 + Math.random()), vy: Math.sin(a) * kracht * (0.5 + Math.random()), t: 0.8 + Math.random() * 0.6, e: Array.isArray(e) ? pak(e) : e, ...extra }); } };
+function tikEffect(fx0, fy0) {
+  // oven: vonken en de kok roept iets; 7× snel achter elkaar = pizzaregen (één keer per dag)
+  const oi = ovens.findIndex((o) => Math.abs(fx0 - OVEN_X[o.i]) < 1.1 && fy0 < KEUKEN - 0.6);
+  if (oi >= 0) { const o = ovens[oi], nu = performance.now(); ovenTik = nu - ovenTik.t < 900 ? { n: ovenTik.n + 1, t: nu } : { n: 1, t: nu };
+    spat(OVEN_X[o.i], 1.2, ['🔥', '✨', '✨'], 6, 3); ding(110 + Math.random() * 40, 0.25, 'sawtooth', 0.04);
+    if (ovenTik.n >= 7 && pizzaRegenDag != S.dag) { pizzaRegenDag = S.dag; ovenTik.n = 0; for (let i = 0; i < 26; i++) fx.push({ x: Math.random() * W, y: -1 - Math.random() * 4, vx: (Math.random() - 0.5), vy: 2 + Math.random() * 2, g: 4, t: 3.5, e: pak(['🍕', '🍕', '🍕', '🧀', '🍅']), size: 30 });
+      muntjes.push({ x: W / 2, y: KEUKEN + 2, t: 2.5, tekst: '🍕 PIZZA-REGEN! 🍕' }); kassa(); vandaag.gezellig += 0.3; zeg(o.kok, 'MAMMA MIA!'); }
+    else zeg(o.kok, R(['Heet! Niet aankomen!', 'Mamma mia, voorzichtig!', 'Die oven is 400 graden, baas!', 'Nog één keer en ik bak jóu!', 'Zie je dat vuur? Prachtig hè?'])); return true; }
+  // bel op de uitgifte
+  for (const i of [0, 1]) { if (i >= ovens.length) break; const [ux, uy] = UITGIFTE(i); if (fx0 >= ux - 0.2 && fx0 <= ux + 1.8 && Math.abs(fy0 - uy) < 0.7) {
+    ding(2200, 0.5, 'sine', 0.06); setTimeout(() => ding(2200, 0.4, 'sine', 0.04), 90); muntjes.push({ x: ux + 0.8, y: uy, t: 1.2, tekst: '🛎️ Ting!' });
+    for (const ob of obers) zeg(ob, R(['Servizio!', 'Komt eraan!', 'Ja ja, ik hoor je!', 'Ik heb maar twee handen!'])); return true; } }
+  // deurmat: deurbel
+  if (fy0 >= H - 1 && fx0 >= MAT.x && fx0 < MAT.x + MAT.w) { ding(660, 0.35, 'sine', 0.07); setTimeout(() => ding(523, 0.5, 'sine', 0.07), 330); muntjes.push({ x: MAT.x + 1.5, y: H - 0.5, t: 1.3, tekst: '🔔 Ding dong!' }); return true; }
+  // ober
+  const ob = obers.find((o) => Math.hypot(o.x - fx0, o.y - 0.5 - fy0) < 0.7);
+  if (ob) { zeg(ob, R(ob.dame ? ['Si, tesoro?', 'Ik heb het druk, schat!', 'Nog één tik en je mag zelf afwassen.'] : ['Prego!', 'Ja, baas?', 'Ik loop al zo hard als ik kan!', 'Fooi? Graag!'])); spat(ob.x, ob.y - 1.3, '✨', 3, 2); return true; }
+  // klant: zegt iets, en wordt boos als je blijft porren
+  const m = mensen.find((m) => Math.hypot(m.x - fx0, m.y - 0.5 - fy0) < 0.6);
+  if (m) { m.por = (m.por || 0) + 1; if (m.por >= 4) { zeg(m, R(['Hé! Stop met porren!', 'Au! Waarom por je mij?!', 'Nog één keer en ik ga naar Luigi!'])); spat(m.x, m.y - 1.6, '💢', 2, 1.5); if (m.por == 4) rep(-0.2); }
+    else zeg(m, m.kind ? R(['Hihi!', 'Nog een keer!', 'Ijsje?']) : m.st == 'eet' ? R(['Mmm!', 'Smakelijk!', 'Hmpf, ik zit te eten.']) : R(KLANTPOR)); return true; }
+  // plant: blaadjes dwarrelen
+  const sp = op(fx0, fy0);
+  if (sp && ['plant', 'olijf', 'basilicum', 'rozemarijn', 'oregano', 'pepers'].includes(sp.t)) { const [mx, my] = midden(sp); spat(mx, my - 0.8, sp.t == 'pepers' ? '🌶️' : '🍃', 5, 2, { g: 1.2, rem: 0.3, size: 18 }); ding(1800, 0.05, 'triangle', 0.03); return true; }
+  if (sp && sp.t == 'schilderij') { const [mx, my] = midden(sp); muntjes.push({ x: mx, y: my, t: 1.3, tekst: pak(['👀 Hij kijkt je aan…', '🖼️ Echt of nep?', '🎨 Prachtig. Toch?']) }); return true; }
+  return false;
 }
 function tekenRace() {
   const c = $('racedoek'), g = c.getContext('2d'), W = 360, H = 540, R = race, bx = (b) => 90 + b * 90, sy = (m) => 430 - (m - R.m) * 22;
@@ -3410,6 +3441,7 @@ function stap(dt) {
   for (const v of vlekken) { v.t += dt; if (v.soort == 'scherven') for (const m of mensen) if ((m.st == 'loop' || m.st == 'weg') && !m.au && Math.hypot(m.x - v.x, m.y - v.y) < 0.4) { m.au = true; zeg(m, R(['Au! Scherven!', 'Auw, mijn voet!', 'Wie ruimt dit op?!'])); rep(-1); } }
   for (const w of [...wolkjes]) if ((w.t -= dt) <= 0) wolkjes.splice(wolkjes.indexOf(w), 1);
   for (const c of [...muntjes]) if ((c.t -= dt) <= 0) muntjes.splice(muntjes.indexOf(c), 1);
+  for (const f of [...fx]) { f.x += f.vx * dt; f.y += f.vy * dt; f.vy += (f.g ?? 6) * dt; f.vx *= Math.pow(f.rem ?? 0.6, dt); if ((f.t -= dt) <= 0) fx.splice(fx.indexOf(f), 1); }
 }
 let wachtrij = [];
 // een ober zonder werk staat niet steeds op dezelfde plek: meestal bij de toonbank, soms ergens in de zaak (kijken of alles goed gaat)
@@ -3790,6 +3822,7 @@ function teken(nu) {
   // muntjes en tekstwolkjes
   g.textAlign = 'center';
   for (const c of muntjes) { g.globalAlpha = Math.min(1, c.t * 2); g.fillStyle = '#ffd23f'; g.strokeStyle = '#5a3a00'; g.lineWidth = 3 * schaal; g.font = `bold ${16 * schaal}px system-ui`; const x = ox + c.x * T * schaal, y = oy + (c.y - 0.5 - (1.2 - c.t) * 0.6) * T * schaal; g.strokeText(c.tekst, x, y); g.fillText(c.tekst, x, y); }
+  g.textAlign = 'center'; g.textBaseline = 'middle'; for (const f of fx) { g.globalAlpha = Math.min(1, f.t * 2); g.font = `${(f.size || 22) * schaal}px system-ui`; g.fillText(f.e, ox + f.x * T * schaal, oy + f.y * T * schaal); } g.globalAlpha = 1;
   g.globalAlpha = 1;
   tekenRit(); g.textAlign = 'center'; // tekenRit zet links uitlijnen
   for (const w of wolkjes) {
@@ -4045,6 +4078,7 @@ doek.addEventListener('pointerdown', (e) => {
     const v = naarVak(e), vl = vlekBij(v.fx, v.fy);
     const jb = S.spullen.find((t) => t.t == 'jukebox' && v.fx >= t.x && v.fx < t.x + SPUL.jukebox.w && v.fy >= t.y && v.fy < t.y + SPUL.jukebox.h);
     if (jb && (!ac || ac.currentTime > liedTot)) { speelWillekeurig(); return; } // tik op de jukebox: een Italiaans liedje
+    if (!vlekBij(v.fx, v.fy) && !(rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) && tikEffect(v.fx, v.fy)) return; // verrassende effectjes
     if (rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) { muntjes.push({ x: rat.x, y: rat.y, t: 1.2, tekst: '🐀 Gevangen!' }); rat = null; vandaag.gezellig += 1; kassa(); return; }
     if (vl) { vlekken.splice(vlekken.indexOf(vl), 1); tel.opgeruimd = (tel.opgeruimd || 0) + 1; ding(1500, 0.05, 'sine', 0.05); setTimeout(() => ding(1900, 0.06, 'sine', 0.05), 50);
       muntjes.push({ x: vl.x, y: vl.y, t: 1, tekst: vl.soort == 'poep' ? '🧻 Bah!' : '🧽 Schoon!' }); }

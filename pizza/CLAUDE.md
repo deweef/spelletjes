@@ -494,3 +494,8 @@ tevreden −10, `tehuisCheck`). Getest (bot, 30 races): goed sturen ≈ 2/3 wins
 Wapenstilstand (14 nov, Marcel deed een nep-recensie tijdens de wapenstilstand en die bleef staan): `klusBegin` en `doeKlus` zetten `S.luigiRust = 0`
 (ook als de klus lukt: "Luigi heeft zo zijn vermoedens…", `rustGebroken`). In de achterkamer staat tot wanneer de wapenstilstand loopt en dat een klus
 er een eind aan maakt.
+Tik-effectjes tijdens het werk (14 nov, Marcel vond het jukebox-liedje leuk): `tikEffect(x, y)` in de pointerdown (na rat/jukebox, niet op een vlek),
+deeltjes in `fx` ({ x, y, vx, vy, g, rem, t, e, size }, `spat()`), getekend na de muntjes. Oven = vonken + de kok roept iets; 7× snel achter elkaar =
+🍕 pizza-regen (één keer per dag, `pizzaRegenDag`, gezellig +0,3). Bel op de uitgifte = "Ting!" en de obers roepen "Servizio!". Deurmat = deurbel.
+Ober = praatje + ✨ (de mamma heeft eigen zinnen). Klant = praatje (`KLANTPOR`, peuter "Hihi!"), de 4e keer porren = 💢 en rep −0,2. Plant/kruiden =
+blaadjes (pepers: 🌶️). Schilderij = "👀 Hij kijkt je aan…".
