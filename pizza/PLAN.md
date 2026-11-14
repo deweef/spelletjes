@@ -325,6 +325,9 @@ toetje in de pizzeria, Gianni's streken). Volgende stappen:
 - Vragen met Gianni (komt in je pizzeria; de vijand van je vijand: samen tegen Luigi? of verraadt hij je?), en eerlijke tegenzetten tegen Gianni.
 - Luigi en Gianni tegen elkaar uitspelen (wie de ruzie wint, laat jou even met rust).
 - Plaatjes: Gianni (lopen, staan, portret), Sofia, ijskar, ijssalon van binnen, ijsjes per smaak.
+Huize Avondrood (14 nov): pizzamiddag + scootmobielrace staan. Nog bedacht (Marcel vond alles leuk): bingo-avond in je zaak (jenever in de
+thermoskan), Zuster Zoë wil gezondere pizza's, erfenis van een vaste oude klant (recept uit 1962 of een kat). Plaatjes: Opa Henk op zijn scootmobiel
+met vlammen, Mevrouw Bosch, het tehuis.
 Plaatjes (ChatGPT/Gemini):
 - Dame in rood (rij 11): alleen nog zitten van voren en achteren (vakjes 12-15), dan in FIGUREN.villa.
 - Zitten van opzij voor villadame, Afrikaanse man, Chinese dame, toerist, opa, studente, Afrikaanse vrouw, zakenman (werker, oma, student al klaar).

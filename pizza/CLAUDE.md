@@ -470,3 +470,11 @@ ligt; staat in het voorraadscherm uitgelegd. Zowel de automatische inkoop als de
 Kimberley (14 nov): `kimPizza()` = de pizza die met "Pizza Kimberley" begint, `p.kimSinds`. Vraag 'kimsaai' (na 7 dagen): A = "Pizza Kimberley 2.0"
 (3.0…) met een willekeurig gek ingrediënt erbij (smaak verandert! `p.sinds` = nieuw), B = rep −1, C = de nieuwste andere pizza wordt Pizza
 Kimberley en de oude heet "Pizza Ex-Kimberley". 'kimnaam' alleen als er geen Kimberley-pizza is.
+Huize Avondrood (14 nov, idee Marcel "iets met een bejaardentehuis"; nog zonder eigen plaatjes, emoji): `PLEK.tehuis` (geel huis onderaan de kaart).
+Scootmobielrace tegen Opa Henk (`toonRace`, scherm `#race`, canvas `#racedoek` 360x540, `RACE`, één keer per dag `S.raceDag`): tuinpad van boven,
+3 banen, tik links/rechts (of pijltjes) = uitwijken; 🐈🪴🧺🦯 = botsen (vaart weg), 🍌 = slippen, 🍕 = turbo; Henk rijdt rechts op het gras en snijdt
+op 55% af (+25 m). Getest met een bot (t132): 0-2 botsingen = altijd winst, 3 ≈ 40%, 5+ = nooit; niet sturen = verlies. Eerste winst = `S.tehuis`
+= { sinds, tevreden 60, keer }: elke zondag (`weekdag() == 6`, `ochtendVraag(tehuisVraag())`) belt Mevrouw Bosch: kies een pizza van je kaart
+(`a` = getter, letters tot J), 20 pizza's × prijs × 0,8 (`TEHUIS`, `tel.extra.tehuis`), inkoop apart, keuken trager. Oordeel = `oordeel(p, 'opa')`
+− 1,5 bij pepers: ≥ 4,5 = tevreden +12, rep +1 en een week meer opa's (`S.opaTot`, ×1,4 in `kiesSoort`); ≥ 3 = +4; anders −18. Overslaan −25.
+Onder 20 = opgezegd ("we gaan het met Luigi proberen"), dan weer racen. Op de kalender staat elke zondag de pizzamiddag.
