@@ -386,3 +386,7 @@ Keuringsdienst tippen (14 nov, `toonKeuring`): anoniem bellen met Ingrid; 3 van 
 (gehusseld). Gelukt = geen verraad en hooguit één onzin. Nu heeft elke klus van Barrie een minispel. `klusAf(k, gelukt, tekst, politie)`.
 Gerrit en andere bezoekers: loopt hij naar boven (de keuken in), dan zie je zijn rug; naar beneden zijn gezicht (`b.omlaag` in `tekenBezoeker`);
 bij het praten kijkt hij je aan. Eerder liep hij met zijn gezicht naar je toe naar het deurtje.
+Menukaart met verkopen (14 nov): per pizza `p.gisteren` (in `eindeDag` uit `tel.verkocht`) en `p.totaal`; op de kaart "Gisteren 12× verkocht 🔥/💤 ·
+totaal 85×" (🔥 ≥ 60% van de best lopende, 💤 ≤ 15%), plus de uitleg en het maximum (`MAXMENU` = 6). Andere kosten uitgesplitst: `ge(n)` met n < 0
+telt in `tel.uitW[kostLabel]` (tijdens een vraag = wie het vroeg, anders 'Overig'; inkopen overdag `ge(-k, 'inkoop')` niet); in het dagoverzicht
+de grootste 5 onder "Andere kosten".

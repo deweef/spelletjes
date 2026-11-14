@@ -681,7 +681,7 @@ function openDeuren() {
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
 function eindeDag() {
-  modus = 'inrichten'; eindeVoorraad();
+  modus = 'inrichten'; for (const p of S.menu) p.gisteren = tel.verkocht[p.naam] || 0; // verkopen per pizza (menukaart) eindeVoorraad();
   const huur = S.huur || HUUR, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
   const andereWinst = anderen.reduce((a, o) => a + o.winst, 0);
   const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon + (S.bezorg.abo ? BEZORG.abo : 0) : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi + extraTotaal() - tel.kosten - huur - lonen + andereWinst;
@@ -723,7 +723,7 @@ function eindeDag() {
       ${soorten ? `<tr><td>Hoe smaakte het?</td><td>${soorten}</td></tr>` : ''}
       <tr><td>🍕 Pizza's verkocht</td><td>€ ${Math.round(tel.omzet)}</td></tr>${Object.entries(tel.extra || {}).filter(([k, n]) => n >= 1).map(([k, n]) => `<tr><td>${EXTRANAAM[k] || EXTRANAAM.overig}</td><td>€ ${Math.round(n)}</td></tr>`).join('')}
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
-      <tr><td>🧀 Ingrediënten ingekocht</td><td>− € ${Math.round((tel.inkoop || 0) + (tel.ing || 0))}</td></tr>${tel.kosten - (tel.inkoop || 0) - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.inkoop || 0) - (tel.ing || 0))}</td></tr>` : ''}${tel.bedorven >= 1 ? `<tr><td>🗑️ Bedorven en weggegooid</td><td>(€ ${Math.round(tel.bedorven)})</td></tr>` : ''}${tel.uitverkocht ? `<tr><td>🚫 Weg: hun pizza was op</td><td>${kl(tel.uitverkocht)}</td></tr>` : ''}
+      <tr><td>🧀 Ingrediënten ingekocht</td><td>− € ${Math.round((tel.inkoop || 0) + (tel.ing || 0))}</td></tr>${tel.kosten - (tel.inkoop || 0) - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.inkoop || 0) - (tel.ing || 0))}</td></tr>${Object.keys(tel.uitW || {}).length ? `<tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${Object.entries(tel.uitW).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([w, n]) => `${esc(w)} € ${Math.round(n)}`).join(' · ')}</td></tr>` : ''}` : ''}${tel.bedorven >= 1 ? `<tr><td>🗑️ Bedorven en weggegooid</td><td>(€ ${Math.round(tel.bedorven)})</td></tr>` : ''}${tel.uitverkocht ? `<tr><td>🚫 Weg: hun pizza was op</td><td>${kl(tel.uitverkocht)}</td></tr>` : ''}
       <tr><td>🏠 Huur</td><td>− € ${huur}</td></tr>${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${esc(o.tekst)}</td></tr>`).join('')}
       ${lonen - manLoon ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen - manLoon}</td></tr>` : ''}${manLoon ? `<tr><td>📋 Loon ${S.manager ? 'manager' : ''}${S.manager && S.bezorg ? ' en ' : ''}${S.bezorg ? 'bezorger' : ''}</td><td>− € ${manLoon}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
@@ -826,7 +826,8 @@ const VANDAAG = () => ({ fooi: 1, gezellig: 0, aankomst: 1, oberSnel: 1, ovenUit
 let vandaag = VANDAAG(), vraagTijden = [], pauze = false;
 const pak = (l) => l[Math.floor(Math.random() * l.length)];
 const kans = (p) => Math.random() < p;
-const ge = (n, soort = 'overig') => { S.geld += n; if (n < 0) tel.kosten += -n; else { tel.extra = tel.extra || {}; tel.extra[soort] = (tel.extra[soort] || 0) + n; } }; // geld erbij of eraf; inkomsten per soort apart in het dagoverzicht (niet bij de pizza's)
+let kostLabel = null; // waar gaat dit geld naartoe? (tijdens een vraag: wie het vroeg) — voor het dagoverzicht
+const ge = (n, soort = 'overig') => { S.geld += n; if (n < 0) { tel.kosten += -n; if (soort != 'inkoop') { const w = kostLabel || 'Overig'; tel.uitW = tel.uitW || {}; tel.uitW[w] = (tel.uitW[w] || 0) - n; } } else { tel.extra = tel.extra || {}; tel.extra[soort] = (tel.extra[soort] || 0) + n; } }; // geld erbij of eraf; inkomsten per soort apart in het dagoverzicht (niet bij de pizza's)
 const EXTRANAAM = { overig: '💶 Andere inkomsten', kunst: '🖼️ Schilderij verkocht', wijn: '🍷 Château verkocht', spel: '🎲 Gewonnen' };
 const extraTotaal = () => Object.values(tel.extra || {}).reduce((a, n) => a + n, 0);
 // populariteit: omhoog gaat steeds moeilijker naarmate je hoger zit (boven 60 flink), omlaag gaat gewoon
@@ -1565,7 +1566,7 @@ function toonVraag(v) {
   k.innerHTML = `<div class="vraagik">${ik}</div><div class="vraagwie">${esc(typeof v.wie == 'function' ? v.wie() : v.wie)}</div><p class="vraagtekst">"${esc(typeof v.vraag == 'function' ? v.vraag() : v.vraag)}"</p>
     ${v.a.map(([t], i) => `<button class="antwoord" data-i="${i}"><b>${'ABC'[i]}</b> ${esc(t)}</button>`).join('')}`;
   k.querySelectorAll('[data-i]').forEach((b) => b.onclick = () => {
-    const g0 = S.geld, r0 = S.rep, z0 = vandaag.gezellig, f0 = vandaag.fooi; const uit = v.a[+b.dataset.i][1](); // vrijgevig = geld eraf voor blije klanten: dat wordt bijgehouden (S.lief)
+    const g0 = S.geld, r0 = S.rep, z0 = vandaag.gezellig, f0 = vandaag.fooi; kostLabel = String(typeof v.wie == 'function' ? v.wie() : v.wie).replace(/^📞 .*? belt: /, ''); const uit = v.a[+b.dataset.i][1](); kostLabel = null; // vrijgevig = geld eraf voor blije klanten: dat wordt bijgehouden (S.lief)
     if (!v.sponsor && S.geld < g0 - 0.5 && (S.rep > r0 || vandaag.gezellig > z0 || vandaag.fooi > f0)) S.lief = (S.lief || 0) + 1; bewaar(); tekenKnoppen();
     const ik2 = naFoto != null ? foto(naFoto) : ik; naFoto = null; // een antwoord kan een ander portret laten zien (de kleerkasten)
     k.innerHTML = `<div class="vraagik">${ik2}</div>${uit == 'UITLEG' ? `<p class="vraagtekst"><b>Zo maak je een nieuwe pizza:</b></p>${PIZZA_UITLEG}<button class="groot" id="laatzien">📖 Laat zien</button>` : `<p class="vraagtekst">${esc(uit)}</p>`}
@@ -2799,7 +2800,7 @@ function voorstel() { // gisteren + 25% (of een schatting van ~33 pizza's verdee
   return uit; }
 const bestelPrijs = (l, spoed) => Object.entries(l).reduce((a, [i, n]) => a + n * prijsV(i) * (spoed ? 2 : 1), 0);
 function inkopen(l, spoed) { const k = Math.round(bestelPrijs(l, spoed) * 100) / 100; S.voorraad = S.voorraad || {}; for (const [i, n] of Object.entries(l)) S.voorraad[i] = (S.voorraad[i] || 0) + n;
-  if (modus == 'inrichten') { S.geld -= k; S.inkoopVandaag = (S.inkoopVandaag || 0) + k; } else { ge(-k); tel.inkoop = (tel.inkoop || 0) + k; } return k; }
+  if (modus == 'inrichten') { S.geld -= k; S.inkoopVandaag = (S.inkoopVandaag || 0) + k; } else { ge(-k, 'inkoop'); tel.inkoop = (tel.inkoop || 0) + k; } return k; }
 function oogst() { // eigen pepers: elke ochtend gratis pepers in de voorraad
   const n = S.spullen.filter((t) => SPUL[t.t] && SPUL[t.t].oogst && gegroeid(t)).length; if (!n || !S.voorraad) return;
   S.voorraad.pepers = (S.voorraad.pepers || 0) + 12 * n; setTimeout(() => meld(`🌶️ Eigen oogst: ${12 * n} pepers uit je eigen plant${n > 1 ? 'en' : ''}, gratis!`, 3000), 2000);
@@ -2983,7 +2984,7 @@ function stap(dt) {
       S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o; if (m.incognito) vandaag.recensie = { o, wacht: m.wacht, gez: gezellig(m.tafel), pizza: m.pizza.naam, soort: m.soort };
       if (S.wijn && S.wijn.n > 0 && S.buurt == 'villa' && (m.soort == 'villa' || kans(0.2)) && kans(0.6)) { const w = 20 + Math.round(70 * S.wijn.q); S.wijn.n--; ge(w, 'wijn'); tel.wijn = (tel.wijn || 0) + 1; // een fles Château bij het eten
         muntjes.push({ x: m.x, y: m.y - 0.6, t: 1.4, tekst: '🍷 +€' + w }); if (!S.wijn.n) S.wijn = null; }
-      tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1;
+      tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1; m.pizza.totaal = (m.pizza.totaal || 0) + 1;
       const s = tel.soort[m.soort] = tel.soort[m.soort] || [0, 0]; s[0]++; s[1] += o; // aantal, totaal oordeel
       rep((o - 2.5) * 0.4 + (m.wacht < 18 ? 0.4 : 0));
       muntjes.push({ x: m.x, y: m.y, t: 1.2, tekst: '+€' + Math.round(prijs + fooi) }); kassa();
@@ -3819,9 +3820,10 @@ function toonKaart() {
   let h = `<h1>📖 De menukaart</h1><p class="buurt">Wie komen er in jouw buurt? ${buurt}</p>`;
   S.menu.forEach((p, i) => {
     const { k } = smaak(p);
-    h += `<div class="menuregel" data-nr="${i}"><canvas width="108" height="108"></canvas><div class="naam">${esc(p.naam)}<small>${geld(p.prijs)} · inkoop ${geld(k)}</small></div>${oordeelHTML(p)}</div>`;
+    const best = Math.max(1, ...S.menu.map((q) => q.gisteren || 0)), loopt = p.gisteren == null ? '' : p.gisteren >= best * 0.6 ? ' 🔥' : p.gisteren <= best * 0.15 ? ' 💤' : '';
+    h += `<div class="menuregel" data-nr="${i}"><canvas width="108" height="108"></canvas><div class="naam">${esc(p.naam)}<small>${geld(p.prijs)} · inkoop ${geld(k)}</small><small>${p.gisteren == null ? 'Nog niet verkocht' : `Gisteren ${kl(p.gisteren)}× verkocht${loopt}`}${p.totaal ? ` · totaal ${kl(p.totaal)}×` : ''}</small></div>${oordeelHTML(p)}</div>`;
   });
-  h += `<p class="buurt">Tik op een pizza om hem te veranderen. 😍 = vinden ze heerlijk, 🤢 = bestellen ze nooit.</p>
+  h += `<p class="buurt">Tik op een pizza om hem te veranderen. 😍 = vinden ze heerlijk, 🤢 = bestellen ze nooit. 🔥 = loopt goed, 💤 = bijna niemand bestelt hem: misschien vervangen? Er kunnen maximaal ${MAXMENU} pizza's op de kaart.</p>
     <div class="rij"><button class="knop rood" id="nieuwePizza" ${S.menu.length >= MAXMENU ? 'disabled' : ''}>➕ Nieuwe pizza</button><button class="knop" id="kaartDicht">Klaar</button></div>`;
   $('pizzakaart').innerHTML = h; $('pizzas').classList.remove('verborgen');
   $('pizzakaart').querySelectorAll('.menuregel').forEach((el) => { tekenPizzaOp(el.querySelector('canvas'), S.menu[el.dataset.nr]); el.onclick = () => toonMaak(+el.dataset.nr); });
