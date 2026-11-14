@@ -531,3 +531,12 @@ Luigi's crew heeft plaatjes (14 nov, `pizza/crew-chatgpt.png`): Salvatore (lang,
 (kaal, breed) rij 16 / portret 23 (met glas); css portretten 2040px. Groene pakken op groen: `bezoeker_knip.py … flood=1` (`vormen_flood` in
 `extra/groen_vormen.py`: alleen achtergrond die vanaf de rand bereikbaar is, plus ingesloten stukjes pure achtergrondkleur; geen ontgroening).
 De vraag 'crew' (belastingdag) toont nu beide portretten naast elkaar (`ik` = html). De looprijen 15/16 worden nog nergens gebruikt.
+Feestdagen (14 nov): Sint-Maarten (`feestdag` '11-11', vraag 'sintmaarten' via `S.verplicht`: snoep € 10 / pizzapunt € 20 + morgen meer klanten /
+"alles is op" = gemeen liedje, rep −1). Adventskalender (1-24 december, `ADVENT` 24 verrassingen, `adventBlok()` op het kalenderblad, knop "Open deurtje",
+`S.advent['jaar-dag']`): geld, gezellig (`S.adventGez`), snellere obers (`S.adventSnel`), kaas, rep, ruzie −8, grappen van Mario, Jingle Bells
+(`S.adventLied`). Kerst: Kerstman op kerstavond (vraag 'kerstman': gratis pizza = `S.kerstCadeau` → eerste kerstdag pakje met € 150 via `ochtendVraag`),
+sneeuw over de zaak op 24-26 december (`tekenSneeuw`, `isKerst`), kerstboom (`SPUL.kerstboom`, € 40, versiering, alleen in december in het lijstje,
+emoji met knipperlichtjes in `tekenKlein`), Jingle Bells (`LIED.jingle`; jukebox in december 50%). Het kalenderblad toont nu ook feestdagen.
+Opslag (14 nov, idee Dana): in het menu van elk spul "📦 Naar de opslag (€ 2 per dag)" (`S.opslag`, gedeeld door alle zaken: zo kun je ook meubels
+verhuizen); terug via de knop Tafel/Stoel/Plant, bovenaan het lijstje "Uit de opslag: …" (`opslagKeuze`, `uitOpslag`; gratis neerzetten, kleed en
+kaarsje blijven erop). Kosten tellen bij de huur in het dagoverzicht (`opslagKost`).

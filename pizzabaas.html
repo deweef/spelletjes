@@ -252,6 +252,7 @@ const SPUL = {
   rozemarijn: { n: 'Rozemarijn', ik: '🌿', prijs: 25, w: 1, h: 1, onder: 'plant', vak: 5, b: 203, hh: 156, tw: 1, kruid: true },
   oregano: { n: 'Oregano', ik: '🌿', prijs: 25, w: 1, h: 1, onder: 'plant', vak: 6, b: 208, hh: 138, tw: 1, kruid: true },
   pepers: { n: 'Eigen pepers', ik: '🌶️', prijs: 40, w: 1, h: 1, onder: 'plant', vak: 7, b: 104, hh: 320, tw: 0.55, kruid: true, oogst: 'pepers' },
+  kerstboom: { n: 'Kerstboom', ik: '🎄', prijs: 40, w: 1, h: 1, onder: 'plant' }, // alleen in december te koop; zelf getekend (emoji met lichtjes)
   olijf: { n: 'Olijfboompje', ik: '🫒', prijs: 70, w: 1, h: 1, onder: 'plant', vak: 8, b: 221, hh: 335, tw: 1.05 },
   jukebox: { n: 'Jukebox', ik: '🎵', prijs: 150, w: 2, h: 2, een: true, onder: 'plant' },
 };
@@ -397,7 +398,7 @@ const vrij = (x, y, w, h, behalve) => {
 const op = (x, y) => S.spullen.find((s) => x >= s.x && x < s.x + SPUL[s.t].w && y >= s.y && y < s.y + SPUL[s.t].h);
 const TAFELSOORT = ['tafel', 'lang', 'langL', 'tafeltje'];
 const isTafel = (s) => TAFELSOORT.includes(s.t);
-const VERSIERING = ['plant', 'basilicum', 'rozemarijn', 'oregano', 'pepers', 'olijf', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast', 'schilderij', 'jukebox'];
+const VERSIERING = ['kerstboom', 'plant', 'basilicum', 'rozemarijn', 'oregano', 'pepers', 'olijf', 'kapstok', 'wijnrek', 'wijnkast', 'servieskast', 'schilderij', 'jukebox'];
 const gegroeid = (t) => !t.sinds || S.dag - t.sinds >= 2; // een kruidenbak moet eerst 2 dagen groeien
 const kruidBonus = () => Math.min(3, S.spullen.filter((t) => SPUL[t.t] && SPUL[t.t].kruid && gegroeid(t)).length) * 0.2; // verse kruiden: elke pizza iets lekkerder (max 3 bakken)
 const aanDeMuur = (d, x) => !d.muur || x == 0 || x == W - d.w; // een schilderij hangt aan de muur
@@ -630,7 +631,8 @@ const laatsteVanDeMaand = (d = S.dag) => datum(d + 1).getDate() == 1 || (weekdag
 const DRUKTE = [0.7, 0.85, 0.9, 1, 1.3, 1.5, 1.1]; // maandag rustig, vrijdag en zaterdag druk, zondag gezinnen
 function feestdag(d = S.dag) { // { n, aankomst, tekst, kaars? }
   const dt = datum(d), k = (dt.getMonth() + 1) + '-' + dt.getDate();
-  return { '12-5': { n: 'Pakjesavond', aankomst: 1.2, tekst: 'Pakjesavond! Er komen gezinnen met chocoladeletters.' },
+  return { '11-11': { n: 'Sint-Maarten', aankomst: 1.05, tekst: 'Sint-Maarten! Vanavond komen er kinderen met lampionnen langs. (En in het zuiden begint carnaval.)' },
+    '12-5': { n: 'Pakjesavond', aankomst: 1.2, tekst: 'Pakjesavond! Er komen gezinnen met chocoladeletters.' },
     '12-24': { n: 'Kerstavond', aankomst: 1.4, tekst: 'Kerstavond! Iedereen wil uit eten.' },
     '12-25': { n: 'Eerste kerstdag', aankomst: 1.2, tekst: 'Eerste kerstdag. Opa en oma komen gezellig eten.' },
     '12-26': { n: 'Tweede kerstdag', aankomst: 1.2, tekst: 'Tweede kerstdag: niemand wil nog koken.' },
@@ -686,6 +688,10 @@ function openDeuren() {
   if (belastingDag() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   if (belastingDag() && S.geld > 400 && S.dag >= 8 && !(S.luigiRust > S.dag) && kans(0.3 + Math.min(0.3, (S.ruzie || 0) / 200))) ochtendVraag(crewVraag(), 2500); // Luigi weet ook wanneer de belasting komt…
   if (S.ijs && S.gianniStreek && S.gianniStreek.dag == S.dag && S.gianniStreek.wat == 'kar') ochtendVraag(karVraag(), 2000); // Gianni's ijskar voor je ijssalon
+  { const [mm, nn] = MAAND_DAG(); if (mm == 11 && nn == 11 && !(S.verplicht || []).includes('sintmaarten')) S.verplicht = [...(S.verplicht || []), 'sintmaarten'];
+    if (mm == 12 && nn == 24 && !(S.verplicht || []).includes('kerstman')) S.verplicht = [...(S.verplicht || []), 'kerstman']; }
+  if (S.kerstCadeau && S.dag >= S.kerstCadeau) ochtendVraag(kerstCadeauVraag(), 2500);
+  if (S.adventGez == S.dag) vandaag.gezellig += 0.5; if (S.adventSnel == S.dag) oberTempo(1.1);
   liefdeOchtend(); // verliefd koppel: Valentina, Luigi, het aanzoek
   if (S.tehuis && weekdag() == 6) ochtendVraag(tehuisVraag(), 3500); // zondag: pizzamiddag in Huize Avondrood
   if (S.luigiDicht == S.dag) { vandaag.aankomst *= S.luigiFlyers ? 1.5 : 1.3; S.luigiFlyers = false; setTimeout(() => meld(`🔧 Luigi's oven is kapot! Zijn klanten komen vandaag naar jou${vandaag.aankomst > 1.4 ? ', en je flyers doen de rest' : ''}.`, 4000), 2000); }
@@ -699,7 +705,7 @@ function openDeuren() {
 }
 function eindeDag() {
   modus = 'inrichten'; for (const p of S.menu) p.gisteren = tel.verkocht[p.naam] || 0; // verkopen per pizza (menukaart) eindeVoorraad();
-  const huur = S.huur || HUUR, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
+  const opslagKost = (S.opslag || []).length * OPSLAGPRIJS, huur = (S.huur || HUUR) + opslagKost, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
   const ijs = ijsDag(), andereWinst = anderen.reduce((a, o) => a + o.winst, 0) + (ijs ? ijs.winst : 0);
   const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon + (S.bezorg.abo ? BEZORG.abo : 0) : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi + extraTotaal() - tel.kosten - huur - lonen + andereWinst;
   S.geld += -huur - lonen - (tel.ing || 0) + andereWinst;
@@ -742,7 +748,7 @@ function eindeDag() {
       <tr><td>🍕 Pizza's verkocht</td><td>€ ${Math.round(tel.omzet)}</td></tr>${Object.entries(tel.extra || {}).filter(([k, n]) => n >= 1).map(([k, n]) => `<tr><td>${EXTRANAAM[k] || EXTRANAAM.overig}</td><td>€ ${Math.round(n)}</td></tr>`).join('')}
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
       <tr><td>🧀 Ingrediënten ingekocht</td><td>− € ${Math.round((tel.inkoop || 0) + (tel.ing || 0))}</td></tr>${tel.kosten - (tel.inkoop || 0) - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.inkoop || 0) - (tel.ing || 0))}</td></tr>${Object.keys(tel.uitW || {}).length ? `<tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${Object.entries(tel.uitW).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([w, n]) => `${esc(w)} € ${Math.round(n)}`).join(' · ')}</td></tr>` : ''}` : ''}${tel.bedorven >= 1 ? `<tr><td>🗑️ Bedorven en weggegooid</td><td>(€ ${Math.round(tel.bedorven)})</td></tr>` : ''}${tel.uitverkocht ? `<tr><td>🚫 Weg: hun pizza was op</td><td>${kl(tel.uitverkocht)}</td></tr>` : ''}
-      <tr><td>🏠 Huur</td><td>− € ${huur}</td></tr>${ijs ? `<tr><td>🍨 IJssalon</td><td>${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75">${esc(ijs.tekst)}</td></tr>` : ''}${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${esc(o.tekst)}</td></tr>`).join('')}
+      <tr><td>🏠 Huur${opslagKost ? ` (waarvan opslag: ${S.opslag.length} spul${S.opslag.length > 1 ? 'len' : ''}, € ${opslagKost})` : ''}</td><td>− € ${huur}</td></tr>${ijs ? `<tr><td>🍨 IJssalon</td><td>${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75">${esc(ijs.tekst)}</td></tr>` : ''}${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${esc(o.tekst)}</td></tr>`).join('')}
       ${lonen - manLoon ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen - manLoon}</td></tr>` : ''}${manLoon ? `<tr><td>📋 Loon ${S.manager ? 'manager' : ''}${S.manager && S.bezorg ? ' en ' : ''}${S.bezorg ? 'bezorger' : ''}</td><td>− € ${manLoon}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
       ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
@@ -821,6 +827,7 @@ function kalenderPunten() {
   for (let d = S.dag; d <= S.dag + 7; d++) {
     const wanneer = d == S.dag ? 'Vandaag' : d == S.dag + 1 ? 'Morgen' : datumLang(d);
     if (weekdag(d) == 0) l.push([d, wanneer, '🔒 Maandag: de zaak is dicht']);
+    { const fd = feestdag(d); if (fd && weekdag(d) != 0) l.push([d, wanneer, `🎉 ${fd.n}: ${fd.tekst}`]); }
     if (belastingDag(d)) l.push([d, wanneer, `🕴️ Belastingdag: de inspecteur komt${S.belasting > 0 ? ` voor ongeveer € ${Math.round(S.belasting)} (en het wordt nog meer)` : ''}. Zorg dat het geld in de kassa ligt${S.crewGehad ? '… en pas op voor de vrienden van Luigi' : ''}.`]);
     if (S.aanslag && S.aanslagDag == d) l.push([d, wanneer, `🕴️ Aanslag van de belasting: € ${S.aanslag} (met boete)`]);
     if (S.luigiDicht == d) l.push([d, wanneer, `🔧 Luigi's oven is kapot (tip van Gino): zijn klanten komen naar jou${S.luigiFlyers ? ', en je flyers liggen klaar' : ''}!`]);
@@ -838,9 +845,9 @@ function toonKalender() {
       <div style="font-size:72px;font-weight:bold;line-height:1.1;color:#3a2a1a">${d.getDate()}</div>
       <div style="padding-bottom:8px;color:#7a6a5a">${esc(DAGNAAM[weekdag()])} · 🌡️ ${temp()}°C</div></div>
     ${punten.length ? `<p><b>Op de kalender:</b></p>${punten.map(([, w, t]) => `<p style="margin:4px 0;font-size:14px"><b>${esc(w)}:</b> ${esc(t)}</p>`).join('')}` : '<p class="buurt" style="text-align:center">Niks bijzonders deze week. Gewoon lekker pizza bakken.</p>'}
-    <p class="buurt" style="font-size:13px">💶 In de kassa: ${euro(S.geld)} · 🏦 op de bank: ${euro(S.bankSaldo || 0)}</p>
+    ${adventBlok()}<p class="buurt" style="font-size:13px">💶 In de kassa: € ${Math.round(S.geld)} · 🏦 op de bank: € ${Math.round(S.bankSaldo || 0)}</p>
     <button class="groot" id="kalenderdicht">Aan de slag!</button>`;
-  $('kalender').classList.remove('verborgen'); $('kalenderdicht').onclick = () => $('kalender').classList.add('verborgen');
+  $('kalender').classList.remove('verborgen'); $('kalenderdicht').onclick = () => $('kalender').classList.add('verborgen'); if ($('adventopen')) $('adventopen').onclick = adventOpen;
 }
 // 's avonds aflossen; wie niet kan betalen krijgt een achterstand, en dan komt de bank (na 2 dagen) of de neven van Ome Sjaak (meteen)
 function aflossen() {
@@ -1694,6 +1701,61 @@ function toonFilm(soort) {
   })(performance.now());
 }
 VRAGEN.push(...LIEFDEVRAGEN, ...GIANNIVRAGEN);
+// ---------- feestdagen (14 nov): Sint-Maarten, advent, kerst ----------
+const MAAND_DAG = (d = S.dag) => { const t = datum(d); return [t.getMonth() + 1, t.getDate()]; };
+const isDecember = () => MAAND_DAG()[0] == 12;
+const isKerst = (d = S.dag) => { const [m, n] = MAAND_DAG(d); return m == 12 && n >= 24 && n <= 26; };
+// adventskalender: van 1 t/m 24 december elke dag een deurtje op het kalenderblad (S.advent = { 'jaar-dag': true })
+const ADVENT = [
+  ['🍫', 'Een chocolaatje voor iedereen in de zaak. Vandaag extra gezellig!', () => { S.adventGez = S.dag; }],
+  ['✉️', 'Een kerstkaart van Oma Truus, met € 20 erin. "Voor de pizzabaas."', () => { ge(20); }],
+  ['🎄', 'Een klein kerstboompje! Vanaf nu kun je in december een kerstboom kopen (knop Plant).', () => {}],
+  ['🧀', 'Kees van de markt geeft je een kerstkaas: 20 stukjes kaas in je voorraad.', () => { if (S.voorraad) S.voorraad.kaas = (S.voorraad.kaas || 0) + 20; }],
+  ['😂', 'Mario\'s grap van de dag: "Waarom is een pizzabakker nooit eenzaam? Hij heeft altijd een deeg-genoot."', () => {}],
+  ['⭐', 'Een gouden ster voor in het raam. Populariteit +1.', () => { rep(1); }],
+  ['🍪', 'Kerstkoekjes van Mario\'s moeder. De obers lopen vandaag op suiker: sneller!', () => { S.adventSnel = S.dag; }],
+  ['🎵', 'Kerstmuziek! Tik vandaag op de jukebox.', () => { S.adventLied = S.dag; }],
+  ['💶', 'Een munt in een walnoot: € 10.', () => { ge(10); }],
+  ['🧣', 'Een sjaal voor Luigi. Je stuurt hem op. De ruzie zakt een beetje.', () => { S.ruzie = Math.max(0, (S.ruzie || 0) - 8); }],
+  ['😂', 'Mario\'s grap: "Wat zegt een pizza tegen de kerstman? Ik ben ook rond en rood!"', () => {}],
+  ['🍷', 'Een fles glühwein. Voor het personeel. Na sluitingstijd. Zegt Mario.', () => {}],
+  ['💌', 'Een anoniem briefje: "Je pizza is beter dan die van Luigi." (Het handschrift lijkt op dat van Gino.)', () => { rep(0.5); }],
+  ['💶', 'Een envelop van de bank: "Fijne feestdagen!" € 15.', () => { ge(15); }],
+  ['🍫', 'Chocoladeletters. Mario eet de M zelf op.', () => { S.adventGez = S.dag; }],
+  ['🐈', 'Een kattenkerstmuts. Als Pepperoni langskomt, staat hij er schattig bij.', () => {}],
+  ['😂', 'Grap: "Hoe heet de kerstman in Italië? Babbo Natale. Echt waar!"', () => {}],
+  ['⭐', 'Een recensie op internet: "Gezelligste pizzeria van de stad!" Populariteit +1.', () => { rep(1); }],
+  ['💶', 'Kevin vond € 25 onder de koelkast. Hij geeft het eerlijk terug. Wonder boven wonder.', () => { ge(25); }],
+  ['🍬', 'Zuurstokken voor alle kinderen. Vandaag komen er extra gezinnen.', () => { S.adventGez = S.dag; }],
+  ['🔔', 'Een kerstbelletje voor op de toonbank. Ting!', () => { ding(2200, 0.5, 'sine', 0.06); }],
+  ['😂', 'Grap: "Wat eet een sneeuwpop het liefst? IJspizza!" (Gianni vindt hem niet grappig.)', () => {}],
+  ['💶', 'De fooienpot zat vol: € 30!', () => { ge(30); }],
+  ['🎁', 'Het laatste deurtje: morgen is het kerstavond! Iedereen wil uit eten. Doe vanavond je kaarsjes aan.', () => { rep(1); }] ];
+function adventBlok() { const [m, n] = MAAND_DAG(); if (m != 12 || n > 24) return '';
+  const sl = datum().getFullYear() + '-' + n, open = (S.advent || {})[sl], A = ADVENT[n - 1];
+  return `<div style="background:#2e6b3a;color:#fff;border-radius:10px;padding:8px 10px;margin:8px 0;text-align:center">🎄 <b>Adventskalender: deurtje ${n}</b><br>
+    ${open ? `<span style="font-size:28px">${A[0]}</span><br><small>${esc(A[1])}</small>` : `<button class="knop rood" id="adventopen" style="margin-top:6px">🚪 Open deurtje ${n}</button>`}</div>`; }
+function adventOpen() { const [, n] = MAAND_DAG(), sl = datum().getFullYear() + '-' + n; S.advent = S.advent || {}; if (S.advent[sl]) return; S.advent[sl] = true; ADVENT[n - 1][2](); kassa(); bewaar(); tekenKnoppen(); toonKalender(); }
+// Sint-Maarten en de Kerstman (via S.verplicht), het kerstcadeau op eerste kerstdag (ochtendVraag)
+const FEESTVRAGEN = [
+  { id: 'sintmaarten', ik: '🏮', wie: 'Kinderen met lampionnen', als: () => false,
+    vraag: 'Sint Maarten, Sint Maarten, de koeien hebben staarten! De meisjes hebben rokjes aan, daar komt Sint Maarten aan! … Krijgen we iets?',
+    a: [['Een handje snoep voor iedereen (€ 10).', () => { ge(-10); rep(1); return 'Ze zingen nog een liedje en rennen gillend naar het volgende huis. Lief!'; }],
+      ['Een punt pizza voor iedereen (€ 20)!', () => { ge(-20); rep(2); morgenKl(1.08); return '"PIZZAAAA!" De kinderen vertellen het aan hun ouders. Morgen komen die ook eten.'; }],
+      ['Sorry, alles is op.', () => { rep(-1); return 'Ze zingen een ander liedje: "Hier woont een gierige pizzabaas, die geeft ons niks, die is een dwaas!" Au.'; }] ] },
+  { id: 'kerstman', ik: '🎅', wie: 'Een dikke man met een witte baard', als: () => false,
+    vraag: 'Ho ho ho! Ik heb vannacht nogal wat te bezorgen, en de rendieren hebben honger. Kan ik een pizza meenemen voor in de slee? Ik heb alleen geen geld bij me. Ik ben meer van het géven.',
+    a: [['Natuurlijk, van het huis. Fijne kerst!', () => { ge(-PRIJS); rep(2); S.kerstCadeau = S.dag + 1; return 'Hij knipoogt en verdwijnt. Even later hoor je belletjes op het dak. Op het dak?!'; }],
+      ['Dat is dan € ' + PRIJS + ', meneer.', () => { ge(PRIJS); return 'Hij betaalt met chocolademunten. Nou ja, die zijn ook lekker.'; }],
+      ['Mag ik eerst een rendier aaien?', () => { vandaag.gezellig += 1; rep(1); return 'Buiten staat een rendier met een rode neus. Het eet de plant bij de deur op. De klanten maken foto\'s. Heel gezellig!'; }] ] } ];
+function kerstCadeauVraag() { S.kerstCadeau = null;
+  return { id: 'kerstcadeau', ik: '🎁', wie: 'Onder de kerstboom', zelf: true, vraag: 'Bij de deur ligt een pakje met een strik. Op het kaartje: "Bedankt voor de pizza. De rendieren vonden hem ook lekker. K." Erin: een envelop.',
+    a: [['Openmaken!', () => { ge(150); rep(2); return '€ 150 en een kerstbal met jouw pizzeria erin. Wie was dat nou?'; }]] }; }
+// sneeuw over de zaak met kerst
+function tekenSneeuw(nu) { if (!isKerst() || modus == 'inrichten') return; g.save(); g.fillStyle = '#fff';
+  for (let i = 0; i < 70; i++) { const sx = ((i * 97.3 + nu / 40 * (0.6 + (i % 5) * 0.1)) % (W * T)), sy = ((i * 53.7 + nu / 25 * (0.5 + (i % 7) * 0.08)) % (H * T)); g.globalAlpha = 0.5 + (i % 3) * 0.2; g.beginPath(); g.arc(sx + Math.sin(nu / 600 + i) * 6, sy, 1.6 + (i % 3), 0, 7); g.fill(); }
+  g.restore(); }
+VRAGEN.push(...FEESTVRAGEN);
 const FIGUUR = {
   henk: { wie: 'Opa Henk', rij: 6, portret: 7, ids: ['gebit', 'snurk', 'snorren', 'henkdans', 'henkverhaal'] },
   kim: { wie: 'Kimberley, influencer', rij: 7, portret: 8, ids: ['influencer', 'champagne', 'prank', 'kimnaam', 'kimsaai'] },
@@ -3931,6 +3993,7 @@ function teken(nu) {
   g.textAlign = 'center';
   for (const c of muntjes) { g.globalAlpha = Math.min(1, c.t * 2); g.fillStyle = '#ffd23f'; g.strokeStyle = '#5a3a00'; g.lineWidth = 3 * schaal; g.font = `bold ${16 * schaal}px system-ui`; const x = ox + c.x * T * schaal, y = oy + (c.y - 0.5 - (1.2 - c.t) * 0.6) * T * schaal; g.strokeText(c.tekst, x, y); g.fillText(c.tekst, x, y); }
   g.textAlign = 'center'; g.textBaseline = 'middle'; for (const f of fx) { g.globalAlpha = Math.min(1, f.t * 2); g.font = `${(f.size || 22) * schaal}px system-ui`; g.fillText(f.e, ox + f.x * T * schaal, oy + f.y * T * schaal); } g.globalAlpha = 1;
+  g.save(); g.translate(ox, oy); g.scale(schaal, schaal); tekenSneeuw(nu); g.restore();
   g.globalAlpha = 1;
   tekenRit(); g.textAlign = 'center'; // tekenRit zet links uitlijnen
   for (const w of wolkjes) {
@@ -3959,6 +4022,9 @@ function tekenKlein(s, nu) {
     metSchaduw(PLANTEN, (s.v || 0) * 150, 0, 150, 160, 32 - 75 * k, 62 - 160 * k, 150 * k, 160 * k, 8);
     return;
   }
+  if (s.t == 'kerstboom') { g.save(); g.font = '58px system-ui'; g.textAlign = 'center'; g.fillText('🎄', x + 32, y + 52);
+    for (let k = 0; k < 7; k++) { const aan = Math.floor(nu / 400 + k) % 3; g.fillStyle = ['#ff4040', '#ffd23f', '#4fc3ff'][aan]; g.beginPath(); g.arc(x + 32 + Math.sin(k * 2.1) * (6 + k * 2), y + 16 + k * 5, 2.2, 0, 7); g.fill(); }
+    g.restore(); return; }
   if (s.t == 'plant') {
     g.fillStyle = 'rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(x + 35, y + 36, 22, 20, 0, 0, 7); g.fill();
     g.fillStyle = '#c7782e'; g.beginPath(); g.arc(x + 32, y + 32, 15, 0, 7); g.fill();
@@ -4083,7 +4149,7 @@ function tekenSpul(s, nu, zitten) {
     metSchaduw(VERSIER, d.vak * 360 + (360 - d.b) / 2, 360 - d.hh, d.b, d.hh, x + (d.w * T - w) / 2, y + T - h + 2, w, h);
     return;
   }
-  if (s.t == 'plant' || s.t == 'jukebox') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
+  if (s.t == 'plant' || s.t == 'jukebox' || s.t == 'kerstboom') { const k = T * SPUL[s.t].w / 64; g.save(); g.translate(x, y); g.scale(k, k); tekenKlein(s, nu); g.restore(); return; }
   if (s.t == 'stoel') { // losse stoel, met de leuning van zijn tafel af
     if (mensen.some((m) => m.kind && (m.st == 'wacht' || m.st == 'eet') && (stoelPlekken(m.tafel)[m.stoel] || {}).stoel == s)) return;
     const kant = indeling().kantVan.get(s) ?? kantVoor(s.x, s.y, s.bij).kant;
@@ -4202,10 +4268,12 @@ doek.addEventListener('pointerdown', (e) => {
     // aanraken: eerst de schaduw laten zien, de tweede tik zet neer. Een vinger is groot: een tweede tik op of naast het voorbeeld telt ook
     if (e.pointerType != 'mouse') { if (!laatsteTik || Math.abs(laatsteTik.x - x) > 1 || Math.abs(laatsteTik.y - y) > 1) { laatsteTik = { x, y }; return; } x = laatsteTik.x; y = laatsteTik.y; hover = { x, y }; }
     laatsteTik = null;
-    if (S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
+    const vanOpslag = uitOpslag && uitOpslag.t == kies;
+    if (!vanOpslag && S.geld < d.prijs) { meld('Daar heb je niet genoeg geld voor.'); return; }
     if (!vrij(x, y, d.w, d.h)) { meld('Daar is geen plek.'); return; }
     if (!aanDeMuur(d, x)) { meld('Een schilderij hangt aan de muur: zet hem tegen de linker- of rechtermuur.'); return; }
     if (d.een && S.spullen.some((s) => s.t == kies)) { meld('Je hebt al een ' + d.n.toLowerCase() + '.'); return; }
+    if (vanOpslag) { S.spullen.push({ ...uitOpslag, x, y }); S.opslag.splice(S.opslag.indexOf(uitOpslag), 1); uitOpslag = null; kies = null; plof(); bewaar(); meld('📦 Uit de opslag gehaald.', 2000); tekenKnoppen(); return; }
     S.spullen.push({ t: kies, x, y, ...(SPUL[kies].kruid ? { sinds: S.dag } : {}), ...(kies == 'stoel' ? { stijl: S.stoelStijl || (S.houtStoel ? 'kussen' : 'streep') } : isTafel({ t: kies }) && S.houtTafel ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
     if (d.een) kies = null;
     tekenKnoppen(); return;
@@ -4249,7 +4317,7 @@ function toonMenu(s, cx, cy) {
   if (s.t == 'stoel') h += `<div class="kleden">${Object.entries(STOELSOORT).map(([k, d]) => `<button data-a="stijl:${k}" title="${esc(d.n)}" class="${stijlVan(s) == k ? 'aan' : ''}" style="background:${d.kl}">${k == 'kruk' ? '⭕' : ''}</button>`).join('')}</div><small style="display:block;padding:2px 6px 4px;opacity:.7">${esc(STOELSOORT[stijlVan(s)].n)}</small>`;
   if (s.t == 'stoel' && stoelTafels(s.x, s.y).length > 1) h += `<button data-a="bij">↔ Bij de andere tafel</button>`;
   if (isTafel(s)) h += `<button data-a="hout">${s.hout ? (s.t == 'stoel' ? '🪑 Gestreepte stoel' : '⬜ Marmeren tafel') : (s.t == 'stoel' ? '🪵 Houten stoel met kussen' : '🪵 Houten tafel')}</button>`;
-  h += `<button data-a="verkoop">💶 Verkopen (€${Math.floor(d.prijs / 2)})</button>`;
+  h += `<button data-a="opslag">📦 Naar de opslag (€ ${OPSLAGPRIJS} per dag)</button><button data-a="verkoop">💶 Verkopen (€${Math.floor(d.prijs / 2)})</button>`;
   h += `<small style="display:block;padding:6px 6px 0;opacity:.7">Verplaatsen: vasthouden en slepen.</small>`;
   m.innerHTML = h; m.style.display = 'block';
   const bw = m.offsetWidth, bh = m.offsetHeight;
@@ -4267,8 +4335,9 @@ function toonMenu(s, cx, cy) {
     if (a == 'hout') { s.hout = s.hout ? 0 : 1; if (s.t == 'stoel') S.houtStoel = s.hout; else S.houtTafel = s.hout; plof(); } // nieuwe stoelen/tafels krijgen dezelfde stijl
     if (a == 'draai') { const n = s.t == 'lang' ? 'langL' : 'lang', nx = s.x + (SPUL[s.t].w - SPUL[n].w) / 2, ny = s.y + (SPUL[s.t].h - SPUL[n].h) / 2; // om het midden draaien
       if (nx >= 0 && nx + SPUL[n].w <= W && ny >= KEUKEN && ny + SPUL[n].h <= H && vrij(nx, ny, SPUL[n].w, SPUL[n].h, s)) { s.t = n; s.x = nx; s.y = ny; plof(); } else meld('Daar is geen plek om te draaien.'); }
+    if (a == 'opslag') { const { x, y, ...rest } = s; S.opslag = S.opslag || []; S.opslag.push(rest); S.spullen.splice(S.spullen.indexOf(s), 1); sluitMenu(); meld(`📦 ${d.n} staat in de opslag (€ ${OPSLAGPRIJS} per dag). Terughalen: knop ${s.t == 'stoel' ? 'Stoel' : isTafel(s) ? 'Tafel' : 'Plant'}, bovenaan het lijstje. Werkt ook in je andere zaken.`, 5000); }
     if (a == 'verkoop') { S.geld += Math.floor(d.prijs / 2) + (kleedVan(s) ? Math.floor(KLEED[kleedVan(s)].prijs / 2) : 0) + (s.kaars ? 4 : 0); S.spullen.splice(S.spullen.indexOf(s), 1); kassa(); sluitMenu(); }
-    bewaar(); tekenKnoppen(); if (a != 'verkoop') toonMenu(s, cx, cy);
+    bewaar(); tekenKnoppen(); if (a != 'verkoop' && a != 'opslag') toonMenu(s, cx, cy);
   });
 }
 function toonVloer(cx, cy) { // menuutje: de vloer van de zaak kiezen
@@ -4285,6 +4354,10 @@ function toonVloer(cx, cy) { // menuutje: de vloer van de zaak kiezen
 }
 function sluitMenu() { $('menu').style.display = 'none'; $('menu').dataset.knop = ''; gekozen = null; }
 // keuzelijstje bij een knop in het paneel: lijst = [{ ik, n, pr, uit, aan, doe }]; staat boven of naast de knop
+// opslag (14 nov, idee Dana): meubels die je even niet nodig hebt, voor € 2 per stuk per dag; gedeeld door al je zaken (verhuizen kan dus ook)
+const OPSLAGPRIJS = 2; let uitOpslag = null;
+const opslagKeuze = (gr) => (S.opslag || []).filter((o) => gr.includes(o.t)).map((o) => ({ ik: '📦', n: 'Uit de opslag: ' + SPUL[o.t].n + (kleedVan(o) ? ' (met kleed)' : ''), pr: 'gratis neerzetten', uit: false,
+  doe: () => { kies = o.t; uitOpslag = o; laatsteTik = null; hover = null; meld(`${SPUL[o.t].n} uit de opslag. ${isAanraak ? 'Tik op een plek, en nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten.'}`, 3500); tekenKnoppen(); } }));
 function toonKeuze(titel, lijst, r, knop, voet) {
   sluitMenu(); const m = $('menu'); m.dataset.knop = knop;
   m.innerHTML = `<b>${titel}</b>` + lijst.map((o, i) => `<button data-i="${i}" ${o.uit ? 'disabled' : ''} class="${o.aan ? 'aan' : ''}"><span class="kik">${o.ik}</span><span>${esc(o.n)}<small>${esc(o.pr)}</small></span></button>`).join('') + (voet ? `<small style="display:block;padding:6px 6px 0;opacity:.75">${esc(voet)}</small>` : '');
@@ -4452,16 +4525,16 @@ function tekenKnoppen() {
     if (kies && (kies == k || (gr && gr.includes(kies))) && $('menu').style.display != 'block') { kies = null; laatsteTik = null; hover = null; meld('Klaar met neerzetten.', 1500); tekenKnoppen(); return; } // nog eens op de knop = stoppen
     if (k == 'stoel') { if ($('menu').style.display == 'block' && $('menu').dataset.knop == k) { sluitMenu(); return; } // keuzelijstje met de stoelsoorten
       const nu = S.stoelStijl || (S.houtStoel ? 'kussen' : 'streep');
-      toonKeuze('🪑 Welke stoel?', Object.entries(STOELSOORT).map(([id, d]) => ({ ik: id == 'kruk' ? '⭕' : '🪑', n: d.n, pr: '€' + SPUL.stoel.prijs, uit: S.geld < SPUL.stoel.prijs, aan: kies == 'stoel' && nu == id,
-        doe: () => { kies = 'stoel'; S.stoelStijl = id; laatsteTik = null; hover = null; meld(d.n + ' (€' + SPUL.stoel.prijs + '). ' + (isAanraak ? 'Tik op een plek naast een tafel: je ziet hem eerst staan, tik nog een keer om neer te zetten. Klaar? Tik nog eens op de knop Stoel.' : 'Klik op een plek naast een tafel. Klik nog eens op de knop om te stoppen.'), 4000); tekenKnoppen(); } })), b.getBoundingClientRect(), k, '💡 Een stoel die al staat veranderen? Tik op die stoel.');
+      toonKeuze('🪑 Welke stoel?', [...opslagKeuze(['stoel']), ...Object.entries(STOELSOORT).map(([id, d]) => ({ ik: id == 'kruk' ? '⭕' : '🪑', n: d.n, pr: '€' + SPUL.stoel.prijs, uit: S.geld < SPUL.stoel.prijs, aan: kies == 'stoel' && nu == id,
+        doe: () => { kies = 'stoel'; uitOpslag = null; S.stoelStijl = id; laatsteTik = null; hover = null; meld(d.n + ' (€' + SPUL.stoel.prijs + '). ' + (isAanraak ? 'Tik op een plek naast een tafel: je ziet hem eerst staan, tik nog een keer om neer te zetten. Klaar? Tik nog eens op de knop Stoel.' : 'Klik op een plek naast een tafel. Klik nog eens op de knop om te stoppen.'), 4000); tekenKnoppen(); } }))], b.getBoundingClientRect(), k, '💡 Een stoel die al staat veranderen? Tik op die stoel.');
       return; }
     if (gr) { if ($('menu').style.display == 'block' && $('menu').dataset.knop == k) { sluitMenu(); return; } // nog eens = dicht
       const r = b.getBoundingClientRect(); // keuzelijstje met alle soorten en hun prijs
-      toonKeuze(k == 'tafel' ? '🍽️ Welke tafel?' : '🪴 Welke versiering?', gr.map((t) => {
+      toonKeuze(k == 'tafel' ? '🍽️ Welke tafel?' : '🪴 Welke versiering?', [...opslagKeuze(gr), ...gr.filter((t) => t != 'kerstboom' || isDecember()).map((t) => {
         const d = SPUL[t], op = d.een && S.spullen.some((s) => s.t == t);
-        return { ik: d.ik, n: d.n, pr: op ? 'staat er al' : '€' + d.prijs, uit: op || S.geld < d.prijs, aan: kies == t, doe: () => { kies = t; laatsteTik = null; hover = null;
+        return { ik: d.ik, n: d.n, pr: op ? 'staat er al' : '€' + d.prijs, uit: op || S.geld < d.prijs, aan: kies == t, doe: () => { kies = t; uitOpslag = null; laatsteTik = null; hover = null;
           meld(d.n + ' (€' + d.prijs + '). ' + (d.muur ? 'Hangt alleen aan de linker- of rechtermuur. ' : '') + (isAanraak ? 'Tik op een plek: je ziet hem eerst staan, tik nog een keer om neer te zetten. Klaar? Tik nog eens op de knop.' : 'Klik op een plek om neer te zetten. Klik nog eens op de knop om te stoppen.'), 4000); tekenKnoppen(); } };
-      }), r, k, k == 'tafel' ? '💡 Kleedje of kaarsje? Tik op een tafel die al staat.' : '💡 Plant veranderen? Tik op de plant die al staat.'); return; }
+      })], r, k, k == 'tafel' ? '💡 Kleedje of kaarsje? Tik op een tafel die al staat.' : '💡 Plant veranderen? Tik op de plant die al staat.'); return; }
     sluitMenu(); kies = kies == k ? null : k;
     laatsteTik = null; hover = null;
     if (kies) meld(isAanraak ? 'Tik op een plek: je ziet hem eerst staan, tik nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten. Klik nog eens op de knop om te stoppen.'); tekenKnoppen(); });
@@ -4606,6 +4679,7 @@ const LIED = {
     bas: 'D3:6 G3:6 D3:6 A2:5 D3:4' },
   donna: { n: 'La donna è mobile (Verdi)', tempo: 0.3, noten: 'G4:.5 G4:.5 G4:.5 B4:1 A4:.5 F4:1.5 -:.5 F4:.5 F4:.5 F4:.5 A4:1 G4:.5 E4:1.5 -:.5 G4:.5 G4:.5 G4:.5 C5:1 B4:.5 A4:1.5 -:.5 G4:.5 E4:.5 F4:.5 D4:.5 C4:2.5',
     bas: 'G2:5 C3:5 F2:2.5 G2:2.5 G2:2 C3:2.5' },
+  jingle: { n: 'Jingle Bells', tempo: 0.24, noten: 'E4:1 E4:1 E4:2 E4:1 E4:1 E4:2 E4:1 G4:1 C4:1.5 D4:.5 E4:4 F4:1 F4:1 F4:1.5 F4:.5 F4:1 E4:1 E4:1 E4:.5 E4:.5 E4:1 D4:1 D4:1 E4:1 D4:2 G4:2', bas: 'C3:4 C3:4 C3:4 C3:4 F2:4 C3:4 G2:4 G2:4' },
   bella: { n: 'Bella ciao', tempo: 0.27, noten: 'E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:2 B4:1 A4:1 C5:2 B4:1 A4:1 E5:2 E5:1 E5:1 E5:1 D5:1 E5:1 F5:1 F5:2 -:1 F5:1 E5:1 D5:1 F5:1 E5:2 -:1 E5:1 D5:1 C5:1 B4:2 E5:2 C5:2 B4:2 A4:4',
     bas: 'A2:8 A2:8 A2:5 E2:4 A2:6 D3:7 A2:7 E2:5 E2:2 A2:8' } };
 let liedTot = 0;
@@ -4619,7 +4693,7 @@ function speelLied(id, vals) { // vals = zo zing jij (een beetje ernaast)
         o.connect(gn).connect(ac.destination); o.start(tt); o.stop(tt + dur); } tt += dur; } return tt; };
   liedTot = Math.max(stem(L.noten, 'triangle', 0.09, 1), L.bas ? stem(L.bas, 'sine', 0.06, 1) : 0); meld(`🎵 ${L.n}`, 3000);
 }
-const speelWillekeurig = () => speelLied(pak(Object.keys(LIED)));
+const speelWillekeurig = () => speelLied(isDecember() && (S.adventLied == S.dag || Math.random() < 0.5) ? 'jingle' : pak(Object.keys(LIED).filter((k) => k != 'jingle'))); // in december vaak Jingle Bells
 
 // ---------- het zwarte schermpje in het paneel ----------
 let lcdT = 0;
