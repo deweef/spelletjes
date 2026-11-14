@@ -2139,9 +2139,9 @@ const klusLoopt = () => S.klus && S.klus.tot >= S.dag;
 let barrieUit = '';
 // minispelletjes bij Barrie's klusjes: klusBegin betaalt en zet de ruzie hoger, klusAf rekent af (gelukt = de klus loopt; mislukt = de pech van doeKlus)
 function klusBegin(k) { const d = KLUS[k]; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); kassa(); bewaar(); tekenKnoppen(); return d; }
-function klusAf(k, gelukt, tekst) { const d = KLUS[k];
+function klusAf(k, gelukt, tekst, politie) { const d = KLUS[k];
   if (gelukt) { S.klus = { k, tot: S.dag + d.dagen }; barrieUit = `${d.ik} ${tekst || 'Gelukt!'} ${d.tekst} (${d.dagen} dagen meer klanten)`; }
-  else if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); barrieUit = '🚨 Luigi zag Barrie en belde de politie! Op het bureau zei Barrie meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).'; }
+  else if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); barrieUit = politie || '🚨 Luigi zag Barrie en belde de politie! Op het bureau zei Barrie meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).'; }
   else { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.luigiRust = 0; S.ruzie = Math.min(100, S.ruzie + 15); barrieUit = `😬 ${tekst || 'Mislukt!'} Luigi heeft het door. "Dit is OORLOG!" Morgen neemt hij wraak…`; }
   kassa(); bewaar(); tekenKnoppen(); setTimeout(toonAchterkamer, 1700); }
 function klusScherm(titel, uitleg, knop) {
@@ -2224,7 +2224,7 @@ function toonKeuring() {
   const toon = () => {
     if (i >= vragen.length) { const v = uit.includes('v'), o = uit.filter((x) => x == 'o').length, ok = !v && o <= 1;
       $('achterkaart').innerHTML = `<h1>📋 ${ok ? 'Melding genoteerd' : 'Opgehangen…'}</h1><p>${ok ? '"Dank u voor uw melding. We gaan er morgen meteen langs." Klik. Barrie haalt de theedoek van de hoorn en grijnst.' : v ? '"Pardon? Heeft u een pizzeria aan de overkant?" Ingrid wordt stil. "Dit soort valse meldingen nemen wij héél serieus."' : '"Meneer, ik denk dat u mij in de maling neemt." Klik.'}</p>`;
-      klusAf('keuring', ok, ok ? 'Melding geslaagd!' : 'Ingrid geloofde er niks van.'); return; }
+      klusAf('keuring', ok, ok ? 'Melding geslaagd!' : 'Ingrid geloofde er niks van, en ze belde Luigi om het te vertellen.', '🚨 Ingrid liet het nummer natrekken. De politie belt terug: valse melding! € 200 boete, en de hele stad praat erover (populariteit −8).'); return; }
     const [vraag, opties] = VR[vragen[i]], gehusseld = [...opties].sort(() => Math.random() - 0.5);
     $('achterkaart').innerHTML = `<h1>📞 Anoniem bellen</h1><p class="buurt">Barrie houdt een theedoek over de hoorn en praat met een héél hoge stem. Jij fluistert hem de antwoorden in. Blijf geloofwaardig, en verraad niet wie je bent! (vraag ${i + 1} van 3)</p>
       <p style="background:#fff;border-radius:8px;padding:10px">📋 ${esc(vraag)}</p>${gehusseld.map(([t], j) => `<button class="antwoord" data-w="${j}"><b>${'ABC'[j]}</b> ${esc(t)}</button>`).join('')}`;
