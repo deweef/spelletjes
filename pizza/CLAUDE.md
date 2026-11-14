@@ -390,3 +390,11 @@ Menukaart met verkopen (14 nov): per pizza `p.gisteren` (in `eindeDag` uit `tel.
 totaal 85×" (🔥 ≥ 60% van de best lopende, 💤 ≤ 15%), plus de uitleg en het maximum (`MAXMENU` = 6). Andere kosten uitgesplitst: `ge(n)` met n < 0
 telt in `tel.uitW[kostLabel]` (tijdens een vraag = wie het vroeg, anders 'Overig'; inkopen overdag `ge(-k, 'inkoop')` niet); in het dagoverzicht
 de grootste 5 onder "Andere kosten".
+Crypto vaker bereikbaar (14 nov, Marcel: "met de lagere winstkansen moet je vaker op de computer kunnen"): bij Banca Fortuna in de stad de knop
+"📱 Beleggen" = app Fortuna Beleggen (`toonStad.app`, `cryptoBlok(false, APPPROV)`, `APPPROV` 5% provisie; knoppen via `koppelCrypto(el, prov, opnieuw)`,
+dat ook de laptop gebruikt met `PROVISIE` 3%). Beurstip bij Snelle Sjonnie (knop "💡 Koop een tip (€ 20)", één per dag): `S.tip = { k, op ±1, dag, echt }`,
+`echt` 70%; in `cryptoAvond` gaat munt k ×1,2-1,5 (klopt) of ×0,65-0,8 (klopt niet), met een nieuwsregel. Gemiddeld +15% per nacht in de
+tiprichting, dus na provisie en bewaarkosten een kleine winst met echt risico. De achterkamer-vragen (printer/gokker/kelder, `kans: 6`) kwamen in
+de tweede zaak bijna nooit: nu 30% per dag via `S.verplicht` zolang die zaak nog geen achterkamer heeft (`openDeuren`).
+Markt (14 nov): een gekochte aanbieding staat als "✅ gekocht" (niet nog eens te kopen; eerder betaalde je bij elke tik opnieuw), de andere zeggen dat
+je huidige korting dan vervalt (maar één `S.korting` tegelijk, geldt in alle zaken). Uitleg erbij: korting is geen inkoop, dat gaat per zaak via 📦 Voorraad.

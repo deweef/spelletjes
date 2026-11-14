@@ -668,6 +668,7 @@ function openDeuren() {
   if (!S.zaak && !S.achterkamer && S.spullen.some((t) => t.t == 'schilderij')) { if (!S.gerritNa) S.gerritNa = S.dag + 1 + (Math.random() < 0.5 ? 1 : 0);
     if (S.dag >= S.gerritNa) { S.verplicht = [...(S.verplicht || []), 'gleufhoed']; S.gerritNa = S.dag + 4; } }
   // de achterkamer: alleen als er vandaag iemand voor komt hangt de sleutel aan het haakje (vandaag.sleutel); die bezoeker neemt je mee
+  if (S.zaak && !S.kamer && kans(0.3)) { const id = { studenten: 'printer', toeristen: 'gokker', villa: 'kelder' }[S.buurt]; if (id && !(S.verplicht || []).includes(id)) S.verplicht = [...(S.verplicht || []), id]; } // de achterkamer van deze zaak: de vraag komt nu vanzelf
   if (achterOpen()) { const id = kamerBezoek(); if (id && !(S.verplicht || []).includes(id)) { S.verplicht = [...(S.verplicht || []), id]; vandaag.sleutel = true; setTimeout(() => meld('🗝️ Er hangt een sleutel aan het haakje. Vandaag komt er iemand voor de achterkamer…', 4000), 3500); } }
   if (S.dag >= 5 && !S.luigiKwam) { S.luigiKwam = S.dag; S.verplicht = [...(S.verplicht || []), 'luigi']; }
   vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ if (torenOpen()) vandaag.aankomst *= 1.1; /* toeristen voor de toren */ if (reclameAan()) vandaag.aankomst *= 1.15; /* reclamebord */ if (kunstAan()) { vandaag.gezellig += 0.5; vandaag.fooi *= 1.1; } /* geleend meesterwerk */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
@@ -1685,6 +1686,15 @@ function tekenRit() { // linksboven in de zaal: waar is de scooter?
 // Vier verzonnen munten; elke avond een nieuwe koers (`cryptoAvond`): een willekeurige sprong (vol), soms nieuws met een grote klap.
 // Je krijgt munten van Gerrit (verkoop van een vervalsing) of een klant (`kiesMunt`: je kiest de munt, de koers zie je dan niet), of koopt ze
 // op de laptop in de achterkamer. Weer euro's ervan maken kan alleen bij Snelle Sjonnie in de stad (PLEK.wissel, 10% commissie).
+function koppelCrypto(el, prov, opnieuw) { // knoppen Koop/Verkoop van cryptoBlok(false): via je bankrekening, met provisie prov
+  el.querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const c = crypto(), k = b.dataset.koop, max = Math.floor(S.bankSaldo || 0);
+    const v = prompt(`Voor hoeveel euro ${MUNT[k].n} kopen? (je hebt € ${max} op de bank, ${prov * 100}% provisie)`, String(Math.min(max, 50))); const n = Math.min(max, Math.floor(+String(v).replace(',', '.') || 0)); if (n <= 0) return;
+    S.bankSaldo -= n; c.bezit[k] = (c.bezit[k] || 0) + n * (1 - prov) / c.koers[k]; bewaar(); opnieuw(); });
+  el.querySelectorAll('[data-verkoopbank]').forEach((b) => b.onclick = () => { const c = crypto(), k = b.dataset.verkoopbank, w = c.bezit[k] * c.koers[k];
+    if (!confirm(`Al je ${MUNT[k].n} verkopen voor ${euro(w * (1 - prov))} (na ${prov * 100}% provisie)? Het geld komt op je bankrekening.`)) return;
+    S.bankSaldo = (S.bankSaldo || 0) + w * (1 - prov); c.bezit[k] = 0; bewaar(); opnieuw(); });
+}
+const APPPROV = 0.05; // beleggen met de app van Banca Fortuna (in de stad, altijd): duurder dan de laptop in de achterkamer
 const PROVISIE = 0.03; // kopen en verkopen op de laptop gaat via je bankrekening (S.bankSaldo), elke keer 3%
 const MUNT = {
   bitkaas: { n: 'Bitkaas', ik: '🧀', start: 100, vol: 0.16, kl: '#f1c40f' },
@@ -1707,6 +1717,8 @@ const euro = (n) => '€ ' + (n >= 100 ? Math.round(n) : n >= 1 ? n.toFixed(2) :
 function cryptoAvond() { // elke avond: nieuwe koersen
   const c = crypto(); c.nieuws = [];
   for (const [k, m] of Object.entries(MUNT)) { const z = (Math.random() + Math.random() + Math.random() - 1.5) * 2; c.koers[k] = Math.max(m.start * 0.002, c.koers[k] * Math.exp(z * m.vol - m.vol * m.vol / 2 - 0.004)); } // gemiddeld geen winst (−vol²/2), een tikje omlaag
+  if (S.tip && S.tip.dag == S.dag) { const t = S.tip, m = MUNT[t.k], richt = t.echt ? t.op : -t.op, f = richt > 0 ? 1.2 + Math.random() * 0.3 : 0.65 + Math.random() * 0.15; c.koers[t.k] *= f; // de tip van Sjonnie (70% klopt)
+    c.nieuws.push(`${m.ik} ${m.n} ${richt > 0 ? 'schiet omhoog' : 'stort in'} (${f > 1 ? '+' : ''}${Math.round((f - 1) * 100)}%). ${t.echt ? 'De tip van Sjonnie klopte!' : 'De tip van Sjonnie klopte NIET. Hij neemt zijn telefoon niet meer op.'}`); S.tip = null; }
   if (kans(0.3)) { const [k, f, t] = pak(CRYPTONIEUWS); c.koers[k] *= f; c.nieuws.push(`${MUNT[k].ik} ${t} (${f > 1 ? '+' : ''}${Math.round((f - 1) * 100)}%)`); }
   if (c.koers.mozzamunt < MUNT.mozzamunt.start * 0.01 && kans(0.3)) { const had = c.bezit.mozzamunt > 0; c.koers.mozzamunt = MUNT.mozzamunt.start * 0.3; c.bezit.mozzamunt = 0; // herstart = een nieuwe munt: de oude munten zijn niks meer waard
     c.nieuws.push('🍕 MozzaMunt is herstart door een nieuwe "oprichter". Het is een gloednieuwe munt: de oude MozzaMunten zijn niks meer waard.' + (had ? ' Die van jou ook niet.' : '')); }
@@ -1731,15 +1743,15 @@ function koersLijn(k) { // klein grafiekje (svg) van de laatste dagen
   const op = h.length < 2 || h[h.length - 1] >= h[h.length - 2];
   return `<svg width="${w}" height="${hh}" style="vertical-align:middle;background:#1b1b1b;border-radius:4px"><polyline points="${pts}" fill="none" stroke="${op ? '#2ecc71' : '#e74c3c'}" stroke-width="2"/></svg>`;
 }
-function cryptoBlok(wissel) { // de lijst munten: op de laptop (kopen) of bij Snelle Sjonnie (verkopen)
+function cryptoBlok(wissel, prov = PROVISIE) { // de lijst munten: op de laptop (kopen) of bij Snelle Sjonnie (verkopen)
   const c = crypto();
   return `<table style="width:100%;border-collapse:collapse;font-size:14px">${Object.entries(MUNT).map(([k, m]) => { const h = c.hist[k], v = h.length > 1 ? (h[h.length - 1] / h[h.length - 2] - 1) * 100 : 0, bez = c.bezit[k] || 0;
     return `<tr style="border-top:1px solid #e0cfa8"><td style="padding:6px 4px"><b>${m.ik} ${esc(m.n)}</b><br><small>${euro(c.koers[k])} <span style="color:${v >= 0 ? '#2e9d52' : '#c0392b'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v).toFixed(0)}%</span></small></td>
       <td>${koersLijn(k)}</td><td style="text-align:right"><small>je hebt</small><br><b>${bez ? euro(bez * c.koers[k]) : '–'}</b></td>
       <td style="text-align:right;white-space:nowrap">${wissel ? `<button class="knop rood" data-verkoop="${k}" ${bez * c.koers[k] < 0.5 ? 'disabled' : ''}>Wisselen</button>`
-        : `<button class="knop" data-koop="${k}" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>Koop</button> <button class="knop" data-verkoopbank="${k}" ${bez * c.koers[k] < 0.5 ? 'disabled' : ''}>Verkoop</button>`}</td></tr>`; }).join('')}</table>
+        : `<div style="display:flex;flex-direction:column;gap:4px"><button class="knop" style="padding:6px 10px;margin:0" data-koop="${k}" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>Koop</button><button class="knop" style="padding:6px 10px;margin:0" data-verkoopbank="${k}" ${bez * c.koers[k] < 0.5 ? 'disabled' : ''}>Verkoop</button></div>`}</td></tr>`; }).join('')}</table>
     <p class="buurt" style="margin:4px 0 0">💼 Bewaarkosten van je wallet: ${BEWAAR * 100}% per nacht. Hoe langer je ze hebt, hoe meer het kost.</p>
-    ${wissel ? '' : `<p class="buurt">🏦 Op je bankrekening: <b>${euro(S.bankSaldo || 0)}</b>. Kopen gaat van je bankrekening af, verkopen komt erop, steeds met ${PROVISIE * 100}% provisie. Contant geld storten en opnemen doe je bij de bank in de stad.</p>`}
+    ${wissel ? '' : `<p class="buurt">🏦 Op je bankrekening: <b>${euro(S.bankSaldo || 0)}</b>. Kopen gaat van je bankrekening af, verkopen komt erop, steeds met ${prov * 100}% provisie. Contant geld storten en opnemen doe je bij de bank in de stad.</p>`}
     ${c.nieuws.length ? `<p class="buurt">📰 ${c.nieuws.map(esc).join(' ')}</p>` : ''}`;
 }
 
@@ -2307,12 +2319,7 @@ function toonAchterkamer() {
   if ($('wijnmaak')) $('wijnmaak').onclick = () => toonWijn();
   $('achter').classList.remove('verborgen');
   $('achterdicht').onclick = () => { $('achter').classList.add('verborgen'); barrieUit = ''; };
-  $('achterkaart').querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const c = crypto(), k = b.dataset.koop, max = Math.floor(S.bankSaldo || 0);
-    const v = prompt(`Voor hoeveel euro ${MUNT[k].n} kopen? (je hebt € ${max} op de bank, ${PROVISIE * 100}% provisie)`, String(Math.min(max, 50))); const n = Math.min(max, Math.floor(+String(v).replace(',', '.') || 0)); if (n <= 0) return;
-    S.bankSaldo -= n; c.bezit[k] = (c.bezit[k] || 0) + n * (1 - PROVISIE) / c.koers[k]; bewaar(); toonAchterkamer(); });
-  $('achterkaart').querySelectorAll('[data-verkoopbank]').forEach((b) => b.onclick = () => { const c = crypto(), k = b.dataset.verkoopbank, w = c.bezit[k] * c.koers[k];
-    if (!confirm(`Al je ${MUNT[k].n} verkopen voor ${euro(w * (1 - PROVISIE))} (na ${PROVISIE * 100}% provisie)? Het geld komt op je bankrekening.`)) return;
-    S.bankSaldo = (S.bankSaldo || 0) + w * (1 - PROVISIE); c.bezit[k] = 0; bewaar(); toonAchterkamer(); });
+  koppelCrypto($('achterkaart'), PROVISIE, toonAchterkamer);
   $('achterkaart').querySelectorAll('[data-klus]').forEach((b) => b.onclick = () => { if (KLUSSPEL[b.dataset.klus]) { KLUSSPEL[b.dataset.klus](); return; } barrieUit = doeKlus(b.dataset.klus); kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); });
   $('achterkaart').querySelectorAll('[data-vrede]').forEach((b) => b.onclick = () => { const d = VREDE[b.dataset.vrede]; ge(-d.prijs); S.ruzie = 0; S.luigiRust = S.dag + d.dagen;
     barrieUit = `Barrie brengt Luigi een ${d.n.toLowerCase()}. Luigi snuift, drinkt hem in één keer leeg en mompelt: "Va bene. Even geen ruzie." (${d.dagen} dagen wapenstilstand)`; bewaar(); tekenKnoppen(); toonAchterkamer(); });
@@ -2512,13 +2519,16 @@ function toonStad(plek) {
   }
   const p = PLEK[plek], terug = `<button class="knop" id="plekterug">🗺️ Terug naar de kaart</button>`;
   let h = `<h1>${p.ik} ${esc(p.n)}</h1>`, knoppen = '';
-  if (plek == 'bank') { h += `<div style="background:#c0392b;color:#fff;border-radius:8px;padding:8px 10px;margin:4px 0 8px;text-align:center;font-weight:700;transform:rotate(-1.5deg);box-shadow:0 3px 8px rgba(0,0,0,.25)">💸 LENEN BIJ BANCA FORTUNA: <s style="opacity:.75">10%</s> <span style="font-size:1.25em;color:#ffe08a">9%!</span><br><small style="font-weight:400">Alleen hier aan het loket: 1% minder rente</small></div>`;
-    h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button><button class="knop" id="storten" ${S.geld < 1 ? 'disabled' : ''}>⬇️ Storten</button><button class="knop" id="opnemen" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>⬆️ Opnemen</button>`;
+  if (plek == 'bank' && toonStad.app) { toonStad.app = false; h += `<p>Meneer Fortuna draait zijn scherm naar je toe. "Onze nieuwe app: <b>Fortuna Beleggen</b>. Veilig, snel, en maar ${APPPROV * 100}% provisie." Hij knipoogt. "Die laatste zin moest ik van de directie zeggen."</p>${cryptoBlok(false, APPPROV)}`; knoppen = ''; }
+  else if (plek == 'bank') { h += `<div style="background:#c0392b;color:#fff;border-radius:8px;padding:8px 10px;margin:4px 0 8px;text-align:center;font-weight:700;transform:rotate(-1.5deg);box-shadow:0 3px 8px rgba(0,0,0,.25)">💸 LENEN BIJ BANCA FORTUNA: <s style="opacity:.75">10%</s> <span style="font-size:1.25em;color:#ffe08a">9%!</span><br><small style="font-weight:400">Alleen hier aan het loket: 1% minder rente</small></div>`;
+    h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button><button class="knop" id="storten" ${S.geld < 1 ? 'disabled' : ''}>⬇️ Storten</button><button class="knop" id="opnemen" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>⬆️ Opnemen</button><button class="knop" id="beleggen">📱 Beleggen (crypto)</button>`;
     h += `<p class="buurt">🏦 Op je bankrekening: <b>${euro(S.bankSaldo || 0)}</b>. Contant in je kassa: <b>${euro(Math.max(0, S.geld))}</b>. (Met bankgeld kun je op de laptop in de achterkamer crypto kopen.)</p>`; }
   if (plek == 'markt') {
     const aanbod = marktAanbod(), heb = S.korting && S.korting.tot > S.dag ? S.korting : null;
-    h += `<p>Kraampjes vol groente, kaas en worst. "Verse waar! Alles moet weg!"</p>${heb ? `<p class="buurt">Je hebt al korting op ${esc(ING[heb.i].n.toLowerCase())} tot ${esc(datumLang(heb.tot))}.</p>` : ''}
-      ${aanbod.map((a, n) => `<button class="aanbieder" data-koop="${n}" ${S.geld < a.prijs ? 'disabled' : ''}><span class="gz">🧺</span><span><b>${esc(ING[a.i].n)}: halve prijs</b><br>${a.dagen} dagen lang, voor € ${a.prijs}</span></button>`).join('')}
+    h += `<p>Kraampjes vol groente, kaas en worst. "Verse waar! Alles moet weg!"</p>${heb && !aanbod.some((a) => a.i == heb.i) ? `<p class="buurt">Je hebt al korting op ${esc(ING[heb.i].n.toLowerCase())} tot ${esc(datumLang(heb.tot))}.</p>` : ''}
+      ${aanbod.map((a, n) => heb && heb.i == a.i ? `<button class="aanbieder" disabled><span class="gz">✅</span><span><b>${esc(ING[a.i].n)}: gekocht!</b><br>halve prijs tot ${esc(datumLang(heb.tot))}, in al je zaken</span></button>`
+        : `<button class="aanbieder" data-koop="${n}" ${S.geld < a.prijs ? 'disabled' : ''}><span class="gz">🧺</span><span><b>${esc(ING[a.i].n)}: halve prijs</b><br>${a.dagen} dagen lang, voor € ${a.prijs}${heb ? ` (dan vervalt je korting op ${esc(ING[heb.i].n.toLowerCase())})` : ''}</span></button>`).join('')}
+      <p class="buurt">Dit is korting, geen inkoop: het spul zelf bestel je per zaak via 📦 Voorraad (of Mario doet het automatisch). De korting geldt in al je zaken.</p>
       <p class="buurt">Bij de fontein staan toeristen met fototoestellen. Een straatartiest heeft net zijn plekje verlaten…${S.acroBest ? ` Jouw record: ${S.acroBest} keer gevangen.` : ''}</p>`;
     knoppen = `<button class="knop rood" id="acro" ${S.acroDag == S.dag ? 'disabled' : ''}>🤹 ${S.acroDag == S.dag ? 'Pizza-acrobatiek: morgen weer' : 'Pizza-acrobatiek voor de toeristen'}</button>`
       + `<button class="knop rood" id="wedstrijd" ${S.wedWeek == week() ? 'disabled' : ''}>🏆 ${S.wedWeek == week() ? 'Pizzawedstrijd: volgende week weer' : 'Pizzawedstrijd tegen Luigi'}</button>`;
@@ -2550,7 +2560,10 @@ function toonStad(plek) {
       knoppen = `<button class="knop rood" id="huren" ${!mag || S.geld < p.borg ? 'disabled' : ''}>🔑 Huren (€ ${p.borg})</button>`; } }
   if (plek == 'wissel') { h += `<p>Een smal winkeltje met een knipperend bord: <b>CRYPTO → CASH. GEEN VRAGEN.</b> Achter de toonbank zit Snelle Sjonnie met drie telefoons.
       "${pak(['Wisselen? Tien procent voor mij, de rest voor jou. Eerlijk is eerlijk.', 'Ik vraag niks, jij vraagt niks. Zo houden we het gezellig.', 'DogePizza? Mooi spul. Ik heb er zelf ook nog een paar miljoen.'])}"</p>
-      <p class="buurt">Je krijgt de koers van vandaag, min 10% voor Sjonnie.</p>${cryptoBlok(true)}`; }
+      <p class="buurt">Je krijgt de koers van vandaag, min 10% voor Sjonnie.</p>${cryptoBlok(true)}
+      <div class="opdracht" style="display:block"><b>💡 Een tip voor vannacht?</b><br>Sjonnie buigt zich naar je toe. "Ik ken iemand die iemand kent. Twintig euro, en ik vertel je welke munt er vannacht gaat bewegen. Meestal klopt het."
+      ${S.tip && S.tip.dag == S.dag ? `<br><b>Jouw tip: ${MUNT[S.tip.k].ik} ${esc(MUNT[S.tip.k].n)} gaat vannacht ${S.tip.op > 0 ? 'knallen 🚀' : 'keihard onderuit 📉'}.</b>` : ''}</div>`;
+    knoppen = S.tip && S.tip.dag == S.dag ? '' : `<button class="knop rood" id="koopTip" ${S.geld < 20 ? 'disabled' : ''}>💡 Koop een tip (€ 20)</button>`; }
   if (plek == 'bouw') { const t = torenBij(), f = TORENFASE[t.fase];
     h += t.fase == 0 && !t.bouwt ? `<p>Een kraan, zand en een bord: "Hier komt binnenkort: ????". Een bouwvakker veegt zijn mond af: "De gemeente wil hier iets bijzonders. Een toren! Maar er is geen geld… Wil jij meebetalen? Dan wordt het de <b>Toren van Pizza</b>!"</p>`
       : t.fase < 4 ? `<p>De <b>Toren van Pizza</b> groeit! ${t.bouwt ? `De bouwvakkers werken aan ${esc(TORENFASE[t.fase].n)}: klaar op ${esc(datumLang(t.bouwt.tot))}.` : `Klaar: ${t.fase} van de 4 stukken. Volgende: ${esc(f.n)}.`}</p>`
@@ -2581,6 +2594,10 @@ function toonStad(plek) {
   if ($('huren')) $('huren').onclick = () => { if (!confirm(`Dit pand huren voor € ${p.borg} (en € ${p.huur} per dag)?`)) return;
     ge(-p.borg); bewaarZaak(); S.zaken.push({ plek, buurt: p.buurt, huur: p.huur, spullen: BEGIN(), ovens: 1, obers: 1, groot: [], rep: BUURT[p.buurt].rep, manager: null, vuil: 0 });
     kassa(); bewaar(); tekenKnoppen(); toonStad(plek); meld('Gefeliciteerd, je hebt een tweede pizzeria! Ga er \'s ochtends heen om hem in te richten. Let op: vanaf nu koop je zelf in (📦 Voorraad), Mario doet het niet meer vanzelf.', 7000); };
+  if ($('beleggen')) $('beleggen').onclick = () => { toonStad.app = true; toonStad('bank'); };
+  if (plek == 'bank' && k2.querySelector('[data-koop]')) koppelCrypto(k2, APPPROV, () => { toonStad.app = true; toonStad('bank'); });
+  if ($('koopTip')) $('koopTip').onclick = () => { crypto(); ge(-20); const k = pak(Object.keys(MUNT)), op = kans(0.55) ? 1 : -1; S.tip = { k, op, dag: S.dag, echt: kans(0.7) }; kassa(); bewaar(); tekenKnoppen(); toonStad('wissel');
+    meld(`Sjonnie fluistert: "${MUNT[k].n}. Vannacht. ${op > 0 ? 'Omhoog. Héél erg omhoog.' : 'Naar beneden. Verkopen als je ze hebt.'}" Hij tikt tegen zijn neus.`, 5000); };
   if ($('balie')) $('balie').onclick = () => { aanBalie = true; toonBank(); };
   const bedrag = (vraag, max) => { const v = prompt(vraag, String(Math.floor(max))); const n = Math.min(Math.floor(max), Math.floor(+String(v).replace(',', '.') || 0)); return n > 0 ? n : 0; };
   if ($('storten')) $('storten').onclick = () => { const n = bedrag(`Hoeveel contant geld wil je storten? (je hebt € ${Math.floor(S.geld)})`, S.geld); if (!n) return; S.geld -= n; S.bankSaldo = (S.bankSaldo || 0) + n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} op je bankrekening gezet.`); toonStad('bank'); };
@@ -2590,7 +2607,7 @@ function toonStad(plek) {
   if ($('wedstrijd')) $('wedstrijd').onclick = () => toonWedstrijd();
   if ($('eetwed')) $('eetwed').onclick = () => { ge(-EET.inleg); S.eetDag = S.dag; bewaar(); kassa(); tekenKnoppen(); toonEet(); };
   if ($('flyers')) $('flyers').onclick = () => { ge(-15); S.flyers = S.dag; S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.15 }; S.studentenMorgen = true; bewaar(); tekenKnoppen(); meld('Flyers uitgedeeld! Morgen komen er meer studenten.'); toonStad('studenten'); };
-  k2.querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const a = marktAanbod()[+b.dataset.koop]; ge(-a.prijs); S.korting = { i: a.i, tot: S.dag + a.dagen }; kassa(); bewaar(); tekenKnoppen(); meld(`${ING[a.i].n} voor de halve prijs, ${a.dagen} dagen lang!`); toonStad('markt'); });
+  if (plek == 'markt') k2.querySelectorAll('[data-koop]').forEach((b) => b.onclick = () => { const a = marktAanbod()[+b.dataset.koop]; ge(-a.prijs); S.korting = { i: a.i, tot: S.dag + a.dagen }; kassa(); bewaar(); tekenKnoppen(); meld(`🏷️ Gekocht: ${ING[a.i].n.toLowerCase()} voor de halve prijs, ${a.dagen} dagen lang (in al je zaken)!`, 3500); toonStad('markt'); });
 }
 
 // ---------- klanten ----------
