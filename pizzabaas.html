@@ -1548,7 +1548,9 @@ function tekenLuikEnDeur() {
 }
 function tekenBezoeker() {
   const b = bezoeker; if (!b || !BEZOEK.complete || !BEZOEK.naturalWidth) return;
-  const [x, y] = naarScherm(b.x, b.y), f = (b.st == 'in' ? 0 : 4) + (b.loopT > 0 ? Math.floor(b.loopT * 6) % 4 : 0), h = 1.85 * T * schaal, w = h * 113 / 192;
+  if (b.ly != null && Math.abs(b.y - b.ly) > 0.002) b.omlaag = b.y > b.ly; b.ly = b.y; // loopt hij naar boven (rug) of naar beneden (gezicht)?
+  const naarBoven = b.st == 'praat' ? false : b.omlaag != null ? !b.omlaag : b.st == 'in'; // bij het praten kijkt hij je aan
+  const [x, y] = naarScherm(b.x, b.y), f = (naarBoven ? 0 : 4) + (b.loopT > 0 ? Math.floor(b.loopT * 6) % 4 : 0), h = 1.85 * T * schaal, w = h * 113 / 192;
   g.fillStyle = 'rgba(40,15,5,.28)'; g.beginPath(); g.ellipse(x + 7 * schaal, y + 5 * schaal, w * 0.3, 7 * schaal, 0, 0, 7); g.fill();
   g.drawImage(BEZOEK, f * 113, b.rij * 192, 113, 192, x - w / 2, y - h + 6 * schaal, w, h);
   if (b.sleutel) { const kx = x + w * 0.28, ky = y - h * 0.42 + Math.sin(performance.now() / 120) * 2 * schaal, k = schaal; // de sleutel in zijn hand
@@ -2209,7 +2211,27 @@ function toonRecensie() {
     $('achterkaart').querySelectorAll('[data-w]').forEach((b) => b.onclick = () => { punten.push(opties[+b.dataset.w][1]); i++; toon(); }); };
   toon();
 }
-const KLUSSPEL = { stinkbom: () => toonSluip(), ratten: toonRatten, scooter: toonScooter, recensie: toonRecensie };
+// KEURING: Barrie belt anoniem de keuringsdienst, met een theedoek over de hoorn. Drie vragen van de baliemedewerker; per vraag één
+// geloofwaardig antwoord (g), één dat verraadt dat je de concurrent bent (v) en één onzin (o). Geen enkele 'v' en hooguit één 'o' = gelukt.
+function toonKeuring() {
+  klusBegin('keuring'); const VR = [
+    ['"Keuringsdienst van Waren, met Ingrid. Wie heb ik aan de lijn?"', [['Eh… een bezorgde buurtbewoner.', 'g'], ['De eigenaar van de pizzeria aan de overkant.', 'v'], ['Dat zeg ik niet. Ik ben anoniem. Heel anoniem.', 'o']]],
+    ['"En wat heeft u gezien bij Pizzeria Luigi?"', [['Ik zag een rat in de keuken, echt waar!', 'g'], ['Zijn pizza is véél slechter dan die van ons.', 'v'], ['Een krokodil in de vriezer.', 'o']]],
+    ['"Wanneer was dat ongeveer?"', [['Gisteravond, rond acht uur.', 'g'], ['Toen ik daar stiekem rondliep voor m\'n baas.', 'v'], ['In 1987. Of gisteren. Een van de twee.', 'o']]],
+    ['"Kunt u de rat beschrijven?"', [['Grijs, met een lange staart. Hij at uit een pan.', 'g'], ['Groter dan Luigi\'s ego.', 'v'], ['Hij droeg een klein petje.', 'o']]],
+    ['"Heeft u ook gegeten bij Luigi?"', [['Ja, en ik werd er misselijk van.', 'g'], ['Nooit! Ik eet alleen bij de concurrent.', 'v'], ['Ik eet alleen soep. Met een vork.', 'o']]] ];
+  const vragen = [0, 1, 2, 3, 4].sort(() => Math.random() - 0.5).slice(0, 3).sort(); const uit = []; let i = 0;
+  const toon = () => {
+    if (i >= vragen.length) { const v = uit.includes('v'), o = uit.filter((x) => x == 'o').length, ok = !v && o <= 1;
+      $('achterkaart').innerHTML = `<h1>📋 ${ok ? 'Melding genoteerd' : 'Opgehangen…'}</h1><p>${ok ? '"Dank u voor uw melding. We gaan er morgen meteen langs." Klik. Barrie haalt de theedoek van de hoorn en grijnst.' : v ? '"Pardon? Heeft u een pizzeria aan de overkant?" Ingrid wordt stil. "Dit soort valse meldingen nemen wij héél serieus."' : '"Meneer, ik denk dat u mij in de maling neemt." Klik.'}</p>`;
+      klusAf('keuring', ok, ok ? 'Melding geslaagd!' : 'Ingrid geloofde er niks van.'); return; }
+    const [vraag, opties] = VR[vragen[i]], gehusseld = [...opties].sort(() => Math.random() - 0.5);
+    $('achterkaart').innerHTML = `<h1>📞 Anoniem bellen</h1><p class="buurt">Barrie houdt een theedoek over de hoorn en praat met een héél hoge stem. Jij fluistert hem de antwoorden in. Blijf geloofwaardig, en verraad niet wie je bent! (vraag ${i + 1} van 3)</p>
+      <p style="background:#fff;border-radius:8px;padding:10px">📋 ${esc(vraag)}</p>${gehusseld.map(([t], j) => `<button class="antwoord" data-w="${j}"><b>${'ABC'[j]}</b> ${esc(t)}</button>`).join('')}`;
+    $('achterkaart').querySelectorAll('[data-w]').forEach((b) => b.onclick = () => { uit.push(gehusseld[+b.dataset.w][1]); i++; ding(600, 0.05); toon(); }); };
+  toon();
+}
+const KLUSSPEL = { stinkbom: () => toonSluip(), ratten: toonRatten, scooter: toonScooter, recensie: toonRecensie, keuring: toonKeuring };
 // minispel bij de stinkbom: Barrie sluipt door Luigi's zaak naar de toonbank (vasthouden = sluipen). Luigi staat met zijn rug naar je toe,
 // neuriet even (waarschuwing) en draait zich om: beweeg je dan, dan ben je betrapt. Bij de toonbank = stinkbom gelegd.
 // Plaatjes: Barrie van achteren (bezoekers.png rij 4, vakjes 0-3), Luigi van voren (rij 2, vakje 4) en van achteren (rij 2, vakje 0).

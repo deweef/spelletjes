@@ -382,3 +382,7 @@ ratten (`toonRatten`: 8 ratten rennen uit de doos; tik op een rat die naar de ac
 scooter (`toonScooter`: 4 banden, 5 tikken per band, binnen 15 s; deur kraakt ♪ → Luigi in de deuropening: dan tikken = betrapt), recensie
 (`toonRecensie`: 3 zinnen, per zin een woord van mild (1) tot overdreven (3); som 4-7 = geloofwaardig, behalve 2-2-2… nee: 2-2-2 = 6 is ook goed;
 te overdreven of te lief = mislukt). Mislukt = zelfde pech als `doeKlus` (boete of morgen wraak). `window.__klus()` voor tests.
+Keuringsdienst tippen (14 nov, `toonKeuring`): anoniem bellen met Ingrid; 3 van 5 vragen, per vraag geloofwaardig / verraadt de concurrent / onzin
+(gehusseld). Gelukt = geen verraad en hooguit één onzin. Nu heeft elke klus van Barrie een minispel. `klusAf(k, gelukt, tekst, politie)`.
+Gerrit en andere bezoekers: loopt hij naar boven (de keuken in), dan zie je zijn rug; naar beneden zijn gezicht (`b.omlaag` in `tekenBezoeker`);
+bij het praten kijkt hij je aan. Eerder liep hij met zijn gezicht naar je toe naar het deurtje.
