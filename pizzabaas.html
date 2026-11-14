@@ -1911,9 +1911,9 @@ const torenOpen = () => S.toren && S.toren.open;
 // ---------- Huize Avondrood (14 nov): scootmobielrace tegen Opa Henk en de zondagse pizzamiddag ----------
 // S.tehuis = { sinds, tevreden 0-100, keer } = je levert elke zondag 20 pizza's (vraag 'tehuis' via ochtendVraag); S.raceDag = één race per dag.
 // Race (`toonRace`, scherm #race, canvas 360x540): van boven gezien over het tuinpad, 3 banen; tik links/rechts (of pijltjes) = van baan wisselen.
-// Botsen (🐈 kat, 🪴 plant, 🧺 wasmand, 🦯 rollatorclub) = vaart eruit; 🍌 = slippen; 🍕 = turbo. Opa Henk rijdt zijn eigen baan met een
+// Botsen (🐈 kat, 🪴 plant, 🧺 wasmand, 🛒 boodschappenkar) = vaart eruit; 🍌 = slippen; 🍕 = turbo. Opa Henk rijdt zijn eigen baan met een
 // opgevoerde scootmobiel en snijdt halverwege af door het rozenperk (+25 m). Getest: zonder botsen win je ruim, na ~3 botsingen niet meer.
-const RACE = { lengte: 300, max: 9, henk: 7.7, vals: 25 }, TEHUIS = { n: 20, korting: 0.8 };
+const RACE = { lengte: 300, max: 9, henk: 7.7, vals: 25, luigi: 8.3, banaan: 6 }, TEHUIS = { n: 20, korting: 0.8 };
 let race = null;
 function toonRace() {
   $('race').classList.remove('verborgen'); startRace();
@@ -1924,10 +1924,10 @@ function toonRace() {
 function raceStuur(d) { if (!race || race.uit) return; if (!race.go) { race.go = true; S.raceDag = S.dag; bewaar(); $('racetekst').textContent = 'Tik links of rechts om uit te wijken. Pak de 🍕 voor turbo!'; return; } race.baan = Math.max(0, Math.min(2, race.baan + d)); ding(700, 0.04, 'triangle', 0.04); }
 addEventListener('keydown', (e) => { if (!race || $('race').classList.contains('verborgen')) return; if (e.key == 'ArrowLeft') raceStuur(-1); if (e.key == 'ArrowRight') raceStuur(1); if (e.key == ' ' && !race.go) raceStuur(0); });
 function startRace() {
-  const dingen = []; for (let m = 30; m < RACE.lengte - 10; m += 11 + Math.random() * 8) { const vrij = Math.floor(Math.random() * 3), soort = Math.random() < 0.14 ? '🍕' : Math.random() < 0.15 ? '🍌' : pak(['🐈', '🪴', '🧺', '🦯']);
+  const dingen = []; for (let m = 30; m < RACE.lengte - 10; m += 11 + Math.random() * 8) { const vrij = Math.floor(Math.random() * 3), soort = Math.random() < 0.14 ? '🍕' : Math.random() < 0.15 ? '🍌' : pak(['🐈', '🪴', '🧺', '🛒']);
     for (let b = 0; b < 3; b++) if (b != vrij && (b == (vrij + 1) % 3 || Math.random() < 0.35)) dingen.push({ m: m + Math.random() * 3, b, s: soort == '🍕' && b != (vrij + 1) % 3 ? pak(['🐈', '🪴']) : soort, weg: false }); }
-  race = { m: 0, v: 0, baan: 1, x: 1, henk: 0, hv: 0, go: false, uit: false, dingen, boost: 0, slip: 0, bots: 0, vals: false, tekst: '', tt: 0, vorig: performance.now() };
-  $('racetekst').textContent = S.raceDag == S.dag ? 'Je hebt vandaag al geracet. Morgen weer!' : 'Opa Henk: "Hehe. Zullen we, jochie? Wie het eerst bij de fontein is!" Tik om te starten.';
+  race = { m: 0, v: 0, baan: 1, x: 1, henk: 0, hv: 0, luigi: 0, lv: 0, bananT: 4, toet: false, go: false, uit: false, dingen, boost: 0, slip: 0, bots: 0, vals: false, tekst: '', tt: 0, vorig: performance.now() };
+  $('racetekst').textContent = S.raceDag == S.dag ? 'Je hebt vandaag al geracet. Morgen weer!' : 'Opa Henk: "Hehe. Zullen we, jochie? Wie het eerst bij de fontein is!" Links staat Luigi met een geleende scootmobiel en een tas vol bananen… Tik om te starten.';
   if (S.raceDag == S.dag) race.uit = 'nee'; requestAnimationFrame(raceLus);
 }
 function raceLus(nu) {
@@ -1937,22 +1937,32 @@ function raceLus(nu) {
     R.x += (R.baan - R.x) * Math.min(1, dt * 9); R.boost -= dt; R.slip -= dt; R.tt -= dt;
     const vmax = R.slip > 0 ? 2 : R.boost > 0 ? RACE.max + 4 : RACE.max; R.v += (vmax - R.v) * Math.min(1, dt * (R.slip > 0 ? 4 : 1.1)); R.m += R.v * dt;
     R.hv += (RACE.henk - R.hv) * Math.min(1, dt * 0.9); R.henk += R.hv * dt;
-    if (!R.vals && R.henk > RACE.lengte * 0.55) { R.vals = true; R.henk += RACE.vals; R.tekst = 'Henk snijdt af door het rozenperk!'; R.tt = 2; ding(300, 0.2, 'sawtooth', 0.04); }
+    R.lv += (RACE.luigi - R.lv) * Math.min(1, dt * 0.7); R.luigi += R.lv * dt; R.bananT -= dt;
+    if (R.bananT <= 0 && R.luigi < RACE.lengte - 30) { R.bananT = RACE.banaan * (0.7 + Math.random() * 0.6); const b = Math.random() < 0.6 ? R.baan : Math.floor(Math.random() * 3); // Luigi gooit een bananenschil voor je wielen
+      R.dingen.push({ m: R.m + 16 + Math.random() * 4, b, s: '🍌', weg: false }); R.tekst = pak(['Luigi gooit een bananenschil!', '"Oeps!" zegt Luigi. Banaan!', 'Luigi: "Mangia banana!"']); R.tt = 1.2; }
+    if (!R.toet && R.luigi > R.m && R.luigi > RACE.lengte * 0.7) { R.toet = true; ding(440, 0.15, 'square', 0.04); setTimeout(() => ding(440, 0.25, 'square', 0.04), 200); R.tekst = 'TOET TOET! Luigi haalt in!'; R.tt = 1.2; }
+    if (!R.vals && R.henk > RACE.lengte * 0.55) { R.vals = true; if (Math.random() < 0.4) { R.hv = -3; R.tekst = 'Henk blijft hangen in het rozenperk!'; } else { R.henk += RACE.vals; R.tekst = 'Henk snijdt af door het rozenperk!'; } R.tt = 2; ding(300, 0.2, 'sawtooth', 0.04); } // 40%: de afsnijroute mislukt
     for (const d of R.dingen) if (!d.weg && Math.abs(d.m - R.m) < 1.3 && Math.abs(d.b - R.x) < 0.5) { d.weg = true;
       if (d.s == '🍕') { R.boost = 2; R.tekst = 'TURBO! 🍕'; R.tt = 1; ding(1200, 0.1); setTimeout(() => ding(1600, 0.1), 80); }
       else if (d.s == '🍌') { R.slip = 1; R.v = 2; R.bots++; R.tekst = 'Bananenschil! Wiiiii!'; R.tt = 1; boos(); }
-      else { R.v = 0.3; R.slip = 0.35; R.bots++; R.tekst = { '🐈': 'Miauw! Sorry poes!', '🪴': 'Au, de plant van de directrice!', '🧺': 'Wasgoed overal!', '🦯': '"Kijk uit, jongeman!"' }[d.s]; R.tt = 1; boos(); } }
-    if (R.m >= RACE.lengte || R.henk >= RACE.lengte) raceKlaar(R.m >= RACE.lengte && R.m - RACE.lengte >= R.henk - RACE.lengte);
+      else { R.v = 0.3; R.slip = 0.35; R.bots++; R.tekst = { '🐈': 'Miauw! Sorry poes!', '🪴': 'Au, de plant van de directrice!', '🧺': 'Wasgoed overal!', '🛒': 'De boodschappenkar van Oma Truus! "Kijk uit, jongeman!"' }[d.s]; R.tt = 1; boos(); } }
+    if (Math.max(R.m, R.henk, R.luigi) >= RACE.lengte) raceKlaar(R.m >= R.henk && R.m >= R.luigi ? 'jij' : R.henk >= R.luigi ? 'henk' : 'luigi');
   }
   tekenRace(); requestAnimationFrame(raceLus);
 }
-function raceKlaar(won) {
-  const R = race; R.uit = won ? 'won' : 'verloor'; const T = S.tehuis;
-  let t;
-  if (won) { if (!T) { S.tehuis = { sinds: S.dag, tevreden: 60, keer: 0 }; t = '🏆 GEWONNEN! Opa Henk geeft je een hand. "Eerlijk is eerlijk. Jij mag elke zondag onze pizza\'s bakken. 20 stuks, om twee uur. En níet pittig!" Het staat op je kalender.'; }
-    else { T.tevreden = Math.min(100, T.tevreden + 5); t = '🏆 Gewonnen! Henk mompelt iets over zijn accu. De bewoners vinden je een held (tevredenheid +5).'; }
-    rep(1); kassa(); }
-  else t = `😅 Opa Henk wint${R.bots ? ` (jij botste ${R.bots}×)` : ''}. Hij doet een ererondje met zijn wandelstok in de lucht. ${T ? '' : '"Kom morgen maar terug, jochie. Dan geef ik je 10 meter voorsprong. Nee hoor, geintje."'}`;
+function raceKlaar(wie) { // wie = 'jij' | 'henk' | 'luigi'
+  const R = race, T = S.tehuis, opa = Math.max(0, ...S.menu.map((p) => oordeel(p, 'opa') - (p.stukjes.some((x) => x.i == 'pepers') ? 1.5 : 0)));
+  R.uit = wie == 'jij' ? 'won' : wie; let t;
+  const geef = () => { S.tehuis = { sinds: S.dag, tevreden: 60, keer: 0 }; S.tehuisLuigi = false; };
+  if (wie == 'jij') { if (!T) { geef(); t = '🏆 GEWONNEN! Opa Henk geeft je een hand, Luigi smijt zijn bananen in de vijver. "Eerlijk is eerlijk. Jij mag elke zondag onze pizza\'s bakken. 20 stuks, om twee uur. En níet pittig!" Het staat op je kalender.'; }
+    else { T.tevreden = Math.min(100, T.tevreden + 5); t = '🏆 Gewonnen! Henk mompelt iets over zijn accu, Luigi over zijn bananen. De bewoners vinden je een held (tevredenheid +5).'; } rep(1); kassa(); }
+  else if (wie == 'henk') { // Henk wint en mag kiezen: wie bakt de lekkerste pizza voor opa's?
+    if (opa >= 3.5) { if (!T) geef(); else T.tevreden = Math.min(100, T.tevreden + 2); t = `🦼 Opa Henk wint. Hij kijkt van jou naar Luigi. "Ik kies… de pizzaman! ${T ? 'Die pizza van vorige week was' : 'Jouw pizza\'s zijn'} zacht én lekker. Luigi, jouw korst is van beton." ${T ? '' : 'Jij krijgt de zondagbestelling!'}`; }
+    else if (!T) { S.tehuisLuigi = true; t = '🦼 Opa Henk wint en mag kiezen. "Hmm. Luigi. Jouw pizza\'s zijn mij te modern, pizzaman. Maak eens iets voor oude mensen: zacht, zoet, niet pittig." Luigi levert voorlopig de zondagpizza\'s. Kijk op je menukaart naar het gezichtje van opa.'; }
+    else { T.tevreden = Math.max(0, T.tevreden - 6); t = '🦼 Opa Henk wint. "Jij mag blijven leveren, hoor. Maar die pizza\'s mogen wel wat zachter." (tevredenheid −6)'; } }
+  else { // Luigi wint
+    if (!T) { S.tehuisLuigi = true; t = '😎 Luigi wint! Hij toetert drie keer en rijdt een ererondje over het rozenperk. "De zondagpizza\'s zijn van mij!" Opa Henk zucht. Probeer het morgen nog eens.'; }
+    else { T.tevreden = Math.max(0, T.tevreden - 10); t = tehuisCheck('😎 Luigi wint en vertelt de hele middag in de recreatiezaal dat zijn pizza beter is. Een paar oma\'s geloven hem (tevredenheid −10).'); } }
   $('racetekst').textContent = t; bewaar(); tekenKnoppen();
 }
 function tekenRace() {
@@ -1966,14 +1976,15 @@ function tekenRace() {
   for (const d of R.dingen) { if (d.weg) continue; const y = sy(d.m); if (y > -30 && y < H + 30) g.fillText(d.s, bx(d.b), y); }
   // Opa Henk (eigen spoor helemaal rechts op het gras, zodat hij niet botst): waar is hij ten opzichte van jou?
   const hy = Math.max(30, Math.min(H - 30, sy(R.henk))); g.save(); g.translate(342, hy); g.font = '30px system-ui'; g.fillText('🦼', 0, 0); g.font = '18px system-ui'; g.fillText('👴', 4, -18); g.restore();
+  const ly = Math.max(30, Math.min(H - 30, sy(R.luigi))); g.save(); g.translate(18, ly); g.font = '28px system-ui'; g.fillText('🦼', 0, 0); g.font = '17px system-ui'; g.fillText('😎', 3, -17); g.restore();
   g.save(); g.translate(bx(R.x) - 0, 430 + (R.slip > 0 ? Math.sin(R.slip * 30) * 4 : 0)); if (R.slip > 0) g.rotate(Math.sin(R.slip * 20) * 0.5); g.font = '44px system-ui'; g.fillText('🦼', 0, 0); g.restore();
   if (R.boost > 0) { g.font = '20px system-ui'; g.fillText('💨', bx(R.x), 470); }
   // balkje: jij en Henk
-  g.fillStyle = '#0006'; g.fillRect(10, 10, 340, 26); g.fillStyle = '#e74c3c'; g.fillRect(14, 14, 332 * Math.min(1, R.m / RACE.lengte), 8); g.fillStyle = '#95a5a6'; g.fillRect(14, 24, 332 * Math.min(1, R.henk / RACE.lengte), 8);
-  g.font = '12px system-ui'; g.textAlign = 'left'; g.fillStyle = '#fff'; g.fillText('jij', 16, 46); g.fillText(`Henk ${R.henk > R.m ? 'voor' : 'achter'}`, 60, 46);
+  g.fillStyle = '#0006'; g.fillRect(10, 10, 340, 34); g.fillStyle = '#e74c3c'; g.fillRect(14, 13, 332 * Math.min(1, R.m / RACE.lengte), 8); g.fillStyle = '#95a5a6'; g.fillRect(14, 23, 332 * Math.min(1, R.henk / RACE.lengte), 8); g.fillStyle = '#2e9d52'; g.fillRect(14, 33, 332 * Math.min(1, R.luigi / RACE.lengte), 8);
+  g.font = '12px system-ui'; g.textAlign = 'left'; g.fillStyle = '#fff'; const plaats = 1 + (R.henk > R.m) + (R.luigi > R.m); g.fillText(`jij (rood): ${plaats}e · Henk (grijs) · Luigi (groen)`, 14, 56);
   if (R.tt > 0 && R.tekst) { g.font = 'bold 22px system-ui'; g.textAlign = 'center'; g.fillStyle = '#000a'; g.fillText(R.tekst, 181, 101); g.fillStyle = '#fff'; g.fillText(R.tekst, 180, 100); }
   if (!R.go && !R.uit) { g.fillStyle = '#0008'; g.fillRect(0, 200, W, 110); g.fillStyle = '#fff'; g.font = 'bold 26px system-ui'; g.textAlign = 'center'; g.fillText('Tik om te starten', 180, 245); g.font = '16px system-ui'; g.fillText('links / rechts = uitwijken', 180, 280); }
-  if (R.uit && R.uit != 'nee') { g.fillStyle = '#0008'; g.fillRect(0, 200, W, 90); g.fillStyle = '#fff'; g.font = 'bold 30px system-ui'; g.textAlign = 'center'; g.fillText(R.uit == 'won' ? '🏆 Gewonnen!' : '😅 Henk wint', 180, 245); }
+  if (R.uit && R.uit != 'nee') { g.fillStyle = '#0008'; g.fillRect(0, 200, W, 90); g.fillStyle = '#fff'; g.font = 'bold 30px system-ui'; g.textAlign = 'center'; g.fillText(R.uit == 'won' ? '🏆 Gewonnen!' : R.uit == 'henk' ? '🦼 Henk wint' : '😎 Luigi wint', 180, 245); }
 }
 function tehuisVraag() { // zondag: welke pizza gaat er naar Huize Avondrood?
   const T = S.tehuis;
@@ -1991,7 +2002,7 @@ function tehuisLever(p) {
   else { T.tevreden = Math.max(0, T.tevreden - 18); t = p.stukjes.some((s) => s.i == 'pepers') ? `PEPERS?! Meneer Jansen ziet ze aan voor rode paprika. Drie glazen water later is hij nog steeds paars. Tevredenheid −18.` : `De bewoners prikken wat in de ${p.naam}. "Wat is dit nou weer voor modern gedoe?" Er gaat veel terug. Tevredenheid −18.`; }
   return tehuisCheck(`Mario bakt een uur lang alleen voor het tehuis (de keuken is wat trager). + € ${omzet}, ingrediënten − € ${kost}. ${t}`);
 }
-function tehuisCheck(t) { if (S.tehuis.tevreden < 20) { S.tehuis = null; return t + ' Mevrouw Bosch belt terug: "We gaan het voortaan met Luigi proberen." Wil je de bestelling terug? Daag Opa Henk weer uit in de stad.'; } return t + ` (Tevredenheid: ${Math.round(S.tehuis.tevreden)})`; }
+function tehuisCheck(t) { if (S.tehuis.tevreden < 20) { S.tehuis = null; S.tehuisLuigi = true; return t + ' Mevrouw Bosch belt terug: "We gaan het voortaan met Luigi proberen." Wil je de bestelling terug? Daag Opa Henk weer uit in de stad.'; } return t + ` (Tevredenheid: ${Math.round(S.tehuis.tevreden)})`; }
 function toonToren(opening) {
   $('toren').classList.remove('verborgen'); startToren(); toren.opening = !!opening;
   if (opening) $('torentekst').textContent = '🎉 De grote opening! De burgemeester kijkt mee: hoe hoger je stapelt, hoe meer de stad over je pizzeria praat.';
@@ -2850,7 +2861,8 @@ function toonStad(plek) {
   if (plek == 'tehuis') { const T = S.tehuis;
     h += `<p>Een geel bejaardentehuis met geraniums. Op het bordje: <b>Huize Avondrood. Rustig rijden a.u.b.</b> In de gang staan twaalf scootmobielen aan de lader. Eentje heeft vlammen op de zijkant: die is van Opa Henk.</p>`
       + (T ? `<p class="buurt">👵 Jij levert elke zondag ${TEHUIS.n} pizza's (de bewoners betalen ${Math.round(TEHUIS.korting * 100)}% van de prijs). Tevredenheid: <b>${Math.round(T.tevreden)}</b>. Niet pittig, en zacht is fijn: kijk naar het gezichtje van opa en oma op je menukaart.</p>`
-        : `<p>Mevrouw Bosch, de directrice: "Wij zoeken een pizzeria voor onze zondagmiddag. ${TEHUIS.n} pizza's per week! Luigi wil ook. Opa Henk zegt: wie hem verslaat met de scootmobiel, krijgt de bestelling."</p>`);
+        : S.tehuisLuigi ? `<p>Op de tafels in de recreatiezaal staan lege dozen van Pizzeria Luigi. Opa Henk: "Taai. Maar ja. Wil je ze terug? Versla ons dan allebei. Of win ik, dan kies ik zelf: wie bakt de zachtste pizza voor oude mensen?"</p>`
+        : `<p>Mevrouw Bosch, de directrice: "Wij zoeken een pizzeria voor onze zondagmiddag. ${TEHUIS.n} pizza's per week! Luigi wil ook. Daarom racen jullie, met Opa Henk: wie wint, krijgt de bestelling. Wint Henk, dan kiest hij zelf."</p>`);
     knoppen = `<button class="knop rood" id="racego" ${S.raceDag == S.dag ? 'disabled' : ''}>🦼 ${S.raceDag == S.dag ? 'Henk doet een dutje: morgen weer' : 'Scootmobielrace tegen Opa Henk'}</button>`; }
   if (plek == 'ijssalon') { if (S.ijs) { h = `<h1>🍨 Jouw ijssalon</h1>` + ijsBlok(); }
     else { h += `<p>Een oud ijszaakje met een groen-wit gestreepte luifel. In het raam: <b>TE KOOP, met vriezers en al. € ${IJSPRIJS}.</b> Binnen zit Sofia, die er al dertig jaar ijs schept. "Als de nieuwe baas mij houdt, houd ik van de nieuwe baas."</p>

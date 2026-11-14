@@ -486,3 +486,8 @@ Sterren per buurt eerlijk (14 nov, Marcel: "op het plein is mijn Margherita 6"):
 soort klant (plein, villa) kwamen veel pizza's op 6. Nu `pizzaSter(p, b)` = 6 × cijfer / `MAXCIJFER[b]` (beste haalbare cijfer per buurt, gezocht
 met 20.000 willekeurige pizza's: oud 3,6, studenten 4,2, plein 4,15, villa 4,8). Een royale Margherita (3× kaas, 3× tomaat, champignon) = 5,3 op het
 plein en in de villawijk, 3,7 bij de studenten.
+Luigi in de scootmobielrace (14 nov, Marcel): Luigi (😎 op een scootmobiel, links op het gras, `RACE.luigi` 8,3 m/s) gooit elke ~6 s een 🍌 voor je
+wielen (60% in jouw baan, 16-20 m vooruit) en toetert als hij inhaalt. Henk snijdt af, maar blijft in 40% hangen in het rozenperk. Balkjes bovenin:
+rood jij, grijs Henk, groen Luigi, met je plaats. Uitslag (`raceKlaar(wie)`): jij = de bestelling (of tevreden +5); Henk = Henk kiest: je beste
+opa-pizza (oordeel − pepers) ≥ 3,5 = jij, anders Luigi (`S.tehuisLuigi`; met contract: tevreden −6); Luigi = Luigi krijgt hem (met contract:
+tevreden −10, `tehuisCheck`). Getest (bot, 30 races): goed sturen ≈ 2/3 winst, de rest verdeeld over Henk en Luigi. Obstakel 🦯 vervangen door 🛒.
