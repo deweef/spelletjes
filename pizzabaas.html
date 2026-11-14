@@ -911,7 +911,7 @@ const VRAGEN = [
     a: [['Ik ruim het zelf wel op.', () => { rep(1); return 'Je pakt een zakje. Je bent een held. Een vieze held.'; }],
       ['Dat ruimt u zelf maar op, meneer.', () => { rep(-1); return 'Mopperend ruimt de klant het op. Hij komt niet meer terug.'; }],
       ['Laat maar liggen, niemand ziet het.', () => { nieuweVlek(DEUR.x + 1.3, H - 1.6, 'poep'); return 'Iedereen ziet het. En ruikt het. (Tik erop om het alsnog op te ruimen.)'; }] ] },
-  { id: 'recensent', ik: '🧐', wie: 'Recensent van de krant', vraag: 'Ik schrijf voor De Avondpost. Wat raadt u mij aan?',
+  { id: 'recensent', kans: 2.5, ik: '🧐', wie: 'Recensent van de krant', vraag: 'Ik schrijf voor De Avondpost. Wat raadt u mij aan?',
     a: [['Mijn beste pizza.', () => { const o = besteOordeel(); rep(Math.round((o - 3) * 3)); if (o >= 4) naVraag = () => toonVraag({ id: 'vervolg', ik: '🧐', wie: 'Recensent van de krant', vraag: 'Uitstekend. Mag ik ook nog een foto van de kok voor de krant?', zelf: true, a: [['Natuurlijk, Mario, kom eens!', () => { rep(1); return 'Mario poseert met een pizza op elke hand. Morgen staat hij groot in de krant.'; }], ['Liever een foto van mij.', () => { rep(1); S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.05 }; return 'Jij staat in de krant met je duim omhoog. Je oma knipt hem uit.'; }], ['Geen foto\'s, we houden het mysterieus.', () => '"Mysterieus," schrijft hij op. Klinkt goed.']] }); return o >= 4 ? 'Krant: "Verrassend lekker! Vier sterren." Populariteit omhoog!' : 'Krant: "Tja. Het is eetbaar." Hmm.'; }],
       ['De duurste.', () => { const o = besteOordeel(); rep(Math.round((o - 3.5) * 3)); ge(5); return 'Krant: "Duur, maar ' + (o >= 4 ? 'het is het waard."' : 'dat smaak je niet."'); }],
       ['De Hawaii. Met extra ananas.', () => { rep(kans(0.5) ? 5 : -3); return 'Krant: "Ananas op pizza: SCHANDAAL!" Iedereen in de stad praat erover…'; }] ] },
@@ -936,9 +936,9 @@ const VRAGEN = [
       ['Nee, sorry.', () => 'Ze gaan het vragen bij Luigi.'],
       ['Alleen als ik ook een dansje krijg.', () => { rep(3); return 'De bruid danst met je door de zaak. Iedereen klapt!'; }] ] },
   { id: 'muzikant', ik: '🎸', wie: 'Straatmuzikant', vraag: 'Mag ik vanavond bij u spelen? Voor een kleine fooi.',
-    a: [['Ja, gezellig (€ 5).', () => { ge(-5); vandaag.gezellig += 1; return 'Italiaanse liedjes. De klanten neuriën mee.'; }],
+    a: [['Ja, gezellig (€ 5).', () => { ge(-5); vandaag.gezellig += 1; speelLied('bella'); return 'Italiaanse liedjes. De klanten neuriën mee. Bij "Bella ciao" zingt de hele zaak.'; }],
       ['Nee.', () => 'Hij speelt nu bij Luigi. Daar klinkt het gezellig…'],
-      ['Ik zing zelf wel!', () => { rep(-2); return 'Je zingt "O sole mio". Twee klanten vluchten naar buiten.'; }] ] },
+      ['Ik zing zelf wel!', () => { rep(-2); speelLied('donna', true); return 'Je zingt "La donna è mobile". Nou ja, zingen… Twee klanten vluchten naar buiten.'; }] ] },
   { id: 'kind', ik: '🧒', wie: 'Klein jongetje', vraag: 'Mag ik in de keuken kijken hoe je pizza maakt?',
     a: [['Ja hoor, kom maar.', () => { vandaag.fooi *= 1.1; return 'Zijn ouders zijn blij en geven extra fooi.'; }],
       ['Nee, dat mag niet.', () => 'Het jongetje gaat mokkend weer zitten.'],
@@ -1146,8 +1146,8 @@ const VRAGEN = [
       ['Alleen als ze één hapje nemen.', () => { if (kans(0.5)) { rep(3); morgenKl(1.1); return 'Eén model neemt een hap… en eet de hele pizza op. Die foto gaat de hele wereld over: "Zelfs topmodellen kunnen niet van deze pizza afblijven!"'; } return '"Een hapje?! Ben je gek?" Ze gaan naar Luigi. Daar mogen ze wel boos kijken.'; }],
       ['Nee, hier wordt gegeten.', () => { rep(1); return 'De fotograaf snuift, zet zijn zonnebril op en vertrekt. Binnen eet iedereen gewoon verder.'; }] ] },
   { id: 'opera', ik: '🎭', wie: 'Klant met een enorme snor', vraag: 'Mamma mia, deze pizza! Ik moet zingen. Mag ik? Even Nessun Dorma. Het hoge stuk. Héél hoog.',
-    a: [['Zing maar!', () => { if (kans(0.7)) { vandaag.gezellig += 1.5; vandaag.fooi *= 1.15; return 'VINCERÒÓÓÓ! De hele zaak staat op stoelen te klappen. Er wordt flink fooi gegeven.'; } nieuweVlek(6, 7, 'scherven'); return 'Bij de hoogste noot springt er een wijnglas. En nog een. Scherven, maar wel een staande ovatie.'; }],
-      ['Alleen als het hele personeel meezingt.', () => { vandaag.gezellig += 1; oberTempo(0.9); return 'Mario zingt mee, de obers ook (vals). Het is prachtig. Alleen wordt er even niks bezorgd.'; }],
+    a: [['Zing maar!', () => { speelLied('vincero'); if (kans(0.7)) { vandaag.gezellig += 1.5; vandaag.fooi *= 1.15; return 'VINCERÒÓÓÓ! De hele zaak staat op stoelen te klappen. Er wordt flink fooi gegeven.'; } nieuweVlek(6, 7, 'scherven'); return 'Bij de hoogste noot springt er een wijnglas. En nog een. Scherven, maar wel een staande ovatie.'; }],
+      ['Alleen als het hele personeel meezingt.', () => { speelLied('donna'); vandaag.gezellig += 1; oberTempo(0.9); return 'Mario zingt mee, de obers ook (vals). Het is prachtig. Alleen wordt er even niks bezorgd.'; }],
       ['Liever niet, we hebben buren.', () => 'Hij neuriet het dan maar. Heel hard. Met zijn ogen dicht.'] ] },
   { id: 'spaghetti', ik: '🍝', wie: 'Klant met een slab', vraag: 'Ik wil graag spaghetti bolognese. Die heeft u toch wel? Iedere Italiaan heeft spaghetti bolognese.',
     a: [['Natuurlijk! (Mario, maak eens wat…)', () => { ge(14); kokTraag(); return 'Mario maakt het mopperend: "In Bologna eten ze het met tagliatelle, NIET met spaghetti!" De klant betaalt € 14 en is blij. Mario is een uur chagrijnig.'; }],
@@ -1195,7 +1195,7 @@ const VRAGEN = [
     a: [['Natuurlijk! Op kosten van de zaak.', () => { ge(-20); vandaag.gezellig += 1; rep(1); return 'Iedereen zingt "Tanti auguri"! Mario huilt van geluk in het deeg. (− € 20, extra gezellig)'; }],
       ['Nee, werk is werk.', () => { if (ovens[0]) ovens[0].traag = true; return 'Mario bakt de rest van de avond mokkend… en langzaam.'; }],
       ['Alleen als je er zelf een lied bij zingt.', () => { vandaag.fooi *= 1.1; return 'Mario zingt een opera-aria met een pizzaschep als microfoon. De klanten geven meer fooi.'; }] ] },
-  { id: 'tiktok', ik: '📱', wie: 'Twee tieners', vraag: 'Mogen we een TikTok-dansje opnemen tussen de tafels? Het gaat zó viraal!',
+  { id: 'tiktok', kans: 2.5, ik: '📱', wie: 'Twee tieners', vraag: 'Mogen we een TikTok-dansje opnemen tussen de tafels? Het gaat zó viraal!',
     a: [['Ja, ga je gang!', () => { if (kans(0.35)) { nieuweVlek(6.5, 8.5, 'scherven'); return 'Midden in de draai gaat er een glas aan. Scherven! Maar het filmpje wordt wel bekeken.'; } S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.15 }; naVraag = () => toonVraag({ id: 'vervolg', ik: '📱', wie: 'Twee tieners', vraag: 'Het gaat VIRAAL! Mogen we nog eentje maken… met jou erin, baas?', zelf: true, a: [['Oké, één dansje.', () => { if (kans(0.5)) { S.morgen.aankomst *= 1.1; return 'Jouw dansje wordt nog vaker bekeken dan het hunne. Je bent beroemd!'; } return 'Je danst als een ijskast. De reacties: "Cringe 💀". Toch bekijkt iedereen het.'; }], ['Alleen als Mario meedoet.', () => { rep(1); return 'Mario gooit deeg in de lucht en vangt het met zijn hoofd. Een nieuwe ster is geboren.'; }], ['Nee, eentje is genoeg.', () => '"Boomer," mompelen ze, en ze gaan dansen bij Luigi.']] }); return '200.000 views! Morgen komen er extra klanten.'; }],
       ['Nee, er wordt hier gegeten.', () => 'Ze dansen dan maar op de stoep. Een beetje sneu.'],
       ['Alleen als jullie eerst een pizza bestellen.', () => { ge(PRIJS * 2); return 'Ze bestellen er twee en dansen met de pizzadoos. Slim.'; }] ] },
@@ -1203,7 +1203,7 @@ const VRAGEN = [
     a: [['Ja hoor, helemaal.', () => { if (kans(0.5)) { rep(-2); return 'Ze proeft en kijkt je aan. "Dit is gewoon mozzarella!" Ze vertelt het aan iedereen.'; } return 'Ze eet tevreden haar pizza. Je voelt je een beetje schuldig.'; }],
       ['Nee, maar ik kan hem zonder kaas maken.', () => { rep(1); return '"Wat attent!" Ze steekt haar duim op.'; }],
       ['Kaas is toch een soort groente?', () => 'Ze denkt er even over na. "…Nee." Ze neemt een salade.'] ] },
-  { id: 'blinddate', ik: '💘', wie: 'Zenuwachtige klant', vraag: 'Ik heb vanavond een blind date. Kunt u een kaarsje en een romantisch liedje regelen?',
+  { id: 'blinddate', kans: 2.5, ik: '💘', wie: 'Zenuwachtige klant', vraag: 'Ik heb vanavond een blind date. Kunt u een kaarsje en een romantisch liedje regelen?',
     a: [['Komt in orde!', () => { vandaag.fooi *= 1.15; rep(1); naVraag = () => toonVraag({ id: 'vervolg', ik: '💘', wie: 'De zenuwachtige klant (fluistert)', vraag: 'Psst, baas… ze vindt pizza Hawaii lekker. Ik vind dat vreselijk. Wat moet ik doen?', zelf: true, a: [['Zeg dat jij het ook lekker vindt.', () => { if (kans(0.6)) return 'Hij eet dapper een hele Hawaii. Zij is verliefd. Hij is een beetje misselijk.'; return 'Ze ziet hem kokhalzen bij de ananas. Toch geeft ze hem haar nummer.'; }], ['Eerlijk zijn is het beste.', () => { rep(1); return '"Ik haat ananas." Ze lacht: "Ik eigenlijk ook, ik wilde stoer doen." Liefde!'; }], ['Bestel een halve-halve pizza.', () => { ge(3); return 'Een halve Hawaii, een halve Margherita. Het eerste compromis van een mooie relatie.'; }]] }); return 'Het klikt meteen. Ze delen een pizza, net als in die film met de hondjes. Dikke fooi!'; }],
       ['Sorry, wij zijn een pizzeria, geen datingbureau.', () => 'Hij zucht. De date wordt… ongemakkelijk.'],
       ['De ober zingt wel voor jullie.', () => { if (kans(0.5)) { vandaag.fooi *= 1.2; return 'De ober blijkt een prachtige stem te hebben. Applaus van de hele zaak!'; } rep(-1); return 'De ober zingt vals. De date vlucht naar de wc en komt niet terug.'; }] ] },
@@ -1219,7 +1219,7 @@ const VRAGEN = [
     a: [['Laten slapen, hij heeft het verdiend.', () => { vandaag.gezellig -= 1; return 'Het gesnurk gaat de hele avond door. Een beetje minder gezellig.'; }],
       ['Een sterke espresso brengen.', () => { ge(3); rep(1); return 'Opa schrikt wakker: "Ik was niet aan het slapen!" Hij betaalt de espresso.'; }],
       ['Filmen en op internet zetten.', () => { S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.1 }; rep(-1); return '"Snurkopa" gaat viraal. Morgen komen er mensen kijken, maar opa vindt het minder leuk.'; }] ] },
-  { id: 'goochelaar', ik: '🎩', wie: 'Goochelaar', vraag: 'Goedenavond! Mag ik voor een gratis pizza wat trucs doen voor uw gasten?',
+  { id: 'goochelaar', kans: 2.5, ik: '🎩', wie: 'Goochelaar', vraag: 'Goedenavond! Mag ik voor een gratis pizza wat trucs doen voor uw gasten?',
     a: [['Ja, leuk!', () => { vandaag.gezellig += 1; naVraag = () => toonVraag({ id: 'vervolg', ik: '🎩', wie: 'Goochelaar', vraag: 'Voor mijn laatste truc heb ik een vrijwilliger nodig. U, baas! Mag ik u doormidden zagen?', zelf: true, a: [['Natuurlijk, ik ben nergens bang voor.', () => { rep(2); return 'Hij zaagt, je schreeuwt, iedereen gilt… en je staat er weer heel bij. Daverend applaus!'; }], ['Zaag Mario maar doormidden.', () => { if (kans(0.5)) { vandaag.gezellig += 1; return 'Mario verdwijnt in de kist en komt eruit met een pizza. Hoe?!'; } kokTraag(); return 'Mario is zo geschrokken dat hij de rest van de avond trillend deeg kneedt.'; }], ['Liever niet, ik moet nog werken.', () => 'Hij zaagt dan maar een calzone doormidden. Ook mooi.']] }); return 'Hij tovert een duif uit een calzone. Iedereen klapt.'; }],
       ['Nee, dank je.', () => 'Hij verdwijnt. Letterlijk. Hoe deed hij dat?'],
       ['Laat mijn schulden maar verdwijnen.', () => { ge(-10); return 'Hij laat je portemonnee verdwijnen… en weer verschijnen. Er zit € 10 minder in. "Dat is de truc!"'; }] ] },
@@ -1235,7 +1235,7 @@ const VRAGEN = [
     a: [['Ja, kom maar in de keuken!', () => { S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.15 }; if (kans(0.4)) nieuweVlek(4, 4, 'kruimels'); return 'De kinderen vinden het prachtig. Morgen komen de ouders ook!'; }],
       ['Nee, te gevaarlijk bij de oven.', () => 'De kinderen drukken hun neuzen tegen het raam. Vette vegen.'],
       ['Alleen als ze daarna afwassen.', () => { vandaag.oberSnel *= 1.1; return 'Ze wassen af als een stel pinguïns, maar het helpt echt!'; }] ] },
-  { id: 'kat', ik: '🐈', wie: 'Een kat', vraag: 'Een rode kat wandelt binnen, springt op een stoel en kijkt je uitdagend aan.',
+  { id: 'kat', kans: 2.5, ik: '🐈', wie: 'Een kat', vraag: 'Een rode kat wandelt binnen, springt op een stoel en kijkt je uitdagend aan.',
     a: [['Laten zitten, wat schattig.', () => { vandaag.gezellig += 1; S.vuil = (S.vuil || 0) + 1; return 'De klanten aaien hem. De keuringsdienst zou het minder leuk vinden.'; }],
       ['Buiten zetten.', () => 'De kat kijkt je beledigd aan en loopt naar Luigi.'],
       ['Hij heet vanaf nu Pepperoni!', () => { rep(1); naVraag = () => toonVraag({ id: 'vervolg', ik: '🐈', wie: 'Pepperoni de kat', vraag: 'Miauw. (Pepperoni kijkt veelbetekenend naar de keuken.)', zelf: true, a: [['Een stukje mozzarella dan.', () => { S.lief = (S.lief || 0) + 0.5; return 'Pepperoni spint als een motor. Hij komt elke dag terug.'; }], ['Jij moet muizen vangen, niet bedelen!', () => { if (kans(0.5)) return 'Een uur later legt hij trots een muis bij de toonbank. Nou ja, bedankt.'; return 'Pepperoni draait zich om en gaat slapen in de broodmand.'; }], ['Ik maak een foto voor de menukaart.', () => { rep(1); return '"Pizzeria met de kat" gaat rond in de buurt-app. Iedereen wil Pepperoni zien.'; }]] }); return 'Pepperoni is de nieuwe mascotte. Hij krijgt een eigen kussen bij de deur.'; }] ] },
@@ -1243,7 +1243,7 @@ const VRAGEN = [
     a: [['pizza123', () => 'Binnen een minuut zit de hele straat op je wifi.'],
       ['Geen wifi. Praat met elkaar!', () => { vandaag.gezellig += 0.5; return 'Ze kijken elkaar verbaasd aan… en beginnen te praten. Gezellig!'; }],
       ['Eerst een tiramisu bestellen.', () => { ge(6); return 'Het wachtwoord blijkt "tiramisu" te zijn. Slim.'; }] ] },
-  { id: 'aanzoek', ik: '💍', wie: 'Zenuwachtige klant', vraag: 'Ik wil mijn vriendin ten huwelijk vragen. Kunt u de ring in haar pizza verstoppen?',
+  { id: 'aanzoek', kans: 2.5, ik: '💍', wie: 'Zenuwachtige klant', vraag: 'Ik wil mijn vriendin ten huwelijk vragen. Kunt u de ring in haar pizza verstoppen?',
     a: [['Ja, wat romantisch!', () => { if (kans(0.7)) { vandaag.fooi *= 1.3; rep(2); naVraag = () => toonVraag({ id: 'vervolg', ik: '🥂', wie: 'Het verloofde stel', vraag: 'We zijn verloofd! Mogen we hier ook… de bruiloft vieren?', zelf: true, a: [['Ja! Ik maak de grootste pizza ooit.', () => { S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.15 }; ge(-20); return 'Een pizza van een meter, met een hartje van salami. Morgen komt de hele familie eten.'; }], ['Alleen als ik getuige mag zijn.', () => { rep(1); return 'Afgesproken! Je krijgt een strik om en een stuk taart.'; }], ['Graag, maar dan wel tegen betaling.', () => { ge(50); return 'Ze betalen alvast een aanbetaling van € 50. Romantiek is ook gewoon zaken.'; }]] }); return 'Ze vindt de ring en roept JA! De hele zaak juicht. Dikke fooi!'; } return 'Ze eet de ring bijna op. Na een glas water zegt ze toch ja.'; }],
       ['Te riskant, dadelijk slikt ze hem in.', () => 'Hij vraagt het gewoon zo. Ze zegt ja. Jij krijgt geen taart.'],
       ['Doe hem maar in de tiramisu.', () => { ge(6); rep(1); return 'Ze vindt de ring tussen de mascarpone. Ja! En nog een tiramisu besteld.'; }] ] },
@@ -3830,6 +3830,8 @@ doek.addEventListener('pointerdown', (e) => {
   const begin = () => ({ x: e.clientX, y: e.clientY, mx: zoomMidden[0], my: zoomMidden[1], bewogen: false });
   if (modus != 'inrichten') { // tijdens het werk: tik op een vlek om hem op te ruimen
     const v = naarVak(e), vl = vlekBij(v.fx, v.fy);
+    const jb = S.spullen.find((t) => t.t == 'jukebox' && v.fx >= t.x && v.fx < t.x + SPUL.jukebox.w && v.fy >= t.y && v.fy < t.y + SPUL.jukebox.h);
+    if (jb && (!ac || ac.currentTime > liedTot)) { speelWillekeurig(); return; } // tik op de jukebox: een Italiaans liedje
     if (rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) { muntjes.push({ x: rat.x, y: rat.y, t: 1.2, tekst: '🐀 Gevangen!' }); rat = null; vandaag.gezellig += 1; kassa(); return; }
     if (vl) { vlekken.splice(vlekken.indexOf(vl), 1); tel.opgeruimd = (tel.opgeruimd || 0) + 1; ding(1500, 0.05, 'sine', 0.05); setTimeout(() => ding(1900, 0.06, 'sine', 0.05), 50);
       muntjes.push({ x: vl.x, y: vl.y, t: 1, tekst: vl.soort == 'poep' ? '🧻 Bah!' : '🧽 Schoon!' }); }
@@ -4230,6 +4232,27 @@ const kassa = () => {
 };
 const plof = () => ding(220, 0.12, 'triangle', 0.1);
 const boos = () => { ding(200, 0.2, 'sawtooth', 0.05); setTimeout(() => ding(150, 0.3, 'sawtooth', 0.05), 150); };
+// ---------- Italiaanse liedjes (oude melodieën, vrij van rechten), zelf gespeeld met Web Audio ----------
+// noten als 'A4' (met # voor een halve toon hoger), tel = duur in tellen; '-' = rust
+const LIED = {
+  vincero: { n: 'Nessun dorma (Puccini)', tempo: 0.42, noten: 'D4:.5 E4:.5 F#4:1 G4:.5 F#4:.5 E4:1 D4:2 -:.5 A4:.5 B4:.5 A4:1 G4:.5 F#4:.5 E4:1 D4:2 -:.5 F#4:.75 E4:.75 D4:2.5 -:.5 A4:1 B4:3.5 A4:3 D4:1.5',
+    bas: 'D3:6 G3:6 D3:6 A2:5 D3:4' },
+  donna: { n: 'La donna è mobile (Verdi)', tempo: 0.3, noten: 'G4:.5 G4:.5 G4:.5 B4:1 A4:.5 F4:1.5 -:.5 F4:.5 F4:.5 F4:.5 A4:1 G4:.5 E4:1.5 -:.5 G4:.5 G4:.5 G4:.5 C5:1 B4:.5 A4:1.5 -:.5 G4:.5 E4:.5 F4:.5 D4:.5 C4:2.5',
+    bas: 'G2:5 C3:5 F2:2.5 G2:2.5 G2:2 C3:2.5' },
+  bella: { n: 'Bella ciao', tempo: 0.27, noten: 'E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:2 B4:1 A4:1 C5:2 B4:1 A4:1 E5:2 E5:1 E5:1 E5:1 D5:1 E5:1 F5:1 F5:2 -:1 F5:1 E5:1 D5:1 F5:1 E5:2 -:1 E5:1 D5:1 C5:1 B4:2 E5:2 C5:2 B4:2 A4:4',
+    bas: 'A2:8 A2:8 A2:5 E2:4 A2:6 D3:7 A2:7 E2:5 E2:2 A2:8' } };
+let liedTot = 0;
+const nootHz = (n) => { const m = n.match(/^([A-G])(#?)(\d)$/); return 440 * 2 ** (({ C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 }[m[1]] + (m[2] ? 1 : 0) + (+m[3] - 4) * 12) / 12); };
+function speelLied(id, vals) { // vals = zo zing jij (een beetje ernaast)
+  wekGeluid(); if (!ac) return; const L = LIED[id]; let t = Math.max(ac.currentTime + 0.05, liedTot);
+  const stem = (spoor, type, v, oct) => { let tt = t; for (const st of spoor.split(' ')) { const [n, d] = st.split(':'), dur = +d * L.tempo;
+      if (n != '-') { let f = nootHz(n) * oct; if (vals) f *= 2 ** ((Math.random() - 0.5) * 0.12 * (Math.random() < 0.4 ? 3 : 1)); const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f;
+        if (type == 'triangle') { const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.5; lg.gain.value = f * 0.006; lfo.connect(lg).connect(o.frequency); lfo.start(tt); lfo.stop(tt + dur); } // vibrato
+        gn.gain.setValueAtTime(0.0001, tt); gn.gain.exponentialRampToValueAtTime(v, tt + 0.03); gn.gain.setValueAtTime(v, tt + dur * 0.7); gn.gain.exponentialRampToValueAtTime(0.0001, tt + dur * 0.98);
+        o.connect(gn).connect(ac.destination); o.start(tt); o.stop(tt + dur); } tt += dur; } return tt; };
+  liedTot = Math.max(stem(L.noten, 'triangle', 0.09, 1), L.bas ? stem(L.bas, 'sine', 0.06, 1) : 0); meld(`🎵 ${L.n}`, 3000);
+}
+const speelWillekeurig = () => speelLied(pak(Object.keys(LIED)));
 
 // ---------- het zwarte schermpje in het paneel ----------
 let lcdT = 0;

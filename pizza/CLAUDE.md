@@ -427,3 +427,9 @@ Vragen (14 nov, Marcel: "regelmatig dezelfde vragen"): de keuze was wel willekeu
 180), maar `ovenkapot` en `lekkage` wogen bij veel geld zwaar (nu begrensd op 4 en 3,5) en de standaardrust is nu 15 dagen i.p.v. 8. Nieuw (Italiaans):
 'quiz' (Radio Pizza FM, `QUIZ` 18 vragen over pizza/Italië/voetbal/mode/ijs, `quizNr()` vast tot je antwoordt, `a` is een getter; goed = € 25, rep +1;
 kans 6, rust 2), 'serieA', 'modeshoot', 'opera', 'spaghetti', 'cappuccino', 'ferrari', 'handen' (sollicitant uit Napels), 'mamma' (moeder van Mario), 'scheef' (Pisa).
+Vervolgvragen (14 nov, getest met t120): recensent (alleen als je beste pizza ≥ 4 scoort), tiktok, blinddate, goochelaar, kat (Pepperoni), aanzoek;
+ze werken, maar komen pas na precies die vraag + dat antwoord. Die zes vragen hebben nu `kans: 2.5` (was 1).
+Muziek (14 nov): `LIED` (vincero = slot van Nessun dorma, donna = La donna è mobile, bella = Bella ciao; noten 'A4:1', '-' = rust, plus een bas),
+`speelLied(id, vals)` (driehoek met vibrato + sinusbas, achter elkaar in de rij via `liedTot`, `vals` = jij zingt ernaast), `speelWillekeurig`.
+Te horen bij: opera-vraag (Zing maar → vincero, personeel zingt mee → donna), straatmuzikant (bella; zelf zingen = donna vals), en tik tijdens het
+werk op de jukebox. De melodieën zijn uit het hoofd: klinkt iets niet goed, pas de notenreeks aan (bas moet even lang blijven, er is een rekenhulp in de chat).
