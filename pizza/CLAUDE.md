@@ -449,3 +449,6 @@ niet meer als de kamer al open is, en `kiesVraag` slaat vragen over die in `S.ve
 Sterren op de menukaart (14 nov): `pizzaCijfer(p)` = oordeel gemiddeld over alle soorten (gewogen met `SOORT.kans`), kan hooguit ~3,6 (niet elke soort
 wil hetzelfde); `pizzaSter(p)` = × 1,6, max 6 (getest met 30.000 willekeurige pizza's: beste 5,8, 8% haalt 4). Op de kaart als ⭐⭐⭐⭐☆☆ 4,2.
 `besteOordeel()` (recensent) rekent nu in sterren: vroeger was ≥ 4 onmogelijk, dus kwam de vervolgvraag (foto voor de krant) nooit.
+Menukaart (14 nov, Marcel: "Margherita veel sterren maar weinig verkocht"): klanten kiezen niet op sterren maar elk de pizza met hun eigen hoogste
+oordeel (`kiesPizza`, prijs telt niet). Daarom per pizza `favVan(p)` = "👑 De lekkerste voor: 🎓 📸" (soorten waarvoor hij binnen 0,25 van de beste op
+de kaart zit) of "🙈 Voor niemand de lekkerste". Sterren en de percentages bovenaan rekenen nu met de buurt (`buurtKans()`, uit `BUURT[..].soort`).
