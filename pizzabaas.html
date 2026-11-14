@@ -841,8 +841,8 @@ function aflossen() {
   const regels = []; S.leningen = S.leningen || [];
   for (const l of [...S.leningen]) {
     const a = AANBIEDER[l.van], bedrag = Math.min(l.perDag, l.rest);
-    if (l.van == 'bank' && S.geld + (S.bankSaldo || 0) >= bedrag) { const [b, c] = betaalBank(bedrag); l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n}${b ? ` (€ ${Math.round(b)} automatisch van je rekening)` : ''}`, -c]); } // de bank incasseert van je rekening
-    else if (S.geld >= bedrag) { S.geld -= bedrag; l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n}`, -bedrag]); }
+    if (l.van == 'bank' && S.geld + (S.bankSaldo || 0) >= bedrag) { const [b, c] = betaalBank(bedrag); l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n}: € ${Math.round(bedrag)}${b ? (c >= 0.5 ? ` (€ ${Math.round(b)} van je rekening, € ${Math.round(c)} uit de kassa)` : ' (automatisch van je rekening)') : ''} · nog € ${Math.round(l.rest)} te gaan`, -Math.round(bedrag)]); } // de bank incasseert van je rekening
+    else if (S.geld >= bedrag) { S.geld -= bedrag; l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n} · nog € ${Math.round(l.rest)} te gaan`, -bedrag]); }
     else { l.achter++; regels.push([`${a.gz} ${a.n}: niet betaald! ⚠️`, 0]); }
     if (l.rest <= 0) { S.leningen.splice(S.leningen.indexOf(l), 1); regels.push([`🎉 Lening van ${a.n} afbetaald`, 0]); }
     else if (l.achter && (l.van == 'sjaak' || l.achter >= 2)) { // beslag: spullen meenemen tot de schuld betaald is
@@ -2752,9 +2752,9 @@ const PLEK = {
   turk: { n: 'Shoarma Ahmet', ik: '🥙', x: 420, y: 290, b: 115, h: 110 },
   kunst: { n: 'Kunstuitleen', ik: '🖼️', x: 560, y: 490, b: 100, h: 110 },
   studenten: { n: 'Studentenhuis', ik: '🎓', x: 110, y: 520, b: 170, h: 170 },
-  huur1: { n: 'Te huur: klein pand', ik: '🏚️', x: 580, y: 40, b: 130, h: 115, huur: 40, borg: 3500, buurt: 'studenten' },
-  huur2: { n: 'Te huur: aan het plein', ik: '🏠', x: 715, y: 180, b: 110, h: 135, huur: 70, borg: 5500, buurt: 'toeristen' },
-  huur3: { n: 'Te huur: villa met tuin', ik: '🏡', x: 1100, y: 130, b: 200, h: 170, huur: 110, borg: 8000, buurt: 'villa' },
+  huur1: { n: 'Te huur: klein pand', ik: '🏚️', x: 580, y: 40, b: 130, h: 115, huur: 40, borg: 3500, buurt: 'studenten', bord: [661, 125, 46, 28] },
+  huur2: { n: 'Te huur: aan het plein', ik: '🏠', x: 715, y: 180, b: 110, h: 135, huur: 70, borg: 5500, buurt: 'toeristen', bord: [745, 255, 50, 33] },
+  huur3: { n: 'Te huur: villa met tuin', ik: '🏡', x: 1100, y: 130, b: 200, h: 170, huur: 110, borg: 8000, buurt: 'villa', bord: [1121, 232, 47, 30] },
   bouw: { n: 'Bouwplaats', ik: '🏗️', x: 1000, y: 440, b: 260, h: 220 },
   wissel: { n: 'Snelle Sjonnie', ik: '💱', x: 740, y: 470, b: 100, h: 100 },
   tehuis: { n: 'Huize Avondrood', ik: '👵', x: 300, y: 650, b: 120, h: 110 },
@@ -2833,7 +2833,7 @@ function toonStad(plek) {
   if (!S.stad) { S.stad = S.dag; bewaar(); setTimeout(controleerDoelen, 300); }
   const k = $('stadkaart');
   if (!plek) {
-    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%">${id == 'bouw' && torenBij().fase ? `<i class="torenkaart" style="background-position:${(torenBij().fase - 1) / 3 * 100}% 0"></i>` : ''}<span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') + ' ⭐' + Math.round(zaakVan(id) == S.zaak ? S.rep : S.zaken[zaakVan(id)].rep || 0) : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
+    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${Object.entries(PLEK).filter(([id, p]) => p.bord && zaakVan(id) >= 0).map(([, p]) => `<svg viewBox="0 0 50 30" style="position:absolute;pointer-events:none;left:${p.bord[0] / 13.76}%;top:${p.bord[1] / 7.68}%;width:${p.bord[2] / 13.76}%;height:${p.bord[3] / 7.68}%"><rect x="1" y="1" width="48" height="28" rx="2" fill="#b8322a" stroke="#2a2a2a" stroke-width="2"/><text x="25" y="13" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff" font-family="system-ui">PIZZERIA</text><text x="25" y="24" text-anchor="middle" font-size="9">🍕</text></svg>`).join('')}${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%">${id == 'bouw' && torenBij().fase ? `<i class="torenkaart" style="background-position:${(torenBij().fase - 1) / 3 * 100}% 0"></i>` : ''}<span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') + ' ⭐' + Math.round(zaakVan(id) == S.zaak ? S.rep : S.zaken[zaakVan(id)].rep || 0) : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
       ${modus != 'inrichten' && S.manager ? `<p class="buurt" style="text-align:center">🕒 De zaak is open. ${esc(MANAGER[S.manager.wie].n)} past op de winkel${S.manager.wie == 'kevin' ? '… hopelijk' : ''}.</p>` : ''}
       <p class="buurt" style="text-align:center">Tik op een plek in de stad. <button class="knop" id="stadterug" style="margin-left:8px">🍕 Terug naar je zaak</button></p>`;
     k.querySelectorAll('[data-plek]').forEach((b) => b.onclick = () => toonStad(b.dataset.plek));

@@ -478,3 +478,7 @@ op 55% af (+25 m). Getest met een bot (t132): 0-2 botsingen = altijd winst, 3 �
 (`a` = getter, letters tot J), 20 pizza's × prijs × 0,8 (`TEHUIS`, `tel.extra.tehuis`), inkoop apart, keuken trager. Oordeel = `oordeel(p, 'opa')`
 − 1,5 bij pepers: ≥ 4,5 = tevreden +12, rep +1 en een week meer opa's (`S.opaTot`, ×1,4 in `kiesSoort`); ≥ 3 = +4; anders −18. Overslaan −25.
 Onder 20 = opgezegd ("we gaan het met Luigi proberen"), dan weer racen. Op de kalender staat elke zondag de pizzamiddag.
+Aflossing in het dagoverzicht (14 nov, Marcel dacht dat er te weinig werd afgelost): de regel toonde alleen het kassadeel (− € 89,57) met het bankdeel
+tussen haakjes. Nu: "Aflossing Banca Fortuna: € 268 (€ 178 van je rekening, € 90 uit de kassa) · nog € 732 te gaan", afgerond. Stadskaart: de
+"TE HUUR"-bordjes in het plaatje krijgen een rood PIZZERIA-bordje erover als je dat pand huurt (`PLEK.huurN.bord` = [x, y, b, h] in kaartpixels, svg
+onder de labels).
