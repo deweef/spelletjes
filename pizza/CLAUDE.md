@@ -423,3 +423,7 @@ melding met `betaalTekst`); aflossing aan de bank ook (automatische incasso). Be
 "alles naar de bank" houdt € 100 wisselgeld.
 Barrie leren kennen: vraag 'barrie' komt pas als je een achterkamer hebt én Luigi je de afgelopen 5 dagen gesaboteerd heeft (`S.gesaboteerd`); daarna
 komt hij 20% van de dagen langs voor de achterkamer (`kamerBezoek` → 'barrieLangs'), of je belt hem na een streek van Luigi.
+Vragen (14 nov, Marcel: "regelmatig dezelfde vragen"): de keuze was wel willekeurig (gewogen met `kans`, simulatie 60 dagen: 92 verschillende van
+180), maar `ovenkapot` en `lekkage` wogen bij veel geld zwaar (nu begrensd op 4 en 3,5) en de standaardrust is nu 15 dagen i.p.v. 8. Nieuw (Italiaans):
+'quiz' (Radio Pizza FM, `QUIZ` 18 vragen over pizza/Italië/voetbal/mode/ijs, `quizNr()` vast tot je antwoordt, `a` is een getter; goed = € 25, rep +1;
+kans 6, rust 2), 'serieA', 'modeshoot', 'opera', 'spaghetti', 'cappuccino', 'ferrari', 'handen' (sollicitant uit Napels), 'mamma' (moeder van Mario), 'scheef' (Pisa).

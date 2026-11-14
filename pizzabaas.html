@@ -874,6 +874,26 @@ function oberWeg() { if (obers.length > 1) { const o = obers.pop(); if (o.taak) 
 const morgenKl = (f) => { S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * f }; };
 const kokTraag = () => { if (ovens[0]) ovens[0].traag = true; }, oberTempo = (f) => { vandaag.oberSnel *= f; };
 const ietsOp = () => { const l = opDeKaart(); if (l.length) vandaag.op = pak(l); };
+const QUIZ = [ // [vraag, goed, fout, fout, uitleg]
+  ['Uit welke stad komt de pizza Margherita?', 'Napels', 'Rome', 'Milaan', 'In 1889 bakte een pizzabakker in Napels hem voor koningin Margherita: rood, wit en groen, de kleuren van de vlag.'],
+  ['Welke kleuren heeft de Italiaanse vlag?', 'Groen, wit, rood', 'Rood, wit, blauw', 'Groen, wit, oranje', 'Groen, wit en rood: net als een Margherita met basilicum, mozzarella en tomaat.'],
+  ['Hoe heet de beroemde voetbalclub uit Turijn?', 'Juventus', 'Napoli', 'AS Roma', 'Juventus, "de oude dame", in zwart-wit.'],
+  ['Hoe vaak werd Italië wereldkampioen voetbal?', 'Vier keer', 'Eén keer', 'Zeven keer', '1934, 1938, 1982 en 2006. Nederland: nul keer. Au.'],
+  ['Wat betekent "gelato"?', 'IJs', 'Koud', 'Gelatine', 'Gelato is Italiaans ijs: minder lucht en minder vet dan gewoon ijs, dus romiger.'],
+  ['In welke stad staat de scheve toren?', 'Pisa', 'Venetië', 'Florence', 'De toren van Pisa zakte al scheef tijdens het bouwen, ruim 800 jaar geleden.'],
+  ['Wat betekent "tiramisu" letterlijk?', 'Trek me omhoog', 'Koffietaart', 'Zoete wolk', 'Tirami sù = trek me omhoog, vanwege de koffie en de suiker.'],
+  ['Welk modemerk komt uit Italië?', 'Gucci', 'Zara', 'H&M', 'Gucci komt uit Florence. Zara is Spaans, H&M Zweeds.'],
+  ['Welke vulkaan bedolf de stad Pompeï?', 'De Vesuvius', 'De Etna', 'De Stromboli', 'In het jaar 79 verdween Pompeï onder de as van de Vesuvius, vlak bij Napels.'],
+  ['Hoe heet een dubbelgevouwen pizza?', 'Calzone', 'Focaccia', 'Bruschetta', 'Calzone betekent eigenlijk "broekspijp".'],
+  ['Welke pasta heeft de vorm van een strikje?', 'Farfalle', 'Penne', 'Fusilli', 'Farfalle betekent vlinders.'],
+  ['Waar is de pizza Hawaii bedacht?', 'In Canada', 'Op Hawaï', 'In Napels', 'Een Griekse kok in Canada legde in 1962 ananas op een pizza. Italianen zijn er nog steeds boos over.'],
+  ['Welk Italiaans automerk heeft een steigerend paard in het logo?', 'Ferrari', 'Lamborghini', 'Fiat', 'Ferrari heeft het paard, Lamborghini een stier.'],
+  ['Hoe zeg je "proost" in het Italiaans?', 'Cin cin', 'Prost', 'Skål', 'Cin cin! Het klinkt als klinkende glazen.'],
+  ['Welke kaas hoort op een echte Margherita?', 'Mozzarella', 'Goudse kaas', 'Brie', 'Mozzarella, het liefst van buffelmelk uit de buurt van Napels.'],
+  ['Hoeveel kilo pasta eet een Italiaan gemiddeld per jaar?', 'Ruim 20 kilo', 'Ruim 5 kilo', 'Ruim 60 kilo', 'Zo\'n 23 kilo per persoon. Een Nederlander eet er ongeveer 7.'],
+  ['Welke stad is beroemd om zijn gondels?', 'Venetië', 'Rome', 'Turijn', 'In Venetië varen de gondels door de grachten. Net Amsterdam, maar dan met zingen.'],
+  ['Wat is "pizza al taglio"?', 'Pizza in stukken, per gewicht', 'Pizza zonder kaas', 'Pizza met een gat', 'In Rome koop je pizza in rechthoekige stukken: je zegt hoe groot, ze knippen hem met een schaar.'] ];
+const quizNr = () => ((S.dag * 7 + (S.quizTel || 0) * 5) % QUIZ.length); // vast tot je antwoordt (vraagKort en toonVraag roepen het allebei aan)
 const VRAGEN = [
   { id: 'pizzatip', ik: '🧔', wie: 'Vaste klant', kans: 6, als: () => S.menu.length <= 1 && S.dag >= 2, vraag: 'Lekker hoor, die Margherita. Maar wanneer komen er eens nieuwe pizza\'s op de kaart?',
     a: [['Daar heb ik voorlopig geen tijd voor.', () => { rep(-1); return 'De klant zucht. "Dan ga ik volgende week maar naar Luigi."'; }],
@@ -1111,6 +1131,48 @@ const VRAGEN = [
     a: [['Natuurlijk, Bruno. Je verdient het.', () => { if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno kust je op beide wangen. "Grazie, signore!"'; }],
       ['Nee, daar is geen geld voor.', () => { if (Math.random() < 0.4 && S.manager) { S.manager = null; man = null; return 'Bruno zet zijn hoed op. "Dan ga ik naar Luigi." Weg is hij. (Je hebt geen manager meer.)'; } return 'Bruno zucht diep. "Va bene. Voorlopig."'; }],
       ['Hier, een fles van onze beste wijn.', () => { ge(-25); if (Math.random() < 0.6) return 'Bruno ruikt eraan. "Ah, een Barolo! Voor nu ben ik tevreden." (− € 25)'; if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno: "Wijn betaalt mijn huur niet." Hij krijgt de opslag toch. (− € 25, en € 15 per dag extra)'; }] ] },
+  // ---- Italiaans (14 nov): quiz van Radio Pizza FM (elke keer een andere vraag) en vragen over voetbal, mode, opera, pasta ----
+  { id: 'quiz', ik: '📻', wie: 'Radio Pizza FM (telefoon)', kans: 6, rust: () => 2,
+    vraag: () => `Goedemiddag, u bent live op Radio Pizza FM! Voor € 25 en de eeuwige roem: ${QUIZ[quizNr()][0]}`,
+    get a() { const [, goed, ...fout] = QUIZ[quizNr()], uitleg = QUIZ[quizNr()][4], l = [[goed, true], ...fout.slice(0, 2).map((f) => [f, false])];
+      const r = quizNr() % 3; [l[0], l[r]] = [l[r], l[0]]; // de goede staat niet altijd bovenaan
+      return l.map(([t, ok]) => [t + '!', () => { S.quizTel = (S.quizTel || 0) + 1; if (ok) { ge(25); rep(1); vandaag.gezellig += 0.5; return `"GOED!" De hele zaak juicht. € 25 erbij. ${uitleg}`; } return `"Helaas! Het goede antwoord was: ${goed}." ${uitleg}`; }]); } },
+  { id: 'serieA', ik: '⚽', wie: 'Twee Italiaanse toeristen', vraag: 'Wij hebben ruzie. Ik ben voor Inter, hij is voor AC Milan. U moet kiezen. Nu. Wie is de beste club van Milaan?',
+    a: [['Inter!', () => { vandaag.fooi *= 1.1; rep(-1); return 'De ene omhelst je, de andere loopt boos weg zonder te betalen. Half om half.'; }],
+      ['AC Milan!', () => { vandaag.fooi *= 1.1; rep(-1); return 'De ene zoent je op twee wangen, de andere gooit zijn servet op tafel. Typisch.'; }],
+      ['Ajax.', () => { vandaag.gezellig += 1; return 'Stilte. Dan barsten ze allebei in lachen uit. "Ajax! Hahaha!" Ze bestellen samen een fles wijn en zijn hun ruzie vergeten.'; }] ] },
+  { id: 'modeshoot', ik: '📸', wie: 'Fotograaf van een Italiaans modeblad', vraag: 'Ciao! Mag ik in uw zaak een fotoshoot doen? Met zes modellen. Ze eten niets, natuurlijk. Ze kijken alleen heel boos naar de pizza.',
+    a: [['Ja, voor € 100.', () => { ge(100); vandaag.gezellig -= 0.5; return 'De modellen staren een uur naar een Margherita zonder te eten. De klanten vinden het eng, maar je hebt € 100.'; }],
+      ['Alleen als ze één hapje nemen.', () => { if (kans(0.5)) { rep(3); morgenKl(1.1); return 'Eén model neemt een hap… en eet de hele pizza op. Die foto gaat de hele wereld over: "Zelfs topmodellen kunnen niet van deze pizza afblijven!"'; } return '"Een hapje?! Ben je gek?" Ze gaan naar Luigi. Daar mogen ze wel boos kijken.'; }],
+      ['Nee, hier wordt gegeten.', () => { rep(1); return 'De fotograaf snuift, zet zijn zonnebril op en vertrekt. Binnen eet iedereen gewoon verder.'; }] ] },
+  { id: 'opera', ik: '🎭', wie: 'Klant met een enorme snor', vraag: 'Mamma mia, deze pizza! Ik moet zingen. Mag ik? Even Nessun Dorma. Het hoge stuk. Héél hoog.',
+    a: [['Zing maar!', () => { if (kans(0.7)) { vandaag.gezellig += 1.5; vandaag.fooi *= 1.15; return 'VINCERÒÓÓÓ! De hele zaak staat op stoelen te klappen. Er wordt flink fooi gegeven.'; } nieuweVlek(6, 7, 'scherven'); return 'Bij de hoogste noot springt er een wijnglas. En nog een. Scherven, maar wel een staande ovatie.'; }],
+      ['Alleen als het hele personeel meezingt.', () => { vandaag.gezellig += 1; oberTempo(0.9); return 'Mario zingt mee, de obers ook (vals). Het is prachtig. Alleen wordt er even niks bezorgd.'; }],
+      ['Liever niet, we hebben buren.', () => 'Hij neuriet het dan maar. Heel hard. Met zijn ogen dicht.'] ] },
+  { id: 'spaghetti', ik: '🍝', wie: 'Klant met een slab', vraag: 'Ik wil graag spaghetti bolognese. Die heeft u toch wel? Iedere Italiaan heeft spaghetti bolognese.',
+    a: [['Natuurlijk! (Mario, maak eens wat…)', () => { ge(14); kokTraag(); return 'Mario maakt het mopperend: "In Bologna eten ze het met tagliatelle, NIET met spaghetti!" De klant betaalt € 14 en is blij. Mario is een uur chagrijnig.'; }],
+      ['Dit is een pizzeria, meneer.', () => 'Hij bestelt een pizza. En vraagt of er spaghetti op kan.'],
+      ['Een pizza mét spaghetti erop!', () => { if (kans(0.5)) { morgenKl(1.1); return 'Iemand filmt het. "Pizzaghetti" gaat viraal. Morgen komen er nieuwsgierigen.'; } rep(-1); return 'Een Italiaanse toerist aan het tafeltje ernaast slaat een kruisje en loopt weg.'; }] ] },
+  { id: 'cappuccino', ik: '☕', wie: 'Italiaanse oma op vakantie', vraag: 'Die jongen daar bestelt een cappuccino. NA HET ETEN. Om negen uur \'s avonds! Doe iets!',
+    a: [['Mevrouw heeft gelijk: in Italië drink je dan espresso.', () => { rep(1); return 'De oma knikt tevreden. De jongen krijgt een espresso en kijkt er verschrikt naar. "Zo klein?"'; }],
+      ['Hier mag alles, mevrouw.', () => 'De oma kijkt de rest van de avond naar de jongen en schudt elke minuut haar hoofd.'],
+      ['Espresso voor iedereen, van het huis!', () => { ge(-15); vandaag.gezellig += 1; return 'Iedereen een espresso. De zaak zoemt van de cafeïne. − € 15.'; }] ] },
+  { id: 'ferrari', ik: '🏎️', wie: 'Man met een gouden horloge', vraag: 'Ik heb mijn rode Ferrari voor uw deur geparkeerd. Iedereen maakt foto\'s. Dat is toch reclame voor u? Dan eet ik vandaag gratis.',
+    a: [['Prima, eet smakelijk.', () => { ge(-15); morgenKl(1.08); return 'Hij eet voor € 15. De foto\'s met jouw pizzeria op de achtergrond gaan rond.'; }],
+      ['Mag ik dan een rondje rijden?', () => { if (kans(0.5)) { rep(2); return 'VROEM. Je rijdt een rondje om het plein, de hele buurt kijkt. Je voelt je een koning.'; } ge(-150); return 'Je rijdt hem tegen een paaltje. Kras. "Dat is dan € 150," zegt hij. Hij eet ook nog gratis.'; }],
+      ['Gewoon betalen, meneer.', () => '"Krentenkakker." Hij betaalt toch. Met een briefje van 500. Je hebt geen wisselgeld.'] ] },
+  { id: 'handen', ik: '🤌', wie: 'Sollicitant uit Napels', vraag: 'Hij zegt niets. Hij praat alleen met zijn handen. Heel snel. Je denkt dat hij vraagt of hij hier mag werken.',
+    a: [['🤌 (terug met je handen)', () => { if (kans(0.6)) { oberTempo(1.1); return 'Hij grijnst en pakt een schort. Vandaag werkt hij mee: de obers zijn sneller. Zonder één woord te zeggen.'; } rep(-1); return 'Oei, blijkbaar zei je met je handen iets heel onbeleefds over zijn moeder. Hij is diep beledigd.'; }],
+      ['Sorry, we hebben niemand nodig.', () => 'Hij maakt een gebaar dat je beter niet kunt vertalen en gaat naar Luigi.'],
+      ['Een proefdag. Laat maar zien!', () => { vandaag.gezellig += 0.5; kokTraag(); return 'Hij gooit het deeg zo hoog dat het aan het plafond blijft plakken. Iedereen klapt, Mario niet.'; }] ] },
+  { id: 'mamma', ik: '👵', wie: 'De moeder van Mario', vraag: 'Ik kom even kijken of mijn Mario wel goed eet. Hij is zo mager! Betaalt u hem wel genoeg?',
+    a: [['Natuurlijk, signora! Een pizza van het huis?', () => { ge(-PRIJS); if (kans(0.5)) { kokTraag(); return '"Te weinig basilicum. Te dun. Te dik." Ze staat de rest van de dag in de keuken om Mario te helpen. Mario wordt er niet sneller van.'; } vandaag.gezellig += 1; return 'Ze eet alles op, knijpt in je wang en zegt: "Bravo." Mario glimt.'; }],
+      ['Mario, je moeder is er!', () => { vandaag.gezellig += 0.5; return 'Mario rent de keuken uit. Twintig minuten knuffelen. De pizza\'s wachten.'; }],
+      ['Hij verdient prima, signora.', () => { if (kans(0.4)) { ge(-20); return '"Prima? PRIMA?!" Je geeft Mario maar € 20 bonus. Ze knikt tevreden.'; } return 'Ze kijkt je lang aan. Heel lang. Dan gaat ze zitten en bestelt een salade. Voor Mario.'; }] ] },
+  { id: 'scheef', ik: '🗼', wie: 'Toerist met een fototoestel', vraag: 'Ik ben net terug uit Pisa. Kunt u een pizza scheef bakken? Voor de foto. Zoals de toren.',
+    a: [['Mario, één scheve toren!', () => { rep(1); return 'Mario bouwt een toren van vijf pizza\'s die heel langzaam scheef zakt. De foto is prachtig. Daarna valt hij om.'; }],
+      ['Hou je fototoestel maar scheef.', () => 'Hij doet het. De pizza staat scheef op de foto. Hij is tevreden. Simpel.'],
+      ['Een scheve pizza kost € 5 extra.', () => { ge(5); return 'Hij betaalt het zonder te knipperen. Toeristen.'; }] ] },
   { id: 'gino', ik: '🧑‍🍳', wie: 'Gino, pizzabakker bij Luigi', kans: 3, als: () => S.dag >= 7 && !S.zaak && !(S.luigiDicht >= S.dag) && !(S.ginoNa > S.dag),
     vraag: () => { S.ginoNa = S.dag + 8; S.ginoTip = S.dag % 2 ? 'oven' : 'boer'; /* vast per dag: vraagKort roept dit ook aan */ return S.ginoTip == 'oven' ? `Psst. Ik werk bij Luigi, maar hij betaalt me in oude pizzakorsten. Dus… ${datumLang(ginoDag())} komt de monteur voor zijn oven. Dan is Luigi de hele dag dicht. Zeg niet dat je het van mij hebt.`
       : 'Psst. Ik werk bij Luigi. Hij betaalt zijn mozzarellaboer al weken niet. Die boer is woedend, en zoekt een nieuwe klant. Ik kan je zijn nummer geven…'; },
@@ -1444,7 +1506,7 @@ const VRAGEN = [
     a: [['Hier, € 100. Dan zijn we vrienden.', () => { ge(-100); S.luigiRust = S.dag + 6; return 'Luigi telt het na, knikt en vertrekt. "Voorlopig," zegt hij nog. (− € 100, een week rust)'; }],
       ['Bak dan betere pizza\'s, Luigi!', () => { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.ruzie = Math.min(100, (S.ruzie || 0) + 15); return 'De klanten lachen. Luigi niet. "Dat zal je berouwen!" (Morgen kun je iets verwachten…)'; }],
       ['Kom eens proeven, van het huis.', () => { ge(-PRIJS); if (kans(0.5)) { S.luigiRust = S.dag + 4; return 'Luigi eet zwijgend. "Hmpf. Niet slecht." Hij laat je even met rust.'; } S.sabotage = pak(['rat', 'stinkbom']); return '"Te weinig zout!" Hij smijt zijn servet neer. (Morgen kun je iets verwachten…)'; }] ] },
-  { id: 'ovenkapot', ik: '🔧', wie: 'Mario, de kok', kans: () => S.geld > 700 ? 2 + S.geld / 600 : 0.3,
+  { id: 'ovenkapot', ik: '🔧', wie: 'Mario, de kok', kans: () => S.geld > 700 ? Math.min(4, 2 + S.geld / 600) : 0.3,
     vraag: 'Baas! De oven maakt een raar geluid… pruttel… pruttel… KABOEM. Er komt rook uit!',
     a: [['Bel de reparateur.', () => { ge(-180); vandaag.ovenUit = 6; return 'De reparateur komt, zuigt op zijn tanden en rekent € 180. "Vervelend hè?"'; }],
       ['Mario, met plakband lukt het vast.', () => { if (kans(0.5)) return 'Wonder boven wonder: hij doet het weer! Mario is trots als een pauw.'; vandaag.ovenUit = 25; kokTraag(); return 'Het plakband smelt. De oven ligt een tijd stil en Mario werkt de rest van de avond traag.'; }],
@@ -1454,7 +1516,7 @@ const VRAGEN = [
     a: [['Betalen, dan is het klaar.', () => { const n = Math.round(80 + S.geld * 0.06); ge(-n); return `€ ${n} weg. Mario zucht: "Hout was vroeger goedkoper."`; }],
       ['Bezwaar maken.', () => { const n = Math.round(80 + S.geld * 0.06); if (kans(0.4)) { ge(-Math.round(n / 2)); return 'Na drie uur in de wacht: de helft korting!'; } ge(-n - 25); return 'Afgewezen, en € 25 extra administratiekosten. Au.'; }],
       ['Vanaf nu de lampen uit en kaarsjes aan.', () => { const n = Math.round(60 + S.geld * 0.04); ge(-n); vandaag.gezellig += 1; vandaag.kaars = true; return `Iets goedkoper (€ ${n}), en romantisch! Alleen zie je de pizza amper.`; }] ] },
-  { id: 'lekkage', ik: '💧', wie: 'De ober', kans: () => S.geld > 800 ? 1.5 + S.geld / 900 : 0.2,
+  { id: 'lekkage', ik: '💧', wie: 'De ober', kans: () => S.geld > 800 ? Math.min(3.5, 1.5 + S.geld / 900) : 0.2,
     vraag: 'Baas, er druppelt water uit het plafond. Precies boven tafel 2. Drup. Drup. DRUP.',
     a: [['Bel de loodgieter.', () => { ge(-140); return 'De loodgieter komt binnen een uur. € 140. Zijn broek zakt wel heel ver af als hij bukt.'; }],
       ['Zet er een emmer onder.', () => { vandaag.gezellig -= 1; nieuweVlek(4, 6, 'cola'); return 'Drup… plens. De emmer is vol voor je het weet. Minder gezellig vanavond.'; }],
@@ -1526,7 +1588,7 @@ function planVragen() { // 2 tot 4 vragen op een willekeurig moment van de dag (
 }
 function kiesVraag() {
   S.gehad = S.gehad || {};
-  const mag = VRAGEN.filter((v) => (!v.als || v.als()) && !(S.gehad[v.id] > S.dag - (v.rust ? v.rust() : 8))); // dezelfde vraag niet binnen een week (of v.rust dagen)
+  const mag = VRAGEN.filter((v) => (!v.als || v.als()) && !(S.gehad[v.id] > S.dag - (v.rust ? v.rust() : 15))); // dezelfde vraag niet binnen 15 dagen (of v.rust dagen)
   const lijst = mag.length ? mag : VRAGEN.filter((v) => !v.als || v.als());
   let r = Math.random() * lijst.reduce((a, v) => a + (typeof v.kans == 'function' ? v.kans() : v.kans || 1), 0);
   for (const v of lijst) if ((r -= typeof v.kans == 'function' ? v.kans() : v.kans || 1) < 0) return v;
