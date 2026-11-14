@@ -518,3 +518,8 @@ vrede 10 dagen, anders ruzie +25 en sabotage / Marco ontslaan = einde (fase 9), 
 (4 dagen later, aanzoek met de ring in een calzone: bruiloft hier = morgen dicht, + € 500, rep +4, filmpje `toonFilm('bruiloft')`, vaak een maand vrede /
 bij Luigi = vrede 14 dagen / nog wachten). Filmpje: scherm `#film`, canvas `#filmdoek` 360x420, zelf getekend (raam, tafel, kaars, hartjes of confetti),
 Luigi gluurt door het raam, muziek `speelLied`.
+Gianni IJskoud heeft plaatjes (14 nov, `pizza/gianni-chatgpt.png`, ChatGPT in een nieuwe chat met het vel van Marco als voorbeeld): bezoekers rij 14,
+portret 21 (met ijshoorntje; css 1870px). Nieuw hulpscript `python3 extra/bezoeker_knip.py <vel> <rij> <portretvak> [rug=8,9,10,11] [voor=12,13,14,15]
+[portret=19]` voor vellen met de vaste ChatGPT-indeling (rij 1 onderdelen, 2 rug, 3 voor, 4 zitten). Portret ook in de stad (Gelateria Gianni).
+Vraag 'gianniBezoek' (`GIANNIVRAGEN`, met ijssalon, kans 2, rust 12): de vijand van je vijand: deal = `S.gianniDeal` 10 dagen geen streken,
+ruzie met Luigi +10, morgen meer klanten / eigen ijs = morgen zijn ijskar voor je deur / "Hoorntje of bakje?" = rep +1, ijssalon-rep +3.

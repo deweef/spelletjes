@@ -73,7 +73,7 @@
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
-  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 1785px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
+  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 1870px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
   .vraagwie { font-weight: 800; color: #b5381c; font-size: 15px; }
   .vraagtekst { font-size: 17px; margin: 8px 0 12px; }
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
@@ -1619,6 +1619,12 @@ function liefdeOchtend() { const L = S.liefde; if (!L || S.zaak) return; let id 
   else if (L.fase == 2 && S.dag >= L.dag + 1 + (S.dag % 2)) id = 'luigiLiefde';
   else if (L.fase == 3 && S.dag >= L.dag + 4) id = 'marco2';
   if (id && !(S.verplicht || []).includes(id)) S.verplicht = [...(S.verplicht || []), id]; }
+const GIANNIVRAGEN = [ // Gianni IJskoud komt binnen (bezoekers rij 14, portret 21): de vijand van je vijand?
+  { id: 'gianniBezoek', ik: '🍦', portret: 21, rij: 14, wie: 'Gianni IJskoud', kans: 2, rust: () => 12, als: () => !!S.ijs && S.dag - S.ijs.sinds >= 2 && !(S.gianniDeal > S.dag),
+    vraag: 'Twintig jaar heb ik met Luigi in één keuken gestaan. Hij is mijn vijand. Jij bent mijn concurrent. Maar de vijand van mijn vijand… Laten we Luigi samen een poets bakken. Ik vertel overal dat zijn pizza naar karton smaakt, en jij… laat mijn ijskar met rust.',
+    a: [['Deal, Gianni.', () => { S.gianniDeal = S.dag + 10; S.gianniStreek = null; S.ruzie = Math.min(100, (S.ruzie || 0) + 10); morgenKl(1.08); return 'Gianni knijpt in je hand. Zijn hand is ijskoud. De komende dagen vertelt hij iedereen dat Luigi\'s pizza naar karton smaakt: meer klanten voor jou, meer ruzie met Luigi. En tien dagen geen streken van Gianni.'; }],
+      ['Ik heb mijn eigen ijs, Gianni.', () => { S.gianniStreek = { dag: S.dag + 1 + (weekdag(S.dag + 1) == 0 ? 1 : 0), wat: 'kar' }; return '"Zoals je wilt." Hij tikt tegen zijn kale hoofd en vertrekt. Morgen staat zijn ijskar vast voor jouw deur…'; }],
+      ['Hoorntje of bakje, Gianni?', () => { rep(1); if (S.ijs) S.ijs.rep = Math.min(100, (S.ijs.rep || 20) + 3); return 'Gianni kijkt je lang aan. Dan grinnikt hij, heel even. "Ha. Hoorntje. Jij bevalt me. Een béétje." Hij koopt een bolletje pistache in jouw ijssalon en zegt dat het "niet slecht" is. Dat is van Gianni een groot compliment.'; }] ] } ];
 const LIEFDEVRAGEN = [
   { id: 'marco1', ik: '🤵', portret: 19, rij: 12, wie: 'Marco, je jongste ober', kans: 3, als: () => !S.zaak && S.dag >= 6 && (!S.liefde || (S.liefde.fase == 0 && S.dag >= S.liefde.dag)),
     vraag: 'Baas… mag ik je iets vragen? Er werkt een meisje bij Luigi. Ze ruimt de tafels af en ze lacht als een zonsopgang. Valentina. Zijn… dochter. Ik geloof dat ik verliefd ben.',
@@ -1679,7 +1685,7 @@ function toonFilm(soort) {
     if (t > duur) $('filmverder').textContent = 'Verder'; requestAnimationFrame(lus);
   })(performance.now());
 }
-VRAGEN.push(...LIEFDEVRAGEN);
+VRAGEN.push(...LIEFDEVRAGEN, ...GIANNIVRAGEN);
 const FIGUUR = {
   henk: { wie: 'Opa Henk', rij: 6, portret: 7, ids: ['gebit', 'snurk', 'snorren', 'henkdans', 'henkverhaal'] },
   kim: { wie: 'Kimberley, influencer', rij: 7, portret: 8, ids: ['influencer', 'champagne', 'prank', 'kimnaam', 'kimsaai'] },
@@ -2936,7 +2942,7 @@ function ijsDag() { // 's avonds: hoe ging het in de ijssalon?
   I.gisteren = { klanten: kl + choco, winst, tekst: `🌡️ ${t}°C · ${kl} ijsjes${choco ? ` en ${choco} warme chocomel` : ''}, omzet € ${omzet}, winst € ${winst}`
     + (streek == 'kar' ? ' · 🍦 Gianni stond de hele dag met zijn ijskar voor je deur!' : streek == 'gerucht' ? ' · 🗣️ Gianni vertelt overal dat jouw ijs uit de supermarkt komt' : '') };
   if (streek) S.gianniStreek = null;
-  if (kans(0.08 + (I.rep > 40 ? 0.04 : 0))) S.gianniStreek = { dag: S.dag + 1 + (weekdag(S.dag + 1) == 0 ? 1 : 0), wat: pak(['kar', 'kar', 'gerucht', 'stroom']) }; // Gianni is jaloers
+  if (!(S.gianniDeal > S.dag) && kans(0.08 + (I.rep > 40 ? 0.04 : 0))) S.gianniStreek = { dag: S.dag + 1 + (weekdag(S.dag + 1) == 0 ? 1 : 0), wat: pak(['kar', 'kar', 'gerucht', 'stroom']) }; // Gianni is jaloers
   return I.gisteren;
 }
 function ijsBlok() { // het scherm van je eigen ijssalon (in de stad)
@@ -2994,7 +3000,7 @@ function toonStad(plek) {
     else { h += `<p>Een oud ijszaakje met een groen-wit gestreepte luifel. In het raam: <b>TE KOOP, met vriezers en al. € ${IJSPRIJS}.</b> Binnen zit Sofia, die er al dertig jaar ijs schept. "Als de nieuwe baas mij houdt, houd ik van de nieuwe baas."</p>
       <p class="buurt">Een ijssalon verkoopt vooral als het warm is. In de winter: warme chocomel. Klanten in je pizzeria nemen er een ijsje bij als toetje. En Gelateria Gianni, verderop, zal het niet leuk vinden…</p>`;
       knoppen = `<button class="knop rood" id="ijskoop" ${S.geld + (S.bankSaldo || 0) < IJSPRIJS ? 'disabled' : ''}>🍨 Kopen (€ ${IJSPRIJS}, van de bank als dat kan)</button>`; } }
-  if (plek == 'gianni') h += `<p>Achter een vitrine vol ijs staat een oude, kale man met een wit jasje en ogen als ijsblokjes: <b>Gianni IJskoud</b>. ${S.ijs ? `Hij kijkt je aan. Lang. "Jij. De pizzaman met de ijssalon. ${pak(['Mijn ijskar staat graag voor andermans deur, weet je dat?', 'Smaakt jouw pistache al naar pistache? Hahaha.', 'Ik heb Luigi overleefd. Jou overleef ik ook.'])}"` : esc(pak(GIANNI))}</p>
+  if (plek == 'gianni') h += `<div class="portret" style="background-position:${-21 * 85}px 0;float:right;margin:0 0 6px 8px"></div><p>Achter een vitrine vol ijs staat een oude, kale man met een wit jasje en ogen als ijsblokjes: <b>Gianni IJskoud</b>. ${S.ijs ? `Hij kijkt je aan. Lang. "Jij. De pizzaman met de ijssalon. ${pak(['Mijn ijskar staat graag voor andermans deur, weet je dat?', 'Smaakt jouw pistache al naar pistache? Hahaha.', 'Ik heb Luigi overleefd. Jou overleef ik ook.'])}"` : esc(pak(GIANNI))}</p>
     <p class="buurt">Gianni en Luigi hadden twintig jaar samen een zaak. Nu groeten ze elkaar niet meer.</p>`;
   if (plek == 'markt') {
     const aanbod = marktAanbod(), heb = S.korting && S.korting.tot > S.dag ? S.korting : null;
