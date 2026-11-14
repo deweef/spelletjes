@@ -640,6 +640,7 @@ function belastingAvond(winst) { // 's avonds: belasting opzij, en de aanslag be
   const regels = [];
   if (winst > 0) S.belasting = (S.belasting || 0) + Math.round(winst * BELASTING);
   if (S.aanslag && S.dag >= S.aanslagDag) {
+    if (S.geld < S.aanslag && S.bankSaldo >= 1) { const b = Math.min(Math.floor(S.bankSaldo), S.aanslag - Math.max(0, Math.floor(S.geld))); S.bankSaldo -= b; S.aanslag -= b; regels.push([`🕴️ Beslag op je bankrekening (belasting): € ${b}`, 0]); }
     if (S.geld >= S.aanslag) { S.geld -= S.aanslag; regels.push(['🕴️ Belasting betaald', -S.aanslag]); S.aanslag = 0; }
     else { // de deurwaarder van de belastingdienst: neemt spullen mee (geen tafels en stoelen) en verzegelt de zaak een dag
       let buit = 0; const weg = [];
@@ -697,6 +698,7 @@ function eindeDag() {
   if (S.geld > 1000 && !S.sabotage && !(S.luigiRust > S.dag) && !(S.verplicht || []).includes('luigiJaloers') && kans(Math.min(0.35, (S.geld - 1000) / 4000 + 0.08))) S.verplicht = [...(S.verplicht || []), 'luigiJaloers']; // het gaat te goed: Luigi wordt jaloers
   if (S.ruzie > 0) { if (!S.sabotage && !(S.luigiRust > S.dag) && kans(S.ruzie / 300)) S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.ruzie = Math.max(0, S.ruzie - 5); } // ruzie met Luigi: hij slaat terug, en het zakt langzaam
   if (totaal > 300 && !(S.luigiRust > S.dag)) S.ruzie = Math.min(100, (S.ruzie || 0) + Math.min(8, Math.round(totaal / 120))); // Luigi is jaloers als het goed gaat, ook zonder ruzie
+  if (S.geld > 800 && !(S.luigiRust > S.dag) && kans(Math.min(0.1, 0.02 + (S.geld - 800) / 25000 + (S.ruzie || 0) / 2000))) S.inbraak = true; // veel contant in de kassa: inbrekers (de mannetjes van Luigi)
   if (S.crypto) cryptoAvond(); // nieuwe koersen
   S.omzetGisteren = tel.omzet; const lening = [...aflossen(), ...belastingAvond(totaal)];
   const rommel = vlekken.length; S.vuil = (S.vuil || 0) + rommel * 0.5; vlekken = []; // wat er blijft liggen maakt de zaak viezer (keuringsdienst!)
@@ -746,7 +748,7 @@ function eindeDag() {
 // rente = wat je in totaal extra terugbetaalt; dagen = in hoeveel dagen (elke avond een deel); max = hoeveel ze je willen lenen
 const AANBIEDER = {
   bank: { n: 'Banca Fortuna', gz: '🏦', wie: 'De nette bank op de hoek. Lage rente, maar ze lenen alleen aan zaken die goed lopen.',
-    get rente() { return aanBalie ? 0.09 : 0.1; } /* aan het loket in de stad 1% minder */, dagen: 10, max: () => Math.max(0, Math.round((100 + S.rep * 12 + Math.min(1500, (S.omzetGisteren || 0) * 3)) / 50) * 50),
+    get rente() { return aanBalie ? 0.09 : 0.1; } /* aan het loket in de stad 1% minder */, dagen: 10, max: () => Math.max(0, Math.round((100 + S.rep * 12 + Math.min(1500, (S.omzetGisteren || 0) * 3) - (S.leningen || []).filter((l) => l.van == 'bank').reduce((a, l) => a + l.rest, 0)) / 50) * 50), // min wat je de bank al schuldig bent
     weiger: () => (S.leningen || []).some((l) => l.achter) ? 'U heeft een betalingsachterstand. Wij doen geen zaken met wanbetalers.' : S.dag < 3 ? 'Uw zaak is nog te nieuw. Komt u over een paar dagen terug.' : null,
     klein: 'Banca Fortuna mag bij een betalingsachterstand van twee dagen spullen uit uw zaak verkopen. Rente wordt berekend over het hele bedrag. Koffie is gratis.' },
   oma: { n: 'Oma Truus', gz: '👵', wie: 'Je lieve oma. Geen rente, maar het moet wel snel terug, want ze gaat op cruise.',
@@ -808,6 +810,7 @@ function aflossen() {
     else if (l.achter && (l.van == 'sjaak' || l.achter >= 2)) { // beslag: spullen meenemen tot de schuld betaald is
       // ze nemen het duurste mee, maar geen tafels en stoelen (dan kan je niet meer verder), en hooguit 2 (neven) of 3 (deurwaarder) dingen
       let buit = 0; const weg = [], max = l.van == 'sjaak' ? 2 : 3;
+      if (l.van == 'bank' && S.bankSaldo >= 1) { const b = Math.min(Math.floor(S.bankSaldo), l.rest); S.bankSaldo -= b; buit += b; weg.push(`€ ${b} van je bankrekening`); } // eerst beslag op je rekening (je crypto kunnen ze niet vinden)
       for (const s of [...S.spullen].filter((s) => !isTafel(s) && s.t != 'stoel').sort((x, y) => SPUL[y.t].prijs - SPUL[x.t].prijs)) {
         if (buit >= l.rest || weg.length >= max) break; buit += Math.floor(SPUL[s.t].prijs * (l.van == 'sjaak' ? 0.4 : 0.6)); weg.push(SPUL[s.t].n.toLowerCase()); S.spullen.splice(S.spullen.indexOf(s), 1);
       }
@@ -2396,13 +2399,33 @@ function toonDrukken() {
 }
 // Luigi's sabotage (S.sabotage, de dag erna): rat in de zaak (tik erop om hem te vangen), stinkbom (minder klanten), keuringsdienst getipt
 let rat = null;
+function ochtendVraag(v, t = 1500) { setTimeout(function probeer() { if (modus != 'open') return; if (pauze) { setTimeout(probeer, 700); return; } toonVraag(v); }, t); } // een venster vlak na het openen
+function inbraak() { // 's nachts ingebroken (S.inbraak, gezet in eindeDag als er veel contant geld in de kassa lag)
+  S.inbraak = false; const buit = Math.round((S.geld - 100) * (0.3 + Math.random() * 0.2)); if (buit < 50) return; S.geld -= buit; tel.kosten += buit; tel.uitW = tel.uitW || {}; tel.uitW['Inbrekers'] = (tel.uitW['Inbrekers'] || 0) + buit; kassa();
+  ochtendVraag({ id: 'inbraak', ik: '👮', wie: 'Agent Jansen', zelf: true, vraag: `Goedemorgen. Slecht nieuws: er is vannacht ingebroken. De kassa is opengebroken, er is € ${buit} weg. Er lag een sigarenpeuk van het merk dat Luigi rookt… Maar ja, bewijs. En eerlijk gezegd: waarom ligt er zoveel contant geld in uw kassa? Daar is een bank voor, sufferd. Excuus. Meneer.`,
+    a: [['Ik doe aangifte!', () => { if (kans(0.3)) { const t = Math.round(buit * 0.5); ge(t); return `Twee dagen later vindt Jansen een tas met € ${t} in een vuilnisbak achter Pizzeria Luigi. Luigi zegt dat hij van niets weet. De rest is "zoek".`; } return '"We gaan ernaar kijken." Hij schrijft het op een bierviltje en stopt het in zijn binnenzak. Dat wordt niks.'; }],
+      ['Dit was Luigi. Wacht maar…', () => { S.ruzie = Math.min(100, (S.ruzie || 0) + 15); return 'Je balt je vuisten richting de overkant. Luigi zwaait vriendelijk terug. Met een nieuwe sigaar. (Ruzie met Luigi +15)'; }],
+      ['Vanaf nu gaat alles naar de bank.', () => { const st = Math.max(0, Math.floor(S.geld - 50)); if (st > 0) { S.geld -= st; S.bankSaldo = (S.bankSaldo || 0) + st; } return st > 0 ? `Je brengt meteen € ${st} naar Banca Fortuna en houdt € 50 wisselgeld. Meneer Fortuna knipoogt: "Bij ons slaapt uw geld rustig."` : 'Er is niet veel meer om weg te brengen…'; }] ] });
+}
 function sabotageVandaag() {
+  if (S.inbraak) { inbraak(); return; } // de sabotage (als die er is) komt dan morgen
   const sb = S.sabotage; S.sabotage = null; if (!sb) return;
   if (S.luigiRust > S.dag) { setTimeout(() => meld('Luigi durft niets: de politie houdt hem in de gaten. 👮'), 1200); return; }
   S.gesaboteerd = S.dag;
-  if (sb == 'rat') { rat = { x: 7.5, y: H - 1, dx: 1, dy: -1 }; vandaag.gezellig -= 1; setTimeout(() => meld('🐀 Er loopt een rat door de zaak! Luigi?! Tik erop om hem te vangen.'), 1200); }
-  if (sb == 'stinkbom') { vandaag.aankomst *= 0.6; vandaag.gezellig -= 1; setTimeout(() => meld('🤢 Iemand heeft een stinkbom door je brievenbus gegooid. Luigi!'), 1200); }
-  if (sb == 'keuring') { S.vuil = (S.vuil || 0) + 3; S.verplicht = [...(S.verplicht || []), 'keuring']; setTimeout(() => meld('📋 Luigi heeft de keuringsdienst getipt…'), 1200); }
+  if (sb == 'rat') { rat = { x: 7.5, y: H - 1, dx: 1, dy: -1 }; vandaag.gezellig -= 1; }
+  if (sb == 'stinkbom') { vandaag.aankomst *= 0.6; vandaag.gezellig -= 1; }
+  if (sb == 'keuring') { S.vuil = (S.vuil || 0) + 3; S.verplicht = [...(S.verplicht || []), 'keuring']; }
+  const wat = { rat: 'Baas! Er rent een RAT door de zaak! Ik zag Luigi vanochtend met een doos voor onze achterdeur staan. Tik op dat beest om hem te vangen!',
+    stinkbom: 'Baas! Iemand heeft een stinkbom door de brievenbus gegooid. Het ruikt hier naar rotte eieren, vandaag komen er veel minder klanten. Dat was Luigi!',
+    keuring: 'Baas! Luigi heeft de keuringsdienst gebeld. Ze komen vandaag, en hij heeft ook nog vuilnis voor onze deur gekieperd!' }[sb];
+  const kast = Math.max(60, Math.min(150, 60 + Math.round((S.ruzie || 0)))); // de kleerkasten: duurder als de ruzie hoog is
+  ochtendVraag({ id: 'wraakLuigi', ik: '👨‍🍳', wie: 'Mario de kok: wraak van Luigi!', zelf: true, vraag: wat + ' Wat doen we?',
+    a: [[`Twee kleerkasten bij Luigi langs sturen (€ ${kast}).`, () => { ge(-kast); naFoto = 14; if (kans(0.8)) { S.luigiRust = S.dag + 7; S.ruzie = Math.max(0, (S.ruzie || 0) - 20);
+        return 'Twee kleerkasten met zonnebrillen gaan bij Luigi een pizza "bestellen". Ze eten niks. Ze kijken alleen. Heel lang. Luigi zweet. Hij laat je een week met rust.'; }
+        S.ruzie = Math.min(100, (S.ruzie || 0) + 10); rep(-3); return 'Luigi belt meteen de politie. De kleerkasten rennen weg (best snel voor zulke grote mannen), en de hele straat heeft het gezien. Populariteit −3.'; }],
+      ...(S.barrie && achterOpen() ? [['Barrie bellen. Wraak!', () => { naVraag = naarAchter; return 'Barrie staat binnen vijf minuten in je achterkamer. "Hoorde het al, baas. Zeg het maar."'; }]]
+        : [['Naar de politie in de stad: aangifte doen.', () => 'Ga vandaag (of de komende drie dagen) via 🗺️ Stad naar het politiebureau. Agent Jansen zit klaar met een gevulde koek.']]),
+      ['Laat maar. Ik ben de wijste.', () => { S.ruzie = Math.max(0, (S.ruzie || 0) - 10); return 'Je zucht, zet een raampje open en gaat aan het werk. De ruzie met Luigi zakt een beetje.'; }] ] });
 }
 function stapRat(dt) {
   if (!rat) return;

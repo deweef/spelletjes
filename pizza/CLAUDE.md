@@ -398,3 +398,13 @@ tiprichting, dus na provisie en bewaarkosten een kleine winst met echt risico. D
 de tweede zaak bijna nooit: nu 30% per dag via `S.verplicht` zolang die zaak nog geen achterkamer heeft (`openDeuren`).
 Markt (14 nov): een gekochte aanbieding staat als "✅ gekocht" (niet nog eens te kopen; eerder betaalde je bij elke tik opnieuw), de andere zeggen dat
 je huidige korting dan vervalt (maar één `S.korting` tegelijk, geldt in alle zaken). Uitleg erbij: korting is geen inkoop, dat gaat per zaak via 📦 Voorraad.
+Wraak van Luigi zichtbaar (14 nov, Marcel zag na "Morgen kun je iets verwachten…" niets gebeuren): `sabotageVandaag` toont nu via `ochtendVraag`
+(venster vlak na het openen, wacht als er al een venster open is) Mario met wat er is (rat/stinkbom/keuring) en keuzes: twee kleerkasten naar Luigi
+(€ 60 + ruzie, max € 150; 80%: `S.luigiRust` een week, ruzie −20; anders politie, rep −3), Barrie bellen (alleen met `S.barrie` en een achterkamer:
+`naVraag = naarAchter`, anders "aangifte bij de politie in de stad"), of niks doen (ruzie −10). Barrie's klusjes zelf staan in de achterkamer.
+Inbraak (14 nov): ligt er 's avonds meer dan € 800 contant, dan kans (max 10%, meer bij ruzie, niet tijdens `luigiRust`) op `S.inbraak`; de volgende
+ochtend (`inbraak()`, gaat voor sabotage) is 30-50% van de kassa weg, Agent Jansen: "Daar is een bank voor, sufferd." Keuzes: aangifte (30% de helft
+terug), ruzie +15, of alles behalve € 50 naar de bank. In het dagoverzicht onder Andere kosten als "Inbrekers".
+Lenen (14 nov): de bank leent niet meer dan zijn maximum min wat je de bank al schuldig bent (eerder kon je steeds opnieuw lenen). Rente staat vast bij
+het afsluiten (een gemiste avond kost geen extra rente, de lening duurt dan langer). Beslag: de deurwaarder van de bank (2 avonden achterstand) en de
+belastingdienst pakken eerst je bankrekening, dan pas spullen; crypto vinden ze niet. Ome Sjaak kan niet bij je rekening.
