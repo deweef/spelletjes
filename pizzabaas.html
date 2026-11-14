@@ -173,6 +173,7 @@
 </div>
 <div class="scherm verborgen" id="einde"><div class="kaart" id="eindkaart"></div></div>
 <div class="scherm verborgen" id="vraag"><div class="kaart" id="vraagkaart"></div></div>
+<div class="scherm verborgen" id="kalender"><div class="kaart" id="kalenderkaart" style="max-width:360px"></div></div>
 <div class="scherm verborgen" id="achter"><div class="kaart breed" id="achterkaart"></div></div>
 <button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
 <button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
@@ -674,6 +675,8 @@ function openDeuren() {
   if (S.dag >= 5 && !S.luigiKwam) { S.luigiKwam = S.dag; S.verplicht = [...(S.verplicht || []), 'luigi']; }
   vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ if (torenOpen()) vandaag.aankomst *= 1.1; /* toeristen voor de toren */ if (reclameAan()) vandaag.aankomst *= 1.15; /* reclamebord */ if (kunstAan()) { vandaag.gezellig += 0.5; vandaag.fooi *= 1.1; } /* geleend meesterwerk */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (belastingDag() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
+  if (belastingDag() && S.geld > 400 && S.dag >= 8 && !(S.luigiRust > S.dag) && kans(0.3 + Math.min(0.3, (S.ruzie || 0) / 200))) ochtendVraag(crewVraag(), 2500); // Luigi weet ook wanneer de belasting komt…
+  if (S.luigiDicht == S.dag) { vandaag.aankomst *= S.luigiFlyers ? 1.5 : 1.3; S.luigiFlyers = false; setTimeout(() => meld(`🔧 Luigi's oven is kapot! Zijn klanten komen vandaag naar jou${vandaag.aankomst > 1.4 ? ', en je flyers doen de rest' : ''}.`, 4000), 2000); }
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen(); wegLog = [];
   if (S.manager && MANAGER[S.manager.wie].fooi) vandaag.fooi *= MANAGER[S.manager.wie].fooi; // Bruno: de klanten zijn dol op hem
@@ -741,7 +744,7 @@ function eindeDag() {
   laatsteDag = $('eindkaart').innerHTML.replace('Verder met inrichten', 'Sluiten').replace('zit erop!', 'zat erop');
   $('einde').classList.remove('verborgen'); bordLijst('pizzawaarde', $('dagbord'), '€'); bordLijst('pizzamaand', $('dagbord2'), '€');
   if (nieuwRecord) stuurRecord('pizzawaarde', S.waardeBest, $('dagbord'), '€'); if (dertig) stuurRecord('pizzamaand', S.maandWaarde, $('dagbord2'), '€');
-  $('verder').onclick = () => { $('einde').classList.add('verborgen'); tekenKnoppen(); if (S.rood >= 3) toonFailliet(); else if (koningNu) toonKoning(); };
+  $('verder').onclick = () => { $('einde').classList.add('verborgen'); tekenKnoppen(); if (S.rood >= 3) toonFailliet(); else if (koningNu) toonKoning(); else toonKalender(); };
 }
 
 // ---------- geld lenen: kies de aanbieder ----------
@@ -798,6 +801,31 @@ function toonBank(gekozen, bedrag) {
   }
   if ($('bankdicht')) $('bankdicht').onclick = () => $('bank').classList.add('verborgen');
   $('bank').classList.remove('verborgen');
+}
+// ---------- het kalenderblad: elke nieuwe dag, met wat er de komende week staat te gebeuren ----------
+function kalenderPunten() {
+  const l = [];
+  for (let d = S.dag; d <= S.dag + 7; d++) {
+    const wanneer = d == S.dag ? 'Vandaag' : d == S.dag + 1 ? 'Morgen' : datumLang(d);
+    if (weekdag(d) == 0) l.push([d, wanneer, '🔒 Maandag: de zaak is dicht']);
+    if (belastingDag(d)) l.push([d, wanneer, `🕴️ Belastingdag: de inspecteur komt${S.belasting > 0 ? ` voor ongeveer € ${Math.round(S.belasting)} (en het wordt nog meer)` : ''}. Zorg dat het geld in de kassa ligt${S.crewGehad ? '… en pas op voor de vrienden van Luigi' : ''}.`]);
+    if (S.aanslag && S.aanslagDag == d) l.push([d, wanneer, `🕴️ Aanslag van de belasting: € ${S.aanslag} (met boete)`]);
+    if (S.luigiDicht == d) l.push([d, wanneer, `🔧 Luigi's oven is kapot (tip van Gino): zijn klanten komen naar jou${S.luigiFlyers ? ', en je flyers liggen klaar' : ''}!`]);
+    if (S.opdracht && !S.zaak && S.achterkamer && S.opdracht.tot == d) l.push([d, wanneer, '🎨 Laatste dag voor de bestelling van Gerrit']);
+    if (S.bonnen && S.bonnen.tot == d) l.push([d, wanneer, '🖨️ De valse bonnen lopen af']);
+  }
+  return l;
+}
+function toonKalender() {
+  const d = datum(S.dag), punten = kalenderPunten();
+  $('kalenderkaart').innerHTML = `<div style="margin:0 auto 10px;width:170px;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px #0004;background:#fff;text-align:center">
+      <div style="background:#c0392b;color:#fff;font-weight:bold;padding:6px;font-size:18px">${esc(MAAND[d.getMonth()])}</div>
+      <div style="font-size:72px;font-weight:bold;line-height:1.1;color:#3a2a1a">${d.getDate()}</div>
+      <div style="padding-bottom:8px;color:#7a6a5a">${esc(DAGNAAM[weekdag()])}</div></div>
+    ${punten.length ? `<p><b>Op de kalender:</b></p>${punten.map(([, w, t]) => `<p style="margin:4px 0;font-size:14px"><b>${esc(w)}:</b> ${esc(t)}</p>`).join('')}` : '<p class="buurt" style="text-align:center">Niks bijzonders deze week. Gewoon lekker pizza bakken.</p>'}
+    <p class="buurt" style="font-size:13px">💶 In de kassa: ${euro(S.geld)} · 🏦 op de bank: ${euro(S.bankSaldo || 0)}</p>
+    <button class="groot" id="kalenderdicht">Aan de slag!</button>`;
+  $('kalender').classList.remove('verborgen'); $('kalenderdicht').onclick = () => $('kalender').classList.add('verborgen');
 }
 // 's avonds aflossen; wie niet kan betalen krijgt een achterstand, en dan komt de bank (na 2 dagen) of de neven van Ome Sjaak (meteen)
 function aflossen() {
@@ -1081,6 +1109,14 @@ const VRAGEN = [
     a: [['Natuurlijk, Bruno. Je verdient het.', () => { if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno kust je op beide wangen. "Grazie, signore!"'; }],
       ['Nee, daar is geen geld voor.', () => { if (Math.random() < 0.4 && S.manager) { S.manager = null; man = null; return 'Bruno zet zijn hoed op. "Dan ga ik naar Luigi." Weg is hij. (Je hebt geen manager meer.)'; } return 'Bruno zucht diep. "Va bene. Voorlopig."'; }],
       ['Hier, een fles van onze beste wijn.', () => { ge(-25); if (Math.random() < 0.6) return 'Bruno ruikt eraan. "Ah, een Barolo! Voor nu ben ik tevreden." (− € 25)'; if (S.manager) S.manager.opslag = (S.manager.opslag || 0) + 15; return 'Bruno: "Wijn betaalt mijn huur niet." Hij krijgt de opslag toch. (− € 25, en € 15 per dag extra)'; }] ] },
+  { id: 'gino', ik: '🧑‍🍳', wie: 'Gino, pizzabakker bij Luigi', kans: 3, als: () => S.dag >= 7 && !S.zaak && !(S.luigiDicht >= S.dag) && !(S.ginoNa > S.dag),
+    vraag: () => { S.ginoNa = S.dag + 8; S.ginoTip = S.dag % 2 ? 'oven' : 'boer'; /* vast per dag: vraagKort roept dit ook aan */ return S.ginoTip == 'oven' ? `Psst. Ik werk bij Luigi, maar hij betaalt me in oude pizzakorsten. Dus… ${datumLang(ginoDag())} komt de monteur voor zijn oven. Dan is Luigi de hele dag dicht. Zeg niet dat je het van mij hebt.`
+      : 'Psst. Ik werk bij Luigi. Hij betaalt zijn mozzarellaboer al weken niet. Die boer is woedend, en zoekt een nieuwe klant. Ik kan je zijn nummer geven…'; },
+    a: [['Bedankt Gino! Hier, een pizza voor onderweg.', () => { ge(-PRIJS); if (S.ginoTip == 'oven') { S.luigiDicht = ginoDag(); return `Gino knipoogt. ${datumLang(ginoDag())} staat nu op je kalender: dan komen Luigi's klanten naar jou.`; }
+        S.korting = { i: 'kaas', tot: S.dag + 7 }; return 'De boer belt meteen. Een week lang kaas voor de halve prijs, en hij vloekt nog even op Luigi.'; }],
+      ['Mooi. Ik laat ook flyers drukken (€ 25).', () => { ge(-25); if (S.ginoTip == 'oven') { S.luigiDicht = ginoDag(); S.luigiFlyers = true; return 'Op die dag ligt de hele buurt vol flyers: "LUIGI DICHT? KOM NAAR ONS!" Dat wordt druk.'; }
+        S.korting = { i: 'kaas', tot: S.dag + 7 }; rep(1); return 'Goedkope kaas én flyers: "Nu met de mozzarella waar Luigi niet voor betaalde!" Hmm. Grappig, maar wel een beetje gemeen.'; }],
+      ['Nee Gino, ik wil een eerlijke strijd.', () => { S.ruzie = Math.max(0, (S.ruzie || 0) - 10); rep(1); return 'Gino haalt zijn schouders op. Het nieuws gaat rond dat jij een nette zaak bent. (Ruzie met Luigi −10)'; }] ] },
   { id: 'barrie', ik: '🕶️', portret: 5, rij: 4, wie: 'Barrie de Bink', kans: 6, als: () => achterOpen() && !S.barrie && S.gesaboteerd >= S.dag - 5,
     vraag: 'Een man in een blauw trainingspak schuift aan bij de toonbank en fluistert: "Ik hoorde dat er laatst wat… misging bij jou. Rat? Stinkbom? Toevallig van de overkant, hè?"',
     a: [['Ik ga naar de politie.', () => '"De politie. Ook goed." Hij tikt tegen zijn neus en eet rustig zijn pizza op.'],
@@ -2311,7 +2347,8 @@ function toonAchterkamer() {
     ` : ''}${pers ? `<div class="opdracht"><span class="pers" style="background-position:0 0"></span><div><b>De drukpers</b><br>${!S.pers ? `Een oude drukpers in de hoek. Daarmee kun je… kortingsbonnen van Luigi drukken. Dan lopen zijn klanten naar jou.`
       : S.bonnen && S.bonnen.tot >= S.dag ? `Er zijn bonnen in omloop (${Math.round(S.bonnen.q * 100)}% echt), nog tot ${esc(datumLang(S.bonnen.tot))}. Luigi's klanten komen naar jou!` : `Klaar om te drukken. Valse bonnen "50% korting bij Luigi" (die in jouw zaak gelden) lokken zijn klanten drie dagen naar jou.`}
       <br><small>Hoe slordiger gedrukt, hoe sneller Luigi het doorheeft.</small></div></div>
-    <div class="rij">${!S.pers ? `<button class="knop rood" id="perskoop" ${S.geld < PERS ? 'disabled' : ''}>🖨️ Drukpers opknappen (€ ${PERS})</button>` : `<button class="knop rood" id="druk" ${S.geld < INKT || (S.bonnen && S.bonnen.tot >= S.dag) ? 'disabled' : ''}>🖨️ Bonnen drukken (€ ${INKT} inkt)</button>`}</div>
+    <div class="rij">${!S.pers ? `<button class="knop rood" id="perskoop" ${S.geld < PERS ? 'disabled' : ''}>🖨️ Drukpers opknappen (€ ${PERS})</button>` : `<button class="knop rood" id="druk" ${S.geld < INKT || (S.bonnen && S.bonnen.tot >= S.dag) ? 'disabled' : ''}>🖨️ Bonnen drukken (€ ${INKT} inkt)</button><button class="knop" id="nepgeld" ${S.nepgeld || S.geld < 15 ? 'disabled' : ''}>💶 ${S.nepgeld ? 'Nepgeld ligt in de la' : 'Envelop nepgeld drukken (€ 15)'}</button>`}</div>
+    ${S.pers ? '<p class="buurt" style="margin:0">💶 Nepgeld: niet zelf uitgeven! Een envelop in de la, voor als de vrienden van Luigi ooit komen "ophalen"…</p>' : ''}
     ` : ''}<div class="opdracht" style="display:block"><b>💻 De laptop</b> <small>(crypto: samen ${euro(cryptoWaarde())})</small>${cryptoBlok(false)}</div>
     ${S.barrie ? `<div class="opdracht"><div class="portret" style="background-position:-425px 0;flex:none;margin:0"></div><div><b>Barrie de Bink</b><br>${barrieUit ? esc(barrieUit) : klusLoopt() ? '"Luigi heeft het even druk met… problemen. Hehe."' : '"Zeg het maar, baas. Wat mag het zijn?"'}
       <br><small>Ruzie met Luigi: <b>${ruzieTekst()}</b>${S.luigiRust > S.dag ? ' (wapenstilstand)' : ''}. Hoe meer ruzie, hoe vaker Luigi terugslaat.</small></div></div>
@@ -2326,6 +2363,7 @@ function toonAchterkamer() {
   $('achterkaart').querySelectorAll('[data-klus]').forEach((b) => b.onclick = () => { if (KLUSSPEL[b.dataset.klus]) { KLUSSPEL[b.dataset.klus](); return; } barrieUit = doeKlus(b.dataset.klus); kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); });
   $('achterkaart').querySelectorAll('[data-vrede]').forEach((b) => b.onclick = () => { const d = VREDE[b.dataset.vrede]; ge(-d.prijs); S.ruzie = 0; S.luigiRust = S.dag + d.dagen;
     barrieUit = `Barrie brengt Luigi een ${d.n.toLowerCase()}. Luigi snuift, drinkt hem in één keer leeg en mompelt: "Va bene. Even geen ruzie." (${d.dagen} dagen wapenstilstand)`; bewaar(); tekenKnoppen(); toonAchterkamer(); });
+  if ($('nepgeld')) $('nepgeld').onclick = () => { ge(-15); S.nepgeld = 1; kassa(); bewaar(); tekenKnoppen(); meld('💶 Een dikke envelop met briefjes van 50. Op elk briefje staat Barrie. Hij ligt in de la.', 4000); toonAchterkamer(); };
   if ($('perskoop')) $('perskoop').onclick = () => { S.geld -= PERS; S.pers = true; kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); };
   if ($('druk')) $('druk').onclick = () => { S.geld -= INKT; bewaar(); tekenKnoppen(); toonDrukken(); };
   if ($('schilder')) $('schilder').onclick = () => { S.geld -= DOEK; tel.kosten = (tel.kosten || 0) + DOEK; bewaar(); tekenKnoppen(); toonAtelier(o.v); };
@@ -2406,6 +2444,18 @@ function inbraak() { // 's nachts ingebroken (S.inbraak, gezet in eindeDag als e
     a: [['Ik doe aangifte!', () => { if (kans(0.3)) { const t = Math.round(buit * 0.5); ge(t); return `Twee dagen later vindt Jansen een tas met € ${t} in een vuilnisbak achter Pizzeria Luigi. Luigi zegt dat hij van niets weet. De rest is "zoek".`; } return '"We gaan ernaar kijken." Hij schrijft het op een bierviltje en stopt het in zijn binnenzak. Dat wordt niks.'; }],
       ['Dit was Luigi. Wacht maar…', () => { S.ruzie = Math.min(100, (S.ruzie || 0) + 15); return 'Je balt je vuisten richting de overkant. Luigi zwaait vriendelijk terug. Met een nieuwe sigaar. (Ruzie met Luigi +15)'; }],
       ['Vanaf nu gaat alles naar de bank.', () => { const st = Math.max(0, Math.floor(S.geld - 50)); if (st > 0) { S.geld -= st; S.bankSaldo = (S.bankSaldo || 0) + st; } return st > 0 ? `Je brengt meteen € ${st} naar Banca Fortuna en houdt € 50 wisselgeld. Meneer Fortuna knipoogt: "Bij ons slaapt uw geld rustig."` : 'Er is niet veel meer om weg te brengen…'; }] ] });
+}
+const ginoDag = () => weekdag(S.dag + 2) == 0 ? S.dag + 3 : S.dag + 2; // de dag dat Luigi's oven gemaakt wordt (niet op maandag)
+function crewVraag() { // de vrienden van Luigi op belastingdag: ze weten dat je contant geld in huis hebt
+  S.crewGehad = true;
+  return { id: 'crew', ik: '🕶️', wie: 'Twee mannen in groene pakken', zelf: true,
+    vraag: 'Het is toch belastingdag vandaag? Dan heb je vast wat contant in huis. Wij komen het even… ophalen. De groeten van niemand. Zeker niet van Luigi.',
+    a: [['Pak maar… (als jullie maar weggaan)', () => { const b = Math.round(S.geld * 0.4); ge(-b); return `Ze vegen € ${b} uit de kassa en lopen fluitend naar de overkant. Naar de overkant, ja.`; }],
+      ['Mario! De deegroller!', () => { if (kans(0.5)) { rep(2); return 'Mario stormt de keuken uit met de deegroller boven zijn hoofd, en roept iets op z\'n Italiaans dat je niet wilt vertalen. Ze rennen weg. De klanten klappen!'; }
+        const b = Math.round(S.geld * 0.6); ge(-b); vandaag.gezellig -= 1; return `Mario struikelt over de meelzak. De mannen nemen € ${b} mee, en ook de deegroller.`; }],
+      ...(S.nepgeld ? [['Geef ze de envelop uit de la (nepgeld).', () => { S.nepgeld = 0;
+        if (kans(0.75)) { S.luigiDicht = weekdag(S.dag + 1) == 0 ? S.dag + 2 : S.dag + 1; S.luigiFlyers = false; return 'Ze tellen niet eens na. Vanavond betaalt Luigi er zijn eigen belasting mee… De inspecteur vindt dat niet grappig. Morgen zit Luigi de hele dag op het bureau, en is zijn zaak dicht!'; }
+        const b = Math.round(S.geld * 0.5); ge(-b); S.ruzie = Math.min(100, (S.ruzie || 0) + 15); return `"Hé, waarom staat Barrie op dit briefje?" Ze gooien de envelop in je gezicht en nemen € ${b} echt geld mee. (Ruzie met Luigi +15)`; }]] : []) ] };
 }
 function sabotageVandaag() {
   if (S.inbraak) { inbraak(); return; } // de sabotage (als die er is) komt dan morgen

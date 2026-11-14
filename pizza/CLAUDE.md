@@ -408,3 +408,11 @@ terug), ruzie +15, of alles behalve € 50 naar de bank. In het dagoverzicht ond
 Lenen (14 nov): de bank leent niet meer dan zijn maximum min wat je de bank al schuldig bent (eerder kon je steeds opnieuw lenen). Rente staat vast bij
 het afsluiten (een gemiste avond kost geen extra rente, de lening duurt dan langer). Beslag: de deurwaarder van de bank (2 avonden achterstand) en de
 belastingdienst pakken eerst je bankrekening, dan pas spullen; crypto vinden ze niet. Ome Sjaak kan niet bij je rekening.
+Kalenderblad (14 nov, Marcel): na "Verder met inrichten" in het dagoverzicht `toonKalender()` (scherm `#kalender`): de datum als scheurkalender en
+`kalenderPunten()` voor de komende 7 dagen: belastingdag (met het bedrag tot nu toe), aanslag, maandag dicht, Luigi's oven kapot, laatste dag van
+Gerrits bestelling, einde valse bonnen; plus kassa en bank. Luigi's crew op belastingdag (`crewVraag`, via `ochtendVraag` bij het openen, dag ≥ 8,
+> € 400 contant, kans 30% + ruzie/200, niet tijdens `luigiRust`; `S.crewGehad` → waarschuwing op de kalender): kassa 40% kwijt, Mario met de deegroller
+(50/50), of de envelop nepgeld (`S.nepgeld`, € 15 te drukken bij de drukpers in de achterkamer): 75% Luigi betaalt er zijn belasting mee en is een dag
+dicht (`S.luigiDicht`), anders 50% kwijt en ruzie +15. Eerlijke hak (afspraak Marcel: wij overvallen Luigi niet): vraag 'gino' (pizzabakker van Luigi,
+zaak 1, om de 8 dagen kans): even dag = mozzarellaboer (kaas halve prijs, 7 dagen), oneven dag = oven kapot over 2 dagen (`ginoDag`, niet op maandag;
+`S.luigiDicht`, aankomst ×1,3 of ×1,5 met flyers `S.luigiFlyers` € 25), of netjes weigeren (ruzie −10, rep +1).
