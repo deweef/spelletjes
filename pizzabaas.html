@@ -4346,7 +4346,7 @@ function tekenKnoppen() {
   k.querySelector('[data-bank]').onclick = () => { wekGeluid(); sluitMenu(); kies = null; toonBank(); };
   k.querySelector('[data-voorraad]').onclick = () => { wekGeluid(); sluitMenu(); toonVoorraad(); };
   k.querySelector('[data-dag]').onclick = () => { $('eindkaart').innerHTML = (laatsteDag || '<h1>📊 Gisteren</h1><p>Je hebt nog geen dag gedraaid.</p><button class="groot" id="verder">Sluiten</button>')
-      + '<p style="text-align:center;margin-top:14px"><button class="knop" id="herbegin">🔄 Opnieuw beginnen</button></p>'; $('einde').classList.remove('verborgen');
+      + '<p style="text-align:center;margin-top:14px"><button class="knop" id="herbegin">🔄 Helemaal opnieuw beginnen (alles kwijt!)</button></p>'; $('einde').classList.remove('verborgen');
     $('verder').onclick = () => $('einde').classList.add('verborgen');
     $('herbegin').onclick = () => { if (confirm('Echt helemaal opnieuw beginnen? Je zaak, je geld en al je spullen zijn dan weg (je hoogste pizzatoren blijft).')) herstart(); }; };
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
