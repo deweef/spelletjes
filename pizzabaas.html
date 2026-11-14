@@ -73,7 +73,7 @@
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
-  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 1870px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
+  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 2040px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
   .vraagwie { font-weight: 800; color: #b5381c; font-size: 15px; }
   .vraagtekst { font-size: 17px; margin: 8px 0 12px; }
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
@@ -2775,7 +2775,7 @@ function inbraak() { // 's nachts ingebroken (S.inbraak, gezet in eindeDag als e
 const ginoDag = () => weekdag(S.dag + 2) == 0 ? S.dag + 3 : S.dag + 2; // de dag dat Luigi's oven gemaakt wordt (niet op maandag)
 function crewVraag() { // de vrienden van Luigi op belastingdag: ze weten dat je contant geld in huis hebt
   S.crewGehad = true;
-  return { id: 'crew', ik: '🕶️', wie: 'Twee mannen in groene pakken', zelf: true,
+  return { id: 'crew', ik: `<div style="display:flex;justify-content:center;gap:4px"><div class="portret" style="background-position:${-22 * 85}px 0;margin:0"></div><div class="portret" style="background-position:${-23 * 85}px 0;margin:0"></div></div>`, wie: 'Salvatore en Toto, de vrienden van Luigi', zelf: true,
     vraag: 'Het is toch belastingdag vandaag? Dan heb je vast wat contant in huis. Wij komen het even… ophalen. De groeten van niemand. Zeker niet van Luigi.',
     a: [['Pak maar… (als jullie maar weggaan)', () => { const b = Math.round(S.geld * 0.4); ge(-b); return `Ze vegen € ${b} uit de kassa en lopen fluitend naar de overkant. Naar de overkant, ja.`; }],
       ['Mario! De deegroller!', () => { if (kans(0.5)) { rep(2); return 'Mario stormt de keuken uit met de deegroller boven zijn hoofd, en roept iets op z\'n Italiaans dat je niet wilt vertalen. Ze rennen weg. De klanten klappen!'; }

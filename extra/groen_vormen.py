@@ -21,3 +21,17 @@ def knip(a, groen, box):
 if __name__ == '__main__':
     a, gm, v = vormen(sys.argv[1])
     for i, b in enumerate(v): print(i, b, 'h', b[1] - b[0], 'w', b[3] - b[2])
+
+# Voor figuren die zelf groen zijn (Luigi, de crew): achtergrond = wat vanaf de rand bereikbaar is en dicht bij de achtergrondkleur ligt.
+def vormen_flood(pad, min_opp=3000, afstand=80):
+    from scipy import ndimage
+    a = np.array(Image.open(pad).convert('RGB')).astype(int); bg = np.median(a[2:8, 2:8].reshape(-1, 3), 0)
+    dicht = np.sqrt(((a - bg) ** 2).sum(-1)) < afstand; lab, n = ndimage.label(dicht)
+    rand = set(np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))) - {0}
+    groen = np.isin(lab, list(rand)) | (np.sqrt(((a - bg) ** 2).sum(-1)) < 40)  # ook ingesloten stukjes pure achtergrond (tussen haar en oor)
+    vol = ndimage.binary_opening(~groen, iterations=1)
+    lab2, n2 = ndimage.label(ndimage.binary_dilation(vol, iterations=4)); uit = []
+    for i, sl in enumerate(ndimage.find_objects(lab2), 1):
+        if ((lab2[sl] == i) & vol[sl]).sum() < min_opp: continue
+        uit.append((sl[0].start, sl[0].stop, sl[1].start, sl[1].stop))
+    uit.sort(key=lambda v: (v[0] // 120, v[2])); return a, groen, uit

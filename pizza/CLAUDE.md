@@ -527,3 +527,7 @@ Ijskar van Gianni (14 nov, ChatGPT-deellink, `pizza/ijskar-chatgpt.jpg` 1200x630
 `pizza/ijskar-opzij.png`, 240 px hoog. Op een 'kar'-dag van `S.gianniStreek` belt Sofia bij het openen (`karVraag`, plaatje als `ik`): laten staan
 (×0,6) / zelf proevertjes € 15 (`st.f` = 0,85) / Wethouder Wim bellen (55%: kar weg, ×1; anders heeft Gianni een vergunning van Wim zelf). De opzij-kar
 staat ook in de Gelateria in de stad.
+Luigi's crew heeft plaatjes (14 nov, `pizza/crew-chatgpt.png`): Salvatore (lang, paardenstaart) bezoekers rij 15 / portret 22 (met pizzapunt), Toto
+(kaal, breed) rij 16 / portret 23 (met glas); css portretten 2040px. Groene pakken op groen: `bezoeker_knip.py … flood=1` (`vormen_flood` in
+`extra/groen_vormen.py`: alleen achtergrond die vanaf de rand bereikbaar is, plus ingesloten stukjes pure achtergrondkleur; geen ontgroening).
+De vraag 'crew' (belastingdag) toont nu beide portretten naast elkaar (`ik` = html). De looprijen 15/16 worden nog nergens gebruikt.
