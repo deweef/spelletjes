@@ -1386,9 +1386,10 @@ const VRAGEN = [
     a: [['Vertel, Henk!', () => { oberTempo(0.9); vandaag.gezellig += 0.5; return 'Drie kwartier later is hij bij het stuk waar de fiets door het ijs zakt. De ober luistert ademloos mee.'; }],
       ['Sorry Henk, het is druk.', () => 'Henk vertelt het verhaal dan maar aan de plant.'],
       ['Die ken ik al, Henk!', () => { rep(-0.5); return '"Nee, dit is die andere winter!" Henk is een beetje beledigd.'; }] ] },
-  { id: 'kimnaam', ik: '📸', wie: '', vraag: 'OMG, mag jullie nieuwste pizza "Pizza Kimberley" heten? Dan zet ik hem in mijn story!',
-    a: [['Ja hoor, Pizza Kimberley!', () => { morgenKl(1.12); return 'Ze maakt veertig selfies met de pizza. Morgen staan er tieners in de rij.'; }],
-      ['Nee, hij heet al Pizza Bouwvakker.', () => { rep(-1); return '"Bouwvakker? Echt niet aesthetic." Ze ontvolgt je.'; }],
+  { id: 'kimnaam', ik: '📸', wie: '', als: () => !S.menu.some((p) => p.naam == 'Pizza Kimberley'),
+    vraag: () => `OMG, mag jullie nieuwste pizza "Pizza Kimberley" heten? In plaats van "${nieuwstePizza().naam}"? Dan zet ik hem in mijn story!`,
+    a: [['Ja hoor, Pizza Kimberley!', () => { const p = nieuwstePizza(), oud = p.naam; p.naam = 'Pizza Kimberley'; morgenKl(1.12); return `Ze maakt veertig selfies met de pizza. "${oud}" heet vanaf nu Pizza Kimberley (kijk maar op de menukaart). Morgen staan er tieners in de rij.`; }],
+      [`Nee, hij heet al zo. Prima naam.`, () => { rep(-1); return '"Bouwvakker? Echt niet aesthetic." Ze ontvolgt je.'; }],
       ['Alleen als jij hem helemaal opeet.', () => { ge(PRIJS); return 'Ze eet één hapje voor de foto en geeft de rest aan haar vriendje. Betalen doet ze wel.'; }] ] },
   { id: 'keestruffel', ik: '🍅', wie: '', vraag: 'Psst. Ik heb hier een échte Italiaanse truffel. Uit Italië! Of nou ja… uit Italië-ish. € 50 voor jou.',
     a: [['Ik neem hem!', () => { ge(-50); if (kans(0.4)) { vandaag.fooi *= 1.25; return 'Hij is echt! De villabewoners smelten. Veel meer fooi vandaag.'; } return 'Mario ruikt eraan. "Baas… dit is een aardappel met zwarte schoensmeer."'; }],
@@ -4023,6 +4024,7 @@ function kleinePizza(p) { if (!p || !p.stukjes || !(BODEM_IMG.complete && BODEM_
   const k = JSON.stringify(p.stukjes); let c = pizzaFoto.get(k); if (!c) { c = document.createElement('canvas'); c.width = c.height = 96; tekenPizzaOp(c, p); pizzaFoto.set(k, c); } return c; }
 for (const im of [BODEM_IMG, BELEG_IMG]) im.addEventListener('load', () => { pizzaFoto.clear(); if (!$('pizzas').classList.contains('verborgen')) bewerk ? tekenMaak() : toonKaart(); });
 ING_IMG.onload = () => { if (!$('pizzas').classList.contains('verborgen')) bewerk ? tekenMaak() : toonKaart(); };
+const nieuwstePizza = () => S.menu.reduce((a, p) => ((p.sinds || 0) >= (a.sinds || 0) ? p : a), S.menu[0]); // de laatst verzonnen pizza
 const NAMEN = ['Pizza Baas', 'Pizza Pittig', 'Pizza Bomba', 'Pizza Mamma Mia', 'Pizza Kapsalon', 'Pizza Hawaii', 'Pizza Vulcano', 'Pizza Bellissima',
   'Pizza Zoetekauw', 'Pizza Rotterdam', 'Pizza Bouwvakker', 'Pizza Tentamen', 'Pizza Kunstgebit', 'Pizza Zondag', 'Pizza Rommelbak', 'Pizza Dikke Vette'];
 const geld = (v) => '€\u00a0' + v.toFixed(2).replace('.', ',');

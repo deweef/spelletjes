@@ -455,3 +455,5 @@ de kaart zit) of "🙈 Voor niemand de lekkerste". Sterren en de percentages bov
 Drukpers op één plek (14 nov, Marcel zag schilderen én drukpers in zaak 1): `S.pers` is gedeeld, dus na kopen in de studentenbuurt stond hij ook in
 zaak 1. Nu `S.persZaak` (bij opknappen) en `persZaak()` (oude opslag: de zaak in de studentenbuurt, anders de eerste); zaak 1 toont hem alleen als
 `persZaak() == 0`. De achterkamer toont nu bovenaan in welke zaak je bent (📍 `zaakNaam()`).
+Pizza Kimberley (14 nov): vraag 'kimnaam' noemt de nieuwste pizza (`nieuwstePizza()`, hoogste `p.sinds`) en antwoord A hernoemt hem echt; de vraag
+komt niet meer als er al een Pizza Kimberley op de kaart staat.
