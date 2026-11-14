@@ -416,3 +416,10 @@ Gerrits bestelling, einde valse bonnen; plus kassa en bank. Luigi's crew op bela
 dicht (`S.luigiDicht`), anders 50% kwijt en ruzie +15. Eerlijke hak (afspraak Marcel: wij overvallen Luigi niet): vraag 'gino' (pizzabakker van Luigi,
 zaak 1, om de 8 dagen kans): even dag = mozzarellaboer (kaas halve prijs, 7 dagen), oneven dag = oven kapot over 2 dagen (`ginoDag`, niet op maandag;
 `S.luigiDicht`, aankomst ×1,3 of ×1,5 met flyers `S.luigiFlyers` € 25), of netjes weigeren (ruzie −10, rep +1).
+Bank (14 nov, Marcel): leenmaximum van de bank = 100 + rep × 10 + de helft van je weekomzet (`leenOmzet`: gemiddelde van `S.omzetWeek`, laatste 7
+dagen, × 7 × 0,5; met minder dan 3 dagen nog de oude `min(1500, omzetGisteren × 3)`) − wat je de bank al schuldig bent. Pinnen: inkoop (zelf
+bestellen, spoed van de markt en Mario's automatische inkoop) gaat eerst van de bankrekening, de rest uit de kassa (`betaalBank(k)` → [bank, kassa],
+melding met `betaalTekst`); aflossing aan de bank ook (automatische incasso). Belasting blijft contant (de inspecteur zegt dat ook). Inbraak-keuze
+"alles naar de bank" houdt € 100 wisselgeld.
+Barrie leren kennen: vraag 'barrie' komt pas als je een achterkamer hebt én Luigi je de afgelopen 5 dagen gesaboteerd heeft (`S.gesaboteerd`); daarna
+komt hij 20% van de dagen langs voor de achterkamer (`kamerBezoek` → 'barrieLangs'), of je belt hem na een streek van Luigi.
