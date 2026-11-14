@@ -688,7 +688,7 @@ function openDeuren() {
 function eindeDag() {
   modus = 'inrichten'; for (const p of S.menu) p.gisteren = tel.verkocht[p.naam] || 0; // verkopen per pizza (menukaart) eindeVoorraad();
   const huur = S.huur || HUUR, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
-  const andereWinst = anderen.reduce((a, o) => a + o.winst, 0);
+  const ijs = ijsDag(), andereWinst = anderen.reduce((a, o) => a + o.winst, 0) + (ijs ? ijs.winst : 0);
   const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon + (S.bezorg.abo ? BEZORG.abo : 0) : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi + extraTotaal() - tel.kosten - huur - lonen + andereWinst;
   S.geld += -huur - lonen - (tel.ing || 0) + andereWinst;
   let manWeg = ''; if (S.manager) { const M = MANAGER[S.manager.wie]; S.manager.dagen = (S.manager.dagen || 0) + 1;
@@ -730,7 +730,7 @@ function eindeDag() {
       <tr><td>🍕 Pizza's verkocht</td><td>€ ${Math.round(tel.omzet)}</td></tr>${Object.entries(tel.extra || {}).filter(([k, n]) => n >= 1).map(([k, n]) => `<tr><td>${EXTRANAAM[k] || EXTRANAAM.overig}</td><td>€ ${Math.round(n)}</td></tr>`).join('')}
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
       <tr><td>🧀 Ingrediënten ingekocht</td><td>− € ${Math.round((tel.inkoop || 0) + (tel.ing || 0))}</td></tr>${tel.kosten - (tel.inkoop || 0) - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.inkoop || 0) - (tel.ing || 0))}</td></tr>${Object.keys(tel.uitW || {}).length ? `<tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${Object.entries(tel.uitW).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([w, n]) => `${esc(w)} € ${Math.round(n)}`).join(' · ')}</td></tr>` : ''}` : ''}${tel.bedorven >= 1 ? `<tr><td>🗑️ Bedorven en weggegooid</td><td>(€ ${Math.round(tel.bedorven)})</td></tr>` : ''}${tel.uitverkocht ? `<tr><td>🚫 Weg: hun pizza was op</td><td>${kl(tel.uitverkocht)}</td></tr>` : ''}
-      <tr><td>🏠 Huur</td><td>− € ${huur}</td></tr>${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${esc(o.tekst)}</td></tr>`).join('')}
+      <tr><td>🏠 Huur</td><td>− € ${huur}</td></tr>${ijs ? `<tr><td>🍨 IJssalon</td><td>${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75">${esc(ijs.tekst)}</td></tr>` : ''}${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${esc(o.tekst)}</td></tr>`).join('')}
       ${lonen - manLoon ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen - manLoon}</td></tr>` : ''}${manLoon ? `<tr><td>📋 Loon ${S.manager ? 'manager' : ''}${S.manager && S.bezorg ? ' en ' : ''}${S.bezorg ? 'bezorger' : ''}</td><td>− € ${manLoon}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
       ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
@@ -814,6 +814,7 @@ function kalenderPunten() {
     if (S.luigiDicht == d) l.push([d, wanneer, `🔧 Luigi's oven is kapot (tip van Gino): zijn klanten komen naar jou${S.luigiFlyers ? ', en je flyers liggen klaar' : ''}!`]);
     if (S.opdracht && !S.zaak && S.achterkamer && S.opdracht.tot == d) l.push([d, wanneer, '🎨 Laatste dag voor de bestelling van Gerrit']);
     if (S.bonnen && S.bonnen.tot == d) l.push([d, wanneer, '🖨️ De valse bonnen lopen af']);
+    if (S.ijs && S.gianniStreek && S.gianniStreek.dag == d && S.gianniStreek.wat == 'kar' && kans(0.5)) l.push([d, wanneer, '🍦 Ahmet zag Gianni zijn ijskar poetsen. "Morgen sta ik bij de pizzaman," zei hij.']);
   }
   return l;
 }
@@ -822,7 +823,7 @@ function toonKalender() {
   $('kalenderkaart').innerHTML = `<div style="margin:0 auto 10px;width:170px;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px #0004;background:#fff;text-align:center">
       <div style="background:#c0392b;color:#fff;font-weight:bold;padding:6px;font-size:18px">${esc(MAAND[d.getMonth()])}</div>
       <div style="font-size:72px;font-weight:bold;line-height:1.1;color:#3a2a1a">${d.getDate()}</div>
-      <div style="padding-bottom:8px;color:#7a6a5a">${esc(DAGNAAM[weekdag()])}</div></div>
+      <div style="padding-bottom:8px;color:#7a6a5a">${esc(DAGNAAM[weekdag()])} · 🌡️ ${temp()}°C</div></div>
     ${punten.length ? `<p><b>Op de kalender:</b></p>${punten.map(([, w, t]) => `<p style="margin:4px 0;font-size:14px"><b>${esc(w)}:</b> ${esc(t)}</p>`).join('')}` : '<p class="buurt" style="text-align:center">Niks bijzonders deze week. Gewoon lekker pizza bakken.</p>'}
     <p class="buurt" style="font-size:13px">💶 In de kassa: ${euro(S.geld)} · 🏦 op de bank: ${euro(S.bankSaldo || 0)}</p>
     <button class="groot" id="kalenderdicht">Aan de slag!</button>`;
@@ -862,7 +863,7 @@ const pak = (l) => l[Math.floor(Math.random() * l.length)];
 const kans = (p) => Math.random() < p;
 let kostLabel = null; // waar gaat dit geld naartoe? (tijdens een vraag: wie het vroeg) — voor het dagoverzicht
 const ge = (n, soort = 'overig') => { S.geld += n; if (n < 0) { tel.kosten += -n; if (soort != 'inkoop') { const w = kostLabel || 'Overig'; tel.uitW = tel.uitW || {}; tel.uitW[w] = (tel.uitW[w] || 0) - n; } } else { tel.extra = tel.extra || {}; tel.extra[soort] = (tel.extra[soort] || 0) + n; } }; // geld erbij of eraf; inkomsten per soort apart in het dagoverzicht (niet bij de pizza's)
-const EXTRANAAM = { overig: '💶 Andere inkomsten', kunst: '🖼️ Schilderij verkocht', wijn: '🍷 Château verkocht', spel: '🎲 Gewonnen' };
+const EXTRANAAM = { ijs: '🍨 IJs als toetje', overig: '💶 Andere inkomsten', kunst: '🖼️ Schilderij verkocht', wijn: '🍷 Château verkocht', spel: '🎲 Gewonnen' };
 const extraTotaal = () => Object.values(tel.extra || {}).reduce((a, n) => a + n, 0);
 // populariteit: omhoog gaat steeds moeilijker naarmate je hoger zit (boven 60 flink), omlaag gaat gewoon
 const repRem = (n) => n > 0 ? n * Math.max(0.15, Math.min(1, 1.25 - S.rep / 80)) * (S.zaak && S.rep < 35 ? 1.4 : 1) : n; // een nieuwe zaak (2e, 3e…) groeit in het begin wat sneller: de buurt is nieuwsgierig // 40 → 75%, 60 → 50%, 80 → 25%, 100 → 15%
@@ -2636,7 +2637,71 @@ const PLEK = {
   huur3: { n: 'Te huur: villa met tuin', ik: '🏡', x: 1100, y: 130, b: 200, h: 170, huur: 110, borg: 8000, buurt: 'villa' },
   bouw: { n: 'Bouwplaats', ik: '🏗️', x: 1000, y: 440, b: 260, h: 220 },
   wissel: { n: 'Snelle Sjonnie', ik: '💱', x: 740, y: 470, b: 100, h: 100 },
+  ijssalon: { n: 'IJssalon', ik: '🍨', x: 720, y: 30, b: 150, h: 120 },
+  gianni: { n: 'Gelateria Gianni', ik: '🍦', x: 205, y: 270, b: 95, h: 130 },
 };
+// ---------- de ijssalon (14 nov) en Gianni IJskoud, oud-collega én aartsvijand van Luigi ----------
+// S.ijs = { sinds, vitrine: [4 smaken], prijs (per bol), choco (warme chocomel in de winter), rep, gisteren: { klanten, winst, tekst } }
+// Elke avond `ijsDag()`: klanten hangen af van het weer (`temp`), de drukte, de smaken in de vitrine (fans per soort klant), de prijs en Gianni.
+const IJSPRIJS = 2500, IJSLOON = 45, IJSHUUR = 25;
+const IJSSMAAK = {
+  vanille: { n: 'Vanille', kl: '#f6e7b4', k: 0.3, fan: { opa: 2, villa: 1, werker: 1 } },
+  chocola: { n: 'Chocola', kl: '#6b3e26', k: 0.35, fan: { student: 2, werker: 1, opa: 1 } },
+  aardbei: { n: 'Aardbei', kl: '#f28aa0', k: 0.35, fan: { opa: 1, toerist: 1, student: 1 } },
+  pistache: { n: 'Pistache', kl: '#a8c66c', k: 0.6, fan: { villa: 2, toerist: 2 } },
+  stracciatella: { n: 'Stracciatella', kl: '#efe9dc', k: 0.4, fan: { toerist: 1, villa: 1, student: 1 } },
+  citroen: { n: 'Citroensorbet', kl: '#f4e66a', k: 0.3, fan: { villa: 1, opa: 1 }, warm: true },
+  mango: { n: 'Mango', kl: '#f7a440', k: 0.45, fan: { toerist: 2, student: 1 }, warm: true },
+  tiramisu: { n: 'Tiramisu', kl: '#c9a27e', k: 0.55, fan: { villa: 2, werker: 1, opa: 1 } },
+  stroopwafel: { n: 'Stroopwafel', kl: '#d19a4b', k: 0.45, fan: { toerist: 3, student: 1 } },
+  drop: { n: 'Drop', kl: '#2b2b2b', k: 0.35, fan: { opa: 2, student: 1, toerist: -2 } },
+  bier: { n: 'Biersorbet (bijna alcoholvrij)', kl: '#e8b33a', k: 0.4, fan: { werker: 3, student: 2, opa: -1, villa: -1 } },
+  kaas: { n: 'Goudse kaas', kl: '#f2c94c', k: 0.4, fan: { toerist: 2, werker: -1, villa: -2, student: -1 } } };
+const TEMP = [3, 4, 7, 11, 15, 18, 21, 20, 17, 12, 7, 4]; // gemiddelde middagtemperatuur per maand (graden)
+function temp(d = S.dag) { const t = datum(d); let z = (d * 7919 + 104729) % 2147483647; z = (z * 16807) % 2147483647; return Math.round(TEMP[t.getMonth()] + (z / 2147483647 - 0.5) * 9); }
+function ijsScore() { // hoe goed past de vitrine bij de klanten? (0,5 tot ±1,5)
+  const v = (S.ijs && S.ijs.vitrine) || []; if (!v.length) return 0.3;
+  return Object.entries(SOORT).reduce((a, [s, d]) => { const f = v.map((k) => IJSSMAAK[k].fan[s] || 0), beste = Math.max(...f), slecht = Math.min(0, ...f);
+    return a + d.kans * (0.6 + 0.18 * beste + 0.06 * slecht + 0.05 * f.filter((x) => x > 0).length); }, 0) / Object.values(SOORT).reduce((a, d) => a + d.kans, 0);
+}
+function ijsDag() { // 's avonds: hoe ging het in de ijssalon?
+  const I = S.ijs; if (!I) return null; const t = temp(), wd = weekdag();
+  const weer = Math.max(0.08, Math.min(1.4, (t - 3) / 17)), st = S.gianniStreek, streek = st && st.dag == S.dag ? st.wat : null;
+  if (streek == 'stroom') { I.gisteren = { klanten: 0, winst: -IJSLOON - IJSHUUR - 60, tekst: '⚡ Dicht: de vriezer ging vannacht uit. Alles gesmolten (− € 60). Gianni had ineens een nieuwe stekkerdoos…' }; S.gianniStreek = null; return I.gisteren; }
+  const prijsF = Math.max(0.4, 1.35 - (I.prijs - 1.5) * 0.35), repF = 0.4 + (I.rep || 20) / 100, warm = t >= 18 ? 1 + 0.1 * I.vitrine.filter((k) => IJSSMAAK[k].warm).length : 1;
+  let kl = Math.round(70 * weer * DRUKTE[wd] * repF * ijsScore() * prijsF * warm * (streek == 'kar' ? 0.6 : 1) * (torenOpen() ? 1.2 : 1) * (0.85 + Math.random() * 0.3));
+  const bollen = kl * 2, k = I.vitrine.reduce((a, s) => a + IJSSMAAK[s].k, 0) / Math.max(1, I.vitrine.length);
+  const choco = I.choco && t < 12 ? Math.round(48 * (12 - t) / 12 * DRUKTE[wd] * repF * (0.85 + Math.random() * 0.3)) : 0; // warme chocomel met slagroom, € 2,50
+  const omzet = Math.round(bollen * I.prijs + choco * 2.5), kosten = Math.round(bollen * k + choco * 0.6) + IJSLOON + IJSHUUR, winst = omzet - kosten;
+  I.rep = Math.max(0, Math.min(100, (I.rep || 20) + (ijsScore() > 1 ? 0.6 : ijsScore() > 0.85 ? 0.2 : -0.4) + (streek == 'gerucht' ? -6 : 0)));
+  I.gisteren = { klanten: kl + choco, winst, tekst: `🌡️ ${t}°C · ${kl} ijsjes${choco ? ` en ${choco} warme chocomel` : ''}, omzet € ${omzet}, winst € ${winst}`
+    + (streek == 'kar' ? ' · 🍦 Gianni stond de hele dag met zijn ijskar voor je deur!' : streek == 'gerucht' ? ' · 🗣️ Gianni vertelt overal dat jouw ijs uit de supermarkt komt' : '') };
+  if (streek) S.gianniStreek = null;
+  if (kans(0.08 + (I.rep > 40 ? 0.04 : 0))) S.gianniStreek = { dag: S.dag + 1 + (weekdag(S.dag + 1) == 0 ? 1 : 0), wat: pak(['kar', 'kar', 'gerucht', 'stroom']) }; // Gianni is jaloers
+  return I.gisteren;
+}
+function ijsBlok() { // het scherm van je eigen ijssalon (in de stad)
+  const I = S.ijs, t = temp(), g = I.gisteren;
+  return `<p>Achter de toonbank schept Sofia de bolletjes, ze doet het al dertig jaar. "Welke smaken zetten we in de vitrine, baas?"</p>
+    <p class="buurt">🌡️ Vandaag ${t}°C${t < 10 ? ' (brrr, ijsweer is anders)' : t >= 18 ? ' (heerlijk ijsweer!)' : ''} · ⭐ ${Math.round(I.rep || 20)}${g ? `<br>Gisteren: ${esc(g.tekst)}` : ''}</p>
+    <p><b>Vitrine</b> (${I.vitrine.length}/4, tik om te wisselen):</p><div class="rij" style="flex-wrap:wrap;gap:6px">${Object.entries(IJSSMAAK).map(([k, s]) => `<button class="knop" data-smaak="${k}" style="padding:6px 9px;${I.vitrine.includes(k) ? 'outline:3px solid #2e9d52;' : 'opacity:.75;'}"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${s.kl};border:1px solid #0003;vertical-align:-2px"></span> ${esc(s.n)}</button>`).join('')}</div>
+    <p class="buurt">Wie houdt van wat? Proberen! Toeristen, studenten, werkers, opa's en villabewoners hebben allemaal hun lievelingssmaak. Op warme dagen gaan sorbets en mango extra goed.</p>
+    <p><b>Prijs per bolletje:</b> <button class="knop" id="ijsmin" style="padding:4px 12px">−</button> <b>${euro(I.prijs)}</b> <button class="knop" id="ijsplus" style="padding:4px 12px">+</button></p>
+    <p><label><input type="checkbox" id="ijschoco" ${I.choco ? 'checked' : ''}> ☕ Warme chocomel met slagroom als het koud is (onder 12°C)</label></p>
+    <p class="buurt">Kosten per dag: Sofia € ${IJSLOON}, huur € ${IJSHUUR}, plus het ijs zelf. In je pizzeria nemen klanten nu ook een ijsje toe.</p>`;
+}
+function ijsKnoppen(k2, plek) {
+  if ($('ijskoop')) $('ijskoop').onclick = () => { if (S.geld + (S.bankSaldo || 0) < IJSPRIJS) return; betaalBank(IJSPRIJS); S.ijs = { sinds: S.dag, vitrine: ['vanille', 'chocola', 'aardbei'], prijs: 2, choco: true, rep: 20 }; kassa(); bewaar(); tekenKnoppen();
+    meld('🍨 De ijssalon is van jou! Ergens in de stad laat iemand een hoorntje vallen van schrik…', 4000); toonStad('ijssalon'); };
+  k2.querySelectorAll('[data-smaak]').forEach((b) => b.onclick = () => { const v = S.ijs.vitrine, k = b.dataset.smaak; if (v.includes(k)) S.ijs.vitrine = v.filter((x) => x != k); else if (v.length < 4) v.push(k); else meld('De vitrine is vol: haal eerst een smaak weg.'); bewaar(); toonStad(plek); });
+  if ($('ijsmin')) $('ijsmin').onclick = () => { S.ijs.prijs = Math.max(1, Math.round((S.ijs.prijs - 0.25) * 100) / 100); bewaar(); toonStad(plek); };
+  if ($('ijsplus')) $('ijsplus').onclick = () => { S.ijs.prijs = Math.min(5, Math.round((S.ijs.prijs + 0.25) * 100) / 100); bewaar(); toonStad(plek); };
+  if ($('ijschoco')) $('ijschoco').onchange = () => { S.ijs.choco = $('ijschoco').checked; bewaar(); };
+}
+const GIANNI = ['"Luigi? Die ken ik. Twintig jaar samen in één zaak: ik het ijs, hij de pizza\'s. Tot hij mijn recept voor tiramisu-ijs op zijn pizza deed. Op een PIZZA."',
+  '"Weet je wat het verschil is tussen Luigi en mijn ijs? Mijn ijs heeft een hart. Een koud hart, maar toch."',
+  '"Zestig jaar sta ik hier. Ik heb geen haar meer op mijn hoofd. Dat komt door de vriezer, niet door Luigi. Nou ja. Ook door Luigi."',
+  '"Hoorntje of bakje? Ik vraag het maar één keer."'];
 let aanBalie = false; // langs bij de bank: 1% minder rente
 function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze niet veranderen als je opnieuw kijkt)
   let z = S.dag * 9301 + 49297; const rnd = () => (z = (z * 16807) % 2147483647) / 2147483647;
@@ -2660,6 +2725,12 @@ function toonStad(plek) {
   else if (plek == 'bank') { h += `<div style="background:#c0392b;color:#fff;border-radius:8px;padding:8px 10px;margin:4px 0 8px;text-align:center;font-weight:700;transform:rotate(-1.5deg);box-shadow:0 3px 8px rgba(0,0,0,.25)">💸 LENEN BIJ BANCA FORTUNA: <s style="opacity:.75">10%</s> <span style="font-size:1.25em;color:#ffe08a">9%!</span><br><small style="font-weight:400">Alleen hier aan het loket: 1% minder rente</small></div>`;
     h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button><button class="knop" id="storten" ${S.geld < 1 ? 'disabled' : ''}>⬇️ Storten</button><button class="knop" id="opnemen" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>⬆️ Opnemen</button><button class="knop" id="beleggen">📱 Beleggen (crypto)</button>`;
     h += `<p class="buurt">🏦 Op je bankrekening: <b>${euro(S.bankSaldo || 0)}</b>. Contant in je kassa: <b>${euro(Math.max(0, S.geld))}</b>. (Met bankgeld kun je op de laptop in de achterkamer crypto kopen.)</p>`; }
+  if (plek == 'ijssalon') { if (S.ijs) { h = `<h1>🍨 Jouw ijssalon</h1>` + ijsBlok(); }
+    else { h += `<p>Een oud ijszaakje met een groen-wit gestreepte luifel. In het raam: <b>TE KOOP, met vriezers en al. € ${IJSPRIJS}.</b> Binnen zit Sofia, die er al dertig jaar ijs schept. "Als de nieuwe baas mij houdt, houd ik van de nieuwe baas."</p>
+      <p class="buurt">Een ijssalon verkoopt vooral als het warm is. In de winter: warme chocomel. Klanten in je pizzeria nemen er een ijsje bij als toetje. En Gelateria Gianni, verderop, zal het niet leuk vinden…</p>`;
+      knoppen = `<button class="knop rood" id="ijskoop" ${S.geld + (S.bankSaldo || 0) < IJSPRIJS ? 'disabled' : ''}>🍨 Kopen (€ ${IJSPRIJS}, van de bank als dat kan)</button>`; } }
+  if (plek == 'gianni') h += `<p>Achter een vitrine vol ijs staat een oude, kale man met een wit jasje en ogen als ijsblokjes: <b>Gianni IJskoud</b>. ${S.ijs ? `Hij kijkt je aan. Lang. "Jij. De pizzaman met de ijssalon. ${pak(['Mijn ijskar staat graag voor andermans deur, weet je dat?', 'Smaakt jouw pistache al naar pistache? Hahaha.', 'Ik heb Luigi overleefd. Jou overleef ik ook.'])}"` : esc(pak(GIANNI))}</p>
+    <p class="buurt">Gianni en Luigi hadden twintig jaar samen een zaak. Nu groeten ze elkaar niet meer.</p>`;
   if (plek == 'markt') {
     const aanbod = marktAanbod(), heb = S.korting && S.korting.tot > S.dag ? S.korting : null;
     h += `<p>Kraampjes vol groente, kaas en worst. "Verse waar! Alles moet weg!"</p>${heb && !aanbod.some((a) => a.i == heb.i) ? `<p class="buurt">Je hebt al korting op ${esc(ING[heb.i].n.toLowerCase())} tot ${esc(datumLang(heb.tot))}.</p>` : ''}
@@ -2714,7 +2785,7 @@ function toonStad(plek) {
       + (reclameAan() ? '' : `<button class="knop" id="reclame" ${S.geld < RECLAME ? 'disabled' : ''}>📣 Reclame (€ ${RECLAME})</button>`)
       + (t.fase == 4 && !t.open ? `<button class="knop rood" id="torenopen">✂️ Lint doorknippen: openingswedstrijd!</button>` : `<button class="knop" id="stapel">🍕 Pizza's stapelen</button>`); }
   const k2 = $('stadkaart'); k2.innerHTML = `<div class="kaart" style="margin:auto">${h}<div class="rij">${knoppen}${terug}</div></div>`;
-  $('plekterug').onclick = () => toonStad();
+  $('plekterug').onclick = () => toonStad(); ijsKnoppen(k2, plek);
   k2.querySelectorAll('[data-verkoop]').forEach((b) => b.onclick = () => { const c = crypto(), id = b.dataset.verkoop, w = c.bezit[id] * c.koers[id] * 0.9; c.bezit[id] = 0; ge(Math.round(w * 100) / 100); kassa(); bewaar(); tekenKnoppen();
     meld(`Sjonnie telt ${euro(w)} uit op de toonbank. "Leuk zakendoen!"`, 3500); toonStad('wissel'); });
   if ($('stapel')) $('stapel').onclick = () => toonToren();
@@ -3139,7 +3210,8 @@ function stap(dt) {
     } else if (m.st == 'eet' && m.t > ETEN) {
       // hoe lekker (0-6) bepaalt de fooi en of ze het doorvertellen
       const o = m.oordeel, prijs = m.pizza.prijs * TELT, fooi = Math.max(0, gezellig(m.tafel) * 0.4 + (o - 2) * 0.5 + (m.wacht < 18 ? 1 : 0)) * vandaag.fooi * TELT + (m.chef ? 3 : 0); // TELT: anderhalve klant; m.chef: de kok kwam even flirten
-      S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o; if (m.incognito) vandaag.recensie = { o, wacht: m.wacht, gez: gezellig(m.tafel), pizza: m.pizza.naam, soort: m.soort };
+      S.geld += prijs + fooi; tel.omzet += prijs; tel.fooi += fooi; tel.blij++; tel.lekker += o;
+      if (S.ijs && kans(0.12 + 0.12 * ijsScore())) { ge(3 * TELT, 'ijs'); tel.toetjes = (tel.toetjes || 0) + 1; if (kans(0.3)) zeg(m, R(['En een bolletje toe!', 'Ijsje? Ja hoor!', 'Pistache, graag!'])); } // ijs als toetje if (m.incognito) vandaag.recensie = { o, wacht: m.wacht, gez: gezellig(m.tafel), pizza: m.pizza.naam, soort: m.soort };
       if (S.wijn && S.wijn.n > 0 && S.buurt == 'villa' && (m.soort == 'villa' || kans(0.2)) && kans(0.6)) { const w = 20 + Math.round(70 * S.wijn.q); S.wijn.n--; ge(w, 'wijn'); tel.wijn = (tel.wijn || 0) + 1; // een fles Château bij het eten
         muntjes.push({ x: m.x, y: m.y - 0.6, t: 1.4, tekst: '🍷 +€' + w }); if (!S.wijn.n) S.wijn = null; }
       tel.verkocht[m.pizza.naam] = (tel.verkocht[m.pizza.naam] || 0) + 1; m.pizza.totaal = (m.pizza.totaal || 0) + 1;

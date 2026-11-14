@@ -319,6 +319,12 @@ Spel:
 - Duurdere moderne oven; toonbank/kassa uit de vellen.
 - Gino's tips ook in de andere zaken? (nu alleen de eerste zaak, Luigi zit daar tegenover)
 - Afwachten hoe de nieuwe dingen spelen (Barrie, crew op belastingdag, inbraak): te vaak / te gemeen?
+IJssalon (afspraak 14 nov: Gianni IJskoud = oud-collega én aartsvijand van Luigi). Stap 1 staat (kopen, vitrine, prijs, chocomel, weer,
+toetje in de pizzeria, Gianni's streken). Volgende stappen:
+- Minispel: bolletjes stapelen op een hoorntje voor een toerist (zoals de pizza-acrobatiek), record op het scorebord.
+- Vragen met Gianni (komt in je pizzeria; de vijand van je vijand: samen tegen Luigi? of verraadt hij je?), en eerlijke tegenzetten tegen Gianni.
+- Luigi en Gianni tegen elkaar uitspelen (wie de ruzie wint, laat jou even met rust).
+- Plaatjes: Gianni (lopen, staan, portret), Sofia, ijskar, ijssalon van binnen, ijsjes per smaak.
 Plaatjes (ChatGPT/Gemini):
 - Dame in rood (rij 11): alleen nog zitten van voren en achteren (vakjes 12-15), dan in FIGUREN.villa.
 - Zitten van opzij voor villadame, Afrikaanse man, Chinese dame, toerist, opa, studente, Afrikaanse vrouw, zakenman (werker, oma, student al klaar).

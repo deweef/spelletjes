@@ -433,3 +433,12 @@ Muziek (14 nov): `LIED` (vincero = slot van Nessun dorma, donna = La donna è mo
 `speelLied(id, vals)` (driehoek met vibrato + sinusbas, achter elkaar in de rij via `liedTot`, `vals` = jij zingt ernaast), `speelWillekeurig`.
 Te horen bij: opera-vraag (Zing maar → vincero, personeel zingt mee → donna), straatmuzikant (bella; zelf zingen = donna vals), en tik tijdens het
 werk op de jukebox. De melodieën zijn uit het hoofd: klinkt iets niet goed, pas de notenreeks aan (bas moet even lang blijven, er is een rekenhulp in de chat).
+IJssalon (14 nov, stap 1, nog zonder eigen plaatjes): `PLEK.ijssalon` (het winkeltje met de groen-witte luifel bovenaan de kaart) en `PLEK.gianni`
+(Gelateria Gianni, links). Gianni IJskoud = oude kale ijscoman, oud-collega én aartsvijand van Luigi (twintig jaar samen een zaak; `GIANNI`-teksten).
+Kopen € 2500 (`IJSPRIJS`, eerst van de bank): `S.ijs` = { sinds, vitrine (max 4 uit `IJSSMAAK`, met fans per soort klant en `warm` = extra bij ≥ 18°C),
+prijs per bol, choco (warme chocomel onder 12°C), rep, gisteren }. Sofia schept (loon € 45, huur € 25). Elke avond `ijsDag()` in `eindeDag`
+(winst telt bij `andereWinst`, regel 🍨 in het dagoverzicht): klanten = 70 × weer × drukte × rep × `ijsScore()` × prijs × Gianni. `temp(d)` =
+vaste temperatuur per dag (maandgemiddelde `TEMP` ± 4,5), ook op het kalenderblad. Gesimuleerd (28 dagen): november ± € 0 (dankzij chocomel),
+april ~€ 1.700, juli € 4.300-5.300. In de pizzeria: 12-24% van de klanten neemt een ijsje toe (€ 3 × TELT, `tel.extra.ijs`, "🍨 IJs als toetje").
+Gianni's streken (`S.gianniStreek` = { dag, wat }, 8% per avond, meer bij rep > 40): 'kar' (ijskar voor je deur, ×0,6; soms tipt Ahmet op de
+kalender), 'gerucht' (supermarktijs, rep −6), 'stroom' (vriezer uit: dicht, − € 60).
