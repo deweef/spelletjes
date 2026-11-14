@@ -1436,7 +1436,7 @@ const VRAGEN = [
     vraag: 'Hé… heb jij toevallig ergens een printer? Ik moet wat… kortingsbonnen printen. Van een andere pizzeria. Voor een vriend.',
     a: [['Nee, wij printen alleen menukaarten.', () => '"Oké, laat maar." Hij print ze dan wel in de bieb.'],
       ['Dat klinkt niet echt legaal.', () => '"Legaal, illegaal… het is maar papier." Hij eet zijn pizza op.'],
-      ['Achter de keuken staat een oude drukpers…', () => { S.kamer = S.dag; rep(0.5); return 'Zijn ogen glimmen. "Laat zien!" Achter je keuken vind je een stoffig hok met een oude drukpers. 🗝️ Linksboven zit nu een sleuteltje.'; }] ] },
+      ['Achter de keuken staat een oude drukpers…', () => { S.kamer = S.dag; rep(0.5); naVraag = naarAchter; return 'Zijn ogen glimmen. "Laat zien!" Achter je keuken vind je een stoffig hok met een oude drukpers. Jullie gaan meteen kijken… (Voortaan hangt de sleutel aan het haakje als hij weer komt drukken.)'; }] ] },
   { id: 'gokker', ik: '🎲', wie: 'Gokker met een sigaar', kans: 6, als: () => S.buurt == 'toeristen' && !S.kamer,
     vraag: 'Een man in een glimmend pak gooit een fiche op tafel. "Ik zoek een kamertje voor een potje roulette. Als je goed raadt, praten we verder. Zwart, rood… of groen?"',
     a: [['Zwart.', () => gokRaad(0)], ['Rood.', () => gokRaad(1)], ['Groen!', () => gokRaad(2)] ] },
@@ -1458,7 +1458,7 @@ const VRAGEN = [
     vraag: 'Ah, garçon. Heeft u in uw kelder nog een fles Château Lafite van 1982? Ik betaal er graag voor. Héél graag.',
     a: [['Wij hebben alleen huiswijn, meneer.', () => '"Huiswijn." Hij spreekt het uit alsof het een vies woord is.'],
       ['Wij hebben helemaal geen kelder.', () => '"Geen kelder? Mon dieu." Hij laat een fooi van één cent achter.'],
-      ['Natuurlijk, ik haal hem even…', () => { S.kamer = S.dag; ge(80); return 'Je rent naar achteren. Geen kelder, geen Lafite… alleen een doos wijn van € 3. Een fles, een trechter en een mooi etiket later krijgt de heer zijn "Lafite". Hij betaalt € 80 en zucht van genot. 🗝️ Linksboven zit nu een sleuteltje: je wijnkelder!'; }] ] },
+      ['Natuurlijk, ik haal hem even…', () => { S.kamer = S.dag; ge(80); naVraag = naarAchter; return 'Je rent naar achteren. Geen kelder, geen Lafite… alleen een doos wijn van € 3. Een fles, een trechter en een mooi etiket later krijgt de heer zijn "Lafite". Hij betaalt € 80 en zucht van genot. Je hebt nu een wijnkelder! Kom, even kijken… (Voortaan hangt de sleutel aan het haakje als de heer terugkomt.)'; }] ] },
   { id: 'sommelier', ik: '🍷', portret: 12, rij: 11, wie: 'Sommelier Sébastien', kans: () => S.wijn && S.wijn.n ? 6 : 0, als: () => S.buurt == 'villa' && S.wijn && S.wijn.n > 0,
     vraag: () => `Een heer met een zilveren proefnapje snuift de lucht op. "Ik hoorde dat u een ${WIJNNAAM[(S.wijn || {}).naam] || 'Château'} van ${(S.wijn || {}).jaar || 'een goed jaar'} schenkt. Mag ik… proeven?"`,
     a: [['Proeft u maar.', () => { if (!S.wijn || S.wijn.q >= 0.8) { rep(3); return 'Hij walst, snuift, slurpt en sluit zijn ogen. "Magnifique. Tonen van eikenhout en… nostalgie." Hij vertelt het overal rond!'; }
@@ -1589,7 +1589,7 @@ function planVragen() { // 2 tot 4 vragen op een willekeurig moment van de dag (
 }
 function kiesVraag() {
   S.gehad = S.gehad || {};
-  const mag = VRAGEN.filter((v) => (!v.als || v.als()) && !(S.gehad[v.id] > S.dag - (v.rust ? v.rust() : 15))); // dezelfde vraag niet binnen 15 dagen (of v.rust dagen)
+  const mag = VRAGEN.filter((v) => (!v.als || v.als()) && !(S.verplicht || []).includes(v.id) && !(S.gehad[v.id] > S.dag - (v.rust ? v.rust() : 15))); // dezelfde vraag niet binnen 15 dagen (of v.rust dagen)
   const lijst = mag.length ? mag : VRAGEN.filter((v) => !v.als || v.als());
   let r = Math.random() * lijst.reduce((a, v) => a + (typeof v.kans == 'function' ? v.kans() : v.kans || 1), 0);
   for (const v of lijst) if ((r -= typeof v.kans == 'function' ? v.kans() : v.kans || 1) < 0) return v;
@@ -2181,8 +2181,8 @@ const kleurVan = (n) => n == 0 ? 'groen' : ROOD.has(n) ? 'rood' : 'zwart';
 function gokRaad(k) { // de gokker laat een balletje rollen: goed geraden = de gokhal gaat open
   const n = Math.floor(Math.random() * 37), kl = kleurVan(n), goed = ['zwart', 'rood', 'groen'][k] == kl;
   if (!goed) return `Het balletje valt op ${n}, ${kl}. "Jammer, vriend." Hij tikt tegen zijn hoed en gaat een pizza eten.`;
-  S.kamer = S.dag; if (kl == 'groen') ge(100);
-  return `Het balletje valt op ${n}, ${kl}! ${kl == 'groen' ? 'Groen! Hij valt bijna van zijn stoel en geeft je € 100. ' : ''}"Jij hebt geluk, ik zie het." Samen richten jullie het kamertje achter de keuken in als gokhal. 🗝️ Linksboven zit nu een sleuteltje.`;
+  S.kamer = S.dag; naVraag = naarAchter; if (kl == 'groen') ge(100);
+  return `Het balletje valt op ${n}, ${kl}! ${kl == 'groen' ? 'Groen! Hij valt bijna van zijn stoel en geeft je € 100. ' : ''}"Jij hebt geluk, ik zie het." Samen richten jullie het kamertje achter de keuken in als gokhal. Kom, even kijken… (Voortaan hangt de sleutel aan het haakje als hij weer komt gokken.)`;
 }
 let gok = null;
 function toonGokhal() { S.gokKeer = S.gokDag == S.dag ? (S.gokKeer || 0) + 1 : 1; S.gokDag = S.dag; // drie keer per bezoek
@@ -3188,7 +3188,7 @@ function stap(dt) {
     else if (isWeg() && manAanwezig()) { // jij bent de stad in: de manager regelt de gewone vragen, de rest wacht tot je terug bent
       if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0] && kans(0.3)) { vraagTijden.shift(); const v = belHier(); wegLog.push(`📞 ${MANAGER[S.manager.wie].n} belde: er was iets aan de hand.`); toonVraag(v); }
       else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { const v = kiesVraag(); if (v.portret != null || v.zelf) vraagTijden[0] = klok + 8; else { vraagTijden.shift(); managerVraag(v); } } }
-    else if (S.verplicht && S.verplicht.length && klok > DAG * 0.25) { const id = S.verplicht.shift(); const v = VRAGEN.find((v) => v.id == id); if (v) stel(v); }
+    else if (S.verplicht && S.verplicht.length && klok > DAG * 0.25) { const id = S.verplicht.shift(); const v = VRAGEN.find((v) => v.id == id); if (v && !(S.gehad && S.gehad[id] == S.dag) && !(['printer', 'gokker', 'kelder'].includes(id) && v.als && !v.als())) stel(v); }
     else if (vraagTijden.includes(-1) && klok > DAG * 0.3) { vraagTijden = vraagTijden.filter((t) => t != -1); stel(INSPECTEUR); }
     else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { vraagTijden.shift(); stel(kiesVraag()); }
     if (klok >= DAG) { modus = 'sluiten'; meld('De deur gaat dicht. Nog even de laatste klanten helpen…'); tekenKnoppen(); }

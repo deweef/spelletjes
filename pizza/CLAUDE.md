@@ -442,3 +442,7 @@ vaste temperatuur per dag (maandgemiddelde `TEMP` ± 4,5), ook op het kalenderbl
 april ~€ 1.700, juli € 4.300-5.300. In de pizzeria: 12-24% van de klanten neemt een ijsje toe (€ 3 × TELT, `tel.extra.ijs`, "🍨 IJs als toetje").
 Gianni's streken (`S.gianniStreek` = { dag, wat }, 8% per avond, meer bij rep > 40): 'kar' (ijskar voor je deur, ×0,6; soms tipt Ahmet op de
 kalender), 'gerucht' (supermarktijs, rep −6), 'stroom' (vriezer uit: dicht, − € 60).
+Achterkamer zaak 2/3/4 (14 nov, Marcel kreeg de printer-vraag 2× en er gebeurde niets): antwoord C van 'printer', 'kelder' en een goede gok bij
+'gokker' (`gokRaad`) zet `S.kamer` én gaat meteen naar de achterkamer (`naVraag = naarAchter`); de oude tekst "🗝️ Linksboven zit nu een sleuteltje"
+klopte niet meer (de sleutelknop is sinds 28 okt weg). Dubbel: een vraag uit `S.verplicht` komt niet als hij die dag al gesteld is, printer/gokker/kelder
+niet meer als de kamer al open is, en `kiesVraag` slaat vragen over die in `S.verplicht` staan.
