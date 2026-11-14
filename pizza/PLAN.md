@@ -308,19 +308,21 @@ Per zaak een voorraad deeg en ingrediënten; elke pizza gebruikt wat. 's Ochtend
 voorstel op basis van wat gisteren verkocht is), de markt is duurder maar meteen. Te veel = bederft, te weinig = pizza niet te maken (boze klanten).
 De manager bestelt in de andere zaken (Sandra netjes, Kevin vergeet het soms).
 
-## Nog open (stand 1 nov)
-Gedaan sinds 28 okt: trend van de dag, eigen kruiden, pizzawedstrijd tegen Luigi, Gouden Pizzaschep, balans nieuwe zaak, vervolgvragen,
-tekstronde, alle 11 klanten lopen naar voren (generator), looppaden/rode kruisjes.
+## Nog open (stand 14 nov)
+Gedaan sinds 1 nov: kinderen (kinderstoel, peuter, kinderfeestje), afhalen, minispellen bij alle klusjes van Barrie, Gerrit loopt goed,
+menukaart met verkopen, andere kosten uitgesplitst, beurstip bij Sjonnie, app Fortuna Beleggen, achterkamervraag in zaak 2, markt duidelijker,
+wraak van Luigi met keuzes (kleerkasten), inbraak, beslag op de bankrekening, kalenderblad, Luigi's crew op belastingdag + nepgeld, tips van Gino,
+pinnen (inkoop van de bank), leenmaximum op de weekomzet.
 Spel:
-- Minispel bij de stinkbom (wegsluipen bij Luigi); smokkeltruffel via Barrie; ober verliefd op Luigi's dochter.
+- Smokkeltruffel via Barrie; ober verliefd op Luigi's dochter.
 - Plein: selfiemuur of straatmuzikant.
-- Kinderen (`pizza/kind-gemini.jpg`, `kind2`): kinderstoel, kinderfeestje, afhalen.
 - Duurdere moderne oven; toonbank/kassa uit de vellen.
-- Uitleg en teksten blijven bijhouden voor de familie.
+- Gino's tips ook in de andere zaken? (nu alleen de eerste zaak, Luigi zit daar tegenover)
+- Afwachten hoe de nieuwe dingen spelen (Barrie, crew op belastingdag, inbraak): te vaak / te gemeen?
 Plaatjes (ChatGPT/Gemini):
 - Dame in rood (rij 11): alleen nog zitten van voren en achteren (vakjes 12-15), dan in FIGUREN.villa.
 - Zitten van opzij voor villadame, Afrikaanse man, Chinese dame, toerist, opa, studente, Afrikaanse vrouw, zakenman (werker, oma, student al klaar).
-- Bezoekers zonder figuur: student van de drukpers, gokker met sigaar, heer met monocle; Mevrouw Van Lijstje; croupier.
+- Bezoekers zonder figuur: student van de drukpers, gokker met sigaar, heer met monocle; Mevrouw Van Lijstje; croupier; Gino; de crew van Luigi.
 - Non (onderdelenvel van voren is er): nog opzij lopen, achter en zitten.
 
 ## Gemini-opdracht: zitten precies van opzij (28 okt, voor alle 11 klantfiguren)
