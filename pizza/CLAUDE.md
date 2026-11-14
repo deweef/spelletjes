@@ -482,3 +482,7 @@ Aflossing in het dagoverzicht (14 nov, Marcel dacht dat er te weinig werd afgelo
 tussen haakjes. Nu: "Aflossing Banca Fortuna: € 268 (€ 178 van je rekening, € 90 uit de kassa) · nog € 732 te gaan", afgerond. Stadskaart: de
 "TE HUUR"-bordjes in het plaatje krijgen een rood PIZZERIA-bordje erover als je dat pand huurt (`PLEK.huurN.bord` = [x, y, b, h] in kaartpixels, svg
 onder de labels).
+Sterren per buurt eerlijk (14 nov, Marcel: "op het plein is mijn Margherita 6"): ×1,6 was afgesteld op de eerste zaak; in een buurt met vooral één
+soort klant (plein, villa) kwamen veel pizza's op 6. Nu `pizzaSter(p, b)` = 6 × cijfer / `MAXCIJFER[b]` (beste haalbare cijfer per buurt, gezocht
+met 20.000 willekeurige pizza's: oud 3,6, studenten 4,2, plein 4,15, villa 4,8). Een royale Margherita (3× kaas, 3× tomaat, champignon) = 5,3 op het
+plein en in de villawijk, 3,7 bij de studenten.

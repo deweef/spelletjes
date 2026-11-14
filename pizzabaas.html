@@ -878,7 +878,8 @@ const rep = (n) => { S.rep = Math.max(0, Math.min(100, S.rep + repRem(n))); };
 const opDeKaart = () => [...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
 const buurtKans = (b = S.buurt) => { const w = Object.fromEntries(Object.entries(SOORT).map(([k, d]) => [k, d.kans * ((BUURT[b] || BUURT.oud).soort[k] ?? 1)])), t = Object.values(w).reduce((a, v) => a + v, 0); for (const k in w) w[k] /= t; return w; }; // wie komen er in deze buurt (0-1)
 const pizzaCijfer = (p, b) => { const w = buurtKans(b); return Object.keys(SOORT).reduce((a, k) => a + oordeel(p, k) * w[k], 0); }; // gemiddeld over alle soorten klanten: hooguit ~3,6
-const pizzaSter = (p, b) => Math.min(6, pizzaCijfer(p, b) * 1.6);
+const MAXCIJFER = { oud: 3.6, studenten: 4.2, toeristen: 4.15, villa: 4.8 }; // beste haalbare cijfer per buurt (gezocht met 20.000 willekeurige pizza's, 14 nov)
+const pizzaSter = (p, b = S.buurt) => Math.min(6, 6 * pizzaCijfer(p, b) / (MAXCIJFER[b || 'oud'] || 3.6)); // 6 sterren = zo goed als het in deze buurt kan
 const BUURTIK = { oud: '🍕', studenten: '🎓', toeristen: '📸', villa: '🏡' };
 const mijnBuurten = () => [...new Set(S.zaken.map((z, i) => (i == S.zaak ? S.buurt : z.buurt) || 'oud'))]; // de buurten van al je zaken
 const buurtSmaak = (b) => { const w = buurtKans(b); return S.menu.length ? Object.keys(SOORT).reduce((a, k) => a + w[k] * Math.max(...S.menu.map((p) => oordeel(p, k))), 0) / 6 : 0.3; }; // 0-1: vindt iedereen hier iets lekkers?
