@@ -499,3 +499,8 @@ deeltjes in `fx` ({ x, y, vx, vy, g, rem, t, e, size }, `spat()`), getekend na d
 🍕 pizza-regen (één keer per dag, `pizzaRegenDag`, gezellig +0,3). Bel op de uitgifte = "Ting!" en de obers roepen "Servizio!". Deurmat = deurbel.
 Ober = praatje + ✨ (de mamma heeft eigen zinnen). Klant = praatje (`KLANTPOR`, peuter "Hihi!"), de 4e keer porren = 💢 en rep −0,2. Plant/kruiden =
 blaadjes (pepers: 🌶️). Schilderij = "👀 Hij kijkt je aan…".
+Meer tik-effectjes (14 nov): tafel met kleed = "✨ Zwiep!", kale tafel = "🪵 Klop klop"; bezorger/afhaler = er vliegt een 🍕 uit de doos. Pepperoni de kat:
+de vervolgvraag van 'kat' (C, "Hij heet vanaf nu Pepperoni") zet `S.pepperoni`; dan loopt hij 60% van de dagen door de zaak (`kat`, `stapKat`,
+`tekenKat`: dwalen, soms slapen 💤), jaagt op de rat en vangt hem (gezellig +1), en aaien = spinnen (😻, gezellig +0,2 één keer per dag).
+Geheime combinatie: oven → bel van de uitgifte → jukebox binnen 8 s (`tikReeks`) = Mario zingt Nessun dorma, klanten roepen bravo, gezellig +0,5
+(één keer per dag, `operaDag`).
