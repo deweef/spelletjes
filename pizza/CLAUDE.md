@@ -491,3 +491,6 @@ wielen (60% in jouw baan, 16-20 m vooruit) en toetert als hij inhaalt. Henk snij
 rood jij, grijs Henk, groen Luigi, met je plaats. Uitslag (`raceKlaar(wie)`): jij = de bestelling (of tevreden +5); Henk = Henk kiest: je beste
 opa-pizza (oordeel − pepers) ≥ 3,5 = jij, anders Luigi (`S.tehuisLuigi`; met contract: tevreden −6); Luigi = Luigi krijgt hem (met contract:
 tevreden −10, `tehuisCheck`). Getest (bot, 30 races): goed sturen ≈ 2/3 winst, de rest verdeeld over Henk en Luigi. Obstakel 🦯 vervangen door 🛒.
+Wapenstilstand (14 nov, Marcel deed een nep-recensie tijdens de wapenstilstand en die bleef staan): `klusBegin` en `doeKlus` zetten `S.luigiRust = 0`
+(ook als de klus lukt: "Luigi heeft zo zijn vermoedens…", `rustGebroken`). In de achterkamer staat tot wanneer de wapenstilstand loopt en dat een klus
+er een eind aan maakt.

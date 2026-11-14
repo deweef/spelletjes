@@ -2385,9 +2385,10 @@ const VREDE = { limoncello: { n: 'Fles limoncello', ik: '🍋', prijs: 30, dagen
 const klusLoopt = () => S.klus && S.klus.tot >= S.dag;
 let barrieUit = '';
 // minispelletjes bij Barrie's klusjes: klusBegin betaalt en zet de ruzie hoger, klusAf rekent af (gelukt = de klus loopt; mislukt = de pech van doeKlus)
-function klusBegin(k) { const d = KLUS[k]; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); kassa(); bewaar(); tekenKnoppen(); return d; }
+let rustGebroken = false; // een klus tijdens de wapenstilstand: die is dan voorbij
+function klusBegin(k) { const d = KLUS[k]; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); rustGebroken = S.luigiRust > S.dag; S.luigiRust = 0; kassa(); bewaar(); tekenKnoppen(); return d; }
 function klusAf(k, gelukt, tekst, politie) { const d = KLUS[k];
-  if (gelukt) { S.klus = { k, tot: S.dag + d.dagen }; barrieUit = `${d.ik} ${tekst || 'Gelukt!'} ${d.tekst} (${d.dagen} dagen meer klanten)`; }
+  if (gelukt) { S.klus = { k, tot: S.dag + d.dagen }; barrieUit = `${d.ik} ${tekst || 'Gelukt!'} ${d.tekst} (${d.dagen} dagen meer klanten)${rustGebroken ? ' Maar de wapenstilstand is voorbij: Luigi heeft zo zijn vermoedens…' : ''}`; }
   else if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); barrieUit = politie || '🚨 Luigi zag Barrie en belde de politie! Op het bureau zei Barrie meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).'; }
   else { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.luigiRust = 0; S.ruzie = Math.min(100, S.ruzie + 15); barrieUit = `😬 ${tekst || 'Mislukt!'} Luigi heeft het door. "Dit is OORLOG!" Morgen neemt hij wraak…`; }
   kassa(); bewaar(); tekenKnoppen(); setTimeout(toonAchterkamer, 1700); }
@@ -2521,10 +2522,10 @@ function toonSluip() {
   teken(); requestAnimationFrame(stap);
 }
 function doeKlus(k) {
-  const d = KLUS[k]; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie);
+  const d = KLUS[k]; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); const brak = S.luigiRust > S.dag; S.luigiRust = 0;
   if (kans(d.risico)) { if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); return `🚨 Barrie is gesnapt! Op het bureau zei hij meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).`; }
     S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.luigiRust = 0; S.ruzie = Math.min(100, S.ruzie + 15); return `😬 Luigi zag Barrie wegrennen! "Dit is oorlog!" Morgen neemt hij wraak…`; }
-  S.klus = { k, tot: S.dag + d.dagen }; return `${d.ik} Gelukt! ${d.tekst} (${d.dagen} dagen meer klanten)`;
+  S.klus = { k, tot: S.dag + d.dagen }; return `${d.ik} Gelukt! ${d.tekst} (${d.dagen} dagen meer klanten)${brak ? ' Maar de wapenstilstand is voorbij: Luigi heeft zo zijn vermoedens…' : ''}`;
 }
 const ruzieTekst = () => { const z = S.ruzie || 0; return z < 1 ? '😇 vrede' : z < 30 ? '😐 rustig' : z < 60 ? '😠 gespannen' : '🤬 oorlog'; };
 function persZaak() { // in welke zaak staat de drukpers? (S.persZaak; oude opslag: de zaak in de studentenbuurt, anders de eerste)
@@ -2548,7 +2549,7 @@ function toonAchterkamer() {
     ${S.pers ? '<p class="buurt" style="margin:0">💶 Nepgeld: niet zelf uitgeven! Een envelop in de la, voor als de vrienden van Luigi ooit komen "ophalen"…</p>' : ''}
     ` : ''}<div class="opdracht" style="display:block"><b>💻 De laptop</b> <small>(crypto: samen ${euro(cryptoWaarde())})</small>${cryptoBlok(false)}</div>
     ${S.barrie ? `<div class="opdracht"><div class="portret" style="background-position:-425px 0;flex:none;margin:0"></div><div><b>Barrie de Bink</b><br>${barrieUit ? esc(barrieUit) : klusLoopt() ? '"Luigi heeft het even druk met… problemen. Hehe."' : '"Zeg het maar, baas. Wat mag het zijn?"'}
-      <br><small>Ruzie met Luigi: <b>${ruzieTekst()}</b>${S.luigiRust > S.dag ? ' (wapenstilstand)' : ''}. Hoe meer ruzie, hoe vaker Luigi terugslaat.</small></div></div>
+      <br><small>Ruzie met Luigi: <b>${ruzieTekst()}</b>${S.luigiRust > S.dag ? ` (wapenstilstand tot ${esc(datumLang(S.luigiRust))}; een klus maakt er een eind aan)` : ''}. Hoe meer ruzie, hoe vaker Luigi terugslaat.</small></div></div>
       <div class="rij">${Object.entries(KLUS).map(([k, d]) => `<button class="knop rood" data-klus="${k}" ${klusLoopt() || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} ${esc(d.n)} (€ ${d.prijs})</button>`).join('')}</div>
       <div class="rij">${Object.entries(VREDE).map(([k, d]) => `<button class="knop" data-vrede="${k}" ${!S.ruzie || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} Vrede: ${esc(d.n)} voor Luigi (€ ${d.prijs})</button>`).join('')}</div>` : ''}
     ${eerste ? '<p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>' : ''}<div class="rij"><button class="knop" id="achterdicht">Deur dicht</button></div>`;
