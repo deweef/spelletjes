@@ -2400,11 +2400,13 @@ function doeKlus(k) {
   S.klus = { k, tot: S.dag + d.dagen }; return `${d.ik} Gelukt! ${d.tekst} (${d.dagen} dagen meer klanten)`;
 }
 const ruzieTekst = () => { const z = S.ruzie || 0; return z < 1 ? '😇 vrede' : z < 30 ? '😐 rustig' : z < 60 ? '😠 gespannen' : '🤬 oorlog'; };
+function persZaak() { // in welke zaak staat de drukpers? (S.persZaak; oude opslag: de zaak in de studentenbuurt, anders de eerste)
+  if (S.persZaak != null) return S.persZaak; const i = S.zaken.findIndex((z, j) => (j == S.zaak ? S.buurt : z.buurt) == 'studenten'); return i >= 0 ? i : 0; }
 function toonAchterkamer() {
   if (!S.opdracht || S.opdracht.tot < S.dag) nieuweOpdracht();
   const o = S.opdracht, klaar = (S.vervalsingen || []);
-  const eerste = !S.zaak, pers = eerste ? S.pers : S.buurt == 'studenten', gok = S.buurt == 'toeristen', wijn = S.buurt == 'villa';
-  $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1>
+  const eerste = !S.zaak, pers = eerste ? S.pers && persZaak() == 0 : S.buurt == 'studenten', gok = S.buurt == 'toeristen', wijn = S.buurt == 'villa';
+  $('achterkaart').innerHTML = `<h1>🗝️ De achterkamer</h1><p class="buurt" style="margin-top:-6px">📍 ${esc(zaakNaam())}</p>
     <p class="buurt">${eerste ? 'Een stoffig kamertje achter de keuken. Een ezel, potten verf, en een lamp die flikkert.' : gok ? 'Achter een zwaar gordijn: groen vilt, rook, en het geratel van een rouletteballetje.' : pers ? 'Een benauwd hok vol oude posters en een stoffige machine in de hoek.' : wijn ? 'Een koele kelder vol lege flessen, een berg wijnpakken en een trechter.' : 'Een kaal kamertje.'} Niemand weet ervan… hopelijk.</p>
     ${wijn ? wijnBlok() : ''}${gok ? `<div class="opdracht"><span style="font-size:60px">🎰</span><div><b>De gokhal</b><br>Fiches kopen, drie rondjes roulette, en wat je overhoudt gaat weer in je kassa.<br><small>Pas op: soms valt de politie binnen.</small></div></div>
       <div class="rij"><button class="knop rood" id="gokken" ${S.gokDag == S.dag && S.gokKeer >= 3 ? 'disabled' : ''}>🎰 ${S.gokDag == S.dag && S.gokKeer >= 3 ? 'Genoeg gegokt voor vandaag' : `Naar de roulettetafel${S.gokDag == S.dag ? ` (nog ${3 - S.gokKeer} keer)` : ' (3 keer)'}`}</button></div>` : ''}
@@ -2432,7 +2434,7 @@ function toonAchterkamer() {
   $('achterkaart').querySelectorAll('[data-vrede]').forEach((b) => b.onclick = () => { const d = VREDE[b.dataset.vrede]; ge(-d.prijs); S.ruzie = 0; S.luigiRust = S.dag + d.dagen;
     barrieUit = `Barrie brengt Luigi een ${d.n.toLowerCase()}. Luigi snuift, drinkt hem in één keer leeg en mompelt: "Va bene. Even geen ruzie." (${d.dagen} dagen wapenstilstand)`; bewaar(); tekenKnoppen(); toonAchterkamer(); });
   if ($('nepgeld')) $('nepgeld').onclick = () => { ge(-15); S.nepgeld = 1; kassa(); bewaar(); tekenKnoppen(); meld('💶 Een dikke envelop met briefjes van 50. Op elk briefje staat Barrie. Hij ligt in de la.', 4000); toonAchterkamer(); };
-  if ($('perskoop')) $('perskoop').onclick = () => { S.geld -= PERS; S.pers = true; kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); };
+  if ($('perskoop')) $('perskoop').onclick = () => { S.geld -= PERS; S.pers = true; S.persZaak = S.zaak; kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); };
   if ($('druk')) $('druk').onclick = () => { S.geld -= INKT; bewaar(); tekenKnoppen(); toonDrukken(); };
   if ($('schilder')) $('schilder').onclick = () => { S.geld -= DOEK; tel.kosten = (tel.kosten || 0) + DOEK; bewaar(); tekenKnoppen(); toonAtelier(o.v); };
 }

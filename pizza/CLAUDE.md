@@ -452,3 +452,6 @@ wil hetzelfde); `pizzaSter(p)` = × 1,6, max 6 (getest met 30.000 willekeurige p
 Menukaart (14 nov, Marcel: "Margherita veel sterren maar weinig verkocht"): klanten kiezen niet op sterren maar elk de pizza met hun eigen hoogste
 oordeel (`kiesPizza`, prijs telt niet). Daarom per pizza `favVan(p)` = "👑 De lekkerste voor: 🎓 📸" (soorten waarvoor hij binnen 0,25 van de beste op
 de kaart zit) of "🙈 Voor niemand de lekkerste". Sterren en de percentages bovenaan rekenen nu met de buurt (`buurtKans()`, uit `BUURT[..].soort`).
+Drukpers op één plek (14 nov, Marcel zag schilderen én drukpers in zaak 1): `S.pers` is gedeeld, dus na kopen in de studentenbuurt stond hij ook in
+zaak 1. Nu `S.persZaak` (bij opknappen) en `persZaak()` (oude opslag: de zaak in de studentenbuurt, anders de eerste); zaak 1 toont hem alleen als
+`persZaak() == 0`. De achterkamer toont nu bovenaan in welke zaak je bent (📍 `zaakNaam()`).
