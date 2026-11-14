@@ -464,3 +464,9 @@ Huren en "Naar deze zaak" geven een tip (bij `buurtSmaak` < 0,6). Andere zaken (
 `buurtSmaak(b)`; 0-1 = gemiddeld beste oordeel per soort / 6), met "😕 weinig lekkers" in het dagoverzicht. Vraag 'smaakklacht' (kans 4, rust 6):
 een soort die hier ≥ 20% is en geen pizza ≥ 3 heeft (`smaakKlager()`) klaagt ("Deze pizza's horen in een studentenhuis"); A geeft de smaaktip
 (`wensTekst`). Per extra zaak mag er één pizza meer op de kaart (`maxMenu()`, max 9).
+Mario bestelt slordig (14 nov, Marcel: "anders hoef je niet na te denken"): `voorstel()` = 2× gisteren (2,4× als er iets op was) − de helft van wat er
+ligt; staat in het voorraadscherm uitgelegd. Zowel de automatische inkoop als de knop "Voorstel van Mario" gebruiken dit: wat te veel is bederft
+(10% per nacht), zelf rekenen is zuiniger.
+Kimberley (14 nov): `kimPizza()` = de pizza die met "Pizza Kimberley" begint, `p.kimSinds`. Vraag 'kimsaai' (na 7 dagen): A = "Pizza Kimberley 2.0"
+(3.0…) met een willekeurig gek ingrediënt erbij (smaak verandert! `p.sinds` = nieuw), B = rep −1, C = de nieuwste andere pizza wordt Pizza
+Kimberley en de oude heet "Pizza Ex-Kimberley". 'kimnaam' alleen als er geen Kimberley-pizza is.

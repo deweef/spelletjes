@@ -1400,11 +1400,20 @@ const VRAGEN = [
     a: [['Vertel, Henk!', () => { oberTempo(0.9); vandaag.gezellig += 0.5; return 'Drie kwartier later is hij bij het stuk waar de fiets door het ijs zakt. De ober luistert ademloos mee.'; }],
       ['Sorry Henk, het is druk.', () => 'Henk vertelt het verhaal dan maar aan de plant.'],
       ['Die ken ik al, Henk!', () => { rep(-0.5); return '"Nee, dit is die andere winter!" Henk is een beetje beledigd.'; }] ] },
-  { id: 'kimnaam', ik: '📸', wie: '', als: () => !S.menu.some((p) => p.naam == 'Pizza Kimberley'),
+  { id: 'kimnaam', ik: '📸', wie: '', als: () => !kimPizza(),
     vraag: () => `OMG, mag jullie nieuwste pizza "Pizza Kimberley" heten? In plaats van "${nieuwstePizza().naam}"? Dan zet ik hem in mijn story!`,
-    a: [['Ja hoor, Pizza Kimberley!', () => { const p = nieuwstePizza(), oud = p.naam; p.naam = 'Pizza Kimberley'; morgenKl(1.12); return `Ze maakt veertig selfies met de pizza. "${oud}" heet vanaf nu Pizza Kimberley (kijk maar op de menukaart). Morgen staan er tieners in de rij.`; }],
+    a: [['Ja hoor, Pizza Kimberley!', () => { const p = nieuwstePizza(), oud = p.naam; p.naam = 'Pizza Kimberley'; p.kimSinds = S.dag; morgenKl(1.12); return `Ze maakt veertig selfies met de pizza. "${oud}" heet vanaf nu Pizza Kimberley (kijk maar op de menukaart). Morgen staan er tieners in de rij.`; }],
       [`Nee, hij heet al zo. Prima naam.`, () => { rep(-1); return '"Bouwvakker? Echt niet aesthetic." Ze ontvolgt je.'; }],
       ['Alleen als jij hem helemaal opeet.', () => { ge(PRIJS); return 'Ze eet één hapje voor de foto en geeft de rest aan haar vriendje. Betalen doet ze wel.'; }] ] },
+  { id: 'kimsaai', ik: '📸', wie: '', kans: 3, als: () => { const p = S.menu.find((q) => q.naam.startsWith('Pizza Kimberley')); return p && S.dag - (p.kimSinds || 0) >= 7; },
+    vraag: () => `Ehm. Pizza Kimberley staat er al ${S.dag - (kimPizza().kimSinds || S.dag - 30)} dagen op. Dat is SO vorige week. Mijn volgers vinden hem saai. Kan hij een update? Met iets geks erop?`,
+    a: [['Ja! Pizza Kimberley 2.0!', () => { const p = kimPizza(), gek = pak(Object.keys(ING).filter((i) => ING[i].s.includes('gek'))), st = { i: gek, x: (Math.random() - 0.5) * 0.9, y: (Math.random() - 0.5) * 0.9, r: Math.floor(Math.random() * 4) };
+        if (p.stukjes.length >= MAXSTUK) p.stukjes[Math.floor(Math.random() * p.stukjes.length)] = st; else p.stukjes.push(st);
+        const v = (p.naam.match(/(\d+)\.0$/) || [0, 1])[1]; p.naam = `Pizza Kimberley ${+v + 1}.0`; p.kimSinds = S.dag; p.sinds = S.dag; morgenKl(1.1);
+        return `Er gaat ${ING[gek].n.toLowerCase()} op. "${p.naam}" is geboren! Ze filmt het in slow motion. Klanten zijn benieuwd, maar kijk even naar de gezichtjes op de menukaart… en naar je voorraad.`; }],
+      ['Nee, een klassieker is tijdloos.', () => { rep(-1); return '"Tijdloos? Dat zegt mijn opa ook." Ze zet in haar story: "Pizza Kimberley is SO over." Populariteit −1.'; }],
+      ['Kies dan maar een andere pizza om naar jou te noemen.', () => { const p = kimPizza(), anders = S.menu.filter((q) => q != p).sort((a, b) => (b.sinds || 0) - (a.sinds || 0))[0]; if (!anders) return '"Je hebt maar één pizza?!" Ze ontvolgt je.';
+        p.naam = 'Pizza Ex-Kimberley'; const oud = anders.naam; anders.naam = 'Pizza Kimberley'; anders.kimSinds = S.dag; morgenKl(1.08); return `${oud} heet nu Pizza Kimberley. De oude heet voortaan "Pizza Ex-Kimberley". Ze zet er een gebroken hartje bij. 💔`; }] ] },
   { id: 'keestruffel', ik: '🍅', wie: '', vraag: 'Psst. Ik heb hier een échte Italiaanse truffel. Uit Italië! Of nou ja… uit Italië-ish. € 50 voor jou.',
     a: [['Ik neem hem!', () => { ge(-50); if (kans(0.4)) { vandaag.fooi *= 1.25; return 'Hij is echt! De villabewoners smelten. Veel meer fooi vandaag.'; } return 'Mario ruikt eraan. "Baas… dit is een aardappel met zwarte schoensmeer."'; }],
       ['Italië-ish? Nee, Kees.', () => '"Jammer. Dan verkoop ik hem aan Luigi." Kees knipoogt.'],
@@ -1589,7 +1598,7 @@ const VRAGEN = [
 // vaste figuren: ze komen echt binnen (rij in pizza/bezoekers.png, portret in pizza/portretten.png; uit pizza/<naam>-gemini.jpg)
 const FIGUUR = {
   henk: { wie: 'Opa Henk', rij: 6, portret: 7, ids: ['gebit', 'snurk', 'snorren', 'henkdans', 'henkverhaal'] },
-  kim: { wie: 'Kimberley, influencer', rij: 7, portret: 8, ids: ['influencer', 'champagne', 'prank', 'kimnaam'] },
+  kim: { wie: 'Kimberley, influencer', rij: 7, portret: 8, ids: ['influencer', 'champagne', 'prank', 'kimnaam', 'kimsaai'] },
   kees: { wie: 'Kees van de markt', rij: 8, portret: 9, ids: ['tomaten', 'mozzarella', 'keestruffel', 'keesruil', 'keesbasilicum'] },
   wim: { wie: 'Wethouder Wim', rij: 9, portret: 10, ids: ['parkeren', 'terras', 'wimkeurmerk', 'wimtoren', 'wimspeech'] },
   zoe: { wie: 'Zuster Zoë', rij: 10, portret: 11, ids: ['zoenacht', 'zoesnee', 'zoegezond', 'zoeknipoog', 'zoeprik'] } };
@@ -3037,11 +3046,11 @@ const kanMaken = (p) => { const v = S.voorraad; if (!v) return true; const n = n
 function gebruik(p) { if (!S.voorraad) return; const n = nodig(p); for (const i in n) { S.voorraad[i] = Math.max(0, (S.voorraad[i] || 0) - n[i]); verbruikt[i] = (verbruikt[i] || 0) + n[i];
     if (modus == 'open' && S.voorraad[i] < n[i] * 3 && !gewaarschuwd.has(i)) { gewaarschuwd.add(i); setTimeout(() => meld(`⚠️ ${VNAAM(i)} is bijna op! Via 📦 Voorraad haalt iemand snel wat op de markt (dubbele prijs).`, 4000), 400); } } } // nog voor ±3 pizza's
 const voorraadSoorten = () => ['deeg', ...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
-function voorstel() { // gisteren + 25% (of een schatting van ~33 pizza's verdeeld over de kaart), min wat er nog ligt; per 5
+function voorstel() { // Mario is ruim (14 nov, Marcel: "anders hoef je niet na te denken"): 2× gisteren (of een schatting), en hij kijkt maar half wat er nog ligt; per 5
   const uit = {}, gist = S.verbruik || {}, v = S.voorraad || {};
   const tr = S.trendMorgen || vandaag.trend, nieuw = [...S.menu.filter(isNieuw), ...(tr ? S.menu.filter((p) => TREND[tr].ok(p)) : [])], extra = (i) => nieuw.reduce((a, p) => a + (i == 'deeg' ? 1 : p.stukjes.filter((s) => s.i == i).length), 0) * 8 * TELT; // nieuwe pizza: klanten zijn benieuwd
   for (const i of voorraadSoorten()) { const n = extra(i) + (gist[i] || S.menu.reduce((a, p) => a + (i == 'deeg' ? 1 : p.stukjes.filter((s) => s.i == i).length), 0) * 22 * TELT / Math.max(1, S.menu.length));
-    uit[i] = Math.max(0, Math.ceil((n * (S.opGeweest ? 1.6 : 1.25) - (v[i] || 0)) / 5) * 5); } // was er gisteren iets op: ruimer
+    uit[i] = Math.max(0, Math.ceil((n * (S.opGeweest ? 2.4 : 2) - (v[i] || 0) * 0.5) / 5) * 5); } // was er gisteren iets op: nog ruimer
   return uit; }
 const bestelPrijs = (l, spoed) => Object.entries(l).reduce((a, [i, n]) => a + n * prijsV(i) * (spoed ? 2 : 1), 0);
 function betaalBank(k) { // eerst van de bankrekening (pinnen), wat ontbreekt uit de kassa; geeft [van de bank, uit de kassa]
@@ -3070,6 +3079,7 @@ function toonVoorraad(l) {
   $('eindkaart').innerHTML = `<h1>📦 Voorraad</h1><p class="buurt">${spoed ? '🧺 De zaak is open: wat je nu bestelt, haalt iemand snel op de markt, voor <b>dubbele prijs</b>.' : 'Mario bestelt bij de leverancier, je hebt het meteen. Een pizza gebruikt deeg en zijn stukjes; elke nacht bederft er een beetje (10%).'}</p>
     ${(S.trendMorgen || vandaag.trend) ? `<p class="buurt">📈 Trend ${spoed ? 'van vandaag' : 'van straks'}: ${TREND[S.trendMorgen || vandaag.trend].ik} ${TREND[S.trendMorgen || vandaag.trend].n}. Mario koopt wat extra in voor de pizza's die erbij passen.</p>` : ''}
     ${S.menu.some(isNieuw) ? `<p class="buurt">🆕 Nieuw op de kaart: ${S.menu.filter(isNieuw).map((p) => esc(p.naam)).join(', ')}. De klanten zijn benieuwd, dus die gaat de eerste dagen hard. Mario rekent er al wat extra voor.</p>` : ''}
+    ${spoed ? '' : '<p class="buurt">💡 Mario bestelt ruim: twee keer wat er gisteren op ging, en hij kijkt maar half wat er nog ligt. Wat te veel is, bederft (10% per nacht). Zelf rekenen met "gisteren op" en "ligt er" is zuiniger.</p>'}
     <table>${soorten.map((i) => `<tr><td>${VIK(i)} ${esc(VNAAM(i))}${S.korting && S.korting.tot > S.dag && S.korting.i == i ? ' 🏷️' : ''}<br><span style="font-size:.8em;opacity:.7">ligt er: ${Math.floor(v[i] || 0)}${gist[i] ? ` · gisteren op: ${Math.round(gist[i])}` : ''}</span></td>
       <td style="white-space:nowrap"><button class="knop" data-min="${i}">−</button> <b style="display:inline-block;min-width:2.2em;text-align:center">${l[i] || 0}</b> <button class="knop" data-plus="${i}">+</button></td></tr>`).join('')}</table>
     <div class="rij"><button class="knop" id="vvoorstel">💡 Voorstel van Mario</button><button class="knop rood" id="vbestel" ${k <= 0 || S.geld + (S.bankSaldo || 0) < k ? 'disabled' : ''}>🛒 Bestellen (${euro(k)})</button></div>
@@ -4042,6 +4052,7 @@ function smaakKlager() { // de soort klant die hier veel komt maar niks lekkers 
   const w = buurtKans(); let slechtst = null, so = 9;
   for (const k of Object.keys(SOORT)) { if (w[k] < 0.2) continue; const o = Math.max(0, ...S.menu.map((p) => oordeel(p, k))); if (o < 3 && o < so) { so = o; slechtst = k; } }
   return slechtst; }
+const kimPizza = () => S.menu.find((q) => q.naam.startsWith('Pizza Kimberley'));
 const nieuwstePizza = () => S.menu.reduce((a, p) => ((p.sinds || 0) >= (a.sinds || 0) ? p : a), S.menu[0]); // de laatst verzonnen pizza
 const NAMEN = ['Pizza Baas', 'Pizza Pittig', 'Pizza Bomba', 'Pizza Mamma Mia', 'Pizza Kapsalon', 'Pizza Hawaii', 'Pizza Vulcano', 'Pizza Bellissima',
   'Pizza Zoetekauw', 'Pizza Rotterdam', 'Pizza Bouwvakker', 'Pizza Tentamen', 'Pizza Kunstgebit', 'Pizza Zondag', 'Pizza Rommelbak', 'Pizza Dikke Vette'];
