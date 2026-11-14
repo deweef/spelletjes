@@ -314,7 +314,7 @@ menukaart met verkopen, andere kosten uitgesplitst, beurstip bij Sjonnie, app Fo
 wraak van Luigi met keuzes (kleerkasten), inbraak, beslag op de bankrekening, kalenderblad, Luigi's crew op belastingdag + nepgeld, tips van Gino,
 pinnen (inkoop van de bank), leenmaximum op de weekomzet.
 Spel:
-- Smokkeltruffel via Barrie; ober verliefd op Luigi's dochter.
+- Smokkeltruffel via Barrie. (Ober verliefd op Luigi's dochter: gedaan 14 nov, Marco en Valentina; later misschien: ze krijgen samen een eigen zaak, of Valentina werkt bij jou.)
 - Plein: selfiemuur of straatmuzikant.
 - Duurdere moderne oven; toonbank/kassa uit de vellen.
 - Gino's tips ook in de andere zaken? (nu alleen de eerste zaak, Luigi zit daar tegenover)

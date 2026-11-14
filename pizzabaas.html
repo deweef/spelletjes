@@ -73,7 +73,7 @@
   #vraagkaart { text-align: center; max-width: 400px; animation: plop .25s ease-out; }
   @keyframes plop { from { transform: scale(.7); opacity: 0; } }
   .vraagik { font-size: 54px; line-height: 1.1; }
-  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 1615px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
+  .portret { width: 85px; height: 155px; margin: -6px auto 0; background: url(pizza/portretten.png) 0 0 / 1785px 155px no-repeat; image-rendering: pixelated; } /* agent, inspecteur (uit pizza/agent-gemini.jpg, pizza/inspecteur-gemini.jpg) */
   .vraagwie { font-weight: 800; color: #b5381c; font-size: 15px; }
   .vraagtekst { font-size: 17px; margin: 8px 0 12px; }
   .antwoord { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 12px; padding: 10px 12px; margin: 7px 0 0; font: 600 15px system-ui, sans-serif; cursor: pointer; }
@@ -192,6 +192,10 @@
   <div style="height:56px;margin:4px 0"><button class="knop rood verborgen" id="eetdrink" style="font-size:22px">🥤 Slurp!</button></div>
   <div id="eetklok" style="font:700 28px system-ui">20</div><div id="eetbord" class="buurt" style="margin:6px 0;text-align:left"></div>
   <div class="rij" style="justify-content:center"><button class="knop" id="eetdicht">Sluiten</button></div></div></div>
+<div class="scherm verborgen" id="film" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
+  <h1 id="filmtitel" style="margin:0 0 6px"></h1>
+  <canvas id="filmdoek" width="360" height="420" style="width:100%;max-width:360px;aspect-ratio:6/7;display:block;margin:0 auto;border-radius:12px"></canvas>
+  <div class="rij" style="justify-content:center;margin-top:8px"><button class="knop rood" id="filmverder">Verder (overslaan)</button></div></div></div>
 <div class="scherm verborgen" id="race" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🦼 Scootmobielrace</h1><div id="racetekst" class="buurt" style="margin:0 0 6px"></div>
   <canvas id="racedoek" width="360" height="540" style="width:100%;max-width:360px;aspect-ratio:2/3;display:block;margin:0 auto;border-radius:12px;touch-action:none;cursor:pointer"></canvas>
@@ -681,6 +685,7 @@ function openDeuren() {
   vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ if (torenOpen()) vandaag.aankomst *= 1.1; /* toeristen voor de toren */ if (reclameAan()) vandaag.aankomst *= 1.15; /* reclamebord */ if (kunstAan()) { vandaag.gezellig += 0.5; vandaag.fooi *= 1.1; } /* geleend meesterwerk */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
   if (belastingDag() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   if (belastingDag() && S.geld > 400 && S.dag >= 8 && !(S.luigiRust > S.dag) && kans(0.3 + Math.min(0.3, (S.ruzie || 0) / 200))) ochtendVraag(crewVraag(), 2500); // Luigi weet ook wanneer de belasting komt…
+  liefdeOchtend(); // verliefd koppel: Valentina, Luigi, het aanzoek
   if (S.tehuis && weekdag() == 6) ochtendVraag(tehuisVraag(), 3500); // zondag: pizzamiddag in Huize Avondrood
   if (S.luigiDicht == S.dag) { vandaag.aankomst *= S.luigiFlyers ? 1.5 : 1.3; S.luigiFlyers = false; setTimeout(() => meld(`🔧 Luigi's oven is kapot! Zijn klanten komen vandaag naar jou${vandaag.aankomst > 1.4 ? ', en je flyers doen de rest' : ''}.`, 4000), 2000); }
   setTimeout(() => meld(fd ? fd.tekst : ['Maandag: rustig dagje.', '', '', '', 'Vrijdagavond: het wordt druk!', 'Zaterdagavond: de drukste avond van de week!', 'Zondag: gezinnen en opa\'s en oma\'s.'][weekdag()] || ''), 300);
@@ -1604,6 +1609,77 @@ const VRAGEN = [
       ['Alleen als er geen ananas op komt.', () => 'Mario: "Waarom zou ik ananas… o. Ja. Afgesproken."'] ] },
 ];
 // vaste figuren: ze komen echt binnen (rij in pizza/bezoekers.png, portret in pizza/portretten.png; uit pizza/<naam>-gemini.jpg)
+// ---------- verliefd koppel (14 nov): Marco, je jongste ober, en Valentina, de dochter van Luigi ----------
+// S.liefde = { fase, dag, hart?, geheim?, boos? }: 0 = nog niet / later opnieuw (vanaf dag), 1 = Marco is verliefd (Valentina komt), 2 = etentje
+// geweest (Luigi komt erachter), 3 = Luigi weet het (Marco wil aanzoek doen), 5 = getrouwd, 9 = voorbij. Vragen via `liefdeOchtend` (S.verplicht) en
+// 'marco1' (willekeurig, zaak 1). Plaatjes: bezoekers rij 12 Marco / 13 Valentina, portret 19/20, pizza/koppel.png (filmpje `toonFilm`).
+const KOPPEL = new Image(); KOPPEL.src = 'pizza/koppel.png';
+function liefdeOchtend() { const L = S.liefde; if (!L || S.zaak) return; let id = null;
+  if (L.fase == 1 && S.dag >= L.dag + (L.hart ? 1 : 2)) id = 'valentina1';
+  else if (L.fase == 2 && S.dag >= L.dag + 1 + (S.dag % 2)) id = 'luigiLiefde';
+  else if (L.fase == 3 && S.dag >= L.dag + 4) id = 'marco2';
+  if (id && !(S.verplicht || []).includes(id)) S.verplicht = [...(S.verplicht || []), id]; }
+const LIEFDEVRAGEN = [
+  { id: 'marco1', ik: '🤵', portret: 19, rij: 12, wie: 'Marco, je jongste ober', kans: 3, als: () => !S.zaak && S.dag >= 6 && (!S.liefde || (S.liefde.fase == 0 && S.dag >= S.liefde.dag)),
+    vraag: 'Baas… mag ik je iets vragen? Er werkt een meisje bij Luigi. Ze ruimt de tafels af en ze lacht als een zonsopgang. Valentina. Zijn… dochter. Ik geloof dat ik verliefd ben.',
+    a: [['Ga ervoor, Marco!', () => { S.liefde = { fase: 1, dag: S.dag }; return 'Marco straalt. Hij serveert de rest van de avond met een grijns tot achter zijn oren, en zingt zachtjes mee met de jukebox.'; }],
+      ['De dochter van de vijand? Vergeet het maar.', () => { S.liefde = { fase: 0, dag: S.dag + 10 }; oberTempo(0.9); return 'Marco zucht. De hele avond. Diep. Hij laat twee borden vallen en staart naar het raam van Luigi.'; }],
+      ['Stuur haar een pizza met een hartje van salami (€ 10).', () => { ge(-10); S.liefde = { fase: 1, dag: S.dag, hart: true }; return 'Mario bakt de mooiste pizza van zijn leven, met een hartje van salami. Marco brengt hem stiekem naar de achterdeur van Luigi. Spannend…'; }] ] },
+  { id: 'valentina1', ik: '💃', portret: 20, rij: 13, wie: 'Valentina, de dochter van Luigi', als: () => false,
+    vraag: () => `Ciao… Ik ben Valentina. Ja, die van Luigi. Is Marco er? Hij ${S.liefde && S.liefde.hart ? 'stuurde me een pizza met een hartje van salami. Niemand heeft ooit…' : 'staat al een week naar ons raam te staren. Het is schattig. En een beetje eng.'} Mijn vader mag dit nooit weten.`,
+    a: [['Hij is er! Ik dek een tafel voor jullie, met kaarsjes.', () => { S.liefde = { ...S.liefde, fase: 2, dag: S.dag }; naVraag = () => toonFilm('etentje'); return 'Je zet een tafeltje achterin, met een kaarsje en een fles van het huis. Marco trekt zijn mooiste gilet aan.'; }],
+      ['Je vader vermoordt me. Ga maar snel.', () => { S.liefde = { ...S.liefde, fase: 1, dag: S.dag + 3 }; return 'Ze knikt verdrietig en glipt weg. In de keuken laat Marco een stapel borden vallen. Misschien komt ze nog terug…'; }],
+      ['Eerst vertellen: wat is het geheim van Luigi\'s saus?', () => { S.liefde = { ...S.liefde, fase: 2, dag: S.dag, geheim: true }; rep(1); naVraag = () => toonFilm('etentje');
+        return 'Ze buigt zich naar je toe. "Ketchup. Uit een fles. Met een scheutje cola." Je weet niet of je moet lachen of huilen. Daarna dek je een tafeltje voor haar en Marco.'; }] ] },
+  { id: 'luigiLiefde', ik: '😡', portret: 3, rij: 2, wie: 'Luigi (rood aangelopen)', als: () => false,
+    vraag: () => `MIJN DOCHTER?! Met jouw OBER?! Ik heb ze gezien. Door het raam. Met KAARSJES.${S.liefde && S.liefde.geheim ? ' En ze heeft je het geheim van mijn saus verteld?! Mijn eigen vlees en bloed!' : ''} Wat heb je hierop te zeggen?`,
+    a: [['Liefde kent geen grenzen, Luigi.', () => { const L = S.liefde; L.fase = 3; L.dag = S.dag;
+        if (kans(S.ruzie < 30 ? 0.75 : 0.5)) { S.luigiRust = S.dag + 10; S.ruzie = Math.max(0, (S.ruzie || 0) - 20); return 'Luigi wil iets roepen, maar er komt alleen een snik uit. "Dat zei haar moeder ook… dertig jaar geleden." Hij snuit zijn neus in een pizzadoos. Wapenstilstand!'; }
+        L.boos = true; S.ruzie = Math.min(100, (S.ruzie || 0) + 25); S.sabotage = pak(['rat', 'stinkbom']); return '"GRENZEN?! Ik zal jou eens grenzen laten zien!" Hij stormt naar buiten. Morgen kun je iets verwachten. Maar Marco en Valentina laten zich niet tegenhouden.'; }],
+      ['Ik zal Marco ontslaan.', () => { S.liefde = { fase: 9, dag: S.dag }; S.ruzie = Math.max(0, (S.ruzie || 0) - 10); rep(-2); return 'Luigi knikt tevreden. Marco pakt zijn spullen en vertrekt naar zijn tante in Napels. Valentina huilt een week. De hele buurt vindt je harteloos.'; }],
+      ['Dan worden we familie, Luigi!', () => { const L = S.liefde; L.fase = 3; L.dag = S.dag; S.ruzie = Math.min(100, (S.ruzie || 0) + 10); return 'Luigi wordt wit. Dan groen. Dan valt hij flauw, precies in een stapel pizzadozen. Mario zet er een glas water naast.'; }] ] },
+  { id: 'marco2', ik: '💍', portret: 19, rij: 12, wie: 'Marco, je jongste ober', als: () => false,
+    vraag: () => `Baas. Ik ga Valentina ten huwelijk vragen. Hier, in jouw zaak. ${S.liefde && S.liefde.boos ? 'Haar vader is nog steeds woedend, maar ze zegt: liefde wint.' : 'Zelfs Luigi heeft zijn zegen gegeven… nou ja, hij gromde.'} Mag ik de ring in een calzone verstoppen?`,
+    a: [['Natuurlijk! En de bruiloft vieren we hier!', () => { const L = S.liefde; L.fase = 5; L.dag = S.dag; S.dicht = 'De zaak was afgehuurd voor de bruiloft van Marco en Valentina!'; ge(500); rep(4);
+        let t = 'Valentina bijt bijna een tand stuk op de ring, en zegt JA! Morgen is de bruiloft in jouw zaak (gewone klanten blijven buiten): + € 500 van de gasten.';
+        if (!L.boos || kans(0.5)) { S.luigiRust = S.dag + 30; S.ruzie = 0; L.vrede = true; t += ' En Luigi? Die huilt de hele avond van geluk en danst met Mario. Een maand lang vrede!'; }
+        else { S.ruzie = Math.min(100, (S.ruzie || 0) + 10); t += ' Luigi staat buiten met een bord: "NOOIT!". Maar binnen danst iedereen.'; }
+        naVraag = () => toonFilm('bruiloft'); return t; }],
+      ['Doe het maar bij Luigi, daar is meer plek.', () => { S.liefde = { ...S.liefde, fase: 5, dag: S.dag, vrede: true }; S.luigiRust = S.dag + 14; S.ruzie = Math.max(0, (S.ruzie || 0) - 15); return 'De bruiloft is bij Luigi. Hij betaalt alles, en zet een bord in zijn raam: "Met dank aan de buren." De ruzie zakt flink.'; }],
+      ['Nog even wachten, Marco. Het gaat zo snel.', () => { S.liefde.dag = S.dag + 2; return '"Je hebt gelijk, baas." Hij oefent nog een week zijn knieval in de koelcel.'; }] ] } ];
+// het filmpje: etentje (kaarsjes, Luigi gluurt door het raam) of bruiloft (confetti)
+function toonFilm(soort) {
+  pauze = true; $('film').classList.remove('verborgen'); $('filmtitel').textContent = soort == 'bruiloft' ? '💍 De bruiloft' : '🕯️ Een tafeltje voor twee';
+  const c = $('filmdoek'), g2 = c.getContext('2d'), W2 = 360, H2 = 420, start = performance.now(), duur = soort == 'bruiloft' ? 9 : 10;
+  const zinnen = soort == 'bruiloft' ? [[0, 'Marco en Valentina zeggen JA!'], [3, 'Mario bakt een taart van pizza.'], [6, S.liefde && S.liefde.vrede ? 'Luigi huilt van geluk…' : 'Luigi staat buiten met een bord…']]
+    : [[0, 'Marco schenkt in. Zijn handen trillen.'], [3, 'Valentina lacht om een slechte grap.'], [6, 'Ze delen de laatste punt…'], [8.2, '…maar wie kijkt daar door het raam?!']];
+  speelLied(soort == 'bruiloft' ? 'vincero' : 'donna'); const confetti = Array.from({ length: 60 }, () => ({ x: Math.random() * W2, y: -Math.random() * H2, v: 40 + Math.random() * 60, k: pak(['#e74c3c', '#f1c40f', '#2ecc71', '#fff', '#ff6fa5']) }));
+  $('filmverder').onclick = () => { $('film').classList.add('verborgen'); pauze = false; };
+  (function lus(nu) {
+    if ($('film').classList.contains('verborgen')) return; const t = (nu - start) / 1000;
+    g2.fillStyle = soort == 'bruiloft' ? '#fbe3ec' : '#3b2418'; g2.fillRect(0, 0, W2, H2);
+    // raam met de nacht (of bloemen)
+    g2.fillStyle = soort == 'bruiloft' ? '#fff' : '#152238'; g2.fillRect(120, 30, 120, 90); g2.strokeStyle = '#6b4a2b'; g2.lineWidth = 6; g2.strokeRect(120, 30, 120, 90); g2.beginPath(); g2.moveTo(180, 30); g2.lineTo(180, 120); g2.stroke();
+    if (soort != 'bruiloft') { g2.fillStyle = '#fff8'; for (let i = 0; i < 6; i++) g2.fillRect(130 + (i * 37) % 100, 40 + (i * 23) % 60, 2, 2); }
+    else { g2.font = '26px system-ui'; g2.textAlign = 'center'; g2.fillText('💐 💒 💐', 180, 85); }
+    // Luigi gluurt (etentje, aan het eind) of huilt / bord (bruiloft)
+    if (BEZOEK.complete && ((soort != 'bruiloft' && t > 8) || (soort == 'bruiloft' && t > 6))) { g2.save(); g2.beginPath(); g2.rect(123, 33, 114, 84); g2.clip(); g2.drawImage(BEZOEK, 4 * 113, 2 * 192, 113, 192, 150, 40, 60, 102); g2.restore();
+      g2.font = 'bold 30px system-ui'; g2.textAlign = 'center'; g2.fillStyle = '#e74c3c'; if (soort != 'bruiloft') g2.fillText('!!', 250, 60); else g2.fillText(S.liefde && S.liefde.vrede ? '😭' : '🪧', 250, 70); }
+    // tafel met kleed en kaars
+    g2.fillStyle = '#fff'; g2.fillRect(80, 300, 200, 18); g2.fillStyle = '#e9e1d2'; g2.fillRect(80, 318, 200, 70); g2.fillStyle = '#c0392b'; for (let i = 0; i < 10; i++) g2.fillRect(80 + i * 20, 318, 10, 70);
+    if (soort != 'bruiloft') { g2.fillStyle = '#f5f0e0'; g2.fillRect(176, 270, 8, 30); const fl = 1 + Math.sin(t * 13) * 0.15; g2.fillStyle = '#ffb700'; g2.beginPath(); g2.ellipse(180, 262, 4 * fl, 9 * fl, 0, 0, 7); g2.fill(); }
+    else { g2.font = '40px system-ui'; g2.textAlign = 'center'; g2.fillText('🎂', 180, 300); }
+    // Marco links, Valentina rechts (zitten: 0 zit, 1 pizza, 2 benen over elkaar, 3 wijn)
+    const vol = [0, 3, 1, 3, 2, 0], f = vol[Math.floor(t / 1.6) % vol.length], fv = vol[(Math.floor(t / 1.6) + 2) % vol.length];
+    if (KOPPEL.complete && KOPPEL.naturalWidth) { g2.drawImage(KOPPEL, f * 200, 0, 200, 260, -5, 140, 160, 208); g2.drawImage(KOPPEL, fv * 200, 260, 200, 260, 205, 140, 160, 208); }
+    // hartjes of confetti
+    g2.font = '20px system-ui'; g2.textAlign = 'center';
+    if (soort != 'bruiloft') for (let i = 0; i < 5; i++) { const y = 260 - ((t * 30 + i * 50) % 200); g2.globalAlpha = Math.min(1, y / 120); g2.fillText('❤️', 150 + Math.sin(t * 2 + i) * 30 + i * 12, y); } else for (const k of confetti) { k.y += k.v / 60; if (k.y > H2) k.y = -10; g2.fillStyle = k.k; g2.fillRect(k.x, k.y, 5, 8); }
+    g2.globalAlpha = 1; const z = zinnen.filter(([s]) => t >= s).pop(); if (z) { g2.fillStyle = '#000a'; g2.fillRect(0, H2 - 44, W2, 44); g2.fillStyle = '#fff'; g2.font = '16px system-ui'; g2.fillText(z[1], 180, H2 - 17); }
+    if (t > duur) $('filmverder').textContent = 'Verder'; requestAnimationFrame(lus);
+  })(performance.now());
+}
+VRAGEN.push(...LIEFDEVRAGEN);
 const FIGUUR = {
   henk: { wie: 'Opa Henk', rij: 6, portret: 7, ids: ['gebit', 'snurk', 'snorren', 'henkdans', 'henkverhaal'] },
   kim: { wie: 'Kimberley, influencer', rij: 7, portret: 8, ids: ['influencer', 'champagne', 'prank', 'kimnaam', 'kimsaai'] },
@@ -1657,7 +1733,7 @@ function haakPlek() { // waar je moet staan om de sleutel te pakken: naast het s
 function naarAchter() { achterPauze = true; S.achterDag = S.dag; vandaag.sleutelWeg = true; bewaar(); tekenKnoppen(); toonAchterkamer(); }
 function kamerBezoek() { // wie komt er vandaag voor de achterkamer (of niemand)? Een droge vervalsing wordt opgehaald
   const droogLigt = (S.vervalsingen || []).some((f) => f.dag < S.dag);
-  if (S.barrie && kans(0.2)) return 'barrieLangs';
+  if (S.barrie && !klusLoopt() && kans(0.2)) return 'barrieLangs'; // niet als er nog een klus loopt: dan valt er niks te kiezen
   if (!S.zaak) return droogLigt ? (kans(0.75) ? (kans(0.35) ? 'gravin' : 'koper') : null) : kans(0.4) ? 'gerritlangs' : null;
   return kans(0.4) ? { studenten: 'kamerStudent', toeristen: 'kamerGokker', villa: 'kamerHeer' }[S.buurt] || null : null;
 }

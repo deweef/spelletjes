@@ -504,3 +504,17 @@ de vervolgvraag van 'kat' (C, "Hij heet vanaf nu Pepperoni") zet `S.pepperoni`; 
 `tekenKat`: dwalen, soms slapen 💤), jaagt op de rat en vangt hem (gezellig +1), en aaien = spinnen (😻, gezellig +0,2 één keer per dag).
 Geheime combinatie: oven → bel van de uitgifte → jukebox binnen 8 s (`tikReeks`) = Mario zingt Nessun dorma, klanten roepen bravo, gezellig +0,5
 (één keer per dag, `operaDag`).
+Barrie komt niet meer langs als er nog een klus loopt (`kamerBezoek`: `!klusLoopt()`), en in de achterkamer zegt hij tot wanneer de klus loopt.
+Verliefd koppel (14 nov, plaatjes van Marcel via ChatGPT: `pizza/marco-chatgpt.png`, `pizza/valentina-chatgpt.png`, `pizza/valentina-onderdelen-chatgpt.png`):
+Marco (je jongste ober, rood gilet) en Valentina (Luigi's dochter). Knippen: `python3 extra/poppetjes_voor.py valentina /tmp` (lopen naar voren uit het
+onderdelenvel; nieuwe opties `nek`, `armx`, `army`, `armschaal`) en dan `python3 extra/koppel_knip.py /tmp/lopen-voor-valentina.png` (gebruikt
+`extra/groen_vormen.py`, scipy): bezoekers.png rij 12 Marco / 13 Valentina (0-3 rug, 4-7 voor; nu 14 rijen), portretten.png 19 Marco / 20 Valentina
+(bovenlijf met wijnglas; nu 21 vakjes, css 1785px), `pizza/koppel.png` (vakjes 200x260: rij 0 Marco zitten 0 zit/1 pizza/2 benen over elkaar/3 wijn,
+rij 1 Valentina idem, rij 2 Valentina opzij lopen 0-5, nog niet gebruikt). Verhaal (`LIEFDEVRAGEN`, `S.liefde` = { fase, dag, hart, geheim, boos,
+vrede }, `liefdeOchtend()` in `openDeuren` zet de volgende vraag in `S.verplicht`; alleen zaak 1): 'marco1' (willekeurig vanaf dag 6: ga ervoor / vergeet
+het (opnieuw na 10 dagen) / pizza met hartje € 10) → 'valentina1' (1-2 dagen later: tafel met kaarsjes = filmpje `toonFilm('etentje')` / wegsturen
+(over 3 dagen weer) / eerst het geheim van Luigi's saus (ketchup met cola)) → 'luigiLiefde' (Luigi ontdekt het: liefde kent geen grenzen = 50-75%
+vrede 10 dagen, anders ruzie +25 en sabotage / Marco ontslaan = einde (fase 9), rep −2 / "dan worden we familie" = Luigi valt flauw) → 'marco2'
+(4 dagen later, aanzoek met de ring in een calzone: bruiloft hier = morgen dicht, + € 500, rep +4, filmpje `toonFilm('bruiloft')`, vaak een maand vrede /
+bij Luigi = vrede 14 dagen / nog wachten). Filmpje: scherm `#film`, canvas `#filmdoek` 360x420, zelf getekend (raam, tafel, kaars, hartjes of confetti),
+Luigi gluurt door het raam, muziek `speelLied`.

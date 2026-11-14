@@ -26,6 +26,8 @@ FIG = {  # nummers = losse vormpjes op het vel (van boven naar beneden, links na
                    beenschaal=0.95, achter=(7,), paar=0.0, kapjes=(40, 62, 120), breed=1.0),  # hele broek per paar: doormidden
   'dame2': dict(voor='pizza/dame2-onderdelen-chatgpt.png', benen='pizza/dame2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
                 beenschaal=0.62, achter=(7, 8), jurk=True),  # nieuwe gast: dame in rood (nog geen eigen klantrij)
+  'valentina': dict(voor='pizza/valentina-onderdelen-chatgpt.png', benen='pizza/valentina-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
+                    beenschaal=0.62, achter=(7, 8), jurk=True, nek=52, armx=14, armschaal=0.88, army=-6),  # Luigi's dochter (verhaallijn verliefd koppel, 14 nov)
   'chinese2': dict(voor='pizza/chinese2-onderdelen-chatgpt.png', benen='pizza/chinese2-onderdelen-chatgpt.png', hoofd=2, romp=1, arm=(4, 3), been=(5, 6),
                    beenschaal=0.62, achter=(7, 8), jurk=True, kapjes=(200, 30, 28), vlak=True, nek=55),  # tweede versie: de helft van de Chinese dames  # de jurk (romp) loopt tot de knie; de benen zijn knie-tot-schoen
 }
@@ -84,7 +86,8 @@ def houding(F, voor, benen, s):  # s = -1 … 1: welk been stapt naar voren
         if til: b = b.resize((b.size[0], round(b.size[1] - til)), Image.LANCZOS)
         zet(b, (-1 if i == 0 else 1) * (b.size[0] * F.get('breed', 0.47) if F.get('paar') else romp.size[0] * (0.17 if F.get('jurk') else 0.24)), -12 - (22 if F.get('jurk') or F.get('paar') else 0))
     zet(romp, 0, -romp.size[1] + 10)
-    for i, a in enumerate(armen): zet(a, (-1 if i == 0 else 1) * (romp.size[0] / 2 - 28), -romp.size[1] + 70, hoek=(6 if i == 0 else -6) * s)
+    if F.get('armschaal'): armen = [x.resize((round(x.size[0] * F['armschaal']), round(x.size[1] * F['armschaal'])), Image.LANCZOS) for x in armen]
+    for i, a in enumerate(armen): zet(a, (-1 if i == 0 else 1) * (romp.size[0] / 2 - 28 + F.get('armx', 0)), -romp.size[1] + 70 + F.get('army', 0), hoek=(6 if i == 0 else -6) * s)  # armx: armen verder naar buiten
     zet(hoofd, 0, -romp.size[1] - hoofd.size[1] + 42 + F.get('nek', 0))  # nek: hoofd verder omlaag (hoofd en jurk hebben allebei een kraagje)
     return doek.crop(doek.getbbox())
 if __name__ == '__main__':
