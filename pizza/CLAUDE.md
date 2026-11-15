@@ -598,3 +598,10 @@ nu 90 stuks met `h` (hoofdstuk), `k` (g/w/r), `f` (vlagfiches), `geheim` (hint),
 Hoofdstuk af = `HOOFDNODIG` (10) doelen + `af()` → `hoofdstukKlaar` (feestscherm; filmpjes later). Gebeurtenissen: `mijl(id)` / `heb(id)` (S.mijl) op ~25
 plekken, en elk antwoord wordt onthouden (`S.antw['vraagid:i']` én `'wie:i'`, `antw(k)`). Casino: winst op de 0 = 🟢 +3, op een getal = 🔴 +2, op een
 twaalf = ⚪ +1. Het oude Pizzakoning-einde staat uit (`koningNu = false`). Ook in beide versies: trendmelding pakt de trend vast (fout bij snelle dagen).
+Pizzabaas 2 stap 2-6 (16 nov): plekken op slot per hoofdstuk (`PLEKH`, `plekOpen`: studenten/kunst/bouw/college 2, Sjonnie 3, ijssalon/Gianni/tehuis 5;
+panden te huur vanaf 1; de toren meebetalen pas in 6; 🔒 op de kaart), vragen op slot (`VRAAGH`, plus Gerrit/achterkamer-vragen vanaf 3 en de crew
+vanaf 4 in `openDeuren`). Boekhouder (vanaf H4, knop 📒 bij de bank, `S.boekhouder`): zet elke avond alles boven € 500 op de bank (`S.boekGestort`,
+regel in tabblad Geld). Afsluiter H3 = `toonInval()` (vanzelf 's ochtends bij 10 doelen; zaklamp zwaait, tik verboden spullen weg als de bundel er
+niet op schijnt; ≤ 1 gevonden = ontkomen + 🔴 10, anders € 150 per stuk; altijd verder). Einde: knop "🇮🇹 De vlag hijsen" bij de bouwplaats (H6, toren
+open, 100 van elke kleur) → `toonVlag()` (scène in `#film`: fiches smelten, vlag omhoog, vuurwerk) → `mijl('vlag')`, `S.uitgespeeld` → `toonAftiteling()`.
+De scènes zijn nog zelf getekend; de ChatGPT-platen (PLAN.md) komen erin.
