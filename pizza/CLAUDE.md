@@ -605,3 +605,7 @@ regel in tabblad Geld). Afsluiter H3 = `toonInval()` (vanzelf 's ochtends bij 10
 niet op schijnt; ≤ 1 gevonden = ontkomen + 🔴 10, anders € 150 per stuk; altijd verder). Einde: knop "🇮🇹 De vlag hijsen" bij de bouwplaats (H6, toren
 open, 100 van elke kleur) → `toonVlag()` (scène in `#film`: fiches smelten, vlag omhoog, vuurwerk) → `mijl('vlag')`, `S.uitgespeeld` → `toonAftiteling()`.
 De scènes zijn nog zelf getekend; de ChatGPT-platen (PLAN.md) komen erin.
+Mario helpt (16 nov, Marcel): `hoofdIntro()` toont aan het begin van elk hoofdstuk Mario (`pizza/kok.png` vakje 0) met `HOOFDINTRO[h]` en de
+afsluitervoorwaarde (één keer, `S.introGezien[h]`; na het welkomscherm, de rondleiding, het laden en na een hoofdstuk-feestscherm). `marioTip()`: in
+hoofdstuk 1-2 elke ochtend (na het kalenderblad) een ballon linksboven met de tip voor het eerste open doel (`tip` in DOELEN, anders de naam); tik =
+weg voor vandaag (`S.tipWeg`); verdwijnt bij Open, ververst na een gehaald doel. 'eerstedag' telt nu pas na een echte werkdag (`S.besteDag`).

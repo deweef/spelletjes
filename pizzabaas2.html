@@ -692,7 +692,7 @@ const NIEUWTEL = () => ({ blij: 0, boos: 0, boosKeuken: 0, boosOber: 0, vol: 0, 
 function openDeuren() {
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
   if (S.dicht) { tel = NIEUWTEL(); tel.dicht = S.dicht; S.dicht = null; mensen = []; eindeDag(); return; } // vandaag blijft de zaak dicht
-  modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = []; fx = [];
+  if ($('mariotip')) $('mariotip').remove(); modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = []; fx = [];
   tel = NIEUWTEL(); bezet = null; belZ = null; startVoorraad();
 
   { const dicht = S.spullen.filter((c) => c.t == 'stoel' && !stoelBereik(c)).length; if (dicht) setTimeout(() => meld(!toonbankVrij() ? '🚧 De obers kunnen niet weg bij de toonbank: alles ervoor staat vol. Laat een looppad vrij van de toonbank naar de deur!' : `🚧 Bij ${dicht} stoel${dicht > 1 ? 'en' : ''} kan niemand komen: daar gaat niemand zitten. Laat een looppad vrij vanaf de deur!`, 6000), 1200); } // de inrichting kan veranderd zijn: looproutes opnieuw
@@ -888,7 +888,7 @@ function toonKalender() {
     ${punten.length ? `<p><b>Op de kalender:</b></p>${punten.map(([, w, t]) => `<p style="margin:4px 0;font-size:14px"><b>${esc(w)}:</b> ${esc(t)}</p>`).join('')}` : '<p class="buurt" style="text-align:center">Niks bijzonders deze week. Gewoon lekker pizza bakken.</p>'}
     ${adventBlok()}<p class="buurt" style="font-size:13px">💶 In de kassa: € ${Math.round(S.geld)} · 🏦 op de bank: € ${Math.round(S.bankSaldo || 0)}</p>
     <button class="groot" id="kalenderdicht">Aan de slag!</button>`;
-  $('kalender').classList.remove('verborgen'); $('kalenderdicht').onclick = () => $('kalender').classList.add('verborgen'); if ($('adventopen')) $('adventopen').onclick = adventOpen;
+  $('kalender').classList.remove('verborgen'); $('kalenderdicht').onclick = () => { $('kalender').classList.add('verborgen'); setTimeout(marioTip, 500); }; if ($('adventopen')) $('adventopen').onclick = adventOpen;
 }
 // 's avonds aflossen; wie niet kan betalen krijgt een achterstand, en dan komt de bank (na 2 dagen) of de neven van Ome Sjaak (meteen)
 function aflossen() {
@@ -4804,28 +4804,28 @@ const HOOFDSTUK = [null,
 const toren4 = (k) => { const t = typeof torenBij == 'function' ? torenBij() : null; return t && (t.fase || 0) >= k; };
 const DOELEN = [
   // H1 Het eerste pizzeriaatje
-  { id: 'tafel4', h: 1, k: 'g', f: 3, n: 'Zet een tafel neer met 4 stoelen eromheen', ok: () => S.spullen.filter(isTafel).some((t) => stoelPlekken(t).length >= 4) },
-  { id: 'eerstedag', h: 1, k: 'g', f: 3, n: 'Open de deuren voor je eerste werkdag', ok: () => S.dag >= 2 },
-  { id: 'pizza', h: 1, k: 'g', f: 5, n: 'Verzin je eigen pizza (📖 Pizza\'s)', ok: () => S.menu.length >= 2 },
-  { id: 'kleedkaars', h: 1, k: 'g', f: 3, n: 'Een tafel met een kleedje én een kaarsje', ok: () => S.spullen.some((t) => isTafel(t) && kleedVan(t) && t.kaars) },
-  { id: 'dertig', h: 1, k: 'g', f: 5, n: 'Haal 30 tevreden klanten op één dag', ok: () => (S.besteDag || 0) >= 30 },
-  { id: 'rep40', h: 1, k: 'g', f: 5, n: 'Bereik populariteit 40', ok: () => S.rep >= 40 },
-  { id: 'zelfbestel', h: 1, k: 'g', f: 5, n: 'Bestel zelf je voorraad (zet Mario\'s automatische inkoop uit)', ok: () => heb('zelfbesteld') },
-  { id: 'vlekken', h: 1, k: 'g', f: 3, n: 'Ruim 10 vlekken op in één dag', ok: () => heb('vlekken') },
-  { id: 'rat', h: 1, k: 'r', f: 3, n: 'Vang een rat van Luigi', ok: () => heb('rat') },
-  { id: 'personeel', h: 1, k: 'g', f: 5, n: 'Neem een tweede ober of een tweede oven', ok: () => S.obers >= 2 || S.ovens >= 2 },
-  { id: 'ster5', h: 1, k: 'g', f: 10, n: 'Verzin een pizza van 5 sterren', ok: () => S.menu.some((p) => p.sinds && pizzaSter(p) >= 5) },
+  { id: 'tafel4', tip: "Tik op de knop Tafel en zet een tafel neer. Dan Stoel: zet er vier stoelen tegenaan.", h: 1, k: 'g', f: 3, n: 'Zet een tafel neer met 4 stoelen eromheen', ok: () => S.spullen.filter(isTafel).some((t) => stoelPlekken(t).length >= 4) },
+  { id: 'eerstedag', tip: "Klaar met inrichten? Druk op de grote groene knop Open!", h: 1, k: 'g', f: 3, n: 'Open de deuren voor je eerste werkdag', ok: () => (S.besteDag || 0) > 0 },
+  { id: 'pizza', tip: "Tik op 📖 Pizza's en dan op Nieuwe pizza. Leg er beleg op dat de klanten lekker vinden (kijk naar de gezichtjes).", h: 1, k: 'g', f: 5, n: 'Verzin je eigen pizza (📖 Pizza\'s)', ok: () => S.menu.length >= 2 },
+  { id: 'kleedkaars', tip: "Tik op een tafel die al staat: daar kun je een kleedje en een kaarsje kiezen.", h: 1, k: 'g', f: 3, n: 'Een tafel met een kleedje én een kaarsje', ok: () => S.spullen.some((t) => isTafel(t) && kleedVan(t) && t.kaars) },
+  { id: 'dertig', tip: "Meer tafels, een tweede ober en lekkere pizza's: dan krijg je meer tevreden klanten.", h: 1, k: 'g', f: 5, n: 'Haal 30 tevreden klanten op één dag', ok: () => (S.besteDag || 0) >= 30 },
+  { id: 'rep40', tip: "Tevreden klanten vertellen het door. Gezellige tafels en lekkere pizza's helpen!", h: 1, k: 'g', f: 5, n: 'Bereik populariteit 40', ok: () => S.rep >= 40 },
+  { id: 'zelfbestel', tip: "Tik op 📦 Voorraad, zet het vinkje van Mario uit en bestel zelf. 'Zoals gisteren' is handig.", h: 1, k: 'g', f: 5, n: 'Bestel zelf je voorraad (zet Mario\'s automatische inkoop uit)', ok: () => heb('zelfbesteld') },
+  { id: 'vlekken', tip: "Tijdens het werk vallen er dingen op de grond. Tik op een vlek om hem op te ruimen.", h: 1, k: 'g', f: 3, n: 'Ruim 10 vlekken op in één dag', ok: () => heb('vlekken') },
+  { id: 'rat', tip: "Komt er een rat van Luigi? Tik erop om hem te vangen!", h: 1, k: 'r', f: 3, n: 'Vang een rat van Luigi', ok: () => heb('rat') },
+  { id: 'personeel', tip: "Tik op Personeel of Oven: met twee obers of twee ovens gaat alles sneller.", h: 1, k: 'g', f: 5, n: 'Neem een tweede ober of een tweede oven', ok: () => S.obers >= 2 || S.ovens >= 2 },
+  { id: 'ster5', tip: "Maak een pizza met van alles erop. Op de kaart zie je de sterren: probeer er 5 te halen.", h: 1, k: 'g', f: 10, n: 'Verzin een pizza van 5 sterren', ok: () => S.menu.some((p) => p.sinds && pizzaSter(p) >= 5) },
   { id: 'voedselbank', h: 1, k: 'w', f: 5, n: 'Help de voedselbank', ok: () => antw('voedselbank:0') || antw('voedselbank:1') },
   { id: 'muzikant', h: 1, k: 'w', f: 3, n: 'Laat de straatmuzikant spelen', ok: () => antw('muzikant:0') },
-  { id: 'zes', h: 1, k: 'g', f: 5, n: 'Zet 6 pizza\'s op de kaart', ok: () => S.menu.length >= 6 },
+  { id: 'zes', tip: "Verzin meer pizza's: voor elk soort klant iets lekkers.", h: 1, k: 'g', f: 5, n: 'Zet 6 pizza\'s op de kaart', ok: () => S.menu.length >= 6 },
   { id: 'pizzaregen', h: 1, k: 'g', f: 5, geheim: 'De oven wordt heel boos als je hem plaagt…', n: 'Pizzaregen! (7× snel op de oven tikken)', ok: () => heb('pizzaregen') },
   // H2 De stad in
-  { id: 'stad', h: 2, k: 'g', f: 3, n: 'Ga de stad in (🗺️)', ok: () => !!S.stad },
-  { id: 'bank', h: 2, k: 'g', f: 3, n: 'Zet geld op de bank', ok: () => (S.bankSaldo || 0) >= 1 },
-  { id: 'markt', h: 2, k: 'g', f: 3, n: 'Koop korting op de markt', ok: () => heb('markt') },
+  { id: 'stad', tip: "Tik linksboven op 🗺️ om de stad in te gaan.", h: 2, k: 'g', f: 3, n: 'Ga de stad in (🗺️)', ok: () => !!S.stad },
+  { id: 'bank', tip: "In de stad: Banca Fortuna. Zet daar geld op de bank (⬇️ Storten).", h: 2, k: 'g', f: 3, n: 'Zet geld op de bank', ok: () => (S.bankSaldo || 0) >= 1 },
+  { id: 'markt', tip: "Op de markt kun je korting kopen op een ingrediënt.", h: 2, k: 'g', f: 3, n: 'Koop korting op de markt', ok: () => heb('markt') },
   { id: 'acro', h: 2, k: 'g', f: 5, n: 'Pizza-acrobatiek: 10 keer vangen', ok: () => (S.acroBest || 0) >= 10 },
   { id: 'eet', h: 2, k: 'g', f: 5, n: 'Win de eetwedstrijd bij het studentenhuis', ok: () => heb('eet') },
-  { id: 'manager', h: 2, k: 'g', f: 5, n: 'Neem een manager aan', ok: () => !!S.manager || S.zaken.some((z) => z.manager) },
+  { id: 'manager', tip: "Met populariteit 40 kun je bij Personeel een manager aannemen. Die heb je nodig voor een tweede zaak!", h: 2, k: 'g', f: 5, n: 'Neem een manager aan', ok: () => !!S.manager || S.zaken.some((z) => z.manager) },
   { id: 'bezorg', h: 2, k: 'g', f: 5, n: 'Start een bezorgdienst', ok: () => !!S.bezorg },
   { id: 'toren8', h: 2, k: 'g', f: 5, n: 'Stapel 8 pizza\'s bij de bouwplaats', ok: () => (S.torenBest || 0) >= 8 },
   { id: 'reclame', h: 2, k: 'g', f: 3, n: 'Hang een reclamebord op', ok: () => !!S.reclame },
@@ -4908,7 +4908,7 @@ function controleerDoelen() {
   if (TEGEL || !S) return; S.doelen = S.doelen || {}; S.vlag = S.vlag || { g: 0, w: 0, r: 0 };
   const nu = DOELEN.filter((d) => d.h <= hoofd() && !S.doelen[d.id] && (() => { try { return d.ok(); } catch (e) { return false; } })());
   if (nu.length) { let geld = 0; for (const d of nu) { S.doelen[d.id] = S.dag; geld += d.f * 2; S.vlag[d.k] += d.f; } S.geld += geld; bewaar(); kassa();
-    meld(`🎯 Doel gehaald: ${nu.map((d) => d.n + ' ' + VLAGKLEUR[d.k][0] + '+' + d.f).join(' · ')}`, 4500, true); }
+    meld(`🎯 Doel gehaald: ${nu.map((d) => d.n + ' ' + VLAGKLEUR[d.k][0] + '+' + d.f).join(' · ')}`, 4500, true); if ($('mariotip')) setTimeout(marioTip, 400); }
   const H = hoofd(), mijn = DOELEN.filter((d) => d.h == H), af = mijn.filter((d) => S.doelen[d.id]).length;
   $('doelknop').innerHTML = `🎯<b>H${H} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}</b>`;
   if (H == 3 && af >= HOOFDNODIG && !heb('inval') && modus == 'inrichten' && !toonInval.bezig && $('einde').classList.contains('verborgen')) setTimeout(toonInval, 800);
@@ -4984,6 +4984,30 @@ function toonAftiteling() { // de aftiteling: alle personages, en hoe lang je er
     <p class="buurt">Je kunt gewoon doorspelen, of opnieuw beginnen (📊 Gisteren). Grazie mille!</p><button class="groot" id="verder">Doorspelen</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); controleerDoelen(); }; kassa(); setTimeout(kassa, 300);
 }
+// MARIO (16 nov, idee Marcel): aan het begin van elk hoofdstuk vertelt hij wat er nieuw is (S.introGezien[h]), en in hoofdstuk 1-2 geeft hij
+// elke ochtend een tip voor het eerstvolgende doel (`marioTip`, met `tip` in DOELEN, anders de naam van het doel).
+const HOOFDINTRO = [null,
+  'Benvenuti, baas! Dit is jouw eigen pizzeria. Klein, maar fijn. Eerst het belangrijkste: tafels en stoelen neerzetten, een eigen pizza verzinnen en de deuren open. Kijk bij 🎯 wat we moeten doen. En pas op voor Luigi, aan de overkant…',
+  'Baas, we zijn een échte zaak! Nu gaan we de stad in: het studentenhuis, de kunstuitleen en de bouwplaats zijn open. Neem een manager, start een bezorgdienst, en versla Luigi. Mijn droom: de Gouden Pizzaschep!',
+  'Psst, baas. Ik heb iets gehoord… Er zijn mensen in de stad die het niet zo nauw nemen. Een man met een gleufhoed, een gokker, een drukpers. En Snelle Sjonnie bij de bank. Het is spannend, maar pas op voor de politie!',
+  'Baas, Luigi is woedend. Dit wordt oorlog! Barrie heeft een hele kaart vol streken, en Luigi heeft vrienden in groene pakken. Maar… onze Marco is verliefd op iemand. Op wie? Dat hoor je nog wel.',
+  'Wat een rust na al die ruzie, baas. Tijd voor iets lekkers: er staat een ijssalon te koop! En in Huize Avondrood willen ze graag pizza op zondag. Maar Opa Henk zegt: eerst racen.',
+  'Baas… dit is het. Vier zaken, de Toren van Pizza afbouwen, en dan de Italiaanse vlag erbovenop. Daar heb je van elke kleur 100 vlagfiches voor nodig. Kijk in de vlagkist hoeveel je er nog mist. Forza!' ];
+function hoofdIntro(nu) { const H = hoofd(); S.introGezien = S.introGezien || {}; if (S.introGezien[H] || TEGEL) return; if (!nu) { setTimeout(() => hoofdIntro(true), 700); return; }
+  if (!$('einde').classList.contains('verborgen') || !$('welkom').classList.contains('verborgen') || $('ronde') || pauze) { setTimeout(() => hoofdIntro(true), 1500); return; }
+  S.introGezien[H] = S.dag; bewaar();
+  $('eindkaart').innerHTML = `<div style="display:flex;gap:10px;align-items:flex-end"><div style="flex:none;width:85px;height:145px;background:url(pizza/kok.png) 0 0 / auto 145px no-repeat"></div>
+    <div><h1 style="margin:0">${HOOFDSTUK[H].ik} Hoofdstuk ${H}</h1><h2 style="margin:2px 0 6px">${esc(HOOFDSTUK[H].n)}</h2></div></div>
+    <p class="vraagtekst" style="text-align:left">"${esc(HOOFDINTRO[H])}"</p>
+    <p class="buurt">Haal ${HOOFDNODIG} van de 15 doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}.</p>
+    <button class="groot" id="verder">👨‍🍳 Andiamo!</button>`;
+  $('einde').classList.remove('verborgen'); speelLied('donna'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); setTimeout(marioTip, 600); }; }
+function marioTip() { // klein ballonnetje onderin met Mario en de volgende stap (alleen in hoofdstuk 1 en 2, tot je hem wegklikt voor vandaag)
+  if (hoofd() > 2 || modus != 'inrichten' || S.tipWeg == S.dag) return; const d = DOELEN.find((d) => d.h == hoofd() && !d.geheim && !(S.doelen || {})[d.id]); if (!d) return;
+  let b = $('mariotip'); if (!b) { b = document.createElement('div'); b.id = 'mariotip'; b.style.cssText = 'position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 64px);z-index:6;display:flex;align-items:flex-end;gap:6px;max-width:330px;pointer-events:auto'; document.body.appendChild(b); }
+  b.innerHTML = `<div style="flex:none;width:52px;height:88px;background:url(pizza/kok.png) 0 0 / auto 88px no-repeat"></div><div style="background:#fff7e0;border:2px solid #c0392b;border-radius:12px;padding:6px 9px;font:14px system-ui;color:#3a2a1a;box-shadow:0 3px 10px #0004">
+    <b>Tip van Mario:</b> ${esc(d.tip || d.n)}<br><small style="opacity:.7">(${VLAGKLEUR[d.k][0]} +${d.f}) · tik om weg te doen</small></div>`;
+  b.onclick = () => { S.tipWeg = S.dag; bewaar(); b.remove(); }; }
 function hoofdstukKlaar(H) { // afsluiter (de filmpjes komen later): feestelijk scherm, dan het volgende hoofdstuk
   hoofdstukKlaar.bezig = true; S.hoofdstuk = H + 1; bewaar(); kassa(); setTimeout(kassa, 300); speelLied('vincero');
   const V = HOOFDSTUK[H + 1];
@@ -4991,7 +5015,7 @@ function hoofdstukKlaar(H) { // afsluiter (de filmpjes komen later): feestelijk 
     <p><b>${esc(HOOFDSTUK[H].n)}</b> zit erop. Op naar hoofdstuk ${H + 1}: <b>${esc(V.n)}</b>!</p>
     <p class="buurt">In je vlagkist: ${Object.entries(VLAGKLEUR).map(([k, v]) => `${v[0]} ${S.vlag[k]}`).join(' · ')} (voor de vlag op de toren heb je van elke kleur ${VLAGNODIG} nodig).</p>
     <button class="groot" id="verder">Verder</button>`;
-  $('einde').classList.remove('verborgen'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); hoofdstukKlaar.bezig = false; controleerDoelen(); toonDoelen(); };
+  $('einde').classList.remove('verborgen'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); hoofdstukKlaar.bezig = false; controleerDoelen(); hoofdIntro(); };
 }
 function toonDoelen() {
   S.doelen = S.doelen || {}; S.vlag = S.vlag || { g: 0, w: 0, r: 0 }; const H = hoofd(), mijn = DOELEN.filter((d) => d.h == H), af = mijn.filter((d) => S.doelen[d.id]).length;
@@ -5118,7 +5142,7 @@ $('terug').onclick = (e) => {
 
 // ---------- start ----------
 $('begin').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
-$('beginzelf').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); };
+$('beginzelf').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over
 const RONDE = [
   [null, 'Ciao! Ik ben Mario, jouw kok. Ik laat je even zien hoe alles werkt. Tik op Verder (of op het lichte vak).'],
@@ -5132,17 +5156,17 @@ const RONDE = [
   [null, 'Dat was het! Succes, baas. Maak er de beste pizzeria van de stad van!'] ];
 function rondleiding(n = 0) {
   let o = $('ronde'); if (!o) { o = document.createElement('div'); o.id = 'ronde'; document.body.appendChild(o); }
-  if (n >= RONDE.length) { o.remove(); return; }
+  if (n >= RONDE.length) { o.remove(); hoofdIntro(); return; }
   const [sel, tekst] = RONDE[n], el = sel && document.querySelector(sel), r = el && el.getBoundingClientRect(), laatste = n == RONDE.length - 1;
   const gat = r ? `<div class="rgat" style="left:${r.left - 6}px;top:${r.top - 6}px;width:${r.width + 12}px;height:${r.height + 12}px"></div>` : '<div class="rgat" style="left:50%;top:40%;width:0;height:0"></div>';
   const boven = r && r.top > innerHeight / 2, bx = r ? Math.max(12, Math.min(innerWidth - 292, r.left + r.width / 2 - 140)) : innerWidth / 2 - 140;
   o.innerHTML = `${gat}<div class="rballon" style="left:${bx}px;${r ? (boven ? `bottom:${innerHeight - r.top + 16}px` : `top:${r.bottom + 16}px`) : 'top:30%'}"><b>👨‍🍳 Mario</b><p>${tekst}</p>
     <div class="rij"><button class="knop rood" id="rverder">${laatste ? 'Aan de slag!' : 'Verder'}</button>${laatste ? '' : '<button class="knop" id="rstop">Overslaan</button>'}<small style="margin-left:auto;opacity:.6">${n + 1}/${RONDE.length}</small></div></div>`;
   $('rverder').onclick = (e) => { e.stopPropagation(); rondleiding(n + 1); };
-  if ($('rstop')) $('rstop').onclick = (e) => { e.stopPropagation(); o.remove(); };
+  if ($('rstop')) $('rstop').onclick = (e) => { e.stopPropagation(); o.remove(); hoofdIntro(); };
   o.onclick = (e) => { if (r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6) rondleiding(n + 1); };
 }
-if (lees(SLEUTEL) && !TEGEL) { $('welkom').classList.add('verborgen'); tekenKnoppen(); }
+if (lees(SLEUTEL) && !TEGEL) { $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); }
 
 if (TEGEL) { // plaatje voor de startpagina
   $('welkom').classList.add('verborgen');
