@@ -572,3 +572,7 @@ een menukaart op perkament in de achterkamer.
 Dagoverzicht in tabbladen (15 nov, Marcel: "de bon is wat lang"): knoppen `.dagtabs` (`dagTab(knop, k)`, inline onclick, werkt ook in 📊 Gisteren via
 `laatsteDag`): 📊 Totaal (winst per zaak, ijssalon, verdiend vandaag, trend, tip, waarde en ranglijst), 🍕 Deze zaak (alle oude regels, `zaakWinst` =
 totaal − andereWinst), per andere zaak een tab (tekst van `simuleerZaak`), 🍨 IJs, 🏦 Geld (aflossing/belasting, kassa, bank, crypto + cryptonieuws).
+Roulettetafel (15 nov, Marcel: "echte fiches neerleggen"): `tekenGokhal` toont een tafel (html-grid: 0, 1-36 in 3 kolommen, 3 twaalven, 1-18, even,
+rood, zwart, oneven, 19-36); tik = fiches op dat vak (`gok.inzet` = { vak: aantal }, "per tik" 1/2/5, gele fiche met het aantal). Meerdere vakken per
+ronde, "Fiches terugpakken", dan Draaien. Uitbetaling incl. inzet (`vakKeer`): getal ×36, twaalf ×3, rest ×2; `vakRaak(k, n)` (0 = alleen een fiche op 0).
+Uitslag per vak ("✅ 2 op 2e 12 → 6 terug · ❌ 5 op zwart") en of je erop vooruit ging. Gemiddeld 97,3% terug. Eén bezoek per dag, 3 rondes.
