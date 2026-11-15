@@ -620,3 +620,5 @@ afhalen 30). Gemeten (t171, 6 drukke dagen, 1 oven + 1 ober): boos weg 43 → 17
 16 nov: kleuren van "lopen naar voren" (vakjes 18-25, ChatGPT) gelijk getrokken met de oude Gemini-plaatjes (`extra/kleur_voor.py`, één keer
 gedraaid): Afrikaanse man groen shirt → wit, studente paars haar → grijsgroen, Chinese dame rood minder fel. Dagoverzicht: aflossingen en belasting
 staan ook in het tabblad Totaal (niet alleen bij Geld).
+16 nov: een schilderij (`SPUL.schilderij.muur`) blokkeert het looppad niet meer (`maakBezet` slaat `muur`-spullen over): eerder kon een stoel naast een
+schilderij onbereikbaar worden (rood kruisje). Beide versies.

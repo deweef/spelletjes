@@ -3475,6 +3475,7 @@ function maakBezet() {
   const blok = (x0, y0, x1, y1) => { for (let j = 0; j < RH; j++) for (let i = 0; i < RW; i++) { const x = (i + 0.5) / R2, y = (j + 0.5) / R2; if (x > x0 && x < x1 && y > y0 && y < y1) bezet[j * RW + i] = 1; } };
   blok(-1, -1, W + 1, KEUKEN); // de keuken (achter de toonbank)
   for (const s of S.spullen) {
+    if (SPUL[s.t].muur) continue; // een schilderij hangt aan de muur: daar loop je gewoon langs
     blok(s.x + 0.05, s.y + 0.05, s.x + SPUL[s.t].w - 0.05, s.y + SPUL[s.t].h - 0.05);
   }
   // bereik = de vrije cellen waar je vanaf de deur kunt komen (geen ingesloten hokjes tussen tafel en stoelen)
