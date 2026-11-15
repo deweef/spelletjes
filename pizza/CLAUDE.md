@@ -569,3 +569,6 @@ Barrie's menukaart (15 nov): 5 nieuwe streken in `KLUS` (flyers "alles gratis bi
 La Cucaracha, ananas op Luigi's bezorgpizza's; zonder minispel = `doeKlus`). Elke week (`klusWeek()`, vast per `week()`) is één streek AANBIEDING
 (−40%), één extra duur (+50%, "ik heb schulden") en één uitverkocht (`KLUSOP`); `klusPrijs(k)` in `klusBegin`, `doeKlus` en `toonSluip`. Getoond als
 een menukaart op perkament in de achterkamer.
+Dagoverzicht in tabbladen (15 nov, Marcel: "de bon is wat lang"): knoppen `.dagtabs` (`dagTab(knop, k)`, inline onclick, werkt ook in 📊 Gisteren via
+`laatsteDag`): 📊 Totaal (winst per zaak, ijssalon, verdiend vandaag, trend, tip, waarde en ranglijst), 🍕 Deze zaak (alle oude regels, `zaakWinst` =
+totaal − andereWinst), per andere zaak een tab (tekst van `simuleerZaak`), 🍨 IJs, 🏦 Geld (aflossing/belasting, kassa, bank, crypto + cryptonieuws).

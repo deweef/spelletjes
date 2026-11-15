@@ -723,6 +723,7 @@ function openDeuren() {
   if (S.scheppen) vandaag.aankomst *= 1 + 0.06 * S.scheppen; // bordje Gouden Pizzaschep aan de deur
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
+function dagTab(knop, k) { const kaart = knop.closest('.kaart'); kaart.querySelectorAll('.dagtab').forEach((d) => d.style.display = d.dataset.tab == k ? '' : 'none'); kaart.querySelectorAll('.dagtabs button').forEach((b) => b.classList.toggle('rood', b == knop)); }
 function eindeDag() {
   modus = 'inrichten'; for (const p of S.menu) p.gisteren = tel.verkocht[p.naam] || 0; // verkopen per pizza (menukaart) eindeVoorraad();
   const opslagKost = (S.opslag || []).length * OPSLAGPRIJS, huur = (S.huur || HUUR) + opslagKost, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
@@ -751,10 +752,24 @@ function eindeDag() {
   const dertig = !S.maandWaarde && S.dag >= 30; if (dertig) S.maandWaarde = waarde; // de eerlijke wedstrijd: wat is je zaak waard na 30 dagen?
   S.trendMorgen = kans(0.6) ? pak(Object.keys(TREND)) : null; // de trend van morgen (staat in het dagoverzicht)
   const oud = S.dag; S.dag++; const maandag = weekdag() == 0; if (maandag) S.dag++; bewaar(); // maandag dicht: zes werkdagen per week
+
+  const zaakWinst = totaal - andereWinst, tipTekst = `${S.trendMorgen ? `<p class="buurt" style="background:#fff3c4;border-radius:8px;padding:6px 8px">📈 <b>Trend van morgen: ${TREND[S.trendMorgen].ik} ${TREND[S.trendMorgen].n}.</b> ${esc(TREND[S.trendMorgen].tekst)} ${S.menu.some((p) => TREND[S.trendMorgen].ok(p)) ? `Op je kaart: ${S.menu.filter((p) => TREND[S.trendMorgen].ok(p)).map((p) => esc(p.naam)).join(', ')}.` : 'Je hebt er nog geen pizza voor: verzin er een (📖 Pizza\'s)!'}</p>` : ''}
+    ${schepUitslag()}
+    <p>${tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
+      : tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.geenKinderstoel > 1 ? 'Er kwamen gezinnetjes met een peuter, maar er was geen kinderstoel vrij. Zet er een neer (Stoel → Kinderstoel)!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>`;
+  const dagTabKnoppen = [['totaal', '📊 Totaal'], ['zaak', '🍕 Deze zaak'], ...anderen.map((o, j) => ['z' + j, '🏪 ' + BUURT[o.z.buurt || 'oud'].n]), ...(ijs ? [['ijs', '🍨 IJs']] : []), ['geld', '🏦 Geld']].map(([k, n], j) => `<button class="knop${j ? '' : ' rood'}" style="padding:5px 9px;margin:2px" onclick="dagTab(this, '${k}')">${esc(n)}</button>`).join('');
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
     ${maandag ? '<p class="buurt">📅 Morgen is het maandag: dan is de zaak dicht. Op naar dinsdag!</p>' : ''}${S.rood ? `<p style="color:#b33a1e"><b>⚠️ Je staat rood: − € ${Math.round(-S.geld)}. ${S.rood >= 3 ? 'Drie dagen achter elkaar…' : `Sta je nog ${3 - S.rood} avond${3 - S.rood > 1 ? 'en' : ''} rood, dan ben je failliet! Verkoop iets, leen geld of verdien het terug.`}</b></p>` : ''}
-    ${tel.dicht ? `<p><b>🔒 Vandaag was de zaak dicht.</b> ${esc(tel.dicht)}</p>` : ''}${manWeg ? `<p><b>👋 ${esc(manWeg)}</b></p>` : ''}${S.crypto && S.crypto.nieuws.length && cryptoWaarde() > 0 ? `<p>📰 <b>Cryptonieuws:</b> ${S.crypto.nieuws.map(esc).join(' ')} Je crypto is nu ${euro(cryptoWaarde())} waard.</p>` : ''}
+    ${tel.dicht ? `<p><b>🔒 Vandaag was de zaak dicht.</b> ${esc(tel.dicht)}</p>` : ''}${manWeg ? `<p><b>👋 ${esc(manWeg)}</b></p>` : ''}
+    <div class="dagtabs">${dagTabKnoppen}</div>
+    <div class="dagtab" data-tab="totaal">
     <table>
+      <tr><td>🍕 ${esc(zaakNaam())}</td><td>${zaakWinst < 0 ? '− ' : ''}€ ${Math.abs(Math.round(zaakWinst))}</td></tr>${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr>`).join('')}${ijs ? `<tr><td>🍨 IJssalon</td><td>${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}</td></tr>` : ''}
+      <tr><td><b>Verdiend vandaag</b></td><td><b>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</b></td></tr>
+    </table>
+    ${tipTekst}
+    </div>
+    <div class="dagtab" data-tab="zaak" style="display:none"><table>
       <tr><td>😋 Tevreden klanten</td><td>${kl(tel.blij)}</td></tr>
       <tr><td>😡 Boos weggelopen</td><td>${kl(tel.boos)}</td></tr>
       ${tel.boos ? `<tr><td style="padding-left:28px;font-size:.9em">waarvan: keuken te traag / ober te druk</td><td>${kl(tel.boosKeuken)} / ${kl(tel.boosOber)}</td></tr>` : ''}
@@ -768,15 +783,16 @@ function eindeDag() {
       <tr><td>🍕 Pizza's verkocht</td><td>€ ${Math.round(tel.omzet)}</td></tr>${Object.entries(tel.extra || {}).filter(([k, n]) => n >= 1).map(([k, n]) => `<tr><td>${EXTRANAAM[k] || EXTRANAAM.overig}</td><td>€ ${Math.round(n)}</td></tr>`).join('')}
       <tr><td>🪙 Fooi</td><td>€ ${Math.round(tel.fooi)}</td></tr>
       <tr><td>🧀 Ingrediënten ingekocht</td><td>− € ${Math.round((tel.inkoop || 0) + (tel.ing || 0))}</td></tr>${tel.kosten - (tel.inkoop || 0) - (tel.ing || 0) >= 1 ? `<tr><td>🧾 Andere kosten</td><td>− € ${Math.round(tel.kosten - (tel.inkoop || 0) - (tel.ing || 0))}</td></tr>${Object.keys(tel.uitW || {}).length ? `<tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${Object.entries(tel.uitW).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([w, n]) => `${esc(w)} € ${Math.round(n)}`).join(' · ')}</td></tr>` : ''}` : ''}${tel.bedorven >= 1 ? `<tr><td>🗑️ Bedorven en weggegooid</td><td>(€ ${Math.round(tel.bedorven)})</td></tr>` : ''}${tel.uitverkocht ? `<tr><td>🚫 Weg: hun pizza was op</td><td>${kl(tel.uitverkocht)}</td></tr>` : ''}
-      <tr><td>🏠 Huur${opslagKost ? ` (waarvan opslag: ${S.opslag.length} spul${S.opslag.length > 1 ? 'len' : ''}, € ${opslagKost})` : ''}</td><td>− € ${huur}</td></tr>${ijs ? `<tr><td>🍨 IJssalon</td><td>${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75">${esc(ijs.tekst)}</td></tr>` : ''}${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr><tr><td colspan="2" style="font-size:.85em;opacity:.75;padding-left:28px">${esc(o.tekst)}</td></tr>`).join('')}
+      <tr><td>🏠 Huur${opslagKost ? ` (waarvan opslag: ${S.opslag.length} spul${S.opslag.length > 1 ? 'len' : ''}, € ${opslagKost})` : ''}</td><td>− € ${huur}</td></tr>
       ${lonen - manLoon ? `<tr><td>🤵 Loon extra obers</td><td>− € ${lonen - manLoon}</td></tr>` : ''}${manLoon ? `<tr><td>📋 Loon ${S.manager ? 'manager' : ''}${S.manager && S.bezorg ? ' en ' : ''}${S.bezorg ? 'bezorger' : ''}</td><td>− € ${manLoon}</td></tr>` : ''}
-      <tr><td><b>Verdiend vandaag</b></td><td>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</td></tr>
-      ${lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
-    </table>
-    ${S.trendMorgen ? `<p class="buurt" style="background:#fff3c4;border-radius:8px;padding:6px 8px">📈 <b>Trend van morgen: ${TREND[S.trendMorgen].ik} ${TREND[S.trendMorgen].n}.</b> ${esc(TREND[S.trendMorgen].tekst)} ${S.menu.some((p) => TREND[S.trendMorgen].ok(p)) ? `Op je kaart: ${S.menu.filter((p) => TREND[S.trendMorgen].ok(p)).map((p) => esc(p.naam)).join(', ')}.` : 'Je hebt er nog geen pizza voor: verzin er een (📖 Pizza\'s)!'}</p>` : ''}
-    ${schepUitslag()}
-    <p>${tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
-      : tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.geenKinderstoel > 1 ? 'Er kwamen gezinnetjes met een peuter, maar er was geen kinderstoel vrij. Zet er een neer (Stoel → Kinderstoel)!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>
+      <tr><td><b>Verdiend in deze zaak</b></td><td><b>${zaakWinst < 0 ? '− ' : ''}€ ${Math.abs(Math.round(zaakWinst))}</b></td></tr>
+    </table></div>
+    ${anderen.map((o, j) => `<div class="dagtab" data-tab="z${j}" style="display:none"><p><b>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</b>${o.z.manager ? ` (manager ${esc(MANAGER[o.z.manager.wie].n)})` : ''}</p><p>${esc(o.tekst)}</p><p class="buurt">Je was hier vandaag niet zelf: de manager heeft het geregeld. Wil je meer zien? Ga er 's ochtends heen via 🗺️ Stad.</p></div>`).join('')}
+    ${ijs ? `<div class="dagtab" data-tab="ijs" style="display:none"><p><b>🍨 IJssalon</b></p><p>${esc(ijs.tekst)}</p><p>Winst: ${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}${tel.extra && tel.extra.ijs ? ` · plus € ${Math.round(tel.extra.ijs)} aan ijsjes als toetje in je pizzeria` : ''}</p></div>` : ''}
+    <div class="dagtab" data-tab="geld" style="display:none"><table>
+      ${lening.length ? lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('') : '<tr><td>Geen aflossingen of belasting vandaag.</td><td></td></tr>'}
+      <tr><td>💶 In de kassa</td><td>€ ${Math.round(S.geld)}</td></tr><tr><td>🏦 Op de bank</td><td>€ ${Math.round(S.bankSaldo || 0)}</td></tr>${S.crypto && cryptoWaarde() > 0 ? `<tr><td>🪙 Crypto</td><td>€ ${Math.round(cryptoWaarde())}</td></tr>` : ''}
+    </table>${S.crypto && S.crypto.nieuws.length && cryptoWaarde() > 0 ? `<p class="buurt">📰 <b>Cryptonieuws:</b> ${S.crypto.nieuws.map(esc).join(' ')}</p>` : ''}</div>
     <p style="margin:10px 0 2px"><b>🏆 Waarde van je pizzeria: € ${waarde}</b>${waarde >= (S.waardeBest || 0) ? ' (record!)' : ` (record € ${S.waardeBest})`}</p><div id="dagbord" class="buurt" style="text-align:left"></div><div id="dagbord2" class="buurt" style="text-align:left;margin-top:4px"></div>
     <button class="groot" id="verder">Verder met inrichten</button>`;
   laatsteDag = $('eindkaart').innerHTML.replace('Verder met inrichten', 'Sluiten').replace('zit erop!', 'zat erop');
