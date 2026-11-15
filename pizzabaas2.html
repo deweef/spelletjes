@@ -722,7 +722,7 @@ function openDeuren() {
   maakPersoneel(); kies = null; sluitMenu(); tekenKnoppen(); wegLog = [];
   if (S.manager && MANAGER[S.manager.wie].fooi) vandaag.fooi *= MANAGER[S.manager.wie].fooi; // Bruno: de klanten zijn dol op hem
   if (S.dag >= 8 && S.rep >= 30 && !(S.schepDag > S.dag - 10) && (S.scheppen || 0) < 3 && kans(0.15)) { vandaag.incognito = 'komt'; S.schepDag = S.dag; // Gouden Pizzaschep
-    setTimeout(() => meld('🕵️ Gerucht in de stad: vandaag eet er een recensent van de Gouden Pizzaschep in je zaak. Incognito! Behandel iedereen als een koning…', 6000), 2600); }
+    ochtendVraag({ id: 'schepGerucht', ik: '<img src="pizza/recensent.png" alt="" style="height:110px">', wie: 'Mario de kok (fluistert)', zelf: true, vraag: 'Baas! Ik hoorde op de markt een gerucht: vandaag komt er een recensent van de Gouden Pizzaschep eten. Incognito, dus verkleed als gewone klant! Niemand weet wie het is. Laat niemand lang wachten en serveer je lekkerste pizza\'s. Vanavond op het bonnetje lees je hoe hij het vond.', a: [['Iedereen behandelen als een koning!', () => 'Mario poetst de toonbank drie keer extra. De obers strijken hun schortjes glad.']] }, 2600); }
   if (S.scheppen) vandaag.aankomst *= 1 + 0.06 * S.scheppen; // bordje Gouden Pizzaschep aan de deur
   ding(660, 0.12); setTimeout(() => ding(880, 0.12), 140);
 }
@@ -3113,7 +3113,7 @@ function wedstrijdUitslag(p) {
 // populariteit +8 en elke schep 6% meer klanten. Boos weggelopen = populariteit −5.
 function schepUitslag() {
   if (!vandaag.incognito) return ''; const r = vandaag.recensie, img = '<img src="pizza/recensent.png" alt="" style="float:right;height:110px;margin:0 0 4px 8px">';
-  if (!r) return `<div class="opdracht" style="display:block">${img}<b>🕵️ De recensent…</b><br>Er is niemand van de Gouden Pizzaschep gezien. Misschien kwam hij niet, of zat hij er bij sluitingstijd nog. Volgende keer beter!</div>`;
+  if (!r) return `<div class="opdracht" style="display:block">${img}<b>🕵️ De recensent…</b><br>${vandaag.incognito == 'binnen' ? 'Hij was er wel (vanochtend hoorde je het gerucht), maar hij zat bij sluitingstijd nog te wachten en vertrok zonder oordeel.' : 'Vanochtend ging het gerucht dat hij zou komen, maar hij is niet geweest.'} Volgende keer beter!</div>`;
   if (r.boos) { rep(-5); return `<div class="opdracht" style="display:block">${img}<b>🕵️ Ontmaskerd: de recensent!</b><br>Hij liep boos weg omdat het te lang duurde. In de krant: "Pizzeria? Eerder een wachtkamer." Populariteit −5.</div>`; }
   const punten = r.o + (r.wacht < 18 ? 1 : 0) + Math.min(2, r.gez / 2), soortNaam = SOORT[r.soort] ? SOORT[r.soort].n.toLowerCase() : 'klant';
   if (punten >= 6.5) { S.scheppen = Math.min(3, (S.scheppen || 0) + 1); rep(8);
@@ -3745,7 +3745,7 @@ function stap(dt) {
     volgendeKlant -= dt;
     if (volgendeKlant <= 0 && klok < DAG * 0.9) { nieuweGroep(); /* na 21:30 geen nieuwe klanten meer */ volgendeKlant = Math.max(2.2, 7.5 - S.rep * 0.05) * (0.6 + Math.random() * 0.8) / vandaag.aankomst; }
     const stel = (v) => v.portret != null ? laatBinnen(v) : toonVraag(v); // met een figuur: eerst binnenlopen
-    if (bezoeker) {} // wacht tot de vorige bezoeker weg is
+    if (bezoeker || aria) {} // wacht tot de vorige bezoeker weg is (en tijdens de aria van Mario stoort niemand)
     else if (isWeg() && manAanwezig()) { // jij bent de stad in: de manager regelt de gewone vragen, de rest wacht tot je terug bent
       if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0] && kans(0.3)) { vraagTijden.shift(); const v = belHier(); wegLog.push(`📞 ${MANAGER[S.manager.wie].n} belde: er was iets aan de hand.`); toonVraag(v); }
       else if (vraagTijden.length && vraagTijden[0] >= 0 && klok >= vraagTijden[0]) { const v = kiesVraag(); if (v.portret != null || v.zelf) vraagTijden[0] = klok + 8; else { vraagTijden.shift(); managerVraag(v); } } }
@@ -4200,9 +4200,10 @@ function teken(nu) {
   g.restore(); };
 
   // koks, mensen en obers (in schermpixels, gesorteerd op y)
-  const koks = ovs.map((o) => ({ y: o.kok.y, f: () => kok(o.kok, nu) }));
+  const koks = ovs.filter((o) => !(aria && o.i == 0)).map((o) => ({ y: o.kok.y, f: () => kok(o.kok, nu) })); // tijdens de aria staat Mario op de toonbank
   const alles = [...spulItems, ...koks, ...mensen.map((m) => ({ y: zitY(m), f: () => tekenMens(m, nu) })), ...obers.map((o) => ({ y: o.y, f: () => ober(o) })), ...afhalers.map((z) => ({ y: z.y, f: () => tekenAfhaler(z) })), ...(bezoeker ? [{ y: bezoeker.y, f: tekenBezoeker }] : []), ...(man ? [{ y: man.y, f: tekenManager }] : []), ...(bezorger && bezorger.st != 'rit' ? [{ y: bezorger.y, f: tekenBezorger }] : [])].sort((a, b) => a.y - b.y);
   for (const a of alles) a.f();
+  tekenAria(nu);
   if (modus == 'inrichten') { const k = S.spullen.map((t) => t.t + t.x + ',' + t.y).join('|'); if (k != bereikSleutel) { bezet = null; bereikSleutel = k; } } // verschoven: looppaden opnieuw
   if (modus == 'inrichten') for (const c of S.spullen) if (c.t == 'stoel' && !stoelBereik(c)) { // geen looppad naar deze stoel
     const [x, y] = naarScherm(c.x + 0.5, c.y + 0.5), r = 11 * schaal; g.fillStyle = 'rgba(200,30,20,.75)'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
@@ -4223,6 +4224,25 @@ function teken(nu) {
     g.beginPath(); g.moveTo(x - 6 * schaal, y - 1); g.lineTo(x, y + 7 * schaal); g.lineTo(x + 6 * schaal, y - 1); g.fill();
     g.fillStyle = '#3a2414'; g.fillText(w.tekst, bx + bw / 2, y - 7 * schaal); g.globalAlpha = 1;
   }
+}
+let aria = null; // Mario zingt (oven → bel → jukebox): de zaal wordt donker, spotlicht op Mario op de toonbank, iedereen zwaait en klapt
+function tekenAria(nu) {
+  if (!aria) return; const t = (nu - aria.t0) / 1000; if (t > aria.duur || modus != 'open') { aria = null; return; }
+  const zicht = Math.max(0, Math.min(1, t / 0.7, (aria.duur - t) / 0.9)), u = T * schaal, [mx, my] = naarScherm(W / 2, KEUKEN + 0.1);
+  if (t > aria.zeg) { aria.zeg = t + 1.6; const m = pak(mensen.filter((m) => m.st == 'eet' || m.st == 'wacht')); if (m) zeg(m, R(['👏 Bravo!', 'Bravissimo!', 'Encore!', 'Mamma mia!', 'Kippenvel!', 'Ik moet huilen…', 'MARIO! MARIO!', '🌹 Bis!'])); }
+  g.save(); g.globalAlpha = zicht; g.textAlign = 'center'; g.textBaseline = 'middle';
+  const gr = g.createRadialGradient(mx, my - u, u * 0.6, mx, my - u, u * 4.5); gr.addColorStop(0, 'rgba(255,235,170,.15)'); gr.addColorStop(1, 'rgba(12,6,28,.68)');
+  g.fillStyle = gr; g.fillRect(0, 0, doek.width, doek.height); // de zaal gaat donker
+  g.fillStyle = 'rgba(255,245,200,.2)'; g.beginPath(); g.moveTo(mx - 0.3 * u, 0); g.lineTo(mx + 0.3 * u, 0); g.lineTo(mx + 1.3 * u, my + 0.25 * u); g.lineTo(mx - 1.3 * u, my + 0.25 * u); g.fill(); // lichtbundel
+  g.fillStyle = 'rgba(255,240,180,.35)'; g.beginPath(); g.ellipse(mx, my + 0.1 * u, 1.3 * u, 0.32 * u, 0, 0, 7); g.fill();
+  if (KOK.complete && KOK.naturalWidth && ovens[0]) { g.save(); g.translate(mx, my); const k = 1.8 * schaal; g.scale(k, k); g.rotate(Math.sin(t * 2.5) * 0.07); kokPlaatje({ ...ovens[0].kok, x: W / 2, y: KEUKEN, gooi: 0, loopT: 0, draagt: false, kijk: Math.PI / 2 }, nu); g.restore(); }
+  for (let i = 0; i < 7; i++) { const a = (t * 0.45 + i / 7) % 1; g.globalAlpha = zicht * Math.min(1, (1 - a) * 2); g.font = `${(18 + (i % 3) * 7) * schaal}px system-ui`; g.fillText(i % 2 ? '🎵' : '🎶', mx + Math.sin(i * 2.3 + t * 1.7) * 1.6 * u, my - (2.6 + a * 2.6) * u); }
+  g.font = `${22 * schaal}px system-ui`;
+  for (const m of mensen) if (m.st == 'eet' || m.st == 'wacht') { const [x, y] = naarScherm(m.x, m.y); g.globalAlpha = zicht; g.fillText(Math.floor(t * 2.5 + m.x) % 2 ? '🙌' : '👏', x + Math.sin(t * 7 + m.x) * 5 * schaal, y - (1.15 + Math.abs(Math.sin(t * 5 + m.y)) * 0.35) * u); }
+  for (const o of obers) { const [x, y] = naarScherm(o.x, o.y); g.globalAlpha = zicht; g.fillText('👏', x, y - (1.5 + Math.abs(Math.sin(t * 6 + o.x)) * 0.3) * u); }
+  g.globalAlpha = zicht; g.font = `900 ${26 * schaal}px system-ui`; g.lineWidth = 6 * schaal; g.strokeStyle = '#2a1405'; g.fillStyle = '#ffd23f'; const by = my + 0.75 * u; // onder de toonbank, zodat de liedjesmelding bovenin hem niet bedekt
+  g.strokeText('🎭 MARIO ZINGT! 🎭', mx, by); g.fillText('🎭 MARIO ZINGT! 🎭', mx, by);
+  g.restore();
 }
 function stoel(x, y, hoek) { // van bovenaf: houten stoeltje met gestreepte zitting, leuning aan de kant van `hoek`
   g.save(); g.translate(x, y); g.rotate(hoek); g.scale(1.6, 1.6);
@@ -4471,7 +4491,7 @@ doek.addEventListener('pointerdown', (e) => {
     const v = naarVak(e), vl = vlekBij(v.fx, v.fy);
     const jb = S.spullen.find((t) => t.t == 'jukebox' && v.fx >= t.x && v.fx < t.x + SPUL.jukebox.w && v.fy >= t.y && v.fy < t.y + SPUL.jukebox.h);
     if (jb) { const nu = performance.now(), rk = tikReeks.filter((x) => nu - x.t < 8000).map((x) => x.w).join(',');
-      if (rk.endsWith('oven,bel') && operaDag != S.dag) { operaDag = S.dag; mijl('aria'); tikReeks = []; speelLied('vincero'); if (ovens[0]) zeg(ovens[0].kok, 'VINCERÒÒÒ!'); for (const m of mensen.filter((m) => m.st == 'eet').slice(0, 4)) zeg(m, R(['👏 Bravo!', 'Bravissimo!', 'Encore!'])); vandaag.gezellig += 0.5; spat(jb.x + 1, jb.y, ['🎵', '🎶', '✨'], 8, 3); meld('🎭 Geheime combinatie! Mario zingt een aria.', 3500); return; }
+      if (rk.endsWith('oven,bel') && operaDag != S.dag) { operaDag = S.dag; mijl('aria'); tikReeks = []; speelLied('vincero'); aria = { t0: performance.now(), duur: Math.min(25, Math.max(9, ac ? liedTot - ac.currentTime : 12)), zeg: 0 }; for (const m of mensen.filter((m) => m.st == 'eet' || m.st == 'wacht').slice(0, 5)) zeg(m, R(['👏 Bravo!', 'Bravissimo!', 'Encore!', 'Mamma mia!', 'Kippenvel!'])); vandaag.gezellig += 0.5; spat(jb.x + 1, jb.y, ['🎵', '🎶', '✨'], 8, 3); meld('🎭 Geheime combinatie! Mario klimt op de toonbank en zingt een aria!', 4000); return; }
       jukeboxKeuze(e); return; } // tik op de jukebox: kies een liedje (€ 1) (oven → bel → jukebox = Mario zingt opera)
     if (!vlekBij(v.fx, v.fy) && !(rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) && tikEffect(v.fx, v.fy)) return; // verrassende effectjes
     if (rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) { muntjes.push({ x: rat.x, y: rat.y, t: 1.2, tekst: '🐀 Gevangen!' }); mijl('rat'); rat = null; vandaag.gezellig += 1; kassa(); return; }
