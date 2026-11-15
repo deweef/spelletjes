@@ -546,3 +546,8 @@ van de voorganger: inhalen). Henk en Luigi sturen zelf (`raceAI`: kijken 14 m vo
 (`race.bochten` = [van, tot, richting], `raceWeg` schuift de weg opzij, `raceBocht`): de binnenbaan is 8% sneller, met een waarschuwing "Bocht naar
 links". Henk snijdt in de tweede bocht zichtbaar af over het gras (`henk.cut`, ×1,55; 40% vast in het rozenperk 2,6 s). Luigi's bananen vliegen in een
 boogje (`race.vlieg`, 0,8 s) en landen 15-20 m voor je. Racers buiten beeld: pijltje met afstand. `RACE` = { lengte 320, max 9, henk 8,2, luigi 8,5 }. Getest met een bot (t147, 25 races): goed sturen ≈ 3/4 winst, slordig ≈ 2/3, niet sturen = nooit. Je eigen scootmobiel staat op 385 px (je ziet wie er achter je zit).
+15 nov (kleine dingen): de tweede bel op de uitgifte rinkelt nu ook (tikvlak lag naast het belletje); gokhal: één bezoek per dag met 3 rondes
+(was 3 bezoeken = 9 rondes; knop "Naar de roulettetafel (3 rondes)"); laptop toont per munt "gekocht € X" (`c.inleg`, groen/rood; leeg bij verkopen,
+hack, herstart, fiches, Sjonnie) en "Nieuws van afgelopen nacht"; stadskaart: het studentenpand (`PLEK.huur1`) staat nu in het gele winkelpand naast de
+universiteit (bestaande zaken verhuizen mee, ze verwijzen naar 'huur1'), het tweede 🎓-gebouw is `PLEK.college` (Collegezaal, tekstje), en het oude
+TE HUUR-bordje bovenaan heeft een vast VERHUURD-bordje (svg-overlay, `tekst`).
