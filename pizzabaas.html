@@ -93,6 +93,7 @@
   @media (max-width: 760px) { #kaartvak { width: 920px; } .plek span { font-size: 11px; } } /* telefoon: kaart groter, schuiven met een vinger */
   #kaartvak img { display: block; width: 100%; image-rendering: pixelated; }
   .plek { position: absolute; border: 0; background: transparent; cursor: pointer; padding: 0; border-radius: 8px; }
+  .plek.boven span { bottom: auto; top: 2px; }
   .plek span { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); white-space: nowrap; background: rgba(40,20,8,.85); color: #fff7e8; font: 700 12px system-ui; padding: 3px 7px; border-radius: 8px; pointer-events: none; }
   .torenkaart { position: absolute; left: 20%; bottom: 10%; width: 60%; height: 95%; background: url(pizza/toren.png) 0 0 / 400% 100% no-repeat; pointer-events: none; }
   .torenfoto { width: 120px; height: 160px; margin: 6px auto; background: url(pizza/toren.png) 0 0 / 480px 160px no-repeat; }
@@ -2684,6 +2685,9 @@ const KLUS = {
   klingon: { n: 'Luigi\'s menukaart in het Klingon', ik: '👽', prijs: 25, bonus: 0.06, dagen: 3, risico: 0.08, ruzie: 8, tekst: 'Niemand snapt Luigi\'s kaart nog. "Bestel nummer vier." Er is geen nummer vier.' },
   deurbel: { n: 'Luigi\'s deurbel speelt "La Cucaracha"', ik: '🔔', prijs: 20, bonus: 0.04, dagen: 4, risico: 0.05, ruzie: 5, tekst: 'Elke keer dat er iemand bij Luigi binnenkomt: tuuuu-tu-tu-tu-tuuu. Hij wordt er gek van, en een paar klanten ook.' },
   ananas: { n: 'Ananas op al Luigi\'s bezorgpizza\'s', ik: '🍍', prijs: 60, bonus: 0.15, dagen: 3, risico: 0.2, ruzie: 22, tekst: 'Barrie "helpt" Luigi\'s bezorger. Overal zit ananas op. Ook op de Margherita. Zijn klanten bellen voortaan jou.' },
+  hond: { n: 'Barrie laat zijn hond uit… voor Luigi\'s deur', ik: '🐕', prijs: 35, bonus: 0.12, dagen: 3, risico: 0.15, ruzie: 18, tekst: 'Precies op de deurmat van Luigi. Iedereen die binnenkomt, stapt erin. "Wat RUIKT hier zo?" Zijn klanten komen naar jou.' },
+  lijm: { n: 'Superlijm op Luigi\'s stoelen', ik: '🧴', prijs: 40, bonus: 0.1, dagen: 3, risico: 0.18, ruzie: 20, tekst: 'Luigi\'s klanten staan op… met stoel en al. Het filmpje gaat rond: "Bij Luigi blijf je plakken!" Niet op de goede manier.' },
+  stroop: { n: 'Stroop op Luigi\'s deurklink', ik: '🍯', prijs: 15, bonus: 0.04, dagen: 2, risico: 0.06, ruzie: 6, tekst: 'Kleverige handen bij iedereen die bij Luigi binnenloopt. Een paar draaien zich om en lopen naar jou.' },
   keuring: { n: 'Keuringsdienst tippen', ik: '📋', prijs: 30, bonus: 0.2, dagen: 2, risico: 0.2, ruzie: 25, tekst: 'Een anoniem telefoontje… De keuringsdienst staat bij Luigi op de stoep. Zijn zaak gaat twee dagen dicht!' } };
 const VREDE = { limoncello: { n: 'Fles limoncello', ik: '🍋', prijs: 30, dagen: 5 }, grappa: { n: 'Fles grappa', ik: '🥃', prijs: 45, dagen: 8 } };
 const klusLoopt = () => S.klus && S.klus.tot >= S.dag;
@@ -2695,7 +2699,7 @@ function klusWeek() { const ks = Object.keys(KLUS); let z = (week() * 7919 + 17)
 const klusPrijs = (k) => Math.round(KLUS[k].prijs * ({ aanbieding: 0.6, duur: 1.5 }[klusWeek()[k]] || 1));
 const KLUSOP = ['De ratten zijn op vakantie.', 'Zijn neef met de busje is ziek.', 'Te heet onder de voeten. Volgende week weer.', 'Uitverkocht. Echt waar.'];
 let rustGebroken = false; // een klus tijdens de wapenstilstand: die is dan voorbij
-function klusBegin(k) { const d = KLUS[k]; ge(-klusPrijs(k)); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); rustGebroken = S.luigiRust > S.dag; S.luigiRust = 0; kassa(); bewaar(); tekenKnoppen(); return d; }
+function klusBegin(k) { const d = KLUS[k]; S.klusGedaan = S.klusGedaan || {}; S.klusGedaan[k] = S.dag; ge(-klusPrijs(k)); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); rustGebroken = S.luigiRust > S.dag; S.luigiRust = 0; kassa(); bewaar(); tekenKnoppen(); return d; }
 function klusAf(k, gelukt, tekst, politie) { const d = KLUS[k];
   if (gelukt) { S.klus = { k, tot: S.dag + d.dagen }; barrieUit = `${d.ik} ${tekst || 'Gelukt!'} ${d.tekst} (${d.dagen} dagen meer klanten)${rustGebroken ? ' Maar de wapenstilstand is voorbij: Luigi heeft zo zijn vermoedens…' : ''}`; }
   else if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); barrieUit = politie || '🚨 Luigi zag Barrie en belde de politie! Op het bureau zei Barrie meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).'; }
@@ -2708,23 +2712,47 @@ const plek = (c, e) => { const r = c.getBoundingClientRect(); return [(e.clientX
 // RATTEN: Barrie zet de doos neer in Luigi's keuken; de ratten rennen alle kanten op. Tik op een rat die naar de achterdeur (weg) rent: dan draait hij
 // om. 12 seconden; minstens 5 van de 8 ratten in de eetzaal = gelukt.
 function toonRatten() {
-  klusBegin('ratten'); const [c, x] = klusScherm('🐀 Ratten loslaten', 'Barrie opent de doos in Luigi\'s keuken. De ratten moeten naar de <b>eetzaal</b> (boven). Rent er een naar de <b>achterdeur</b> (onder)? Tik erop, dan draait hij om!');
-  const rats = Array.from({ length: 8 }, (_, i) => ({ x: 170 + (i - 3.5) * 14, y: 300, vx: (Math.random() - 0.5) * 120, vy: (Math.random() < 0.55 ? 1 : -1) * (50 + Math.random() * 60), in: false })); let t = 12, laatst = performance.now(), klaar = false;
+  klusBegin('ratten'); const [c, x] = klusScherm('🐀 Ratten loslaten', 'Barrie opent de doos in Luigi\'s keuken. Er moeten er <b>6 van de 8</b> naar de <b>eetzaal</b> (boven). Rent er een naar de <b>achterdeur</b> (onder)? Tik erop, dan draait hij om!');
+  const rats = Array.from({ length: 8 }, (_, i) => ({ x: 170 + (i - 3.5) * 14, y: 300, vx: (Math.random() - 0.5) * 120, vy: (Math.random() < 0.75 ? 1 : -1) * (55 + Math.random() * 60), in: false })); let t = 14, laatst = performance.now(), klaar = false;
   c.addEventListener('pointerdown', (e) => { const [px, py] = plek(c, e); for (const r of rats) if (!r.in && Math.hypot(r.x - px, r.y - py) < 30) { r.vy = -Math.abs(r.vy) - 20; r.vx *= 0.5; ding(900, 0.04); } });
   function teken() { x.fillStyle = '#d8cfc0'; x.fillRect(0, 0, 340, 420); x.fillStyle = '#b8ad9c'; for (let j = 0; j < 14; j++) for (let i = 0; i < 12; i++) if ((i + j) % 2) x.fillRect(i * 30, j * 30, 30, 30);
     x.fillStyle = '#2e5e3a'; x.fillRect(0, 0, 340, 60); x.fillStyle = '#fff'; x.font = 'bold 15px system-ui'; x.textAlign = 'center'; x.fillText('🍝 EETZAAL VAN LUIGI 🍝', 170, 35);
     x.fillStyle = '#5a3216'; x.fillRect(120, 392, 100, 28); x.fillStyle = '#ffe08a'; x.fillText('achterdeur', 170, 411);
     x.font = '34px system-ui'; x.fillText('📦', 170, 318); x.font = '28px system-ui'; for (const r of rats) if (!r.in) { x.save(); x.translate(r.x, r.y); if (r.vx > 0) x.scale(-1, 1); x.fillText('🐀', 0, 10); x.restore(); }
-    const binnen = rats.filter((r) => r.in == 'zaal').length; x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(8, 70, 120, 26); x.fillStyle = '#fff'; x.font = 'bold 15px system-ui'; x.textAlign = 'left'; x.fillText(`🐀 ${binnen} / 5   ⏱ ${Math.ceil(t)}`, 16, 89); x.textAlign = 'center'; }
+    const binnen = rats.filter((r) => r.in == 'zaal').length; x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(8, 70, 120, 26); x.fillStyle = '#fff'; x.font = 'bold 15px system-ui'; x.textAlign = 'left'; x.fillText(`🐀 ${binnen} / 6   ⏱ ${Math.ceil(t)}`, 16, 89); x.textAlign = 'center'; }
   function stap(nu) { if (klaar || !$('klusdoek')) return; const dt = Math.min(0.05, (nu - laatst) / 1000); laatst = nu; t -= dt;
-    for (const r of rats) { if (r.in) continue; if (Math.random() < dt * 0.9) { r.vx = (Math.random() - 0.5) * 140; if (Math.random() < 0.3) r.vy = -r.vy; }
+    for (const r of rats) { if (r.in) continue; if (Math.random() < dt * 1.1) { r.vx = (Math.random() - 0.5) * 140; if (Math.random() < 0.45) r.vy = Math.abs(r.vy) * (Math.random() < 0.7 ? 1 : -1); } // ratten willen naar buiten: ze draaien vaak weer om naar de achterdeur
       r.x += r.vx * dt; r.y += r.vy * dt; if (r.x < 15 || r.x > 325) r.vx = -r.vx; r.x = Math.max(15, Math.min(325, r.x));
       if (r.y < 60) { r.in = 'zaal'; ding(1300, 0.03); } else if (r.y > 395) r.in = 'weg'; }
     teken(); const binnen = rats.filter((r) => r.in == 'zaal').length;
-    if (binnen >= 5 || t <= 0 || rats.every((r) => r.in)) { klaar = true; const ok = binnen >= 5; x.fillStyle = ok ? '#2ecc71' : '#e74c3c'; x.font = 'bold 24px system-ui'; x.fillText(ok ? 'IIIIEK! Gillende klanten!' : 'Te weinig ratten…', 170, 230);
+    if (binnen >= 6 || t <= 0 || rats.every((r) => r.in) || rats.filter((r) => r.in == 'weg').length > 2) { klaar = true; const ok = binnen >= 6; x.fillStyle = ok ? '#2ecc71' : '#e74c3c'; x.font = 'bold 24px system-ui'; x.fillText(ok ? 'IIIIEK! Gillende klanten!' : 'Te weinig ratten…', 170, 230);
       klusAf('ratten', ok, ok ? `${binnen} ratten in Luigi's eetzaal!` : `Maar ${binnen} ratten haalden de eetzaal, de rest zat al buiten.`); return; }
     requestAnimationFrame(stap); }
   window.__klus = () => ({ rats, t, klaar }); teken(); requestAnimationFrame(stap);
+}
+// HOND (16 nov): Barrie loopt met zijn hond heen en weer over de stoep; tik als de hond precies op Luigi's deurmat staat (en er geen voorbijganger kijkt).
+// Drie pogingen, twee raak = gelukt. Elke keer sneller.
+function toonHond() {
+  klusBegin('hond'); const [c, x] = klusScherm('🐕 Even de hond uitlaten…', 'Barrie loopt met Bobby langs Pizzeria Luigi. <b>Tik als Bobby precies op de deurmat staat.</b> Maar niet als er iemand kijkt 👀! Twee keer raak = gelukt.');
+  let pos = 30, dir = 1, snel = 150, poging = 0, raak = 0, kijk = 0, volgKijk = 2 + Math.random() * 2, bericht = '', bt = 0, klaar = false, laatst = performance.now(); const mat = [150, 190], drollen = [];
+  c.addEventListener('pointerdown', (e) => { e.preventDefault(); if (klaar || bt > 0.6) return; poging++;
+    const op = pos >= mat[0] && pos <= mat[1];
+    if (kijk > 0) { bericht = '👀 "Hé! Ruim dat op!" Betrapt…'; poging = 9; } else if (op) { raak++; drollen.push(pos); bericht = '💩 Plop! Precies op de mat.'; ding(220, 0.15, 'triangle', 0.08); } else { bericht = 'Mis! Bobby wil niet…'; boos(); }
+    bt = 1.1; snel += 50; });
+  function teken() { x.fillStyle = '#9fc5e8'; x.fillRect(0, 0, 340, 420); x.fillStyle = '#c0392b'; x.fillRect(60, 40, 220, 200); x.fillStyle = '#2e9d52'; x.fillRect(60, 40, 220, 34);
+    x.fillStyle = '#fff'; x.font = 'bold 18px system-ui'; x.textAlign = 'center'; x.fillText('PIZZERIA LUIGI', 170, 64); x.fillStyle = '#5a3216'; x.fillRect(145, 150, 50, 90); x.fillStyle = '#ffe08a'; x.fillRect(150, 110, 40, 30);
+    x.fillStyle = '#bbb'; x.fillRect(0, 240, 340, 120); x.fillStyle = '#7a5a3a'; x.fillRect(mat[0], 244, mat[1] - mat[0], 14); x.fillStyle = '#fff'; x.font = 'bold 9px system-ui'; x.fillText('WELKOM', 170, 254);
+    x.font = '22px system-ui'; for (const d of drollen) x.fillText('💩', d, 268);
+    x.font = '36px system-ui'; x.save(); x.translate(pos, 300); if (dir < 0) x.scale(-1, 1); x.fillText('🐕', 0, 0); x.restore(); x.font = '40px system-ui'; x.fillText('🕶️', pos - dir * 40, 295);
+    if (kijk > 0) { x.font = '44px system-ui'; x.fillText('👵', 300, 330); x.font = '30px system-ui'; x.fillText('👀', 300, 290); }
+    x.fillStyle = '#000a'; x.fillRect(8, 370, 324, 40); x.fillStyle = '#fff'; x.font = 'bold 15px system-ui'; x.fillText(bericht || `Raak: ${raak} van 2 · poging ${Math.min(3, poging + 1)} van 3`, 170, 395); }
+  function stap(nu) { if (!$('klusdoek')) return; const dt = Math.min(0.05, (nu - laatst) / 1000); laatst = nu; bt -= dt; if (bt <= 0) bericht = '';
+    pos += dir * snel * dt; if (pos > 320) { pos = 320; dir = -1; } if (pos < 20) { pos = 20; dir = 1; }
+    volgKijk -= dt; if (volgKijk <= 0) { kijk = 1.1; volgKijk = 2.5 + Math.random() * 2.5; } kijk -= dt;
+    teken();
+    if (!klaar && (raak >= 2 || poging >= 3) && bt < 0.2) { klaar = true; const ok = raak >= 2 && poging < 9; klusAf('hond', ok, ok ? 'Bobby heeft zijn werk gedaan.' : poging >= 9 ? 'Een oma zag het gebeuren en belde de wijkagent.' : 'Bobby wilde niet.', '🚨 Een oma zag Barrie en belde de wijkagent. € 200 boete voor "niet opruimen", en de hele buurt praat erover (populariteit −8).'); return; }
+    requestAnimationFrame(stap); }
+  window.__klus = () => ({ pos, raak, poging, kijk, mat }); teken(); requestAnimationFrame(stap);
 }
 // SCOOTER: vier banden; tik op een band om het ventiel open te draaien (5 tikken per band). Luigi kan elk moment naar buiten komen: als de deur
 // kraakt (♪), heb je nog even; bij een open deur stoppen met tikken. 15 seconden.
@@ -2788,12 +2816,12 @@ function toonKeuring() {
     $('achterkaart').querySelectorAll('[data-w]').forEach((b) => b.onclick = () => { uit.push(gehusseld[+b.dataset.w][1]); i++; ding(600, 0.05); toon(); }); };
   toon();
 }
-const KLUSSPEL = { stinkbom: () => toonSluip(), ratten: toonRatten, scooter: toonScooter, recensie: toonRecensie, keuring: toonKeuring };
+const KLUSSPEL = { hond: toonHond, stinkbom: () => toonSluip(), ratten: toonRatten, scooter: toonScooter, recensie: toonRecensie, keuring: toonKeuring };
 // minispel bij de stinkbom: Barrie sluipt door Luigi's zaak naar de toonbank (vasthouden = sluipen). Luigi staat met zijn rug naar je toe,
 // neuriet even (waarschuwing) en draait zich om: beweeg je dan, dan ben je betrapt. Bij de toonbank = stinkbom gelegd.
 // Plaatjes: Barrie van achteren (bezoekers.png rij 4, vakjes 0-3), Luigi van voren (rij 2, vakje 4) en van achteren (rij 2, vakje 0).
 function toonSluip() {
-  const d = KLUS.stinkbom; ge(-klusPrijs('stinkbom')); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); kassa(); bewaar(); tekenKnoppen();
+  const d = KLUS.stinkbom; S.klusGedaan = S.klusGedaan || {}; S.klusGedaan.stinkbom = S.dag; ge(-klusPrijs('stinkbom')); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); kassa(); bewaar(); tekenKnoppen();
   $('achterkaart').innerHTML = `<h1>💨 De stinkbom</h1><p class="buurt">Barrie sluipt Luigi's zaak binnen. <b>Houd de knop vast</b> om te sluipen. Hoor je Luigi neuriën ♪? Loslaten! Als hij omkijkt, mag je niet bewegen.</p>
     <canvas id="sluipdoek" width="340" height="420" style="width:100%;max-width:340px;display:block;margin:0 auto;border-radius:12px;touch-action:none"></canvas>
     <div class="rij"><button class="knop rood" id="sluipknop" style="width:100%;padding:16px;font-size:18px;touch-action:none;user-select:none">🤫 Sluip (vasthouden)</button></div>`;
@@ -2831,7 +2859,7 @@ function toonSluip() {
   teken(); requestAnimationFrame(stap);
 }
 function doeKlus(k) {
-  const d = KLUS[k]; ge(-klusPrijs(k)); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); const brak = S.luigiRust > S.dag; S.luigiRust = 0;
+  const d = KLUS[k]; S.klusGedaan = S.klusGedaan || {}; S.klusGedaan[k] = S.dag; ge(-klusPrijs(k)); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); const brak = S.luigiRust > S.dag; S.luigiRust = 0;
   if (kans(d.risico)) { if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); return `🚨 Barrie is gesnapt! Op het bureau zei hij meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).`; }
     S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.luigiRust = 0; S.ruzie = Math.min(100, S.ruzie + 15); return `😬 Luigi zag Barrie wegrennen! "Dit is oorlog!" Morgen neemt hij wraak…`; }
   S.klus = { k, tot: S.dag + d.dagen }; return `${d.ik} Gelukt! ${d.tekst} (${d.dagen} dagen meer klanten)${brak ? ' Maar de wapenstilstand is voorbij: Luigi heeft zo zijn vermoedens…' : ''}`;
@@ -2860,9 +2888,9 @@ function toonAchterkamer() {
     ${S.barrie ? `<div class="opdracht"><div class="portret" style="background-position:-425px 0;flex:none;margin:0"></div><div><b>Barrie de Bink</b><br>${barrieUit ? esc(barrieUit) : klusLoopt() ? `"Luigi heeft het even druk met… problemen. Hehe. Eén klus tegelijk, baas: de ${esc(KLUS[S.klus.k].n.split(":")[0].toLowerCase())} loopt nog tot ${esc(datumLang(S.klus.tot))}. Daarna sta ik weer voor je klaar."` : '"Zeg het maar, baas. Wat mag het zijn?"'}
       <br><small>Ruzie met Luigi: <b>${ruzieTekst()}</b>${S.luigiRust > S.dag ? ` (wapenstilstand tot ${esc(datumLang(S.luigiRust))}; een klus maakt er een eind aan)` : ''}. Hoe meer ruzie, hoe vaker Luigi terugslaat.</small></div></div>
       <div style="background:#fbf3df;border:2px solid #6b4a2b;border-radius:8px;padding:8px 10px;margin:6px 0;font-family:Georgia,serif"><div style="text-align:center;font-weight:bold">📜 Barrie's menukaart · deze week</div>
-      ${Object.entries(KLUS).map(([k, d]) => { const tag = klusWeek()[k], pr = klusPrijs(k), op = tag == 'op', kan = !klusLoopt() && !op && S.geld >= pr;
-        return `<div style="display:flex;align-items:center;gap:6px;border-top:1px dashed #c9b48a;padding:5px 0;${op ? 'opacity:.55' : ''}"><span style="font-size:22px">${d.ik}</span><span style="flex:1">${esc(d.n)}<br><small>${op ? `❌ ${esc(KLUSOP[(week() + k.length) % KLUSOP.length])}` : tag == 'aanbieding' ? `<s>€ ${d.prijs}</s> <b style="color:#2e9d52">€ ${pr} · AANBIEDING!</b>` : tag == 'duur' ? `<b style="color:#c0392b">€ ${pr}</b> · "Extra duur deze week, baas. Ik heb schulden."` : `€ ${pr}`} · ${d.dagen} dagen meer klanten</small></span>
-          <button class="knop rood" data-klus="${k}" style="padding:6px 10px" ${kan ? '' : 'disabled'}>${op ? 'Op' : 'Doen'}</button></div>`; }).join('')}
+      ${Object.entries(KLUS).map(([k, d]) => { const tag = klusWeek()[k], pr = klusPrijs(k), net = S.klusGedaan && S.klusGedaan[k] > S.dag - 7, op = tag == 'op', kan = !net && !klusLoopt() && !op && S.geld >= pr;
+        return `<div style="display:flex;align-items:center;gap:6px;border-top:1px dashed #c9b48a;padding:5px 0;${op ? 'opacity:.55' : ''}"><span style="font-size:22px">${d.ik}</span><span style="flex:1">${esc(d.n)}<br><small>${net ? `⏳ Net gedaan: Luigi let nog op. Weer vanaf ${esc(datumLang(S.klusGedaan[k] + 7))}.` : op ? `❌ ${esc(KLUSOP[(week() + k.length) % KLUSOP.length])}` : tag == 'aanbieding' ? `<s>€ ${d.prijs}</s> <b style="color:#2e9d52">€ ${pr} · AANBIEDING!</b>` : tag == 'duur' ? `<b style="color:#c0392b">€ ${pr}</b> · "Extra duur deze week, baas. Ik heb schulden."` : `€ ${pr}`} · ${d.dagen} dagen meer klanten</small></span>
+          <button class="knop rood" data-klus="${k}" style="padding:6px 10px" ${kan ? '' : 'disabled'}>${net ? 'Wacht' : op ? 'Op' : 'Doen'}</button></div>`; }).join('')}
       ${klusLoopt() ? '' : '<small>Te weinig contant? Haal geld van de bank. Elke maandag een nieuwe kaart.</small>'}</div>
       <div class="rij">${Object.entries(VREDE).map(([k, d]) => `<button class="knop" data-vrede="${k}" ${!S.ruzie || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} Vrede: ${esc(d.n)} voor Luigi (€ ${d.prijs})</button>`).join('')}</div>` : ''}
     ${eerste ? '<p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>' : ''}<div class="rij"><button class="knop" id="achterdicht">Deur dicht</button></div>`;
@@ -3080,7 +3108,7 @@ function schepUitslag() {
 }
 const RECLAME = 150, reclameAan = () => S.reclame && S.reclame.tot > S.dag; // reclamebord bij de bouwplaats: een week lang meer klanten in alle zaken
 const PLEK = {
-  zaak: { n: 'Jouw pizzeria', ik: '🍕', x: 540, y: 180, b: 125, h: 140 },
+  zaak: { n: 'Jouw pizzeria', ik: '🍕', x: 540, y: 180, b: 125, h: 140, labelBoven: true }, // label op het dak: anders botst hij met het pand aan het plein
   bank: { n: 'Banca Fortuna', ik: '🏦', x: 850, y: 260, b: 150, h: 140 },
   markt: { n: 'De markt', ik: '🧺', x: 570, y: 330, b: 250, h: 170 },
   politie: { n: 'Politiebureau', ik: '👮', x: 850, y: 405, b: 150, h: 135 },
@@ -3207,7 +3235,7 @@ function toonStad(plek) {
   if (!S.stad) { S.stad = S.dag; bewaar(); setTimeout(controleerDoelen, 300); }
   const k = $('stadkaart');
   if (!plek) {
-    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${[...Object.entries(PLEK).filter(([id, p]) => p.bord && zaakVan(id) >= 0).map(([, p]) => p), { bord: [661, 125, 46, 28], tekst: 'VERHUURD' }].map((p) => `<svg viewBox="0 0 50 30" style="position:absolute;pointer-events:none;left:${p.bord[0] / 13.76}%;top:${p.bord[1] / 7.68}%;width:${p.bord[2] / 13.76}%;height:${p.bord[3] / 7.68}%">${p.tekst ? `<rect x="1" y="1" width="48" height="28" rx="2" fill="#f4efe2" stroke="#2a2a2a" stroke-width="2"/><text x="25" y="19" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#b8322a" font-family="system-ui" transform="rotate(-8 25 15)">${p.tekst}</text>` : '<rect x="1" y="1" width="48" height="28" rx="2" fill="#b8322a" stroke="#2a2a2a" stroke-width="2"/><text x="25" y="13" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff" font-family="system-ui">PIZZERIA</text><text x="25" y="24" text-anchor="middle" font-size="9">🍕</text>'}</svg>`).join('')}${Object.entries(PLEK).map(([id, p]) => `<button class="plek" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%">${id == 'bouw' && torenBij().fase ? `<i class="torenkaart" style="background-position:${(torenBij().fase - 1) / 3 * 100}% 0"></i>` : ''}<span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') + ' ⭐' + Math.round(zaakVan(id) == S.zaak ? S.rep : S.zaken[zaakVan(id)].rep || 0) : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
+    k.innerHTML = `<div id="kaartrol"><div id="kaartvak"><img src="pizza/stad-gemini.jpg" alt="De stad">${[...Object.entries(PLEK).filter(([id, p]) => p.bord && zaakVan(id) >= 0).map(([, p]) => p), { bord: [661, 125, 46, 28], tekst: 'VERHUURD' }].map((p) => `<svg viewBox="0 0 50 30" style="position:absolute;pointer-events:none;left:${p.bord[0] / 13.76}%;top:${p.bord[1] / 7.68}%;width:${p.bord[2] / 13.76}%;height:${p.bord[3] / 7.68}%">${p.tekst ? `<rect x="1" y="1" width="48" height="28" rx="2" fill="#f4efe2" stroke="#2a2a2a" stroke-width="2"/><text x="25" y="19" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#b8322a" font-family="system-ui" transform="rotate(-8 25 15)">${p.tekst}</text>` : '<rect x="1" y="1" width="48" height="28" rx="2" fill="#b8322a" stroke="#2a2a2a" stroke-width="2"/><text x="25" y="13" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff" font-family="system-ui">PIZZERIA</text><text x="25" y="24" text-anchor="middle" font-size="9">🍕</text>'}</svg>`).join('')}${Object.entries(PLEK).map(([id, p]) => `<button class="plek${p.labelBoven ? ' boven' : ''}" data-plek="${id}" title="${esc(p.n)}" style="left:${p.x / 13.76}%;top:${p.y / 7.68}%;width:${p.b / 13.76}%;height:${p.h / 7.68}%">${id == 'bouw' && torenBij().fase ? `<i class="torenkaart" style="background-position:${(torenBij().fase - 1) / 3 * 100}% 0"></i>` : ''}<span>${zaakVan(id) >= 0 ? '🍕 ' + esc(zaakVan(id) == S.zaak ? 'Hier ben je' : 'Jouw zaak') + ' ⭐' + Math.round(zaakVan(id) == S.zaak ? S.rep : S.zaken[zaakVan(id)].rep || 0) : p.ik + ' ' + esc(p.n)}</span></button>`).join('')}</div></div>
       ${modus != 'inrichten' && S.manager ? `<p class="buurt" style="text-align:center">🕒 De zaak is open. ${esc(MANAGER[S.manager.wie].n)} past op de winkel${S.manager.wie == 'kevin' ? '… hopelijk' : ''}.</p>` : ''}
       <p class="buurt" style="text-align:center">Tik op een plek in de stad. <button class="knop" id="stadterug" style="margin-left:8px">🍕 Terug naar je zaak</button></p>`;
     k.querySelectorAll('[data-plek]').forEach((b) => b.onclick = () => toonStad(b.dataset.plek));
@@ -4850,6 +4878,16 @@ const LIED = {
   ode: { n: 'Ode an die Freude (Beethoven)', tempo: 0.33, noten: 'E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 E4:1.5 D4:.5 D4:2 E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 D4:1.5 C4:.5 C4:2', bas: 'C3:4 G2:4 C3:4 G2:4 C3:4 G2:4 C3:4 G2:2 C3:2' },
   elise: { n: 'Für Elise (Beethoven)', tempo: 0.27, noten: 'E5:.5 D#5:.5 E5:.5 D#5:.5 E5:.5 B4:.5 D5:.5 C5:.5 A4:1.5 C4:.5 E4:.5 A4:.5 B4:1.5 E4:.5 G#4:.5 B4:.5 C5:1.5 E4:.5 E5:.5 D#5:.5 E5:.5 D#5:.5 E5:.5 B4:.5 D5:.5 C5:.5 A4:1.5 C4:.5 E4:.5 A4:.5 B4:1.5 E4:.5 C5:.5 B4:.5 A4:3', bas: 'A2:5.5 E2:1.5 A2:1.5 E2:1.5 A2:15.0' },
   jacob: { n: 'Vader Jacob', tempo: 0.3, noten: 'C4:1 D4:1 E4:1 C4:1 C4:1 D4:1 E4:1 C4:1 E4:1 F4:1 G4:2 E4:1 F4:1 G4:2 G4:.5 A4:.5 G4:.5 F4:.5 E4:1 C4:1 G4:.5 A4:.5 G4:.5 F4:.5 E4:1 C4:1 C4:1 G3:1 C4:2 C4:1 G3:1 C4:2', bas: 'C3:8 C3:8 C3:8 C3:8' },
+  eendjes: { n: 'Alle eendjes zwemmen in het water', tempo: 0.3, buurt: 'oud', noten: 'C4:1 D4:1 E4:1 F4:1 G4:2 G4:2 A4:1 A4:1 A4:1 A4:1 G4:4 F4:1 F4:1 F4:1 F4:1 E4:2 E4:2 D4:1 D4:1 D4:1 D4:1 C4:4' },
+  kortjakje: { n: 'Altijd is Kortjakje ziek', tempo: 0.3, buurt: 'oud', noten: 'C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:2 G4:1 G4:1 F4:1 F4:1 E4:1 E4:1 D4:2 G4:1 G4:1 F4:1 F4:1 E4:1 E4:1 D4:2 C4:1 C4:1 G4:1 G4:1 A4:1 A4:1 G4:2 F4:1 F4:1 E4:1 E4:1 D4:1 D4:1 C4:2' },
+  maneschijn: { n: 'In de maneschijn', tempo: 0.32, buurt: 'oud', noten: 'C4:1 C4:1 C4:1 D4:1 E4:2 D4:2 C4:1 E4:1 D4:1 D4:1 C4:4 C4:1 C4:1 C4:1 D4:1 E4:2 D4:2 C4:1 E4:1 D4:1 D4:1 C4:4' },
+  cancan: { n: 'Cancan (Offenbach)', tempo: 0.17, buurt: 'studenten', noten: 'D4:2 D4:1 E4:1 G4:1 F#4:1 E4:1 A4:2 A4:2 A4:1 B4:1 F#4:1 G4:1 E4:2 E4:2 E4:1 G4:1 F#4:1 E4:1 D4:1 D5:1 C#5:1 B4:1 A4:1 G4:1 F#4:1 E4:1 D4:2 D4:1 E4:1 G4:1 F#4:1 E4:1 A4:2 A4:2 A4:1 B4:1 F#4:1 G4:1 E4:2 E4:2 E4:1 G4:1 F#4:1 E4:1 D4:1 A4:1 E4:1 F#4:1 D4:4' },
+  bergkoning: { n: 'In de hal van de bergkoning (Grieg)', tempo: 0.2, buurt: 'studenten', noten: 'A3:1 B3:1 C4:1 D4:1 E4:1 C4:1 E4:2 D#4:1 B3:1 D#4:2 D4:1 A#3:1 D4:2 A3:1 B3:1 C4:1 D4:1 E4:1 C4:1 E4:1 A4:1 G4:1 E4:1 C4:1 E4:1 G4:4 A3:.5 B3:.5 C4:.5 D4:.5 E4:.5 C4:.5 E4:1 D#4:.5 B3:.5 D#4:1 D4:.5 A#3:.5 D4:1 A3:.5 B3:.5 C4:.5 D4:.5 E4:.5 C4:.5 E4:.5 A4:.5 G4:.5 E4:.5 C4:.5 E4:.5 G4:2' },
+  tell: { n: 'Wilhelm Tell-galop (Rossini)', tempo: 0.16, buurt: 'studenten', noten: 'E4:.5 E4:.5 E4:1 E4:.5 E4:.5 E4:1 E4:.5 E4:.5 A4:1 B4:1 C#5:1 E4:.5 E4:.5 E4:1 E4:.5 E4:.5 E4:1 E4:.5 A4:.5 C#5:1 B4:1 G#4:1 E4:.5 E4:.5 E4:1 E4:.5 E4:.5 E4:1 E4:.5 E4:.5 A4:1 B4:1 C#5:2 A4:1 C#5:1 E5:2 D5:1 C#5:1 B4:1 A4:3' },
+  tarantella: { n: 'Tarantella napoletana', tempo: 0.18, buurt: 'toeristen', noten: 'E5:1 E5:1 E5:1 D5:1 C5:1 B4:1 A4:1 A4:1 A4:1 B4:1 C5:1 D5:1 E5:1 E5:1 E5:1 F5:1 E5:1 D5:1 E5:3 E5:3 D5:1 D5:1 D5:1 C5:1 B4:1 A4:1 G#4:1 G#4:1 G#4:1 A4:1 B4:1 C5:1 D5:1 C5:1 B4:1 A4:1 G#4:1 B4:1 A4:6' },
+  toreador: { n: 'Toreador (Bizet)', tempo: 0.3, buurt: 'toeristen', noten: 'C5:1 D5:.75 C5:.25 A4:1 A4:1 A4:.75 G4:.25 A4:.75 A#4:.25 A4:2 A#4:1 G4:.75 C5:.25 A4:2 F4:1 D4:.75 G4:.25 C4:3 G4:1 C5:.75 C5:.25 C5:1 D5:1 E5:1 D5:.75 C5:.25 D5:2 A4:4' },
+  nachtmusik: { n: 'Eine kleine Nachtmusik (Mozart)', tempo: 0.3, buurt: 'villa', noten: 'G4:1 D4:.5 G4:1 D4:.5 G4:.5 D4:.5 G4:.5 B4:.5 D5:2 C5:1 A4:.5 C5:1 A4:.5 C5:.5 A4:.5 F#4:.5 A4:.5 D4:2 G4:1 G4:.5 B4:.5 A4:.5 G4:.5 G4:.5 F#4:.5 F#4:1 A4:.5 C5:.5 F#4:.5 A4:.5 G4:1 G4:.5 B4:.5 A4:.5 G4:.5 G4:.5 F#4:.5 F#4:1 A4:.5 C5:.5 F#4:.5 A4:.5 G4:2' },
+  canon: { n: 'Canon (Pachelbel)', tempo: 0.5, buurt: 'villa', noten: 'F#5:2 E5:2 D5:2 C#5:2 B4:2 A4:2 B4:2 C#5:2 D5:1 C#5:1 D5:1 F#4:1 A4:1 G4:1 A4:1 B4:1 G4:1 F#4:1 G4:1 E4:1 A4:1 G4:1 F#4:1 E4:1', bas: 'D3:2 A2:2 B2:2 F#2:2 G2:2 D2:2 G2:2 A2:2 D3:2 A2:2 B2:2 F#2:2 G2:2 D2:2 G2:2 A2:2' },
   jingle: { n: 'Jingle Bells', tempo: 0.24, noten: 'E4:1 E4:1 E4:2 E4:1 E4:1 E4:2 E4:1 G4:1 C4:1.5 D4:.5 E4:4 F4:1 F4:1 F4:1.5 F4:.5 F4:1 E4:1 E4:1 E4:.5 E4:.5 E4:1 D4:1 D4:1 E4:1 D4:2 G4:2', bas: 'C3:4 C3:4 C3:4 C3:4 F2:4 C3:4 G2:4 G2:4' },
   bella: { n: 'Bella ciao', tempo: 0.27, noten: 'E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:2 B4:1 A4:1 C5:2 B4:1 A4:1 E5:2 E5:1 E5:1 E5:1 D5:1 E5:1 F5:1 F5:2 -:1 F5:1 E5:1 D5:1 F5:1 E5:2 -:1 E5:1 D5:1 C5:1 B4:2 E5:2 C5:2 B4:2 A4:4',
     bas: 'A2:8 A2:8 A2:5 E2:4 A2:6 D3:7 A2:7 E2:5 E2:2 A2:8' } };
@@ -4866,9 +4904,9 @@ function speelLied(id, vals) { // vals = zo zing jij (een beetje ernaast)
 }
 function jukeboxKeuze(e) { // een liedje uitkiezen: € 1 uit de kassa (eigenlijk betaalt de klant, maar wie op de jukebox drukt, betaalt zelf 😉)
   const bezig = ac && ac.currentTime < liedTot;
-  toonKeuze('🎵 Jukebox: kies een liedje', Object.entries(LIED).filter(([k]) => k != 'jingle' || isDecember()).map(([k, L]) => ({ ik: '🎵', n: L.n, pr: '€ 1' + (bezig ? ' (na het huidige liedje)' : ''), uit: S.geld < 1,
-    doe: () => { ge(-1); kassa(); speelLied(k); if (!jukeboxKeuze.gedaan) { jukeboxKeuze.gedaan = true; vandaag.gezellig += 0.2; } } })), { left: e.clientX, top: e.clientY, width: 0, height: 0 }, 'jukebox', '💶 Een liedje kost € 1, uit je eigen kassa. De klanten vinden het gezellig.'); }
-const speelWillekeurig = () => speelLied(isDecember() && (S.adventLied == S.dag || Math.random() < 0.5) ? 'jingle' : pak(Object.keys(LIED).filter((k) => k != 'jingle'))); // in december vaak Jingle Bells
+  toonKeuze('🎵 Jukebox: kies een liedje', Object.entries(LIED).filter(([k, L]) => (k != 'jingle' || isDecember()) && (!L.buurt || L.buurt == (S.buurt || 'oud'))).sort((a, b) => !!b[1].buurt - !!a[1].buurt).map(([k, L]) => ({ ik: L.buurt ? '⭐' : '🎵', n: L.n, pr: '€ 1' + (bezig ? ' (na het huidige liedje)' : ''), uit: S.geld < 1,
+    doe: () => { ge(-1); kassa(); speelLied(k); if (!jukeboxKeuze.gedaan) { jukeboxKeuze.gedaan = true; vandaag.gezellig += 0.2; } } })), { left: e.clientX, top: e.clientY, width: 0, height: 0 }, 'jukebox', '⭐ = speciaal voor deze buurt. 💶 Een liedje kost € 1, uit je eigen kassa. De klanten vinden het gezellig.'); }
+const speelWillekeurig = () => speelLied(isDecember() && (S.adventLied == S.dag || Math.random() < 0.5) ? 'jingle' : pak(Object.keys(LIED).filter((k) => k != 'jingle' && (!LIED[k].buurt || LIED[k].buurt == (S.buurt || 'oud'))))); // in december vaak Jingle Bells
 
 // ---------- het zwarte schermpje in het paneel ----------
 let lcdT = 0;

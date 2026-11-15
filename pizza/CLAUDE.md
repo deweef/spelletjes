@@ -582,3 +582,10 @@ terrastafeltjes (+8% elk vanaf 15°C, max 4), bankjes, bloembakken, stoepbord, r
 warme-chocoladebar (chocomel ×1,5). Effect in `ijsInrichtF(t)` in `ijsDag`.
 Bank (15 nov, Marcel): storten stelt voor € 500 in de kassa te houden (`bedrag(vraag, max, voorstel)`). Huren: de borg moet contant (melding bij het
 pand, rood als je het wel op de bank hebt: "Haal eerst geld van de bank").
+16 nov: Barrie: nieuwe streken 'hond' (minispel `toonHond`: Bobby loopt heen en weer, tik als hij op Luigi's deurmat staat en niemand kijkt 👀; 2 van 3 =
+gelukt, kijkt er iemand = betrapt), 'lijm' (superlijm op de stoelen), 'stroop' (deurklink). Elke streek daarna een week niet (`S.klusGedaan[k]`, "⏳ Net
+gedaan … weer vanaf"). Ratten moeilijker: 6 van 8, 14 s, ratten draaien vaak terug naar de achterdeur (gelukt zonder tikken: 0/10; met tikken 2/2).
+Jukebox per buurt (`LIED[k].buurt`, ⭐ in het lijstje): eerste zaak meezingers (Alle eendjes, Kortjakje, In de maneschijn), studenten feest (Cancan,
+Bergkoning, Wilhelm Tell-galop), plein (Tarantella, Toreador), villa klassiek (Eine kleine Nachtmusik, Canon). Alleen vrije (oude) melodieën: moderne
+hits (Hazes, André van Duijn, Senza una donna) niet, die zijn auteursrechtelijk beschermd. Stadskaart: label van de eerste zaak op het dak
+(`labelBoven`, `.plek.boven`), zodat het niet botst met het pand aan het plein.
