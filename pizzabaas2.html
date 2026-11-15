@@ -1053,7 +1053,7 @@ const VRAGEN = [
       ['Dat is onze huismuis, Ratatouille.', () => { rep(-2); S.vuil = (S.vuil || 0) + 1; return 'De klant vindt het niet grappig.'; }],
       ['Met de bezem erachteraan!', () => { if (kans(0.5)) return 'Muis weg. Bezem gebroken.'; rep(-1); return 'Je slaat een fles wijn om. De muis lacht je uit.'; }] ] },
   { id: 'keuring', ik: '📋', wie: 'Keuringsdienst', kans: () => 1 + (S.vuil || 0) / 2, vraag: 'Controle van de Voedselinspectie. Mogen we even in de keuken kijken?',
-    a: [['Natuurlijk, komt u maar.', () => { const v = S.vuil || 0; if (v > 2) { ge(-v * 15); return `Te vies! Boete van € ${v * 15}. Tijd om schoon te maken.`; } rep(2); return 'Alles in orde! "Wat een schone keuken."'; }],
+    a: [['Natuurlijk, komt u maar.', () => { const v = S.vuil || 0; if (v > 2) { const b = Math.round(v * 15); ge(-b); return `Te vies! Boete van € ${b}. Tijd om schoon te maken.`; } rep(2); return 'Alles in orde! "Wat een schone keuken."'; }],
       ['Kunt u morgen terugkomen?', () => { ge(-75); return '"Verdacht." Boete van € 75 voor het weigeren.'; }],
       ['Koffie met gebak, inspecteur?', () => { ge(-150); return '"Dat noemen wij omkoping." Boete van € 150.'; }] ] },
   { id: 'schoonmaak', ik: '🧽', wie: 'Schoonmaakbedrijf', als: () => (S.vuil || 0) > 0, vraag: () => `Uw zaak kan wel een poetsbeurt gebruiken${(S.vuil || 0) > 3 ? ' (en dat is zacht uitgedrukt)' : ''}. Voor € 40 maken wij alles schoon.`,
@@ -5089,6 +5089,14 @@ const isAanraak = matchMedia('(pointer: coarse)').matches;
 
 let meldT = 0;
 let doelMeldTot = 0; // een gehaald doel blijft even staan, ook als er intussen iets anders gemeld wordt
+// vangnet (15 nov): een bedrag als "€ 324.788904" (een kommagetal dat vergeten is af te ronden) wordt op het scherm "€ 325".
+// Echte bedragen met centen schrijft euro() altijd met een komma, die blijven dus staan.
+const KOMMAGETAL = /(€(?:\s|&nbsp;)*(?:[−-]\s*)?)(\d+)\.(\d{1,2}|\d{4,})(?![\d.])/g; // geen "€ 50.000": drie cijfers na de punt = duizendtallen
+function rondAf(node) {
+  if (node.nodeType == 3) { if (node.data.includes('€') && KOMMAGETAL.test(node.data)) { KOMMAGETAL.lastIndex = 0; node.data = node.data.replace(KOMMAGETAL, (x, voor, a, b) => voor + Math.round(Number(a + '.' + b))); } KOMMAGETAL.lastIndex = 0; return; }
+  if (node.nodeType == 1 && !/^(SCRIPT|STYLE|CANVAS)$/.test(node.nodeName)) for (const k of node.childNodes) rondAf(k);
+}
+new MutationObserver((lijst) => { for (const r of lijst) { if (r.type == 'characterData') rondAf(r.target); else r.addedNodes.forEach(rondAf); } }).observe(document.body, { childList: true, subtree: true, characterData: true });
 function meld(t, ms = 2600, doel) { if (!doel && Date.now() < doelMeldTot) return; if (doel) doelMeldTot = Date.now() + ms; const m = $('melding'); m.textContent = t; m.style.opacity = 1; clearTimeout(meldT); meldT = setTimeout(() => m.style.opacity = 0, ms); }
 
 // ---------- geluid (zelfgemaakt, Web Audio) ----------
