@@ -740,6 +740,7 @@ function eindeDag() {
   if ((S.lief || 0) >= 3 && kans(0.3 + S.lief * 0.08) && !(S.verplicht || []).some((v) => ['profiteurs', 'personeelBoos', 'boekhouder'].includes(v))) S.verplicht = [...(S.verplicht || []), pak(['profiteurs', 'personeelBoos', 'boekhouder'])]; // te vrijgevig
   S.lief = Math.max(0, (S.lief || 0) - 0.3);
   if (S.boekhouder && hoofd() >= 4 && S.geld > 500) { const st = Math.floor(S.geld - 500); S.geld -= st; S.bankSaldo = (S.bankSaldo || 0) + st; S.boekGestort = st; } else S.boekGestort = 0; // de boekhouder brengt het geld weg
+  setTimeout(controleerDoelen, 50); // ook als het dagoverzicht anders gesloten wordt
   if ((tel.opgeruimd || 0) >= 10) mijl('vlekken'); if (feestdag()) mijl('feest'); S.rustigeDagen = (S.ruzie || 0) < 20 ? (S.rustigeDagen || 0) + 1 : 0; if (S.rustigeDagen >= 7) mijl('rustig');
   if (S.geld > 1000 && !S.sabotage && !(S.luigiRust > S.dag) && !(S.verplicht || []).includes('luigiJaloers') && kans(Math.min(0.35, (S.geld - 1000) / 4000 + 0.08))) S.verplicht = [...(S.verplicht || []), 'luigiJaloers']; // het gaat te goed: Luigi wordt jaloers
   if (S.ruzie > 0) { if (!S.sabotage && !(S.luigiRust > S.dag) && kans(S.ruzie / 300)) S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.ruzie = Math.max(0, S.ruzie - 5); } // ruzie met Luigi: hij slaat terug, en het zakt langzaam

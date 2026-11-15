@@ -609,3 +609,6 @@ Mario helpt (16 nov, Marcel): `hoofdIntro()` toont aan het begin van elk hoofdst
 afsluitervoorwaarde (één keer, `S.introGezien[h]`; na het welkomscherm, de rondleiding, het laden en na een hoofdstuk-feestscherm). `marioTip()`: in
 hoofdstuk 1-2 elke ochtend (na het kalenderblad) een ballon linksboven met de tip voor het eerste open doel (`tip` in DOELEN, anders de naam); tik =
 weg voor vandaag (`S.tipWeg`); verdwijnt bij Open, ververst na een gehaald doel. 'eerstedag' telt nu pas na een echte werkdag (`S.besteDag`).
+Testronde Pizzabaas 2 (16 nov): t166 = alle 90 doelen: elke `antw('id:i')` verwijst naar een bestaande vraag en antwoord, elke `heb()` wordt ergens
+gezet; t167 = in elk hoofdstuk alle stadsplekken, schermen en minispelletjes openen (iPad) zonder fouten; t168 = 40 dagen spelen met willekeurige
+antwoorden zonder fouten; doelen worden nu ook aan het eind van elke dag gecontroleerd.
