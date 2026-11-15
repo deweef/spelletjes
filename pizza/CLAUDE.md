@@ -592,3 +592,9 @@ hits (Hazes, André van Duijn, Senza una donna) niet, die zijn auteursrechtelijk
 Pizzabaas 2 (16 nov): `pizzabaas2.html` = testversie met hoofdstukken (plan in `pizza/PLAN.md`, "Pizzabaas 2"). Eigen opslag `pizzabaas2:<naam>`
 (geen overname van de oude stand), banner "Testversie" op het welkomscherm, niet op de startpagina. Nieuwe dingen vanaf nu daarin; `pizzabaas.html`
 alleen nog bugfixes (die ook in pizzabaas2 zetten).
+Pizzabaas 2 stap 1 (16 nov): `HOOFDSTUK` (6, met `af()` = afsluitervoorwaarde en `afn` tekst; H3 nog `true` tot de inval er is, H6 = de vlag), `DOELEN`
+nu 90 stuks met `h` (hoofdstuk), `k` (g/w/r), `f` (vlagfiches), `geheim` (hint), `ok()`. Doelen tellen alleen tot en met het huidige hoofdstuk
+(`hoofd()`, `S.hoofdstuk`); geld = f × 2. Vlagkist `S.vlag` = { g, w, r } (`vlagErbij`, `VLAGKLEUR`, `VLAGNODIG` 100); totaal te halen g 213, w 140, r 134.
+Hoofdstuk af = `HOOFDNODIG` (10) doelen + `af()` → `hoofdstukKlaar` (feestscherm; filmpjes later). Gebeurtenissen: `mijl(id)` / `heb(id)` (S.mijl) op ~25
+plekken, en elk antwoord wordt onthouden (`S.antw['vraagid:i']` én `'wie:i'`, `antw(k)`). Casino: winst op de 0 = 🟢 +3, op een getal = 🔴 +2, op een
+twaalf = ⚪ +1. Het oude Pizzakoning-einde staat uit (`koningNu = false`). Ook in beide versies: trendmelding pakt de trend vast (fout bij snelle dagen).
