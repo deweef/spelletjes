@@ -4649,7 +4649,7 @@ function toonMaak(nr) {
     <div id="maak">
       <div><canvas id="bodem" width="640" height="640"></canvas><p class="buurt" style="text-align:center;margin:4px 0 0">Tik op een ingrediënt om het erop te leggen, tik op de pizza om het laatste weer weg te halen.</p></div>
       <div><div class="meter" id="meter"></div>
-        <div class="rij" style="margin:10px 0"><b>Prijs</b><button class="knop" id="goedkoper">−</button><b id="pprijs"></b><button class="knop" id="duurder">+</button></div>
+        <div class="rij" style="margin:10px 0"><b>Prijs</b><button class="knop" id="goedkoper">−</button><b id="pprijs"></b><button class="knop" id="duurder">+</button></div><div id="budgetten" class="buurt" style="font-size:12px;margin:-4px 0 6px"></div>
         <div id="oordelen"></div><p class="buurt" style="font-size:12px;margin:4px 0 0">Hoe blijer de gezichtjes (😐 🙂 😋 😍), hoe lekkerder die klanten hem vinden. Een recensent of jury let op het gemiddelde: vooral 🙂 en beter = veel sterren.</p></div>
       <div id="bak"></div>
     </div>
@@ -4695,6 +4695,7 @@ function tekenMaak() {
     f.map((v, j) => `<div class="m">${SMAAK[j]}<i><u style="width:${Math.min(100, v * 10)}%;background:${SMAAKKLEUR[j]}"></u></i></div>`).join('') +
     `<div style="margin-top:6px">INKOOP  ${geld(k)}<br>PRIJS   ${geld(bewerk.prijs)}<br><span class="geel">WINST   ${geld(winst)}</span></div>`;
   $('pprijs').textContent = geld(bewerk.prijs);
+  if ($('budgetten')) $('budgetten').innerHTML = '💶 Wat ze willen betalen: ' + Object.entries(SOORT).map(([k, d]) => `<span style="white-space:nowrap;${bewerk.prijs > d.budget ? 'color:#c0392b;font-weight:bold' : bewerk.prijs <= d.budget - 3 ? 'color:#2e9d52;font-weight:bold' : ''}">${d.ik} € ${d.budget}</span>`).join(' · ') + '<br>Rood = te duur: ze vinden hem minder lekker. Groen = lekker goedkoop: net iets blijer. Dan betalen ze wel minder…';
   $('oordelen').innerHTML = oordeelHTML(bewerk);
   $('bak').querySelectorAll('button').forEach((b) => b.disabled = bewerk.stukjes.length >= MAXSTUK || bewerk.stukjes.filter((s) => s.i == b.dataset.i).length >= MAXPER);
 }

@@ -612,3 +612,5 @@ weg voor vandaag (`S.tipWeg`); verdwijnt bij Open, ververst na een gehaald doel.
 Testronde Pizzabaas 2 (16 nov): t166 = alle 90 doelen: elke `antw('id:i')` verwijst naar een bestaande vraag en antwoord, elke `heb()` wordt ergens
 gezet; t167 = in elk hoofdstuk alle stadsplekken, schermen en minispelletjes openen (iPad) zonder fouten; t168 = 40 dagen spelen met willekeurige
 antwoorden zonder fouten; doelen worden nu ook aan het eind van elke dag gecontroleerd.
+Prijs en budget (16 nov, beide versies): `oordeel` rekende de prijs al mee (boven `SOORT.budget` −0,6 per euro, ≥ 3 eronder +0,5), maar dat stond
+nergens. Bij het maken van een pizza staat nu onder de prijs "Wat ze willen betalen" per soort (`#budgetten`: rood = te duur, groen = lekker goedkoop).
