@@ -41,6 +41,8 @@ bedenk dat de site openbaar is.
 - Onderaan staat het blok "Spelletjes van Arnold": spellen op een andere website (nu de boerderij, https://norafarming.netlify.app/).
   Die staan in de lijst `ARNOLD` in `index.html` (niet in `spellen.json`: de service worker kan andere websites niet offline bewaren),
   plaatje in de hoofdmap (`arnold-boerderij.jpg`, schermafbeelding 640x400).
+- Onderaan staat het blok "🧪 Testfase" (lijst `TEST` in `index.html`, nu Pizzabaas 1.1 = `pizzabaas2.html`): openen vraagt code 9999 (`TESTCODE`; daarna
+  onthouden in localStorage `testfase`). Geen echte beveiliging, alleen tegen per ongeluk openen.
 - De spellen staan in twee blokken: 3D (`"soort": "3d"` in spellen.json; mooist op de pc, maar werkt ook op een
   telefoon) en 2D. 3D staat altijd bovenaan, ook in het overzicht.
   Bovenaan staat een overzicht (`#overzicht`) met per blok de spellen als knopjes in een raster; een tik opent meteen
