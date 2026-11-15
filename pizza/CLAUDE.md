@@ -565,3 +565,7 @@ Voorraad snelknoppen (15 nov, Marcel: "bestellen is veel werk"): "📅 Zoals gis
 reserve), "+25 bij alles", "+100 bij alles", "Wissen" (`data-snel`), met uitleg over bederven (10% per nacht van wat er ligt). Mario's voorstel blijft
 ruim (2×).
 IJssalon verplaatst (15 nov): `PLEK.ijssalon` is nu het middelste huisje onder de bouwkraan (was bovenaan tussen de pizzeria's).
+Barrie's menukaart (15 nov): 5 nieuwe streken in `KLUS` (flyers "alles gratis bij Luigi", suiker in de zoutvaatjes, menukaart in het Klingon, deurbel
+La Cucaracha, ananas op Luigi's bezorgpizza's; zonder minispel = `doeKlus`). Elke week (`klusWeek()`, vast per `week()`) is één streek AANBIEDING
+(−40%), één extra duur (+50%, "ik heb schulden") en één uitverkocht (`KLUSOP`); `klusPrijs(k)` in `klusBegin`, `doeKlus` en `toonSluip`. Getoond als
+een menukaart op perkament in de achterkamer.

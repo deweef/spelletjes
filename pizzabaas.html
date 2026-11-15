@@ -2647,13 +2647,23 @@ const KLUS = {
   ratten: { n: 'Ratten loslaten bij Luigi', ik: '🐀', prijs: 120, bonus: 0.25, dagen: 3, risico: 0.25, ruzie: 35, tekst: 'Barrie laat een doos ratten los in Luigi\'s keuken. Gillende klanten rennen naar buiten… en naar jou!' },
   recensie: { n: 'Nep-recensie: "smaakt naar karton"', ik: '⭐', prijs: 50, bonus: 0.1, dagen: 5, risico: 0.1, ruzie: 10, tekst: 'Op internet staat nu: "Luigi\'s pizza smaakt naar natte kartonnen doos. 1 ster." Veel mensen lezen het.' },
   scooter: { n: 'Banden van Luigi\'s scooter lek', ik: '🛵', prijs: 40, bonus: 0.05, dagen: 3, risico: 0.15, ruzie: 15, tekst: 'Pssssst… vier lekke banden. Luigi kan niet bezorgen, dus iedereen belt jou!' },
+  flyers: { n: 'Nepflyers: "Vandaag alles gratis bij Luigi"', ik: '📄', prijs: 35, bonus: 0.12, dagen: 2, risico: 0.15, ruzie: 15, tekst: 'Honderd mensen staan bij Luigi op hun gratis pizza te wachten. Het blijkt niet gratis. Boos lopen ze door… naar jou!' },
+  suiker: { n: 'Suiker in Luigi\'s zoutvaatjes', ik: '🧂', prijs: 45, bonus: 0.12, dagen: 3, risico: 0.2, ruzie: 18, tekst: 'Zoete pizza bij Luigi! Zijn klanten trekken rare gezichten en komen voortaan naar jou.' },
+  klingon: { n: 'Luigi\'s menukaart in het Klingon', ik: '👽', prijs: 25, bonus: 0.06, dagen: 3, risico: 0.08, ruzie: 8, tekst: 'Niemand snapt Luigi\'s kaart nog. "Bestel nummer vier." Er is geen nummer vier.' },
+  deurbel: { n: 'Luigi\'s deurbel speelt "La Cucaracha"', ik: '🔔', prijs: 20, bonus: 0.04, dagen: 4, risico: 0.05, ruzie: 5, tekst: 'Elke keer dat er iemand bij Luigi binnenkomt: tuuuu-tu-tu-tu-tuuu. Hij wordt er gek van, en een paar klanten ook.' },
+  ananas: { n: 'Ananas op al Luigi\'s bezorgpizza\'s', ik: '🍍', prijs: 60, bonus: 0.15, dagen: 3, risico: 0.2, ruzie: 22, tekst: 'Barrie "helpt" Luigi\'s bezorger. Overal zit ananas op. Ook op de Margherita. Zijn klanten bellen voortaan jou.' },
   keuring: { n: 'Keuringsdienst tippen', ik: '📋', prijs: 30, bonus: 0.2, dagen: 2, risico: 0.2, ruzie: 25, tekst: 'Een anoniem telefoontje… De keuringsdienst staat bij Luigi op de stoep. Zijn zaak gaat twee dagen dicht!' } };
 const VREDE = { limoncello: { n: 'Fles limoncello', ik: '🍋', prijs: 30, dagen: 5 }, grappa: { n: 'Fles grappa', ik: '🥃', prijs: 45, dagen: 8 } };
 const klusLoopt = () => S.klus && S.klus.tot >= S.dag;
 let barrieUit = '';
 // minispelletjes bij Barrie's klusjes: klusBegin betaalt en zet de ruzie hoger, klusAf rekent af (gelukt = de klus loopt; mislukt = de pech van doeKlus)
+// Barrie's menukaart: elke week één streek in de aanbieding (−40%), één extra duur (+50%) en één uitverkocht (vast per week)
+function klusWeek() { const ks = Object.keys(KLUS); let z = (week() * 7919 + 17) % 2147483647; const rnd = () => (z = (z * 16807) % 2147483647) / 2147483647, uit = {};
+  for (const tag of ['aanbieding', 'duur', 'op']) { const vrij = ks.filter((k) => !uit[k]); uit[vrij[Math.floor(rnd() * vrij.length)]] = tag; } return uit; }
+const klusPrijs = (k) => Math.round(KLUS[k].prijs * ({ aanbieding: 0.6, duur: 1.5 }[klusWeek()[k]] || 1));
+const KLUSOP = ['De ratten zijn op vakantie.', 'Zijn neef met de busje is ziek.', 'Te heet onder de voeten. Volgende week weer.', 'Uitverkocht. Echt waar.'];
 let rustGebroken = false; // een klus tijdens de wapenstilstand: die is dan voorbij
-function klusBegin(k) { const d = KLUS[k]; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); rustGebroken = S.luigiRust > S.dag; S.luigiRust = 0; kassa(); bewaar(); tekenKnoppen(); return d; }
+function klusBegin(k) { const d = KLUS[k]; ge(-klusPrijs(k)); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); rustGebroken = S.luigiRust > S.dag; S.luigiRust = 0; kassa(); bewaar(); tekenKnoppen(); return d; }
 function klusAf(k, gelukt, tekst, politie) { const d = KLUS[k];
   if (gelukt) { S.klus = { k, tot: S.dag + d.dagen }; barrieUit = `${d.ik} ${tekst || 'Gelukt!'} ${d.tekst} (${d.dagen} dagen meer klanten)${rustGebroken ? ' Maar de wapenstilstand is voorbij: Luigi heeft zo zijn vermoedens…' : ''}`; }
   else if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); barrieUit = politie || '🚨 Luigi zag Barrie en belde de politie! Op het bureau zei Barrie meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).'; }
@@ -2751,7 +2761,7 @@ const KLUSSPEL = { stinkbom: () => toonSluip(), ratten: toonRatten, scooter: too
 // neuriet even (waarschuwing) en draait zich om: beweeg je dan, dan ben je betrapt. Bij de toonbank = stinkbom gelegd.
 // Plaatjes: Barrie van achteren (bezoekers.png rij 4, vakjes 0-3), Luigi van voren (rij 2, vakje 4) en van achteren (rij 2, vakje 0).
 function toonSluip() {
-  const d = KLUS.stinkbom; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); kassa(); bewaar(); tekenKnoppen();
+  const d = KLUS.stinkbom; ge(-klusPrijs('stinkbom')); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); kassa(); bewaar(); tekenKnoppen();
   $('achterkaart').innerHTML = `<h1>💨 De stinkbom</h1><p class="buurt">Barrie sluipt Luigi's zaak binnen. <b>Houd de knop vast</b> om te sluipen. Hoor je Luigi neuriën ♪? Loslaten! Als hij omkijkt, mag je niet bewegen.</p>
     <canvas id="sluipdoek" width="340" height="420" style="width:100%;max-width:340px;display:block;margin:0 auto;border-radius:12px;touch-action:none"></canvas>
     <div class="rij"><button class="knop rood" id="sluipknop" style="width:100%;padding:16px;font-size:18px;touch-action:none;user-select:none">🤫 Sluip (vasthouden)</button></div>`;
@@ -2789,7 +2799,7 @@ function toonSluip() {
   teken(); requestAnimationFrame(stap);
 }
 function doeKlus(k) {
-  const d = KLUS[k]; ge(-d.prijs); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); const brak = S.luigiRust > S.dag; S.luigiRust = 0;
+  const d = KLUS[k]; ge(-klusPrijs(k)); S.ruzie = Math.min(100, (S.ruzie || 0) + d.ruzie); const brak = S.luigiRust > S.dag; S.luigiRust = 0;
   if (kans(d.risico)) { if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); return `🚨 Barrie is gesnapt! Op het bureau zei hij meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).`; }
     S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.luigiRust = 0; S.ruzie = Math.min(100, S.ruzie + 15); return `😬 Luigi zag Barrie wegrennen! "Dit is oorlog!" Morgen neemt hij wraak…`; }
   S.klus = { k, tot: S.dag + d.dagen }; return `${d.ik} Gelukt! ${d.tekst} (${d.dagen} dagen meer klanten)${brak ? ' Maar de wapenstilstand is voorbij: Luigi heeft zo zijn vermoedens…' : ''}`;
@@ -2817,7 +2827,11 @@ function toonAchterkamer() {
     ` : ''}<div class="opdracht" style="display:block"><b>💻 De laptop</b> <small>(crypto: samen ${euro(cryptoWaarde())})</small>${cryptoBlok(false)}</div>
     ${S.barrie ? `<div class="opdracht"><div class="portret" style="background-position:-425px 0;flex:none;margin:0"></div><div><b>Barrie de Bink</b><br>${barrieUit ? esc(barrieUit) : klusLoopt() ? `"Luigi heeft het even druk met… problemen. Hehe. Eén klus tegelijk, baas: de ${esc(KLUS[S.klus.k].n.split(":")[0].toLowerCase())} loopt nog tot ${esc(datumLang(S.klus.tot))}. Daarna sta ik weer voor je klaar."` : '"Zeg het maar, baas. Wat mag het zijn?"'}
       <br><small>Ruzie met Luigi: <b>${ruzieTekst()}</b>${S.luigiRust > S.dag ? ` (wapenstilstand tot ${esc(datumLang(S.luigiRust))}; een klus maakt er een eind aan)` : ''}. Hoe meer ruzie, hoe vaker Luigi terugslaat.</small></div></div>
-      <div class="rij">${Object.entries(KLUS).map(([k, d]) => `<button class="knop rood" data-klus="${k}" ${klusLoopt() || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} ${esc(d.n)} (€ ${d.prijs}${!klusLoopt() && S.geld < d.prijs ? ', te weinig contant' : ''})</button>`).join('')}</div>
+      <div style="background:#fbf3df;border:2px solid #6b4a2b;border-radius:8px;padding:8px 10px;margin:6px 0;font-family:Georgia,serif"><div style="text-align:center;font-weight:bold">📜 Barrie's menukaart · deze week</div>
+      ${Object.entries(KLUS).map(([k, d]) => { const tag = klusWeek()[k], pr = klusPrijs(k), op = tag == 'op', kan = !klusLoopt() && !op && S.geld >= pr;
+        return `<div style="display:flex;align-items:center;gap:6px;border-top:1px dashed #c9b48a;padding:5px 0;${op ? 'opacity:.55' : ''}"><span style="font-size:22px">${d.ik}</span><span style="flex:1">${esc(d.n)}<br><small>${op ? `❌ ${esc(KLUSOP[(week() + k.length) % KLUSOP.length])}` : tag == 'aanbieding' ? `<s>€ ${d.prijs}</s> <b style="color:#2e9d52">€ ${pr} · AANBIEDING!</b>` : tag == 'duur' ? `<b style="color:#c0392b">€ ${pr}</b> · "Extra duur deze week, baas. Ik heb schulden."` : `€ ${pr}`} · ${d.dagen} dagen meer klanten</small></span>
+          <button class="knop rood" data-klus="${k}" style="padding:6px 10px" ${kan ? '' : 'disabled'}>${op ? 'Op' : 'Doen'}</button></div>`; }).join('')}
+      ${klusLoopt() ? '' : '<small>Te weinig contant? Haal geld van de bank. Elke maandag een nieuwe kaart.</small>'}</div>
       <div class="rij">${Object.entries(VREDE).map(([k, d]) => `<button class="knop" data-vrede="${k}" ${!S.ruzie || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} Vrede: ${esc(d.n)} voor Luigi (€ ${d.prijs})</button>`).join('')}</div>` : ''}
     ${eerste ? '<p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>' : ''}<div class="rij"><button class="knop" id="achterdicht">Deur dicht</button></div>`;
   if ($('gokken')) $('gokken').onclick = () => toonGokhal();
