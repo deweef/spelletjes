@@ -771,7 +771,7 @@ function eindeDag() {
     <table>
       <tr><td>🍕 ${esc(zaakNaam())}</td><td>${zaakWinst < 0 ? '− ' : ''}€ ${Math.abs(Math.round(zaakWinst))}</td></tr>${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr>`).join('')}${ijs ? `<tr><td>🍨 IJssalon</td><td>${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td><b>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</b></td></tr>
-      ${lening.map(([t, v]) => `<tr><td style="font-size:.9em">${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
+      ${lening.map(([t, v]) => `<tr><td style="font-size:.9em">${esc(t)}</td><td style="white-space:nowrap">${v ? '− € ' + -v : ''}</td></tr>`).join('')}
     </table>
     ${tipTekst}
     </div>
@@ -797,7 +797,7 @@ function eindeDag() {
     ${ijs ? `<div class="dagtab" data-tab="ijs" style="display:none"><p><b>🍨 IJssalon</b></p><p>${esc(ijs.tekst)}</p><p>Winst: ${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}${tel.extra && tel.extra.ijs ? ` · plus € ${Math.round(tel.extra.ijs)} aan ijsjes als toetje in je pizzeria` : ''}</p></div>` : ''}
     <div class="dagtab" data-tab="geld" style="display:none"><table>
       ${S.boekGestort ? `<tr><td>📒 De boekhouder bracht naar de bank</td><td>€ ${S.boekGestort}</td></tr>` : ''}
-      ${lening.length ? lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('') : '<tr><td>Geen aflossingen of belasting vandaag.</td><td></td></tr>'}
+      ${lening.length ? lening.map(([t, v]) => `<tr><td>${esc(t)}</td><td style="white-space:nowrap">${v ? '− € ' + -v : ''}</td></tr>`).join('') : '<tr><td>Geen aflossingen of belasting vandaag.</td><td></td></tr>'}
       <tr><td>💶 In de kassa</td><td>€ ${Math.round(S.geld)}</td></tr><tr><td>🏦 Op de bank</td><td>€ ${Math.round(S.bankSaldo || 0)}</td></tr>${S.crypto && cryptoWaarde() > 0 ? `<tr><td>🪙 Crypto</td><td>€ ${Math.round(cryptoWaarde())}</td></tr>` : ''}
     </table>${S.crypto && S.crypto.nieuws.length && cryptoWaarde() > 0 ? `<p class="buurt">📰 <b>Cryptonieuws:</b> ${S.crypto.nieuws.map(esc).join(' ')}</p>` : ''}</div>
     <p style="margin:10px 0 2px"><b>🏆 Waarde van je pizzeria: € ${waarde}</b>${waarde >= (S.waardeBest || 0) ? ' (record!)' : ` (record € ${S.waardeBest})`}</p><div id="dagbord" class="buurt" style="text-align:left"></div><div id="dagbord2" class="buurt" style="text-align:left;margin-top:4px"></div>
@@ -897,8 +897,8 @@ function aflossen() {
   const regels = []; S.leningen = S.leningen || [];
   for (const l of [...S.leningen]) {
     const a = AANBIEDER[l.van], bedrag = Math.min(l.perDag, l.rest);
-    if (l.van == 'bank' && S.geld + (S.bankSaldo || 0) >= bedrag) { const [b, c] = betaalBank(bedrag); l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n}: € ${Math.round(bedrag)}${b ? (c >= 0.5 ? ` (€ ${Math.round(b)} van je rekening, € ${Math.round(c)} uit de kassa)` : ' (automatisch van je rekening)') : ''} · nog € ${Math.round(l.rest)} te gaan`, -Math.round(bedrag)]); } // de bank incasseert van je rekening
-    else if (S.geld >= bedrag) { S.geld -= bedrag; l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n} · nog € ${Math.round(l.rest)} te gaan`, -bedrag]); }
+    if (l.van == 'bank' && S.geld + (S.bankSaldo || 0) >= bedrag) { const [b, c] = betaalBank(bedrag); l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n}: € ${Math.round(bedrag)}${b ? (c >= 0.5 ? ` (€ ${Math.round(b)} van je rekening, € ${Math.round(c)} uit de kassa)` : ' (automatisch van je rekening)') : ''}${l.rest >= 0.5 ? ` · nog € ${Math.round(l.rest)} te gaan` : ' · laatste keer!'}`, -Math.round(bedrag)]); } // de bank incasseert van je rekening
+    else if (S.geld >= bedrag) { S.geld -= bedrag; l.rest -= bedrag; l.achter = 0; regels.push([`${a.gz} Aflossing ${a.n}${l.rest >= 0.5 ? ` · nog € ${Math.round(l.rest)} te gaan` : ' · laatste keer!'}`, -bedrag]); }
     else { l.achter++; regels.push([`${a.gz} ${a.n}: niet betaald! ⚠️`, 0]); }
     if (l.rest <= 0) { S.leningen.splice(S.leningen.indexOf(l), 1); regels.push([`🎉 Lening van ${a.n} afbetaald`, 0]); }
     else if (l.achter && (l.van == 'sjaak' || l.achter >= 2)) { // beslag: spullen meenemen tot de schuld betaald is
