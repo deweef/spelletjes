@@ -330,6 +330,8 @@ thermoskan), Zuster Zoë wil gezondere pizza's, erfenis van een vaste oude klant
 met vlammen, Mevrouw Bosch, het tehuis.
 Plaatjes (ChatGPT/Gemini):
 - Dame in rood (rij 11): alleen nog zitten van voren en achteren (vakjes 12-15), dan in FIGUREN.villa.
+- Zitten van voren/achteren (vakjes 12-15) is bij álle klanten nog half schuin (oude Gemini-vellen): opnieuw, recht en symmetrisch (opdracht in de chat
+  van 16 nov, beginnen met de werker). Een groepje van 4 werkers = vierling: mag zo blijven (Dana: "boeien").
 - Zitten van opzij voor villadame, Afrikaanse man, Chinese dame, toerist, opa, studente, Afrikaanse vrouw, zakenman (werker, oma, student al klaar).
 - Bezoekers zonder figuur: student van de drukpers, gokker met sigaar, heer met monocle; Mevrouw Van Lijstje; croupier; Gino; de crew van Luigi.
 - Non (onderdelenvel van voren is er): nog opzij lopen, achter en zitten.
