@@ -540,3 +540,9 @@ emoji met knipperlichtjes in `tekenKlein`), Jingle Bells (`LIED.jingle`; jukebox
 Opslag (14 nov, idee Dana): in het menu van elk spul "📦 Naar de opslag (€ 2 per dag)" (`S.opslag`, gedeeld door alle zaken: zo kun je ook meubels
 verhuizen); terug via de knop Tafel/Stoel/Plant, bovenaan het lijstje "Uit de opslag: …" (`opslagKeuze`, `uitOpslag`; gratis neerzetten, kleed en
 kaarsje blijven erop). Kosten tellen bij de huur in het dagoverzicht (`opslagKost`).
+Scootmobielrace 2 (15 nov, Marcel: "te simpel"): alle drie op dezelfde weg (`race.r` = [jij, henk, luigi], elk { m, v, x, baan, slip, boost, bots, vmax,
+cut }); naast iemand kun je niet van baan wisselen (`raceVrij`: "Henk zit naast je!"), achter iemand rijd je niet doorheen (je snelheid zakt naar die
+van de voorganger: inhalen). Henk en Luigi sturen zelf (`raceAI`: kijken 14 m vooruit, soms te laat) en glijden ook over bananen. Bochten
+(`race.bochten` = [van, tot, richting], `raceWeg` schuift de weg opzij, `raceBocht`): de binnenbaan is 8% sneller, met een waarschuwing "Bocht naar
+links". Henk snijdt in de tweede bocht zichtbaar af over het gras (`henk.cut`, ×1,55; 40% vast in het rozenperk 2,6 s). Luigi's bananen vliegen in een
+boogje (`race.vlieg`, 0,8 s) en landen 15-20 m voor je. Racers buiten beeld: pijltje met afstand. `RACE` = { lengte 320, max 9, henk 8,2, luigi 8,5 }. Getest met een bot (t147, 25 races): goed sturen ≈ 3/4 winst, slordig ≈ 2/3, niet sturen = nooit. Je eigen scootmobiel staat op 385 px (je ziet wie er achter je zit).
