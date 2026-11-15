@@ -561,3 +561,7 @@ nieuwe liedjes `LIED.ode` (Ode an die Freude), `elise` (Für Elise), `jacob` (Va
 Race (15 nov, Marcel won te makkelijk): Henk 8,45 en Luigi 8,7 m/s, ze sturen minder vaak te laat (16% / 12%); wie achter je rijdt en sneller is, rijdt
 je aan ("BOEM! Henk rijdt achterop!": je slipt en verliest snelheid, `R.boem` 1,5 s rust); zenuwachtig deuntje (`raceMuziek`: blokgolf-loopje over
 4 akkoorden, steeds een maat vooruit gepland, sneller na 75%); knop "Nog een keer" weg (één race per dag). Bot (t147): goed sturen ≈ 55% winst.
+Voorraad snelknoppen (15 nov, Marcel: "bestellen is veel werk"): "📅 Zoals gisteren" (per ingrediënt gisteren op − ligt er, op 5 naar boven, zonder
+reserve), "+25 bij alles", "+100 bij alles", "Wissen" (`data-snel`), met uitleg over bederven (10% per nacht van wat er ligt). Mario's voorstel blijft
+ruim (2×).
+IJssalon verplaatst (15 nov): `PLEK.ijssalon` is nu het middelste huisje onder de bouwkraan (was bovenaan tussen de pizzeria's).

@@ -3049,7 +3049,7 @@ const PLEK = {
   bouw: { n: 'Bouwplaats', ik: '🏗️', x: 1000, y: 440, b: 260, h: 220 },
   wissel: { n: 'Snelle Sjonnie', ik: '💱', x: 740, y: 470, b: 100, h: 100 },
   tehuis: { n: 'Huize Avondrood', ik: '👵', x: 300, y: 650, b: 120, h: 110 },
-  ijssalon: { n: 'IJssalon', ik: '🍨', x: 720, y: 30, b: 150, h: 120 },
+  ijssalon: { n: 'IJssalon', ik: '🍨', x: 925, y: 618, b: 75, h: 95 }, // 15 nov: huisje bij de bouwplaats (was bovenaan, tussen de pizzeria's)
   gianni: { n: 'Gelateria Gianni', ik: '🍦', x: 205, y: 270, b: 95, h: 130 },
 };
 // ---------- de ijssalon (14 nov) en Gianni IJskoud, oud-collega én aartsvijand van Luigi ----------
@@ -3146,7 +3146,7 @@ function toonStad(plek) {
         : `<p>Mevrouw Bosch, de directrice: "Wij zoeken een pizzeria voor onze zondagmiddag. ${TEHUIS.n} pizza's per week! Luigi wil ook. Daarom racen jullie, met Opa Henk: wie wint, krijgt de bestelling. Wint Henk, dan kiest hij zelf."</p>`);
     knoppen = `<button class="knop rood" id="racego" ${S.raceDag == S.dag ? 'disabled' : ''}>🦼 ${S.raceDag == S.dag ? 'Henk doet een dutje: morgen weer' : 'Scootmobielrace tegen Opa Henk'}</button>`; }
   if (plek == 'ijssalon') { if (S.ijs) { h = `<h1>🍨 Jouw ijssalon</h1>` + ijsBlok(); }
-    else { h += `<p>Een oud ijszaakje met een groen-wit gestreepte luifel. In het raam: <b>TE KOOP, met vriezers en al. € ${IJSPRIJS}.</b> Binnen zit Sofia, die er al dertig jaar ijs schept. "Als de nieuwe baas mij houdt, houd ik van de nieuwe baas."</p>
+    else { h += `<p>Een klein huisje bij de bouwplaats, met een oud ijsbord in het raam. In het raam: <b>TE KOOP, met vriezers en al. € ${IJSPRIJS}.</b> Binnen zit Sofia, die er al dertig jaar ijs schept. "Als de nieuwe baas mij houdt, houd ik van de nieuwe baas."</p>
       <p class="buurt">Een ijssalon verkoopt vooral als het warm is. In de winter: warme chocomel. Klanten in je pizzeria nemen er een ijsje bij als toetje. En Gelateria Gianni, verderop, zal het niet leuk vinden…</p>`;
       knoppen = `<button class="knop rood" id="ijskoop" ${S.geld + (S.bankSaldo || 0) < IJSPRIJS ? 'disabled' : ''}>🍨 Kopen (€ ${IJSPRIJS}, van de bank als dat kan)</button>`; } }
   if (plek == 'gianni') h += `<div class="portret" style="background-position:${-21 * 85}px 0;float:right;margin:0 0 6px 8px"></div><img src="pizza/ijskar-opzij.png" alt="" style="float:left;height:90px;margin:0 8px 4px 0"><p>Achter een vitrine vol ijs staat een oude, kale man met een wit jasje en ogen als ijsblokjes: <b>Gianni IJskoud</b>. ${S.ijs ? `Hij kijkt je aan. Lang. "Jij. De pizzaman met de ijssalon. ${pak(['Mijn ijskar staat graag voor andermans deur, weet je dat?', 'Smaakt jouw pistache al naar pistache? Hahaha.', 'Ik heb Luigi overleefd. Jou overleef ik ook.'])}"` : esc(pak(GIANNI))}</p>
@@ -3473,6 +3473,8 @@ function toonVoorraad(l) {
     ${spoed ? '' : '<p class="buurt">💡 Mario bestelt ruim: twee keer wat er gisteren op ging, en hij kijkt maar half wat er nog ligt. Wat te veel is, bederft (10% per nacht). Zelf rekenen met "gisteren op" en "ligt er" is zuiniger.</p>'}
     <table>${soorten.map((i) => `<tr><td>${VIK(i)} ${esc(VNAAM(i))}${S.korting && S.korting.tot > S.dag && S.korting.i == i ? ' 🏷️' : ''}<br><span style="font-size:.8em;opacity:.7">ligt er: ${Math.floor(v[i] || 0)}${gist[i] ? ` · gisteren op: ${Math.round(gist[i])}` : ''}</span></td>
       <td style="white-space:nowrap"><button class="knop" data-min="${i}">−</button> <b style="display:inline-block;min-width:2.2em;text-align:center">${l[i] || 0}</b> <button class="knop" data-plus="${i}">+</button></td></tr>`).join('')}</table>
+    <div class="rij" style="flex-wrap:wrap"><button class="knop" data-snel="gisteren" title="per ingrediënt: wat er gisteren op ging, min wat er nog ligt">📅 Zoals gisteren</button><button class="knop" data-snel="25">+25 bij alles</button><button class="knop" data-snel="100">+100 bij alles</button><button class="knop" data-snel="0">🧹 Wissen</button></div>
+    <p class="buurt" style="margin:2px 0 6px">🥀 Bederven: elke nacht gaat 10% van wat er nog ligt weg. Bestel je 100 te veel, dan gooi je de eerste nacht 10 weg, de nacht daarna 9… "Zoals gisteren" bestelt precies genoeg voor net zo'n dag als gisteren (zonder reserve: wordt het drukker, dan raakt er iets op).</p>
     <div class="rij"><button class="knop" id="vvoorstel">💡 Voorstel van Mario</button><button class="knop rood" id="vbestel" ${k <= 0 || S.geld + (S.bankSaldo || 0) < k ? 'disabled' : ''}>🛒 Bestellen (${euro(k)})</button></div>
     ${S.zaken.length < 2 ? `<p class="buurt"><label><input type="checkbox" id="vauto" ${S.autoBestel !== false ? 'checked' : ''}> Mario bestelt elke ochtend zelf zijn voorstel (makkelijk). Uit = je regelt het zelf.</label></p>` : '<p class="buurt">🏪 Je hebt nu een keten: het inkopen doe je zelf, in de zaak waar je staat (de managers doen het in de andere zaken). Tik op 💡 Voorstel en dan Bestellen, dan zit je goed.</p>'}
     <button class="groot" id="verder">Klaar</button>`;
@@ -3481,6 +3483,9 @@ function toonVoorraad(l) {
   kaart.querySelectorAll('[data-plus]').forEach((b) => b.onclick = () => { l[b.dataset.plus] = (l[b.dataset.plus] || 0) + 10; toonVoorraad(l); });
   kaart.querySelectorAll('[data-min]').forEach((b) => b.onclick = () => { l[b.dataset.min] = Math.max(0, (l[b.dataset.min] || 0) - 10); toonVoorraad(l); });
   $('vvoorstel').onclick = () => toonVoorraad(voorstel());
+  kaart.querySelectorAll('[data-snel]').forEach((b) => b.onclick = () => { const w = b.dataset.snel;
+    for (const i of soorten) l[i] = w == '0' ? 0 : w == 'gisteren' ? Math.max(0, Math.ceil(((gist[i] || 0) - (v[i] || 0)) / 5) * 5) : (l[i] || 0) + +w;
+    toonVoorraad(l); });
   $('vbestel').onclick = () => { const k = inkopen(l, spoed); kassa(); bewaar(); tekenKnoppen(); meld(`${spoed ? 'Iemand rent naar de markt' : 'Besteld bij de leverancier'}: ${betaalTekst(laatsteBetaling)}`, 3500); toonVoorraad(); };
   if ($('vauto')) $('vauto').onchange = () => { S.autoBestel = $('vauto').checked; bewaar(); };
 }
