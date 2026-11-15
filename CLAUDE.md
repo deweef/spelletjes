@@ -55,6 +55,18 @@ bedenk dat de site openbaar is.
 ## Uitjes (geen spel)
 - `uitjes/boijmans.html`: fotopresentatie van een bezoek aan het Depot Boijmans (Marisol, Van Gogh, collectie), één los bestand met de foto's erin (base64), Verder/Terug-knop. Niet op de startpagina en `noindex`; alleen via de link te vinden.
 
+## Muziek in de spellen (16 nov)
+Muziek met echte instrumenten in plaats van piepjes: `js/muziek.js` (gedeeld, `<script src="js/muziek.js">`; vanuit een submap `../js/muziek.js`).
+Een lied is gewoon een notenlijst `{ noten: 'E4:1 A4:1 -:2 …', bas: 'A2:8 …' (mag weg: dan kiest `Muziek.harmoniseer` zelf de akkoorden), tempo }`
+(eigen melodieën of oude volksliedjes en klassiek; geen moderne hits, die zijn beschermd). `Muziek.laadStijl(stijl, ctx)` laadt de instrumenten,
+`Muziek.speel(ctx, lied, t0, stijl)` arrangeert het (stijlen: `italiaans` accordeon/contrabas/gitaar/strijkers, `rock` gitaar/basgitaar/drums,
+`volks` klarinet/tuba/accordeon/tamboerijn, `klassiek` viool/piano/cello; nieuwe stijl = regel in `STIJL`), `Muziek.stop(ctx)` faadt uit,
+`Muziek.effect(ctx, 'deurbel'|'bel'|'applaus'|'telefoon')`. Geluiden in `klank/<instrument>.json` (FluidR3 GM-soundfont van Frank Wen, CC BY 3.0:
+noem hem in het spel, zie `klank/LEESMIJ.md`); een nieuw instrument toevoegen met `extra/klank_knip.py` (download staat erin; raw.githubusercontent.com
+is vanuit de cloud bereikbaar). Per stijl ±1-1,4 MB, alleen geladen als hij nodig is; de service worker bewaart ze daarna offline.
+Zelf horen kan Claude het niet: maak een proefopname (Playwright + `OfflineAudioContext`, `Muziek.speel(off, …)`, `startRendering`, ffmpeg naar mp3)
+en stuur die naar Marcel. Gebruikt in: Pizzabaas 2 (`pizzabaas2.html`).
+
 ## Online scorebord (voor alle spellen)
 Google Spreadsheet van Marcel met het Apps Script uit `extra/scorebord.gs` (web-app, voor alle spellen;
 `BORD_URL`). GET zonder parameters = top 10 per onderdeel en modus (JSON), `?actie=opslaan&naam&onderdeel&modus&score`

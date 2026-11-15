@@ -629,8 +629,9 @@ Overslaan; met opslag = ▶️ Verder spelen / 🔄 Nieuw spel (`herstart`, met 
 kijk (per regel object-position in %, zodat je op de telefoon ziet wie het over gaat), tekst } → `toonPlaat(H, klaar)` (scherm `#plaatscene`, inzoomen,
 regels om de 4,2 s of met Verder) en daarna het feestscherm (`hoofdstukKlaar(H, naPlaat)`). Nu alleen H1 (plaat 1, Bella ciao, eindigt bij Luigi om de hoek).
 Titelscherm (16 nov, Marcel): eerst alleen plaat en logo met "Tik om te beginnen" (`#titeltik`), na een tik pas het kaartje (`#titelkaart`).
-Volle muziek (16 nov, Pizzabaas 2): `speelLied` speelt met echte instrumentgeluiden (`pizza/klank/*.json`, FluidR3 GM-soundfont, CC BY 3.0, zie
-`pizza/klank/LEESMIJ.md`, naamsvermelding in `toonAftiteling`; `extra/klank_knip.py`): `laadKlank` (bij de eerste tik op het titelscherm), `arrangeer(ctx, L, t0)`
-= melodie accordeon, bas om en om grondtoon/kwint, gitaar-akkoordjes op de tussentellen (groot/klein uit de melodie), strijkers zacht, galm (`muziekBus`).
-Zelfde LIED-noten, dus nieuwe liedjes klinken vanzelf vol. Nog niet geladen of `vals` = de oude piepjes. Proefopname maken: Playwright + OfflineAudioContext
-(`laadKlank(off)`, `arrangeer(off, LIED.x, 0.1)`, `startRendering`) en ffmpeg naar mp3. De race-muziek (`raceMuziek`) is nog de oude blokgolf.
+Volle muziek (16 nov, Pizzabaas 2): via `js/muziek.js` (uitleg in de hoofd-CLAUDE.md, "Muziek in de spellen"; geluiden in `klank/`). `speelLied(id, vals, stijl)`:
+stijl = die van de zaak (`BUURTSTIJL`: eerste zaak italiaans, studenten rock, plein volks, villa klassiek; `zaakStijl()`), opera (vincero/donna) altijd klassiek.
+Nog niet geladen = laden en dan spelen (`liedTot` schat de duur, `liedDuur`); mislukt of `vals` = de oude piepjes. `openDeuren` laadt de stijl van de zaak alvast.
+Titelscherm: na de eerste tik Tarantella (italiaans) en de effecten laden; "Mario laat je alles zien" / Overslaan / Verder spelen faden hem uit (`Muziek.stop`).
+Effecten: deurmat = buisklokken ding-dong, bel van de uitgifte = klokkenspel, aria = applaus aan het eind, vraag van iemand "(telefoon)" = echte telefoon;
+anders de oude `ding`-piepjes. Liedjes zonder `bas` krijgen akkoorden van `Muziek.harmoniseer`. De race-muziek (`raceMuziek`) is nog de oude blokgolf.

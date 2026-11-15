@@ -243,6 +243,7 @@
 <div class="scherm verborgen" id="bank"><div class="kaart" id="bankkaart"></div></div>
 <div class="scherm verborgen" id="pizzas"><div class="kaart breed" id="pizzakaart"></div></div>
 
+<script src="js/muziek.js"></script><!-- muziek met echte instrumenten (gedeeld met andere spellen) -->
 <script>
 // Pizzabaas: een eigen pizzeria inrichten en draaiende houden (één zaak, klanten, kok, ober, inrichting, eigen pizza's).
 // Alles op een raster van 12 x 9 vakjes; rij 0-1 is de keuken, onderaan in het midden de deur.
@@ -722,6 +723,7 @@ function belastingAvond(winst) { // 's avonds: belasting opzij, en de aanslag be
 
 const NIEUWTEL = () => ({ blij: 0, boos: 0, boosKeuken: 0, boosOber: 0, vol: 0, niks: 0, omzet: 0, fooi: 0, kosten: 0, wacht: 0, wachtN: 0, lekker: 0, verkocht: {}, soort: {} });
 function openDeuren() {
+  if (ac && typeof Muziek != 'undefined') Muziek.laadStijl(zaakStijl(), ac); // de jukebox van deze zaak alvast klaarzetten
   if (!S.spullen.some(isTafel)) { meld('Zet eerst minstens één tafel neer!'); return; }
   if (S.dicht) { tel = NIEUWTEL(); tel.dicht = S.dicht; S.dicht = null; mensen = []; eindeDag(); return; } // vandaag blijft de zaak dicht
   if ($('mariotip')) $('mariotip').remove(); modus = 'open'; klok = 0; volgendeKlant = 1.5; mensen = []; klaar = []; ritten = []; wachtrij = []; wolkjes = []; muntjes = []; fx = [];
@@ -1254,8 +1256,8 @@ const VRAGEN = [
       ['Alleen als ze één hapje nemen.', () => { if (kans(0.5)) { rep(3); morgenKl(1.1); return 'Eén model neemt een hap… en eet de hele pizza op. Die foto gaat de hele wereld over: "Zelfs topmodellen kunnen niet van deze pizza afblijven!"'; } return '"Een hapje?! Ben je gek?" Ze gaan naar Luigi. Daar mogen ze wel boos kijken.'; }],
       ['Nee, hier wordt gegeten.', () => { rep(1); return 'De fotograaf snuift, zet zijn zonnebril op en vertrekt. Binnen eet iedereen gewoon verder.'; }] ] },
   { id: 'opera', ik: '🎭', wie: 'Klant met een enorme snor', vraag: 'Mamma mia, deze pizza! Ik moet zingen. Mag ik? Even Nessun Dorma. Het hoge stuk. Héél hoog.',
-    a: [['Zing maar!', () => { speelLied('vincero'); if (kans(0.7)) { vandaag.gezellig += 1.5; vandaag.fooi *= 1.15; return 'VINCERÒÓÓÓ! De hele zaak staat op stoelen te klappen. Er wordt flink fooi gegeven.'; } nieuweVlek(6, 7, 'scherven'); return 'Bij de hoogste noot springt er een wijnglas. En nog een. Scherven, maar wel een staande ovatie.'; }],
-      ['Alleen als het hele personeel meezingt.', () => { speelLied('donna'); vandaag.gezellig += 1; oberTempo(0.9); return 'Mario zingt mee, de obers ook (vals). Het is prachtig. Alleen wordt er even niks bezorgd.'; }],
+    a: [['Zing maar!', () => { speelLied('vincero', false, 'klassiek'); if (kans(0.7)) { vandaag.gezellig += 1.5; vandaag.fooi *= 1.15; return 'VINCERÒÓÓÓ! De hele zaak staat op stoelen te klappen. Er wordt flink fooi gegeven.'; } nieuweVlek(6, 7, 'scherven'); return 'Bij de hoogste noot springt er een wijnglas. En nog een. Scherven, maar wel een staande ovatie.'; }],
+      ['Alleen als het hele personeel meezingt.', () => { speelLied('donna', false, 'klassiek'); vandaag.gezellig += 1; oberTempo(0.9); return 'Mario zingt mee, de obers ook (vals). Het is prachtig. Alleen wordt er even niks bezorgd.'; }],
       ['Liever niet, we hebben buren.', () => 'Hij neuriet het dan maar. Heel hard. Met zijn ogen dicht.'] ] },
   { id: 'spaghetti', ik: '🍝', wie: 'Klant met een slab', vraag: 'Ik wil graag spaghetti bolognese. Die heeft u toch wel? Iedere Italiaan heeft spaghetti bolognese.',
     a: [['Natuurlijk! (Mario, maak eens wat…)', () => { ge(14); kokTraag(); return 'Mario maakt het mopperend: "In Bologna eten ze het met tagliatelle, NIET met spaghetti!" De klant betaalt € 14 en is blij. Mario is een uur chagrijnig.'; }],
@@ -1933,7 +1935,8 @@ function tekenBezoeker() {
 const mijl = (id) => { S.mijl = S.mijl || {}; if (!S.mijl[id]) { S.mijl[id] = S.dag; setTimeout(controleerDoelen, 300); } }; // Pizzabaas 2: iets gebeurd (voor de doelen)
 const heb = (id) => !!(S.mijl && S.mijl[id]), antw = (k) => !!(S.antw && S.antw[k]);
 function toonVraag(v) {
-  pauze = true; S.gehad = S.gehad || {}; S.gehad[v.id] = S.dag; ding(880, 0.1); setTimeout(() => ding(1100, 0.12), 120);
+  pauze = true; S.gehad = S.gehad || {}; S.gehad[v.id] = S.dag; const wieT = typeof v.wie == 'function' ? v.wie() : v.wie || '';
+  if (!(/telefoon/i.test(wieT) && typeof Muziek != 'undefined' && Muziek.effect(ac, 'telefoon'))) { ding(880, 0.1); setTimeout(() => ding(1100, 0.12), 120); } // aan de telefoon = echte telefoon
   const k = $('vraagkaart');
   const foto = (n) => `<div class="portret" style="background-position:${-n * 85}px 0"></div>`, pn = v.portret ?? v.foto;
   const ik = pn != null ? foto(pn) : v.ik; // getekend figuur (pizza/portretten.png; `foto` = alleen het portret, de figuur loopt niet binnen) of emoji
@@ -2257,10 +2260,10 @@ function tikEffect(fx0, fy0) {
     else zeg(o.kok, R(['Heet! Niet aankomen!', 'Mamma mia, voorzichtig!', 'Die oven is 400 graden, baas!', 'Nog één keer en ik bak jóu!', 'Zie je dat vuur? Prachtig hè?'])); return true; }
   // bel op de uitgifte
   for (const i of [0, 1]) { if (i >= ovens.length) break; const [ux, uy] = UITGIFTE(i); if (fx0 >= ux - 0.9 && fx0 <= ux + 2.3 && fy0 > KEUKEN - 1.2 && fy0 < KEUKEN + 0.3) { // het blad met het belletje links erop
-    tikReeks.push({ w: 'bel', t: performance.now() }); ding(2200, 0.5, 'sine', 0.06); setTimeout(() => ding(2200, 0.4, 'sine', 0.04), 90); muntjes.push({ x: ux + 0.8, y: uy, t: 1.2, tekst: '🛎️ Ting!' });
+    tikReeks.push({ w: 'bel', t: performance.now() }); if (!(typeof Muziek != 'undefined' && Muziek.effect(ac, 'bel'))) { ding(2200, 0.5, 'sine', 0.06); setTimeout(() => ding(2200, 0.4, 'sine', 0.04), 90); } muntjes.push({ x: ux + 0.8, y: uy, t: 1.2, tekst: '🛎️ Ting!' });
     for (const ob of obers) zeg(ob, R(['Servizio!', 'Komt eraan!', 'Ja ja, ik hoor je!', 'Ik heb maar twee handen!'])); return true; } }
   // deurmat: deurbel
-  if (fy0 >= H - 1 && fx0 >= MAT.x && fx0 < MAT.x + MAT.w) { ding(660, 0.35, 'sine', 0.07); setTimeout(() => ding(523, 0.5, 'sine', 0.07), 330); muntjes.push({ x: MAT.x + 1.5, y: H - 0.5, t: 1.3, tekst: '🔔 Ding dong!' }); return true; }
+  if (fy0 >= H - 1 && fx0 >= MAT.x && fx0 < MAT.x + MAT.w) { if (!(typeof Muziek != 'undefined' && Muziek.effect(ac, 'deurbel'))) { ding(660, 0.35, 'sine', 0.07); setTimeout(() => ding(523, 0.5, 'sine', 0.07), 330); } muntjes.push({ x: MAT.x + 1.5, y: H - 0.5, t: 1.3, tekst: '🔔 Ding dong!' }); return true; }
   // de kat: aaien = spinnen
   if (kat && Math.hypot(kat.x - fx0, kat.y - fy0) < 0.8) { kat.slaap = 3; spat(kat.x, kat.y - 0.8, '❤️', 3, 1.5, { g: 0 }); muntjes.push({ x: kat.x, y: kat.y - 0.6, t: 1.4, tekst: '😻 Prrrrr…' });
     if (ac) for (let i = 0; i < 8; i++) klak(ac.currentTime + i * 0.11, 0.09, 90 + Math.random() * 30, 0.12); if (!kat.geaaid) { kat.geaaid = true; vandaag.gezellig += 0.2; } return true; }
@@ -4528,7 +4531,7 @@ doek.addEventListener('pointerdown', (e) => {
     const v = naarVak(e), vl = vlekBij(v.fx, v.fy);
     const jb = S.spullen.find((t) => t.t == 'jukebox' && v.fx >= t.x && v.fx < t.x + SPUL.jukebox.w && v.fy >= t.y && v.fy < t.y + SPUL.jukebox.h);
     if (jb) { const nu = performance.now(), rk = tikReeks.filter((x) => nu - x.t < 8000).map((x) => x.w).join(',');
-      if (rk.endsWith('oven,bel') && operaDag != S.dag) { operaDag = S.dag; mijl('aria'); tikReeks = []; speelLied('vincero'); aria = { t0: performance.now(), duur: Math.min(25, Math.max(9, ac ? liedTot - ac.currentTime : 12)), zeg: 0 }; for (const m of mensen.filter((m) => m.st == 'eet' || m.st == 'wacht').slice(0, 5)) zeg(m, R(['👏 Bravo!', 'Bravissimo!', 'Encore!', 'Mamma mia!', 'Kippenvel!'])); vandaag.gezellig += 0.5; spat(jb.x + 1, jb.y, ['🎵', '🎶', '✨'], 8, 3); meld('🎭 Geheime combinatie! Mario klimt op de toonbank en zingt een aria!', 4000); return; }
+      if (rk.endsWith('oven,bel') && operaDag != S.dag) { operaDag = S.dag; mijl('aria'); tikReeks = []; speelLied('vincero', false, 'klassiek'); setTimeout(() => { if (typeof Muziek != 'undefined') Muziek.effect(ac, 'applaus'); }, Math.max(1, liedTot - ac.currentTime) * 1000); aria = { t0: performance.now(), duur: Math.min(25, Math.max(9, ac ? liedTot - ac.currentTime : 12)), zeg: 0 }; for (const m of mensen.filter((m) => m.st == 'eet' || m.st == 'wacht').slice(0, 5)) zeg(m, R(['👏 Bravo!', 'Bravissimo!', 'Encore!', 'Mamma mia!', 'Kippenvel!'])); vandaag.gezellig += 0.5; spat(jb.x + 1, jb.y, ['🎵', '🎶', '✨'], 8, 3); meld('🎭 Geheime combinatie! Mario klimt op de toonbank en zingt een aria!', 4000); return; }
       jukeboxKeuze(e); return; } // tik op de jukebox: kies een liedje (€ 1) (oven → bel → jukebox = Mario zingt opera)
     if (!vlekBij(v.fx, v.fy) && !(rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) && tikEffect(v.fx, v.fy)) return; // verrassende effectjes
     if (rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) { muntjes.push({ x: rat.x, y: rat.y, t: 1.2, tekst: '🐀 Gevangen!' }); mijl('rat'); rat = null; vandaag.gezellig += 1; kassa(); return; }
@@ -5018,7 +5021,7 @@ function toonInval() {
 // HET EINDE: de vlagfiches worden omgesmolten tot de Italiaanse vlag en gaan de toren in (scène op een canvas; de plaat van ChatGPT komt later)
 function toonVlag() {
   pauze = true; $('film').classList.remove('verborgen'); $('filmtitel').textContent = '🇮🇹 De vlag op de Toren van Pizza';
-  const c = $('filmdoek'), g2 = c.getContext('2d'), W2 = 360, H2 = 420, start = performance.now(); speelLied('vincero'); setTimeout(() => speelLied('ode'), 12000);
+  const c = $('filmdoek'), g2 = c.getContext('2d'), W2 = 360, H2 = 420, start = performance.now(); speelLied('vincero', false, 'klassiek'); setTimeout(() => speelLied('ode'), 12000);
   const vuur = []; const zin = [[0, 'De vlagfiches gaan de smeltoven in…'], [3, 'Groen, wit en rood: de Italiaanse vlag!'], [6, 'Hij gaat omhoog… omhoog… omhoog…'], [10, 'De hele stad juicht!'], [13, 'Jij bent de pizzabaas van de stad. 👑']];
   $('filmverder').textContent = 'Verder (overslaan)';
   $('filmverder').onclick = () => { $('film').classList.add('verborgen'); pauze = false; mijl('vlag'); S.uitgespeeld = S.uitgespeeld || S.dag; bewaar(); toonAftiteling(); };
@@ -5069,7 +5072,7 @@ function hoofdIntro(nu) { const H = hoofd(); S.introGezien = S.introGezien || {}
     <p class="vraagtekst" style="text-align:left">"${esc(HOOFDINTRO[H])}"</p>
     <p class="buurt">Haal ${HOOFDNODIG} van de 15 doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}.</p>
     <button class="groot" id="verder">👨‍🍳 Andiamo!</button>`;
-  $('einde').classList.remove('verborgen'); speelLied('donna'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); setTimeout(marioTip, 600); }; }
+  $('einde').classList.remove('verborgen'); speelLied('donna', false, 'klassiek'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); setTimeout(marioTip, 600); }; }
 function marioTip() { // klein ballonnetje onderin met Mario en de volgende stap (alleen in hoofdstuk 1 en 2, tot je hem wegklikt voor vandaag)
   if (hoofd() > 2 || modus != 'inrichten' || S.tipWeg == S.dag) return; const d = DOELEN.find((d) => d.h == hoofd() && !d.geheim && !(S.doelen || {})[d.id]); if (!d) return;
   let b = $('mariotip'); if (!b) { b = document.createElement('div'); b.id = 'mariotip'; b.style.cssText = 'position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 64px);z-index:6;display:flex;align-items:flex-end;gap:6px;max-width:330px;pointer-events:auto'; document.body.appendChild(b); }
@@ -5092,7 +5095,7 @@ function toonPlaat(H, klaar) {
 function hoofdstukKlaar(H, naPlaat) { // afsluiter: eerst de verhaalplaat (als die er is), dan het feestelijke scherm en het volgende hoofdstuk
   hoofdstukKlaar.bezig = true; S.hoofdstuk = H + 1; bewaar(); kassa(); setTimeout(kassa, 300);
   if (VERHAAL[H] && !naPlaat) { toonPlaat(H, () => hoofdstukKlaar(H, true)); return; } // het hoofdstuk is al opgeslagen als klaar: na de plaat het feestscherm
-  if (!VERHAAL[H]) speelLied('vincero');
+  if (!VERHAAL[H]) speelLied('vincero', false, 'klassiek');
   const V = HOOFDSTUK[H + 1];
   $('eindkaart').innerHTML = `<h1>🎉 Hoofdstuk ${H} uitgespeeld!</h1><p style="font-size:40px;text-align:center;margin:4px">${HOOFDSTUK[H].ik} → ${V.ik}</p>
     <p><b>${esc(HOOFDSTUK[H].n)}</b> zit erop. Op naar hoofdstuk ${H + 1}: <b>${esc(V.n)}</b>!</p>
@@ -5198,52 +5201,19 @@ const LIED = {
     bas: 'A2:8 A2:8 A2:5 E2:4 A2:6 D3:7 A2:7 E2:5 E2:2 A2:8' } };
 let liedTot = 0;
 const nootHz = (n) => { const m = n.match(/^([A-G])(#?)(\d)$/); return 440 * 2 ** (({ C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 }[m[1]] + (m[2] ? 1 : 0) + (+m[3] - 4) * 12) / 12); };
-// ---------- volle muziek (16 nov, Marcel: "klinkt als een midi-bestand van vroeger") ----------
-// Echte instrumentgeluiden uit de FluidR3-soundfont (Creative Commons Naamsvermelding 3.0, via github.com/gleitz/midi-js-soundfonts),
-// om de 3 halve tonen in pizza/klank/<instrument>.json (extra/klank_knip.py); daartussen wordt de toonhoogte verschoven.
-// Arrangement uit dezelfde LIED-noten: melodie = accordeon, bas = contrabas om en om grondtoon/kwint ("hoempa"), gitaar-akkoordjes op de
-// tussentellen (groot of klein akkoord: wat de melodie in die maat speelt), strijkers zacht eronder, en wat galm. Geen klank geladen = de oude piepjes.
-const INSTR = ['accordion', 'acoustic_bass', 'acoustic_guitar_nylon', 'string_ensemble_1'], KLANK = {}; let klankLaden = null;
-function laadKlank(ctx = ac) {
-  if (klankLaden) return klankLaden;
-  klankLaden = Promise.all(INSTR.map(async (ins) => { const j = await (await fetch('pizza/klank/' + ins + '.json')).json(), s = {};
-    await Promise.all(Object.entries(j).map(async ([m, b64]) => { const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)); s[m] = await ctx.decodeAudioData(bin.buffer); }));
-    KLANK[ins] = s; })).then(() => true, () => { klankLaden = null; return false; });
-  return klankLaden;
-}
-const klankKlaar = () => INSTR.every((i) => KLANK[i]);
-const nootMidi = (n) => { const m = n.match(/^([A-G])(#?)(\d)$/); return ({ C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]]) + (m[2] ? 1 : 0) + (+m[3] + 1) * 12; };
-const galmen = new WeakMap();
-function muziekBus(ctx) { // compressor + galm (zelf gemaakte nagalm van ruis), één keer per context
-  if (galmen.has(ctx)) return galmen.get(ctx);
-  const in_ = ctx.createGain(), comp = ctx.createDynamicsCompressor(), nat = ctx.createGain(), galm = ctx.createConvolver(), lang = 1.6, n = Math.floor(ctx.sampleRate * lang), ir = ctx.createBuffer(2, n, ctx.sampleRate);
-  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); }
-  galm.buffer = ir; nat.gain.value = 0.22; in_.connect(comp); in_.connect(galm).connect(nat).connect(comp); const vol = ctx.createGain(); vol.gain.value = 2; comp.connect(vol).connect(ctx.destination); galmen.set(ctx, in_); return in_;
-}
-function sample(ctx, uit, ins, midi, t, dur, vol, los = 0.25) { // één noot: dichtstbijzijnde opgenomen noot, verschoven naar de goede hoogte
-  const S_ = KLANK[ins]; if (!S_) return; let beste = null, af = 99; for (const m in S_) { const d = Math.abs(midi - m); if (d < af) { af = d; beste = m; } }
-  const b = ctx.createBufferSource(), gn = ctx.createGain(); b.buffer = S_[beste]; b.playbackRate.value = 2 ** ((midi - beste) / 12);
-  gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.012); gn.gain.setValueAtTime(vol, t + Math.max(0.02, dur)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur + los);
-  b.connect(gn).connect(uit); b.start(t); b.stop(t + dur + los + 0.05);
-}
-function arrangeer(ctx, L, t0) { // speelt het hele lied vanaf t0, geeft het eind terug
-  const uit = muziekBus(ctx), tel = L.tempo, mel = [];
-  let t = t0; for (const st of L.noten.split(' ')) { const [n, d] = st.split(':'), dur = +d * tel; if (n != '-') { const m = nootMidi(n); mel.push([t, t + dur, m]); sample(ctx, uit, 'accordion', m, t, dur * 0.95, 0.42, 0.18); } t += dur; }
-  let eind = t; if (!L.bas) return eind;
-  t = t0; for (const st of L.bas.split(' ')) { const [n, d] = st.split(':'), tellen = +d, dur = tellen * tel;
-    if (n != '-') { const r = nootMidi(n), pc = new Set(mel.filter(([a, b]) => a < t + dur && b > t).map(([, , m]) => (m - r + 120) % 12));
-      const terts = pc.has(4) ? 4 : pc.has(3) ? 3 : null, akk = [r + 12, ...(terts ? [r + 12 + terts] : []), r + 19, r + 24].map((m) => m < 50 ? m + 12 : m);
-      sample(ctx, uit, 'string_ensemble_1', r + 12, t, dur * 0.98, 0.1, 0.4); sample(ctx, uit, 'string_ensemble_1', r + 19, t, dur * 0.98, 0.07, 0.4);
-      for (let k = 0; k < tellen; k++) { const tt = t + k * tel;
-        if (k % 2 == 0) sample(ctx, uit, 'acoustic_bass', k % 4 == 2 ? r + 7 : r, tt, tel * 0.9, 0.4, 0.12); // hoempa: grondtoon, kwint
-        else akk.forEach((m, i) => sample(ctx, uit, 'acoustic_guitar_nylon', m, tt + i * 0.012, tel * 0.6, 0.16, 0.15)); } } // akkoordje op de tussentel
-    t += dur; }
-  return Math.max(eind, t);
-}
-function speelLied(id, vals) { // vals = zo zing jij (een beetje ernaast)
-  wekGeluid(); if (!ac) return; const L = LIED[id]; let t = Math.max(ac.currentTime + 0.05, liedTot);
-  if (!vals && klankKlaar()) { liedTot = arrangeer(ac, L, t); meld(`🎵 ${L.n}`, 3000); return; }
-  if (!vals) laadKlank(); // de volgende keer klinkt het vol
+// ---------- volle muziek (16 nov): echte instrumenten via js/muziek.js (zie CLAUDE.md "Muziek in de spellen") ----------
+// Stijl per pizzeria (Marcel): eerste zaak Italiaans (accordeon), studenten rock, plein volksmuziek, villa klassiek (viool, piano, cello).
+// Opera (de aria) is altijd klassiek. Nog niet geladen = eerst laden en dan spelen; lukt dat niet, of `vals` (jij zingt) = de oude piepjes.
+const BUURTSTIJL = { oud: 'italiaans', studenten: 'rock', toeristen: 'volks', villa: 'klassiek' };
+const zaakStijl = () => BUURTSTIJL[S.buurt || 'oud'] || 'italiaans';
+const liedDuur = (L) => L.noten.split(' ').reduce((a, st) => a + +st.split(':')[1], 0) * L.tempo;
+function speelLied(id, vals, stijl) { // vals = zo zing jij (een beetje ernaast); stijl = 'italiaans' / 'rock' / 'volks' / 'klassiek' (anders die van de zaak)
+  wekGeluid(); if (!ac) return; const L = LIED[id]; let t = Math.max(ac.currentTime + 0.05, liedTot); stijl = stijl || zaakStijl();
+  if (!vals && typeof Muziek != 'undefined') {
+    if (Muziek.klaar(stijl)) { liedTot = Muziek.speel(ac, L, t, stijl); meld(`🎵 ${L.n}`, 3000); return; }
+    liedTot = t + liedDuur(L) + 0.6; meld(`🎵 ${L.n}`, 3000); // even laden, dan spelen (het lied schuift een tikje op)
+    Muziek.laadStijl(stijl, ac).then((ok) => { const nu = Math.max(t, ac.currentTime + 0.05); if (ok) liedTot = Math.max(liedTot, Muziek.speel(ac, L, nu, stijl)); else { liedTot = nu; speelLied(id, true); } });
+    return; }
   const stem = (spoor, type, v, oct) => { let tt = t; for (const st of spoor.split(' ')) { const [n, d] = st.split(':'), dur = +d * L.tempo;
       if (n != '-') { let f = nootHz(n) * oct; if (vals) f *= 2 ** ((Math.random() - 0.5) * 0.12 * (Math.random() < 0.4 ? 3 : 1)); const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f;
         if (type == 'triangle') { const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.5; lg.gain.value = f * 0.006; lfo.connect(lg).connect(o.frequency); lfo.start(tt); lfo.stop(tt + dur); } // vibrato
@@ -5277,9 +5247,9 @@ $('terug').onclick = (e) => {
 
 // ---------- start ----------
 // titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
-$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac) laadKlank(); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
-$('begin').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
-$('beginzelf').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
+$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); speelLied('tarantella', false, 'italiaans'); } $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
+$('begin').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
+$('beginzelf').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over
 const RONDE = [
   [null, 'Ciao! Ik ben Mario, jouw kok. Ik laat je even zien hoe alles werkt. Tik op Verder (of op het lichte vak).'],
@@ -5305,7 +5275,7 @@ function rondleiding(n = 0) {
 }
 if (lees(SLEUTEL) && !TEGEL) { // je speelt al: titelscherm met Verder spelen (dat tikje maakt meteen het geluid wakker)
   $('titelnieuw').style.display = 'none'; $('titelverder').style.display = '';
-  $('verderspelen').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); };
+  $('verderspelen').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); };
   $('nieuwspel').onclick = () => { if (confirm(`Echt een nieuw spel beginnen${speler ? ' voor ' + speler : ''}? Je zaak, je geld, je doelen en je vlagfiches zijn dan weg.`)) herstart(); };
 }
 
