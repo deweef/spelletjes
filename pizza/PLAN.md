@@ -392,3 +392,8 @@ volgorde belt" (oven → bel → jukebox) (5) · ⚪ de bruiloft (10)
 toren (4 × 5) · 🟢 lint doorknippen (10) · 🟢 € 25.000 (10) · 🟢 3 Gouden Pizzascheppen (10) · 🟢 3 sterren van de sterrenchef (10) · 🏁 100 van elke kleur → vlag.
 Volgorde van bouwen: (1) hoofdstukken + doelen + vlagkist, (2) onderdelen per hoofdstuk op slot, (3) casino-vlagfiches, (4) afsluiters en filmpjes,
 (5) boekhouder, (6) vlag en aftiteling. Waarden afstellen met een simulatie.
+Verhaalplaten (16 nov, ChatGPT; Marcel maakt ze): 0 titel (pizzeriaatje bij zonsondergang), 1 opening tweede zaak (Mario op een krat, Luigi gluurt),
+2 de krant met de gouden schep (lege kop: tekst zet het spel erin), 3 de grote inval (zaklampen, Barrie door het raam), 4 de bruiloft (pizzataart, Luigi
+huilt), 5 startlijn stadsrace (Henk, Luigi, Mevrouw Bosch met vlag, Gianni), 6 de vlag op de Toren van Pizza met vuurwerk, 7 aftiteling (buiging,
+rood gordijn, Pepperoni). Stijlopdracht: met `pizza/portretten.png` en `pizza/stad-gemini.jpg` als voorbeeld, 16:9, geen tekst. Bewaren als
+`pizza/plaat-N-chatgpt.png`; in het spel als scène (zoom/schuiven, tekstregels, muziek).
