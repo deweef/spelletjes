@@ -46,6 +46,7 @@
   }
   #menu { position: fixed; z-index: 6; background: #fff7e8; color: #3a2414; border-radius: 14px; padding: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.4); display: none; min-width: 190px; }
   #menu b { display: block; padding: 4px 6px 6px; }
+  #menu .dicht { float: right; margin: -2px -2px 0 10px; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; background: #e9d3ad; cursor: pointer; font-size: 14px; }
   #menu button { display: block; width: 100%; text-align: left; border: 0; background: #f1e1c4; color: #3a2414; border-radius: 9px; padding: 8px 10px; margin: 4px 0 0; font: 600 14px system-ui, sans-serif; cursor: pointer; }
   #menu button:disabled { opacity: .45; }
   #menu button.aan { background: #ffe08a; }
@@ -1653,7 +1654,7 @@ const VRAGEN = [
     a: [['Ik weet van niks, Luigi.', () => { if (kans(0.25 + (S.bonnen ? S.bonnen.q : 0) * 0.5)) return '"Hmpf." Hij gelooft je… voorlopig.'; S.sabotage = pak(['rat', 'stinkbom', 'keuring']); return '"Leugenaar!" Hij stormt weg. "Dit zal je berouwen!" (Morgen kun je iets verwachten…)'; }],
       ['Sorry, Luigi. Hier is € 150 voor de schrik.', () => { ge(-150); S.bonnen = null; return 'Hij telt het geld na en grijnst. "Afgesproken. Maar ik hou je in de gaten."'; }],
       ['Wegwezen, Luigi! Mijn pizza is gewoon beter.', () => { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); rep(1); return 'De klanten applaudisseren. Luigi loopt stampvoetend naar buiten. "Wacht maar!" (Morgen kun je iets verwachten…)'; }] ] },
-  { id: 'luigi', ik: '🕶️', portret: 2, rij: 2, wie: 'Luigi van de overkant', kans: 2, als: () => S.dag > 4,
+  { id: 'luigi', ik: '🕶️', portret: 2, rij: 2, wie: 'Luigi van de overkant', kans: 2, als: () => S.dag > 4 && !(S.luigiRust > S.dag),
     vraag: 'Zo, collega. Mooi zaakje heb je hier. Zou zonde zijn als er iets mee… gebeurde.',
     a: [['Is dat een dreigement, Luigi?', () => '"Ik? Nooit!" Hij lacht en loopt weg.'],
       ['Wil je een pizza proeven, Luigi?', () => { ge(-9); S.morgen = { ...(S.morgen || {}), aankomst: 0.9 }; return 'Hij proeft, glimlacht… en morgen staat jouw pizza bij hém op de kaart.'; }],
@@ -3010,9 +3011,9 @@ function crewVraag() { // de vrienden van Luigi op belastingdag: ze weten dat je
         const b = Math.round(S.geld * 0.5); ge(-b); S.ruzie = Math.min(100, (S.ruzie || 0) + 15); return `"Hé, waarom staat Barrie op dit briefje?" Ze gooien de envelop in je gezicht en nemen € ${b} echt geld mee. (Ruzie met Luigi +15)`; }]] : []) ] };
 }
 function sabotageVandaag() {
-  if (S.inbraak) { inbraak(); return; } // de sabotage (als die er is) komt dan morgen
+  if (S.inbraak) inbraak(); // inbraak én sabotage kan allebei: de vensters komen na elkaar
   const sb = S.sabotage; S.sabotage = null; if (!sb) return;
-  if (S.luigiRust > S.dag) { setTimeout(() => meld('Luigi durft niets: de politie houdt hem in de gaten. 👮'), 1200); return; }
+  if (S.luigiRust > S.dag) { ochtendVraag({ id: 'luigiDurftNiet', ik: '😎', wie: 'Mario de kok', zelf: true, vraag: 'Baas, Luigi stond vanochtend met een doos voor onze achterdeur. Maar toen zag hij dat er iemand op hem lette… Hij is snel weer naar binnen gegaan. Vandaag durft hij niks!', a: [['Ha! Lekker zo.', () => 'Mario fluit een deuntje en gooit de eerste pizza in de oven.']] }); return; }
   S.gesaboteerd = S.dag;
   if (sb == 'rat') { rat = { x: 7.5, y: H - 1, dx: 1, dy: -1 }; vandaag.gezellig -= 1; }
   if (sb == 'stinkbom') { vandaag.aankomst *= 0.6; vandaag.gezellig -= 1; }
@@ -4578,11 +4579,12 @@ const opslagKeuze = (gr) => (S.opslag || []).filter((o) => gr.includes(o.t)).map
   doe: () => { kies = o.t; uitOpslag = o; laatsteTik = null; hover = null; meld(`${SPUL[o.t].n} uit de opslag. ${isAanraak ? 'Tik op een plek, en nog een keer om neer te zetten.' : 'Klik op een plek om neer te zetten.'}`, 3500); tekenKnoppen(); } }));
 function toonKeuze(titel, lijst, r, knop, voet) {
   sluitMenu(); const m = $('menu'); m.dataset.knop = knop;
-  m.innerHTML = `<b>${titel}</b>` + lijst.map((o, i) => `<button data-i="${i}" ${o.uit ? 'disabled' : ''} class="${o.aan ? 'aan' : ''}"><span class="kik">${o.ik}</span><span>${esc(o.n)}<small>${esc(o.pr)}</small></span></button>`).join('') + (voet ? `<small style="display:block;padding:6px 6px 0;opacity:.75">${esc(voet)}</small>` : '');
+  m.innerHTML = `<b><span class="dicht" title="Sluiten">✖</span>${titel}</b>` + lijst.map((o, i) => `<button data-i="${i}" ${o.uit ? 'disabled' : ''} class="${o.aan ? 'aan' : ''}"><span class="kik">${o.ik}</span><span>${esc(o.n)}<small>${esc(o.pr)}</small></span></button>`).join('') + (voet ? `<small style="display:block;padding:6px 6px 0;opacity:.75">${esc(voet)}</small>` : '');
   m.style.display = 'block'; const bw = m.offsetWidth, bh = m.offsetHeight, staand = innerHeight > innerWidth;
   m.style.left = Math.min(innerWidth - bw - 8, Math.max(8, staand ? r.left + r.width / 2 - bw / 2 : r.left - bw - 8)) + 'px';
   m.style.top = Math.min(innerHeight - bh - 8, Math.max(8, staand ? r.top - bh - 8 : r.top)) + 'px';
   m.querySelectorAll('button').forEach((b) => b.onclick = () => { const o = lijst[b.dataset.i]; sluitMenu(); wekGeluid(); o.doe(); });
+  m.querySelector(".dicht").onclick = sluitMenu; // ✖ = toch niks kiezen
 }
 
 // ---------- de menukaart: pizza's samenstellen (zoals in Pizza Connection) ----------
