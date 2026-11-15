@@ -576,3 +576,9 @@ Roulettetafel (15 nov, Marcel: "echte fiches neerleggen"): `tekenGokhal` toont e
 rood, zwart, oneven, 19-36); tik = fiches op dat vak (`gok.inzet` = { vak: aantal }, "per tik" 1/2/5, gele fiche met het aantal). Meerdere vakken per
 ronde, "Fiches terugpakken", dan Draaien. Uitbetaling incl. inzet (`vakKeer`): getal ×36, twaalf ×3, rest ×2; `vakRaak(k, n)` (0 = alleen een fiche op 0).
 Uitslag per vak ("✅ 2 op 2e 12 → 6 terug · ❌ 5 op zwart") en of je erop vooruit ging. Gemiddeld 97,3% terug. Eén bezoek per dag, 3 rondes.
+IJssalon inrichten (15 nov, Dana): plaatje van de zaak (`tekenIjssalon`, canvas `#ijsdoek` 360x260: gestreepte muur, Sofia, vitrine met de 4 smaken als
+bolletjes in bakken, tegelvloer, terras buiten, meer klantjes als het warm is) en een winkeltje `IJSSPUL` (`S.ijs.spul`, betaald via `betaalBank`):
+terrastafeltjes (+8% elk vanaf 15°C, max 4), bankjes, bloembakken, stoepbord, radio, neonbord (+10% en rep +0,2/dag), softijsmachine (+15%),
+warme-chocoladebar (chocomel ×1,5). Effect in `ijsInrichtF(t)` in `ijsDag`.
+Bank (15 nov, Marcel): storten stelt voor € 500 in de kassa te houden (`bedrag(vraag, max, voorstel)`). Huren: de borg moet contant (melding bij het
+pand, rood als je het wel op de bank hebt: "Haal eerst geld van de bank").

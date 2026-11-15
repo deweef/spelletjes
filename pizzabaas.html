@@ -3122,16 +3122,48 @@ function ijsScore() { // hoe goed past de vitrine bij de klanten? (0,5 tot ±1,5
   return Object.entries(SOORT).reduce((a, [s, d]) => { const f = v.map((k) => IJSSMAAK[k].fan[s] || 0), beste = Math.max(...f), slecht = Math.min(0, ...f);
     return a + d.kans * (0.6 + 0.18 * beste + 0.06 * slecht + 0.05 * f.filter((x) => x > 0).length); }, 0) / Object.values(SOORT).reduce((a, d) => a + d.kans, 0);
 }
+// inrichting van de ijssalon (15 nov, Dana: "net als een pizzeria inrichten"): S.ijs.spul = { soort: aantal }
+const IJSSPUL = {
+  terras: { n: 'Terrastafeltje met parasol', ik: '⛱️', prijs: 60, max: 4, uitleg: '+8% klanten per tafeltje als het warm is (vanaf 15°C)' },
+  bank: { n: 'Bankje binnen', ik: '🪑', prijs: 40, max: 2, uitleg: '+4% klanten per bankje, ook in de winter' },
+  bloem: { n: 'Bloembak', ik: '🌸', prijs: 25, max: 3, uitleg: '+3% klanten per bloembak' },
+  bord: { n: 'Stoepbord "IJS!"', ik: '🪧', prijs: 30, max: 1, uitleg: '+6% klanten: voorbijgangers zien je beter' },
+  radio: { n: 'Radio met Italiaanse hits', ik: '📻', prijs: 50, max: 1, uitleg: '+5% klanten' },
+  neon: { n: 'Neonbord met een hoorntje', ik: '💡', prijs: 120, max: 1, uitleg: '+10% klanten en de ijssalon wordt elke dag iets bekender' },
+  softijs: { n: 'Softijsmachine', ik: '🍦', prijs: 250, max: 1, uitleg: '+15% klanten, vooral kinderen (en kinderen nemen ouders mee)' },
+  chocobar: { n: 'Warme-chocoladebar', ik: '☕', prijs: 150, max: 1, uitleg: 'in de winter 50% meer chocomel' } };
+const ijsSpul = (k) => ((S.ijs && S.ijs.spul) || {})[k] || 0;
+function ijsInrichtF(t) { return (1 + (t >= 15 ? 0.08 * ijsSpul('terras') : 0)) * (1 + 0.04 * ijsSpul('bank') + 0.03 * ijsSpul('bloem') + 0.06 * ijsSpul('bord') + 0.05 * ijsSpul('radio') + 0.1 * ijsSpul('neon') + 0.15 * ijsSpul('softijs')); }
+function tekenIjssalon(cv) { // de zaak van binnen: vitrine met de smaken, Sofia, en wat je hebt neergezet
+  const g2 = cv.getContext('2d'), I = S.ijs, W2 = cv.width, H2 = cv.height, t = temp();
+  g2.fillStyle = '#f7e9d7'; g2.fillRect(0, 0, W2, H2); for (let x = 0; x < W2; x += 24) { g2.fillStyle = (x / 24) % 2 ? '#e7f4ef' : '#ffffff'; g2.fillRect(x, 0, 24, 46); } // gestreepte muur
+  g2.fillStyle = '#d9c3a0'; g2.fillRect(0, 150, W2, H2 - 150); for (let x = 0; x < W2; x += 30) for (let y = 150; y < H2; y += 30) if ((x + y) / 30 % 2 < 1) { g2.fillStyle = '#cbb08a'; g2.fillRect(x, y, 30, 30); } // tegelvloer
+  g2.font = '30px system-ui'; g2.textAlign = 'center'; g2.textBaseline = 'middle';
+  g2.fillText('👩‍🍳', 60, 70); if (ijsSpul('softijs')) g2.fillText('🍦', 300, 70); if (ijsSpul('neon')) { g2.shadowColor = '#ff6fa5'; g2.shadowBlur = 12; g2.fillText('💡', 200, 24); g2.shadowBlur = 0; g2.font = 'bold 13px system-ui'; g2.fillStyle = '#ff3d8b'; g2.fillText('GELATO', 240, 24); g2.font = '30px system-ui'; }
+  if (ijsSpul('radio')) g2.fillText('📻', 25, 24); if (ijsSpul('chocobar')) g2.fillText('☕', 330, 115);
+  // vitrine: vier bakken met de smaken
+  g2.fillStyle = '#8a6a4a'; g2.fillRect(40, 92, 260, 50); g2.fillStyle = '#cfe8f3'; g2.fillRect(46, 86, 248, 30); g2.strokeStyle = '#fff'; g2.lineWidth = 2; g2.strokeRect(46, 86, 248, 30);
+  for (let i = 0; i < 4; i++) { const k = I.vitrine[i], x = 56 + i * 60; g2.fillStyle = '#b0b8bf'; g2.fillRect(x, 100, 50, 16);
+    if (k) { g2.fillStyle = IJSSMAAK[k].kl; for (let j = 0; j < 3; j++) { g2.beginPath(); g2.arc(x + 12 + j * 13, 100, 9, Math.PI, 0); g2.fill(); } g2.fillStyle = '#3a2a1a'; g2.font = '10px system-ui'; g2.fillText(IJSSMAAK[k].n.split(' ')[0], x + 25, 128); g2.font = '30px system-ui'; } }
+  // binnen: bankjes en bloembakken
+  for (let i = 0; i < ijsSpul('bank'); i++) g2.fillText('🪑', 40 + i * 50, 185); for (let i = 0; i < ijsSpul('bloem'); i++) g2.fillText('🌸', 330 - i * 30, 175);
+  // terras (onderaan, buiten): parasols met tafeltjes, en het stoepbord
+  g2.fillStyle = '#9a9a9a'; g2.fillRect(0, H2 - 46, W2, 46); g2.fillStyle = '#7d7d7d'; for (let x = 0; x < W2; x += 40) g2.fillRect(x, H2 - 46, 2, 46);
+  for (let i = 0; i < ijsSpul('terras'); i++) g2.fillText('⛱️', 50 + i * 70, H2 - 24); if (ijsSpul('bord')) g2.fillText('🪧', W2 - 24, H2 - 24);
+  // klanten (meer als het warm is)
+  const n = Math.max(0, Math.min(5, Math.round((t - 2) / 4))); g2.font = '24px system-ui'; for (let i = 0; i < n; i++) g2.fillText(['🧒', '👩', '👴', '🧑‍🦱', '👧'][i], 150 + i * 32, 195);
+  g2.font = 'bold 12px system-ui'; g2.fillStyle = '#3a2a1a'; g2.textAlign = 'left'; g2.fillText(`🌡️ ${t}°C`, 6, H2 - 54);
+}
 function ijsDag() { // 's avonds: hoe ging het in de ijssalon?
   const I = S.ijs; if (!I) return null; const t = temp(), wd = weekdag();
   const weer = Math.max(0.08, Math.min(1.4, (t - 3) / 17)), st = S.gianniStreek, streek = st && st.dag == S.dag ? st.wat : null;
   if (streek == 'stroom') { I.gisteren = { klanten: 0, winst: -IJSLOON - IJSHUUR - 60, tekst: '⚡ Dicht: de vriezer ging vannacht uit. Alles gesmolten (− € 60). Gianni had ineens een nieuwe stekkerdoos…' }; S.gianniStreek = null; return I.gisteren; }
   const prijsF = Math.max(0.4, 1.35 - (I.prijs - 1.5) * 0.35), repF = 0.4 + (I.rep || 20) / 100, warm = t >= 18 ? 1 + 0.1 * I.vitrine.filter((k) => IJSSMAAK[k].warm).length : 1;
-  let kl = Math.round(70 * weer * DRUKTE[wd] * repF * ijsScore() * prijsF * warm * (streek == 'kar' ? st.f ?? 0.6 : 1) * (torenOpen() ? 1.2 : 1) * (0.85 + Math.random() * 0.3));
+  let kl = Math.round(70 * weer * DRUKTE[wd] * repF * ijsScore() * prijsF * warm * ijsInrichtF(t) * (streek == 'kar' ? st.f ?? 0.6 : 1) * (torenOpen() ? 1.2 : 1) * (0.85 + Math.random() * 0.3));
   const bollen = kl * 2, k = I.vitrine.reduce((a, s) => a + IJSSMAAK[s].k, 0) / Math.max(1, I.vitrine.length);
-  const choco = I.choco && t < 12 ? Math.round(48 * (12 - t) / 12 * DRUKTE[wd] * repF * (0.85 + Math.random() * 0.3)) : 0; // warme chocomel met slagroom, € 2,50
+  const choco = I.choco && t < 12 ? Math.round(48 * (ijsSpul('chocobar') ? 1.5 : 1) * (12 - t) / 12 * DRUKTE[wd] * repF * (0.85 + Math.random() * 0.3)) : 0; // warme chocomel met slagroom, € 2,50
   const omzet = Math.round(bollen * I.prijs + choco * 2.5), kosten = Math.round(bollen * k + choco * 0.6) + IJSLOON + IJSHUUR, winst = omzet - kosten;
-  I.rep = Math.max(0, Math.min(100, (I.rep || 20) + (ijsScore() > 1 ? 0.6 : ijsScore() > 0.85 ? 0.2 : -0.4) + (streek == 'gerucht' ? -6 : 0)));
+  I.rep = Math.max(0, Math.min(100, (I.rep || 20) + (ijsSpul('neon') ? 0.2 : 0) + (ijsScore() > 1 ? 0.6 : ijsScore() > 0.85 ? 0.2 : -0.4) + (streek == 'gerucht' ? -6 : 0)));
   I.gisteren = { klanten: kl + choco, winst, tekst: `🌡️ ${t}°C · ${kl} ijsjes${choco ? ` en ${choco} warme chocomel` : ''}, omzet € ${omzet}, winst € ${winst}`
     + (streek == 'kar' ? ' · 🍦 Gianni stond de hele dag met zijn ijskar voor je deur!' : streek == 'gerucht' ? ' · 🗣️ Gianni vertelt overal dat jouw ijs uit de supermarkt komt' : '') };
   if (streek) S.gianniStreek = null;
@@ -3140,18 +3172,23 @@ function ijsDag() { // 's avonds: hoe ging het in de ijssalon?
 }
 function ijsBlok() { // het scherm van je eigen ijssalon (in de stad)
   const I = S.ijs, t = temp(), g = I.gisteren;
-  return `<p>Achter de toonbank schept Sofia de bolletjes, ze doet het al dertig jaar. "Welke smaken zetten we in de vitrine, baas?"</p>
+  return `<canvas id="ijsdoek" width="360" height="260" style="width:100%;max-width:360px;display:block;margin:0 auto 6px;border-radius:10px;border:3px solid #6b4a2b"></canvas>
+    <p>Achter de toonbank schept Sofia de bolletjes, ze doet het al dertig jaar. "Welke smaken zetten we in de vitrine, baas?"</p>
     <p class="buurt">🌡️ Vandaag ${t}°C${t < 10 ? ' (brrr, ijsweer is anders)' : t >= 18 ? ' (heerlijk ijsweer!)' : ''} · ⭐ ${Math.round(I.rep || 20)}${g ? `<br>Gisteren: ${esc(g.tekst)}` : ''}</p>
     <p><b>Vitrine</b> (${I.vitrine.length}/4, tik om te wisselen):</p><div class="rij" style="flex-wrap:wrap;gap:6px">${Object.entries(IJSSMAAK).map(([k, s]) => `<button class="knop" data-smaak="${k}" style="padding:6px 9px;${I.vitrine.includes(k) ? 'outline:3px solid #2e9d52;' : 'opacity:.75;'}"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${s.kl};border:1px solid #0003;vertical-align:-2px"></span> ${esc(s.n)}</button>`).join('')}</div>
     <p class="buurt">Wie houdt van wat? Proberen! Toeristen, studenten, werkers, opa's en villabewoners hebben allemaal hun lievelingssmaak. Op warme dagen gaan sorbets en mango extra goed.</p>
     <p><b>Prijs per bolletje:</b> <button class="knop" id="ijsmin" style="padding:4px 12px">−</button> <b>${euro(I.prijs)}</b> <button class="knop" id="ijsplus" style="padding:4px 12px">+</button></p>
     <p><label><input type="checkbox" id="ijschoco" ${I.choco ? 'checked' : ''}> ☕ Warme chocomel met slagroom als het koud is (onder 12°C)</label></p>
+    <p><b>🛠️ Inrichten</b> (van de bank als dat kan):</p>${Object.entries(IJSSPUL).map(([k, d]) => { const n = ijsSpul(k), vol = n >= d.max;
+      return `<div style="display:flex;align-items:center;gap:8px;border-top:1px solid #e0cfa8;padding:5px 0"><span style="font-size:24px">${d.ik}</span><span style="flex:1">${esc(d.n)} ${n ? `<b>(${n}${d.max > 1 ? '/' + d.max : ''})</b>` : ''}<br><small>${esc(d.uitleg)}</small></span><button class="knop" data-ijsspul="${k}" style="padding:5px 10px" ${vol || S.geld + (S.bankSaldo || 0) < d.prijs ? 'disabled' : ''}>${vol ? 'Staat er' : '€ ' + d.prijs}</button></div>`; }).join('')}
     <p class="buurt">Kosten per dag: Sofia € ${IJSLOON}, huur € ${IJSHUUR}, plus het ijs zelf. In je pizzeria nemen klanten nu ook een ijsje toe.</p>`;
 }
 function ijsKnoppen(k2, plek) {
   if ($('ijskoop')) $('ijskoop').onclick = () => { if (S.geld + (S.bankSaldo || 0) < IJSPRIJS) return; betaalBank(IJSPRIJS); S.ijs = { sinds: S.dag, vitrine: ['vanille', 'chocola', 'aardbei'], prijs: 2, choco: true, rep: 20 }; kassa(); bewaar(); tekenKnoppen();
     meld('🍨 De ijssalon is van jou! Ergens in de stad laat iemand een hoorntje vallen van schrik…', 4000); toonStad('ijssalon'); };
   k2.querySelectorAll('[data-smaak]').forEach((b) => b.onclick = () => { const v = S.ijs.vitrine, k = b.dataset.smaak; if (v.includes(k)) S.ijs.vitrine = v.filter((x) => x != k); else if (v.length < 4) v.push(k); else meld('De vitrine is vol: haal eerst een smaak weg.'); bewaar(); toonStad(plek); });
+  if ($('ijsdoek')) tekenIjssalon($('ijsdoek'));
+  k2.querySelectorAll('[data-ijsspul]').forEach((b) => b.onclick = () => { const k = b.dataset.ijsspul, d = IJSSPUL[k]; betaalBank(d.prijs); S.ijs.spul = S.ijs.spul || {}; S.ijs.spul[k] = (S.ijs.spul[k] || 0) + 1; kassa(); bewaar(); tekenKnoppen(); meld(`${d.ik} ${d.n} staat erin!`, 2500); toonStad(plek); });
   if ($('ijsmin')) $('ijsmin').onclick = () => { S.ijs.prijs = Math.max(1, Math.round((S.ijs.prijs - 0.25) * 100) / 100); bewaar(); toonStad(plek); };
   if ($('ijsplus')) $('ijsplus').onclick = () => { S.ijs.prijs = Math.min(5, Math.round((S.ijs.prijs + 0.25) * 100) / 100); bewaar(); toonStad(plek); };
   if ($('ijschoco')) $('ijschoco').onchange = () => { S.ijs.choco = $('ijschoco').checked; bewaar(); };
@@ -3230,8 +3267,9 @@ function toonStad(plek) {
     else { const B = BUURT[p.buurt], m = S.manager, mag = m && (m.dagen || 0) >= 7;
       h += `<p>Een leeg pand${p.buurt == 'studenten' ? ' in een smal straatje vol fietsen' : p.buurt == 'toeristen' ? ' aan het plein, vlak bij de fontein' : ' met een grote tuin, in de villawijk'}. ${esc(B.uitleg)}</p>
         <p>Borg en verbouwing: <b>€ ${p.borg}</b>, daarna <b>€ ${p.huur} huur per dag</b>.</p>
+        <p class="buurt" style="${S.geld < p.borg ? 'color:#b33a1e;font-weight:bold' : ''}">💶 De huisbaas wil de borg <b>contant</b> (hij vertrouwt geen banken). Je hebt € ${Math.floor(S.geld)} in de kassa${(S.bankSaldo || 0) >= 1 ? ` en € ${Math.floor(S.bankSaldo)} op de bank` : ''}.${S.geld < p.borg && S.geld + (S.bankSaldo || 0) >= p.borg ? ' Haal eerst geld van de bank (Banca Fortuna → ⬆️ Opnemen).' : ''}</p>
         <p class="buurt">${mag ? `Je manager ${esc(MANAGER[m.wie].n)} kan je huidige zaak runnen terwijl jij hier begint.` : 'Een tweede pizzeria kan pas als je een manager hebt die minstens een week bij je werkt (Personeel): die runt dan je zaak als jij er niet bent.'}</p>`;
-      knoppen = `<button class="knop rood" id="huren" ${!mag || S.geld < p.borg ? 'disabled' : ''}>🔑 Huren (€ ${p.borg})</button>`; } }
+      knoppen = `<button class="knop rood" id="huren" ${!mag || S.geld < p.borg ? 'disabled' : ''}>🔑 Huren (€ ${p.borg} contant)</button>`; } }
   if (plek == 'wissel') { h += `<p>Een smal winkeltje met een knipperend bord: <b>CRYPTO → CASH. GEEN VRAGEN.</b> Achter de toonbank zit Snelle Sjonnie met drie telefoons.
       "${pak(['Wisselen? Tien procent voor mij, de rest voor jou. Eerlijk is eerlijk.', 'Ik vraag niks, jij vraagt niks. Zo houden we het gezellig.', 'DogePizza? Mooi spul. Ik heb er zelf ook nog een paar miljoen.'])}"</p>
       <p class="buurt">Je krijgt de koers van vandaag, min 10% voor Sjonnie.</p>${cryptoBlok(true)}
@@ -3273,8 +3311,8 @@ function toonStad(plek) {
   if ($('koopTip')) $('koopTip').onclick = () => { crypto(); ge(-20); const k = pak(Object.keys(MUNT)), op = kans(0.55) ? 1 : -1; S.tip = { k, op, dag: S.dag, echt: kans(0.7) }; kassa(); bewaar(); tekenKnoppen(); toonStad('wissel');
     meld(`Sjonnie fluistert: "${MUNT[k].n}. Vannacht. ${op > 0 ? 'Omhoog. Héél erg omhoog.' : 'Naar beneden. Verkopen als je ze hebt.'}" Hij tikt tegen zijn neus.`, 5000); };
   if ($('balie')) $('balie').onclick = () => { aanBalie = true; toonBank(); };
-  const bedrag = (vraag, max) => { const v = prompt(vraag, String(Math.floor(max))); const n = Math.min(Math.floor(max), Math.floor(+String(v).replace(',', '.') || 0)); return n > 0 ? n : 0; };
-  if ($('storten')) $('storten').onclick = () => { const n = bedrag(`Hoeveel contant geld wil je storten? (je hebt € ${Math.floor(S.geld)})`, S.geld); if (!n) return; S.geld -= n; S.bankSaldo = (S.bankSaldo || 0) + n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} op je bankrekening gezet.`); toonStad('bank'); };
+  const bedrag = (vraag, max, voorstel = max) => { const v = prompt(vraag, String(Math.max(0, Math.floor(voorstel)))); const n = Math.min(Math.floor(max), Math.floor(+String(v).replace(',', '.') || 0)); return n > 0 ? n : 0; };
+  if ($('storten')) $('storten').onclick = () => { const n = bedrag(`Hoeveel contant geld wil je storten? (je hebt € ${Math.floor(S.geld)}; we stellen voor € 500 in de kassa te houden voor wisselgeld en de belasting)`, S.geld, S.geld - 500); if (!n) return; S.geld -= n; S.bankSaldo = (S.bankSaldo || 0) + n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} op je bankrekening gezet.`); toonStad('bank'); };
   if ($('opnemen')) $('opnemen').onclick = () => { const n = bedrag(`Hoeveel wil je opnemen? (er staat € ${Math.floor(S.bankSaldo)} op de bank)`, S.bankSaldo); if (!n) return; S.bankSaldo -= n; S.geld += n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} opgenomen. Contant in de kassa.`); toonStad('bank'); };
   if ($('aangifte')) $('aangifte').onclick = () => { S.aangifte = S.dag; if (kans(0.6)) { S.luigiRust = S.dag + 10; ge(0); bewaar(); meld('De politie gaat met Luigi praten. Hij laat je voorlopig met rust.'); } else meld('"Zonder bewijs kunnen we weinig doen," zegt agent Jansen.'); bewaar(); toonStad('politie'); };
   if ($('acro')) $('acro').onclick = () => { S.acroDag = S.dag; bewaar(); toonAcro(); };
