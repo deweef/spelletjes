@@ -2243,6 +2243,12 @@ function tikEffect(fx0, fy0) {
   if (sp && sp.t == 'schilderij') { const [mx, my] = midden(sp); muntjes.push({ x: mx, y: my, t: 1.3, tekst: pak(['👀 Hij kijkt je aan…', '🖼️ Echt of nep?', '🎨 Prachtig. Toch?']) }); return true; }
   return false;
 }
+// plaatjes van de race (pizza/race.png uit pizza/race-chatgpt.png, extra/race_knip.py): vakjes van 128; 0-3 jij (voor, schuin, schuin, rug), 4-7 Henk, 8-11 Luigi,
+// 12 banaan, 13 kat, 14 plant, 15 wasmand, 16 winkelkar, 17 pizzapunt, 18 rozenstruik, 19 rozen in pot, 20 pizzapunt, 21 fontein. Zolang het plaatje niet geladen is: de emoji.
+const RACEIMG = new Image(); RACEIMG.src = 'pizza/race.png';
+const RACEVAK = { '🍌': 12, '🐈': 13, '🪴': 14, '🧺': 15, '🛒': 16, '🍕': 17, '🌹': 18, '⛲': 21 };
+function raceSprite(g, i, x, y, h) { if (!(RACEIMG.complete && RACEIMG.naturalWidth)) return false; g.drawImage(RACEIMG, i * 128, 0, 128, 128, x - h / 2, y - h / 2, h, h); return true; } // x, y = midden
+function raceDing(g, e, x, y, h) { if (RACEVAK[e] == null || !raceSprite(g, RACEVAK[e], x, y, h)) { g.font = `${Math.round(h * 0.8)}px system-ui`; g.fillText(e, x, y); } }
 function tekenRace(nu = performance.now()) {
   const c = $('racedoek'), g = c.getContext('2d'), W = 360, H = 540, R = race, ik = R.r[0], sy = (m) => 385 - (m - ik.m) * RACE.px, mVan = (y) => ik.m + (385 - y) / RACE.px; // je eigen scootmobiel staat op 385: je ziet ook wie er vlak achter je rijdt
   const midX = (m) => 180 + raceWeg(m) - raceWeg(ik.m) * 0.75; // de camera loopt een beetje mee met de weg
@@ -2251,20 +2257,20 @@ function tekenRace(nu = performance.now()) {
   for (let y = 0; y < H; y += 6) { const m = mVan(y), x = midX(m); g.fillStyle = '#d9c8a3'; g.fillRect(x - 128, y, 256, 7); g.fillStyle = '#c4b088'; g.fillRect(x - 128, y, 6, 7); g.fillRect(x + 122, y, 6, 7);
     if (Math.floor((m * 2)) % 3 == 0) { g.fillStyle = '#fff9'; g.fillRect(x - 43, y, 3, 6); g.fillRect(x + 40, y, 3, 6); } }
   g.font = '22px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  for (let m = Math.floor(ik.m / 8) * 8 - 8; m < ik.m + 30; m += 8) { const y = sy(m), x = midX(m); g.fillText(m % 16 ? '🌷' : '🌳', x - 150, y); g.fillText(m % 16 ? '🌳' : '🌹', x + 150, y); }
+  for (let m = Math.floor(ik.m / 8) * 8 - 8; m < ik.m + 30; m += 8) { const y = sy(m), x = midX(m); g.fillText(m % 16 ? '🌷' : '🌳', x - 150, y); if (m % 16) g.fillText('🌳', x + 150, y); else raceDing(g, '🌹', x + 150, y, 34); }
   // het rozenperk in de grote bocht (daar snijdt Henk af)
-  { const [a, b] = R.bochten[1]; for (let m = a; m < b; m += 5) { const y = sy(m); if (y > -20 && y < H + 20) { g.font = '18px system-ui'; g.fillText('🌹', midX(m) + (R.bochten[1][2] > 0 ? 175 : -175) - (R.bochten[1][2] > 0 ? 1 : -1) * 10 * Math.sin((m - a) / (b - a) * Math.PI), y); } } }
+  { const [a, b] = R.bochten[1]; for (let m = a; m < b; m += 5) { const y = sy(m); if (y > -20 && y < H + 20) { raceDing(g, '🌹', midX(m) + (R.bochten[1][2] > 0 ? 175 : -175) - (R.bochten[1][2] > 0 ? 1 : -1) * 10 * Math.sin((m - a) / (b - a) * Math.PI), y, 30); } } }
   // bochtwaarschuwing
   const kom = R.bochten.find(([a]) => a - ik.m > 0 && a - ik.m < 18); if (kom && !R.uit) { g.font = 'bold 18px system-ui'; g.fillStyle = '#fff'; g.fillText(kom[2] > 0 ? 'Bocht naar rechts ↪' : '↩ Bocht naar links', 180, 80); }
-  const eind = sy(RACE.lengte); if (eind > -20) { g.fillStyle = '#222'; for (let i = 0; i < 13; i++) g.fillRect(midX(RACE.lengte) - 128 + i * 20, eind - (i % 2) * 8, 20, 8); g.font = '40px system-ui'; g.fillText('⛲', midX(RACE.lengte), eind - 24); }
-  g.font = '32px system-ui';
-  for (const d of R.dingen) { if (d.weg) continue; const y = sy(d.m); if (y > -30 && y < H + 30) g.fillText(d.s, op(d.m, d.b), y); }
+  const eind = sy(RACE.lengte); if (eind > -20) { g.fillStyle = '#222'; for (let i = 0; i < 13; i++) g.fillRect(midX(RACE.lengte) - 128 + i * 20, eind - (i % 2) * 8, 20, 8); raceDing(g, '⛲', midX(RACE.lengte), eind - 34, 70); }
+  for (const d of R.dingen) { if (d.weg) continue; const y = sy(d.m); if (y > -30 && y < H + 30) raceDing(g, d.s, op(d.m, d.b), y, 44); }
   // vliegende bananen (boogje)
-  for (const f of R.vlieg) { const k = f.t / 0.8, m = f.m0 + (f.m1 - f.m0) * k, x = op(f.m0, f.x0) + (op(f.m1, f.b) - op(f.m0, f.x0)) * k, y = sy(m) - Math.sin(k * Math.PI) * 70; g.save(); g.translate(x, y); g.rotate(k * 12); g.font = '26px system-ui'; g.fillText('🍌', 0, 0); g.restore(); }
+  for (const f of R.vlieg) { const k = f.t / 0.8, m = f.m0 + (f.m1 - f.m0) * k, x = op(f.m0, f.x0) + (op(f.m1, f.b) - op(f.m0, f.x0)) * k, y = sy(m) - Math.sin(k * Math.PI) * 70; g.save(); g.translate(x, y); g.rotate(k * 12); raceDing(g, '🍌', 0, 0, 34); g.restore(); }
   // de racers (van achter naar voor tekenen)
   for (const p of [...R.r].sort((a, b) => b.m - a.m)) { const y = Math.max(28, Math.min(H - 20, sy(p.m))), x = p.cut ? midX(p.m) + BAANX(p.x) : op(p.m, p.x), ver = sy(p.m) < 28 || sy(p.m) > H - 20;
     g.save(); g.translate(x, y + (p.slip > 0 ? Math.sin(p.slip * 30) * 3 : 0)); if (p.slip > 0) g.rotate(Math.sin(p.slip * 20) * 0.5); if (ver) g.globalAlpha = 0.6;
-    g.font = p == ik ? '42px system-ui' : '36px system-ui'; g.fillText('🦼', 0, 0); if (p != ik) { g.font = '20px system-ui'; g.fillText(p.id == 'henk' ? '👴' : '😎', 4, -22); }
+    g.rotate(Math.max(-0.3, Math.min(0.3, (p.baan - p.x) * 0.45))); // schuin als hij van baan wisselt
+    if (!raceSprite(g, (p == ik ? 0 : p.id == 'henk' ? 4 : 8) + 3, 6, -6, p == ik ? 74 : 66)) { g.font = p == ik ? '42px system-ui' : '36px system-ui'; g.fillText('🦼', 0, 0); if (p != ik) { g.font = '20px system-ui'; g.fillText(p.id == 'henk' ? '👴' : '😎', 4, -22); } }
     if (p.cut && p.cut.vast) { g.font = '18px system-ui'; g.fillText('🌹🌹', 0, -40); }
     g.restore(); if (p.boost > 0) { g.font = '18px system-ui'; g.fillText('💨', x, y + 30); }
     if (ver) { g.font = 'bold 12px system-ui'; g.fillStyle = '#fff'; g.fillText(`${sy(p.m) < 28 ? '▲' : '▼'} ${Math.round(Math.abs(p.m - ik.m))} m`, x, y + (sy(p.m) < 28 ? 26 : -30)); } }
@@ -2274,7 +2280,7 @@ function tekenRace(nu = performance.now()) {
   g.font = '12px system-ui'; g.textAlign = 'left'; g.fillStyle = '#fff'; g.fillText(`jij (rood): ${plaats}e · Henk (grijs) · Luigi (groen)`, 14, 56); g.textAlign = 'center';
   if (R.tt > 0 && R.tekst) { g.font = 'bold 20px system-ui'; g.fillStyle = '#000a'; g.fillText(R.tekst, 181, 111); g.fillStyle = '#fff'; g.fillText(R.tekst, 180, 110); }
   if (!R.go && !R.uit) { g.fillStyle = '#0008'; g.fillRect(0, 200, W, 110); g.fillStyle = '#fff'; g.font = 'bold 26px system-ui'; g.fillText('Tik om te starten', 180, 240); g.font = '15px system-ui'; g.fillText('links / rechts = van baan wisselen', 180, 278); }
-  if (R.uit && R.uit != 'nee') { g.fillStyle = '#0008'; g.fillRect(0, 200, W, 90); g.fillStyle = '#fff'; g.font = 'bold 30px system-ui'; g.fillText(R.uit == 'won' ? '🏆 Gewonnen!' : R.uit == 'henk' ? '🦼 Henk wint' : '😎 Luigi wint', 180, 245); }
+  if (R.uit && R.uit != 'nee') { g.fillStyle = '#0008'; g.fillRect(0, 150, W, 170); raceSprite(g, R.uit == 'won' ? 0 : R.uit == 'henk' ? 4 : 8, 180, 205, 100); g.fillStyle = '#fff'; g.font = 'bold 30px system-ui'; g.fillText(R.uit == 'won' ? '🏆 Gewonnen!' : R.uit == 'henk' ? '👴 Henk wint' : '😎 Luigi wint', 180, 290); }
 }
 function tehuisVraag() { // zondag: welke pizza gaat er naar Huize Avondrood?
   const T = S.tehuis;
