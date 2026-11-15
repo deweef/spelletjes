@@ -93,6 +93,10 @@
   @keyframes titelzoom { from { transform: scale(1); } to { transform: scale(1.12) translate(2%, 1%); } }
   #titellogo { position: absolute; left: 50%; top: max(4vh, env(safe-area-inset-top)); width: min(86vw, 640px); transform: translateX(-50%); filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); animation: logovallen .9s cubic-bezier(.3,1.6,.5,1) both; }
   @keyframes logovallen { from { transform: translate(-50%, -60vh) rotate(-8deg); } to { transform: translate(-50%, 0) rotate(0); } }
+  #titeltik { position: relative; margin-bottom: max(40px, env(safe-area-inset-bottom)); color: #fff; font: 800 32px system-ui, sans-serif; text-shadow: 0 3px 0 #5a1e08, 0 0 14px rgba(0,0,0,.6); animation: tikpuls 1.4s ease-in-out infinite; pointer-events: none; }
+  @keyframes tikpuls { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.94); } }
+  #titelkaart.in { animation: kaartin .35s ease-out both; }
+  @keyframes kaartin { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
   #titelkaart { position: relative; margin: 0 14px max(18px, env(safe-area-inset-bottom)); max-width: 400px; background: rgba(255,247,232,.94); padding: 14px 18px; }
   #plaatscene { padding: 0; background: #000; flex-direction: column; overflow: hidden; }
   #plaatvak { position: absolute; inset: 0; overflow: hidden; }
@@ -182,7 +186,8 @@
 <div class="scherm" id="welkom"><!-- titelscherm: plaat 0 (pizza/plaat0.jpg) met het logo in de lucht -->
   <div id="titelplaat"></div>
   <img src="pizza/logo.png" id="titellogo" alt="Pizzabaas">
-  <div class="kaart" id="titelkaart">
+  <div id="titeltik">Tik om te beginnen</div>
+  <div class="kaart" id="titelkaart" style="display:none">
     <p style="background:#ffe08a;border-radius:8px;padding:5px 8px;font-size:13px;margin:0 0 8px">🧪 <b>Testversie</b> met hoofdstukken (in de maak). Aparte opslag: je gewone Pizzabaas blijft zoals hij is.</p>
     <div id="titelnieuw">
       <p style="margin:0">Je hebt een klein zaakje gehuurd aan de rand van de stad. Een oven, een kok, een ober en twee wiebelige tafeltjes. Maak er de beste pizzeria van de stad van!</p>
@@ -5227,6 +5232,8 @@ $('terug').onclick = (e) => {
 };
 
 // ---------- start ----------
+// titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
+$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
 $('begin').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
 $('beginzelf').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over
