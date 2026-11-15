@@ -628,3 +628,9 @@ Titelscherm `#welkom`: plaat 0 schuift langzaam (`#titelplaat`), logo valt erin 
 Overslaan; met opslag = ▶️ Verder spelen / 🔄 Nieuw spel (`herstart`, met bevestiging). Verhaalplaat na een hoofdstuk: `VERHAAL[H]` = { plaat, lied,
 kijk (per regel object-position in %, zodat je op de telefoon ziet wie het over gaat), tekst } → `toonPlaat(H, klaar)` (scherm `#plaatscene`, inzoomen,
 regels om de 4,2 s of met Verder) en daarna het feestscherm (`hoofdstukKlaar(H, naPlaat)`). Nu alleen H1 (plaat 1, Bella ciao, eindigt bij Luigi om de hoek).
+Titelscherm (16 nov, Marcel): eerst alleen plaat en logo met "Tik om te beginnen" (`#titeltik`), na een tik pas het kaartje (`#titelkaart`).
+Volle muziek (16 nov, Pizzabaas 2): `speelLied` speelt met echte instrumentgeluiden (`pizza/klank/*.json`, FluidR3 GM-soundfont, CC BY 3.0, zie
+`pizza/klank/LEESMIJ.md`, naamsvermelding in `toonAftiteling`; `extra/klank_knip.py`): `laadKlank` (bij de eerste tik op het titelscherm), `arrangeer(ctx, L, t0)`
+= melodie accordeon, bas om en om grondtoon/kwint, gitaar-akkoordjes op de tussentellen (groot/klein uit de melodie), strijkers zacht, galm (`muziekBus`).
+Zelfde LIED-noten, dus nieuwe liedjes klinken vanzelf vol. Nog niet geladen of `vals` = de oude piepjes. Proefopname maken: Playwright + OfflineAudioContext
+(`laadKlank(off)`, `arrangeer(off, LIED.x, 0.1)`, `startRendering`) en ffmpeg naar mp3. De race-muziek (`raceMuziek`) is nog de oude blokgolf.

@@ -5048,7 +5048,7 @@ function toonAftiteling() { // de aftiteling: alle personages, en hoe lang je er
     ${eindStand()}<p><b>Met dank aan:</b></p><table>
     ${rij('👨‍🍳', 'Mario', 'kok, zanger, pizza-acrobaat')}${rij('🕶️', 'Luigi', 'aartsrivaal, schoonvader van Marco, toch een beetje vriend')}${rij('🤵💃', 'Marco en Valentina', 'getrouwd in jouw zaak')}
     ${rij('🦼', 'Opa Henk', 'snelste opa van de stad (volgens hemzelf)')}${rij('🍦', 'Gianni IJskoud', 'de vijand van je vijand')}${rij('😎', 'Barrie de Bink', 'streken op bestelling')}
-    ${rij('🎩', 'Gerrit Gleufhoed', 'kunstliefhebber')}${rij('🤳', 'Kimberley', 'influencer')}${rij('🐈', 'Pepperoni', 'rattenvanger')}${rij('🧑‍🍳', 'Ben, Dana, Anja en Marcel', 'bedenkers en testers')}</table>
+    ${rij('🎩', 'Gerrit Gleufhoed', 'kunstliefhebber')}${rij('🤳', 'Kimberley', 'influencer')}${rij('🐈', 'Pepperoni', 'rattenvanger')}${rij('🧑‍🍳', 'Ben, Dana, Anja en Marcel', 'bedenkers en testers')}${rij('🪗', 'FluidR3 GM-soundfont', 'de instrumenten van de muziek (Frank Wen, CC BY 3.0)')}</table>
     <p class="buurt">Je kunt gewoon doorspelen, of opnieuw beginnen (📊 Gisteren). Grazie mille!</p><button class="groot" id="verder">Doorspelen</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); controleerDoelen(); }; kassa(); setTimeout(kassa, 300);
 }
@@ -5198,8 +5198,52 @@ const LIED = {
     bas: 'A2:8 A2:8 A2:5 E2:4 A2:6 D3:7 A2:7 E2:5 E2:2 A2:8' } };
 let liedTot = 0;
 const nootHz = (n) => { const m = n.match(/^([A-G])(#?)(\d)$/); return 440 * 2 ** (({ C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 }[m[1]] + (m[2] ? 1 : 0) + (+m[3] - 4) * 12) / 12); };
+// ---------- volle muziek (16 nov, Marcel: "klinkt als een midi-bestand van vroeger") ----------
+// Echte instrumentgeluiden uit de FluidR3-soundfont (Creative Commons Naamsvermelding 3.0, via github.com/gleitz/midi-js-soundfonts),
+// om de 3 halve tonen in pizza/klank/<instrument>.json (extra/klank_knip.py); daartussen wordt de toonhoogte verschoven.
+// Arrangement uit dezelfde LIED-noten: melodie = accordeon, bas = contrabas om en om grondtoon/kwint ("hoempa"), gitaar-akkoordjes op de
+// tussentellen (groot of klein akkoord: wat de melodie in die maat speelt), strijkers zacht eronder, en wat galm. Geen klank geladen = de oude piepjes.
+const INSTR = ['accordion', 'acoustic_bass', 'acoustic_guitar_nylon', 'string_ensemble_1'], KLANK = {}; let klankLaden = null;
+function laadKlank(ctx = ac) {
+  if (klankLaden) return klankLaden;
+  klankLaden = Promise.all(INSTR.map(async (ins) => { const j = await (await fetch('pizza/klank/' + ins + '.json')).json(), s = {};
+    await Promise.all(Object.entries(j).map(async ([m, b64]) => { const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)); s[m] = await ctx.decodeAudioData(bin.buffer); }));
+    KLANK[ins] = s; })).then(() => true, () => { klankLaden = null; return false; });
+  return klankLaden;
+}
+const klankKlaar = () => INSTR.every((i) => KLANK[i]);
+const nootMidi = (n) => { const m = n.match(/^([A-G])(#?)(\d)$/); return ({ C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]]) + (m[2] ? 1 : 0) + (+m[3] + 1) * 12; };
+const galmen = new WeakMap();
+function muziekBus(ctx) { // compressor + galm (zelf gemaakte nagalm van ruis), één keer per context
+  if (galmen.has(ctx)) return galmen.get(ctx);
+  const in_ = ctx.createGain(), comp = ctx.createDynamicsCompressor(), nat = ctx.createGain(), galm = ctx.createConvolver(), lang = 1.6, n = Math.floor(ctx.sampleRate * lang), ir = ctx.createBuffer(2, n, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); }
+  galm.buffer = ir; nat.gain.value = 0.22; in_.connect(comp); in_.connect(galm).connect(nat).connect(comp); const vol = ctx.createGain(); vol.gain.value = 2; comp.connect(vol).connect(ctx.destination); galmen.set(ctx, in_); return in_;
+}
+function sample(ctx, uit, ins, midi, t, dur, vol, los = 0.25) { // één noot: dichtstbijzijnde opgenomen noot, verschoven naar de goede hoogte
+  const S_ = KLANK[ins]; if (!S_) return; let beste = null, af = 99; for (const m in S_) { const d = Math.abs(midi - m); if (d < af) { af = d; beste = m; } }
+  const b = ctx.createBufferSource(), gn = ctx.createGain(); b.buffer = S_[beste]; b.playbackRate.value = 2 ** ((midi - beste) / 12);
+  gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.012); gn.gain.setValueAtTime(vol, t + Math.max(0.02, dur)); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur + los);
+  b.connect(gn).connect(uit); b.start(t); b.stop(t + dur + los + 0.05);
+}
+function arrangeer(ctx, L, t0) { // speelt het hele lied vanaf t0, geeft het eind terug
+  const uit = muziekBus(ctx), tel = L.tempo, mel = [];
+  let t = t0; for (const st of L.noten.split(' ')) { const [n, d] = st.split(':'), dur = +d * tel; if (n != '-') { const m = nootMidi(n); mel.push([t, t + dur, m]); sample(ctx, uit, 'accordion', m, t, dur * 0.95, 0.42, 0.18); } t += dur; }
+  let eind = t; if (!L.bas) return eind;
+  t = t0; for (const st of L.bas.split(' ')) { const [n, d] = st.split(':'), tellen = +d, dur = tellen * tel;
+    if (n != '-') { const r = nootMidi(n), pc = new Set(mel.filter(([a, b]) => a < t + dur && b > t).map(([, , m]) => (m - r + 120) % 12));
+      const terts = pc.has(4) ? 4 : pc.has(3) ? 3 : null, akk = [r + 12, ...(terts ? [r + 12 + terts] : []), r + 19, r + 24].map((m) => m < 50 ? m + 12 : m);
+      sample(ctx, uit, 'string_ensemble_1', r + 12, t, dur * 0.98, 0.1, 0.4); sample(ctx, uit, 'string_ensemble_1', r + 19, t, dur * 0.98, 0.07, 0.4);
+      for (let k = 0; k < tellen; k++) { const tt = t + k * tel;
+        if (k % 2 == 0) sample(ctx, uit, 'acoustic_bass', k % 4 == 2 ? r + 7 : r, tt, tel * 0.9, 0.4, 0.12); // hoempa: grondtoon, kwint
+        else akk.forEach((m, i) => sample(ctx, uit, 'acoustic_guitar_nylon', m, tt + i * 0.012, tel * 0.6, 0.16, 0.15)); } } // akkoordje op de tussentel
+    t += dur; }
+  return Math.max(eind, t);
+}
 function speelLied(id, vals) { // vals = zo zing jij (een beetje ernaast)
   wekGeluid(); if (!ac) return; const L = LIED[id]; let t = Math.max(ac.currentTime + 0.05, liedTot);
+  if (!vals && klankKlaar()) { liedTot = arrangeer(ac, L, t); meld(`🎵 ${L.n}`, 3000); return; }
+  if (!vals) laadKlank(); // de volgende keer klinkt het vol
   const stem = (spoor, type, v, oct) => { let tt = t; for (const st of spoor.split(' ')) { const [n, d] = st.split(':'), dur = +d * L.tempo;
       if (n != '-') { let f = nootHz(n) * oct; if (vals) f *= 2 ** ((Math.random() - 0.5) * 0.12 * (Math.random() < 0.4 ? 3 : 1)); const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f;
         if (type == 'triangle') { const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 5.5; lg.gain.value = f * 0.006; lfo.connect(lg).connect(o.frequency); lfo.start(tt); lfo.stop(tt + dur); } // vibrato
@@ -5233,7 +5277,7 @@ $('terug').onclick = (e) => {
 
 // ---------- start ----------
 // titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
-$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
+$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac) laadKlank(); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
 $('begin').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
 $('beginzelf').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over
