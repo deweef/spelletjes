@@ -401,3 +401,13 @@ rood gordijn, Pepperoni). Stijlopdracht: met `pizza/portretten.png` en `pizza/st
 `pizza/plaat-N-chatgpt.png`; in het spel als scène (zoom/schuiven, tekstregels, muziek).
 Binnen (15 nov): 0 titel (`pizza/plaat0.jpg`, titelscherm), 1 opening tweede zaak (`pizza/plaat1.jpg`, scène na H1), logo (`pizza/logo.png`), dartpijltje
 (`pizza/doel.png`, doelknop), race-vel (`pizza/race.png`). Nog nodig: 2 krant, 3 inval, 4 bruiloft, 5 startlijn stadsrace, 6 vlag op de toren, 7 aftiteling.
+Opdrachten voor ChatGPT (15 nov; ChatGPT viel over de naam Mario, dus de kok heet daarin "de pizzabaas"; in het spel blijft hij Mario). Elke opdracht
+begint met de stijlregel: "Pixel art in dezelfde stijl als de vorige platen (warm, vrolijk, gedetailleerd, dikke donkere omlijning), liggend 16:9, geen tekst
+of letters in beeld." Figuren: de pizzabaas (dikke Italiaanse kok, zwarte krulsnor, witte koksmuts, witte koksjas met zwarte knopen, rode halsdoek, rood
+schort); Luigi (slank, zwart achterovergekamd haar, zwarte zonnebril, groen pak); Barrie (grijs achterovergekamd haar, blauw trainingspak met witte strepen,
+gouden ketting); Opa Henk (platte pet, bril, witte snor, bruin vest); Marco (bruin krulhaar, wit overhemd, rood gilet); Valentina (lang donker krulhaar,
+gouden oorringen, zwart topje, rode rok); Gianni (kaal, grote witte snor, witte jas, blauw sjaaltje); Mevrouw Bosch (directrice, grijs knotje, bril,
+paars mantelpakje); jij (jongen met bruin piekhaar en blauw T-shirt); Pepperoni (dikke rode kater). De volledige opdrachten staan in de chat van 15 nov
+en hieronder kort: 2 krant (voorpagina, kop leeg), 3 inval (nacht, zaklampen, Barrie door het raam), 4 bruiloft (Marco en Valentina, pizzataart, Luigi
+huilt), 5 startlijn (Henk, Luigi, Gianni, jij op scootmobielen, Mevrouw Bosch met de vlag), 6 vlag op de scheve Toren van Pizza met vuurwerk,
+7 aftiteling (iedereen buigt voor een rood gordijn, Pepperoni vooraan).
