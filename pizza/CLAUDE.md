@@ -589,3 +589,6 @@ Jukebox per buurt (`LIED[k].buurt`, ⭐ in het lijstje): eerste zaak meezingers 
 Bergkoning, Wilhelm Tell-galop), plein (Tarantella, Toreador), villa klassiek (Eine kleine Nachtmusik, Canon). Alleen vrije (oude) melodieën: moderne
 hits (Hazes, André van Duijn, Senza una donna) niet, die zijn auteursrechtelijk beschermd. Stadskaart: label van de eerste zaak op het dak
 (`labelBoven`, `.plek.boven`), zodat het niet botst met het pand aan het plein.
+Pizzabaas 2 (16 nov): `pizzabaas2.html` = testversie met hoofdstukken (plan in `pizza/PLAN.md`, "Pizzabaas 2"). Eigen opslag `pizzabaas2:<naam>`
+(geen overname van de oude stand), banner "Testversie" op het welkomscherm, niet op de startpagina. Nieuwe dingen vanaf nu daarin; `pizzabaas.html`
+alleen nog bugfixes (die ook in pizzabaas2 zetten).

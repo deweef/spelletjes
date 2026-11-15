@@ -349,3 +349,46 @@ zitten nog niet (de rok wordt een blok; zitten van opzij hebben we al van Gemini
 - Non (29 okt, ChatGPT, zonder voorbeeld gemaakt): onderdelenvel van voren `pizza/non-onderdelen-chatgpt.png`; idee: nieuwe klant of vast figuur
   ("Zuster Benedicta komt een pizza zegenen"). Nog nodig: opzij lopen en zitten.
 - Nieuwe gast (1 nov): dame in rode jurk met blond opgestoken haar, parels, rode pumps, zittend van opzij: `pizza/dame2-opzij-chatgpt.png` (ChatGPT zonder voorbeeldplaatje, lijkt op de villadame maar is anders). Nog nodig: onderdelenvel van voren + van opzij lopen; dan als nieuwe klantrij.
+
+## Pizzabaas 2: hoofdstukken, 90 doelen en de vlag (afspraak 16 nov)
+Testversie: `pizzabaas2.html` (kopie van `pizzabaas.html`, eigen opslag `pizzabaas2:<naam>`, niet op de startpagina, link:
+https://deweef.github.io/spelletjes/pizzabaas2.html). Nieuwe dingen komen vanaf nu in pizzabaas2; de gewone Pizzabaas blijft staan (alleen bugfixes).
+Als de testversie goed is, wordt hij `pizzabaas.html` (opnieuw beginnen is prima: dan zie je alle tussenfilmpjes).
+
+Opzet:
+- 6 hoofdstukken; nieuwe onderdelen gaan pas open in hun hoofdstuk. Per hoofdstuk 15 doelen, er zijn er ~10 nodig voor de afsluiter (filmpje).
+- Doelen geven (bijna) geen geld, maar **vlagfiches** in drie kleuren: 🟢 groen = eerlijk ondernemen, ⚪ wit = goed voor de stad, 🔴 rood = de
+  schimmige kant. Klein doel 3, middel 5, groot 10. Vlagfiches liggen in de vlagkist en kun je **nooit verliezen** (niet inzetten).
+- Casino helpt: winnen op de 0 = +3 🟢, winnen op een getal = +2 🔴, een twaalf gewonnen = +1 ⚪ (bovenop het gewone geld). Alleen erbij.
+- Einde: 100 van elke kleur → naar de bouwplaats → omgesmolten tot de Italiaanse vlag → gehesen op de Toren van Pizza → aftiteling. Uitgespeeld
+  (doorspelen mag). Afstellen zodat je met ~80% van de doelen + wat casino 100 per kleur haalt. Speelduur doel: 10-15 uur.
+- ❓ = geheim doel: alleen een vage hint.
+- Boekhouder (beloning hoofdstuk 3): zet elke avond geld boven € 500 op de bank en volgt (als je wilt) de tip van Sjonnie: minder sleur.
+
+### H1 Het eerste pizzeriaatje (afsluiter: je tweede zaak gaat open, Mario's speech)
+🟢 Tafel met 4 stoelen (3) · 🟢 eerste werkdag (3) · 🟢 eigen pizza verzinnen (5) · 🟢 kleedje en kaarsje (3) · 🟢 30 tevreden klanten op één dag (5) ·
+🟢 populariteit 40 (5) · 🟢 zelf voorraad bestellen, Mario uit (5) · 🟢 10 vlekken opruimen op één dag (3) · 🔴 Luigi's rat vangen (3) ·
+🟢 tweede oven of ober (5) · 🟢 een pizza van 5 sterren (10) · ⚪ voedselbank helpen (5) · ⚪ straatmuzikant laten spelen (3) · 🟢 6 pizza's op de kaart (5) ·
+❓🟢 "De oven wordt heel boos als je hem plaagt" (7× tikken = pizzaregen) (5)
+### H2 De stad in (afsluiter: de Gouden Pizzaschep of de wedstrijd tegen Luigi gewonnen: de krant)
+🟢 stad bezoeken (3) · 🟢 geld op de bank (3) · 🟢 korting op de markt (3) · 🟢 acrobatiek 10× vangen (5) · 🟢 eetwedstrijd winnen (5) · 🟢 manager (5) ·
+🟢 bezorgdienst (5) · 🟢 8 pizza's stapelen (5) · 🟢 reclamebord (3) · ⚪ Pizza Kimberley (3) · 🟢 wedstrijd tegen Luigi winnen (10) · 🟢 Gouden Pizzaschep (10) ·
+⚪ meesterwerk lenen (3) · ⚪ aangifte doen (3) · ❓⚪ "Zaag eens iets doormidden" (goochelaar) (3)
+### H3 De achterkamer (afsluiter: de grote inval, minispel alles verstoppen; beloning: de boekhouder)
+🔴 achterkamer ontdekken (5) · 🔴 eerste vervalsing (5) · 🔴 verkopen aan Gerrit (5) · 🔴 verkopen aan de gravin (10) · 🔴 drukpers opknappen (5) ·
+🔴 valse bonnen (3) · 🔴 nepgeld drukken (3) · 🔴 roulette spelen (3) · 🔴 winnen op een getal (10) · 🔴 Château Kraanwater (5) · 🔴 Barrie leren kennen (5) ·
+🔴 crypto kopen (3) · 🔴 een tip van Sjonnie die klopt (5) · 🔴 de kunstrechercheur ontlopen (5) · ❓🔴 "Rood, zwart of… iets anders?" (gokker op groen) (5)
+### H4 Oorlog met Luigi (afsluiter: de bruiloft van Marco en Valentina)
+🔴 3 streken van Barrie (5) · 🔴 een minispel van Barrie winnen (5) · 🔴 Bobby op de deurmat (3) · 🔴 de kleerkasten sturen (5) · 🔴 de crew betalen met nepgeld (10) ·
+🟢 Gino's tip met flyers (5) · ⚪ vrede met limoncello of grappa (5) · ⚪ pizza met een hartje (3) · ⚪ tafeltje voor twee (5) · ⚪ "liefde kent geen grenzen" (5) ·
+🔴 overvallen worden (3) · ⚪ de ruzie onder 20 houden, een week lang (5) · ⚪ de opera-man laten zingen (3) · ❓🟢 "Mario zingt alleen als je in de juiste
+volgorde belt" (oven → bel → jukebox) (5) · ⚪ de bruiloft (10)
+### H5 IJs en ouderen (afsluiter: de grote stadsrace, iedereen doet mee)
+🟢 ijssalon kopen (10) · 🟢 100 ijsjes op één dag (5) · 🟢 vitrine vol (3) · 🟢 5 spullen in de ijssalon (5) · 🟢 warme chocomel (3) · 🔴 deal met Gianni (3) ·
+⚪ Gianni's ijskar wegsturen (3) · ⚪ opa Henk verslaan (5) · ⚪ race zonder botsen (10) · ⚪ topper voor Huize Avondrood (5) · ⚪ 4 zondagen tevreden (10) ·
+⚪ Pepperoni adopteren (3) · ⚪ Pepperoni vangt de rat (5) · ⚪ een adventsdeurtje of feestdag (3) · ❓🟢 "Wie betaalt, bepaalt de muziek" (jukebox) (3)
+### H6 De Toren van Pizza (afsluiter: de vlag hijsen, aftiteling)
+🟢 derde en vierde zaak (10) · 🟢 overal een manager (5) · 🟢 populariteit 80 (10) · 🟢 in elke buurt een pizza van 5 sterren (10) · 🟢 vier verdiepingen
+toren (4 × 5) · 🟢 lint doorknippen (10) · 🟢 € 25.000 (10) · 🟢 3 Gouden Pizzascheppen (10) · 🟢 3 sterren van de sterrenchef (10) · 🏁 100 van elke kleur → vlag.
+Volgorde van bouwen: (1) hoofdstukken + doelen + vlagkist, (2) onderdelen per hoofdstuk op slot, (3) casino-vlagfiches, (4) afsluiters en filmpjes,
+(5) boekhouder, (6) vlag en aftiteling. Waarden afstellen met een simulatie.
