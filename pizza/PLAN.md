@@ -369,7 +369,7 @@ Opzet:
 
 ### H1 Het eerste pizzeriaatje (afsluiter: je tweede zaak gaat open, Mario's speech)
 🟢 Tafel met 4 stoelen (3) · 🟢 eerste werkdag (3) · 🟢 eigen pizza verzinnen (5) · 🟢 kleedje en kaarsje (3) · 🟢 30 tevreden klanten op één dag (5) ·
-🟢 populariteit 40 (5) · 🟢 zelf voorraad bestellen, Mario uit (5) · 🟢 10 vlekken opruimen op één dag (3) · 🔴 Luigi's rat vangen (3) ·
+🟢 populariteit 40 (5) · 🟢 zelf voorraad bestellen, Mario uit (5) · 🟢 5 vlekken opruimen op één dag (3) · 🔴 Luigi's rat vangen (3) ·
 🟢 tweede oven of ober (5) · 🟢 een pizza van 5 sterren (10) · ⚪ voedselbank helpen (5) · ⚪ straatmuzikant laten spelen (3) · 🟢 6 pizza's op de kaart (5) ·
 ❓🟢 "De oven wordt heel boos als je hem plaagt" (7× tikken = pizzaregen) (5)
 ### H2 De stad in (afsluiter: de Gouden Pizzaschep of de wedstrijd tegen Luigi gewonnen: de krant)

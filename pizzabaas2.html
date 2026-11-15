@@ -742,7 +742,7 @@ function eindeDag() {
   S.lief = Math.max(0, (S.lief || 0) - 0.3);
   if (S.boekhouder && hoofd() >= 4 && S.geld > 500) { const st = Math.floor(S.geld - 500); S.geld -= st; S.bankSaldo = (S.bankSaldo || 0) + st; S.boekGestort = st; } else S.boekGestort = 0; // de boekhouder brengt het geld weg
   setTimeout(controleerDoelen, 50); // ook als het dagoverzicht anders gesloten wordt
-  if ((tel.opgeruimd || 0) >= 10) mijl('vlekken'); if (feestdag()) mijl('feest'); S.rustigeDagen = (S.ruzie || 0) < 20 ? (S.rustigeDagen || 0) + 1 : 0; if (S.rustigeDagen >= 7) mijl('rustig');
+  if ((tel.opgeruimd || 0) >= 5) mijl('vlekken'); if (feestdag()) mijl('feest'); S.rustigeDagen = (S.ruzie || 0) < 20 ? (S.rustigeDagen || 0) + 1 : 0; if (S.rustigeDagen >= 7) mijl('rustig');
   if (S.geld > 1000 && !S.sabotage && !(S.luigiRust > S.dag) && !(S.verplicht || []).includes('luigiJaloers') && kans(Math.min(0.35, (S.geld - 1000) / 4000 + 0.08))) S.verplicht = [...(S.verplicht || []), 'luigiJaloers']; // het gaat te goed: Luigi wordt jaloers
   if (S.ruzie > 0) { if (!S.sabotage && !(S.luigiRust > S.dag) && kans(S.ruzie / 300)) S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.ruzie = Math.max(0, S.ruzie - 5); } // ruzie met Luigi: hij slaat terug, en het zakt langzaam
   if (totaal > 300 && !(S.luigiRust > S.dag)) S.ruzie = Math.min(100, (S.ruzie || 0) + Math.min(8, Math.round(totaal / 120))); // Luigi is jaloers als het goed gaat, ook zonder ruzie
@@ -3311,11 +3311,11 @@ function toonStad(plek) {
       h += `<p>Dit is <b>jouw pizzeria</b>${nr ? ' (' + esc(BUURT[p.buurt].n.toLowerCase()) + ')' : ''}. ${nr == S.zaak ? 'Hier sta je vandaag zelf.' : z.manager ? esc(MANAGER[z.manager.wie].n) + ' runt hem voor je.' : 'Er is geen manager: als je er niet bent, blijft hij dicht.'}</p>`;
       if (nr != S.zaak) knoppen = `<button class="knop rood" id="wissel" ${modus != 'inrichten' ? 'disabled' : ''}>🍕 Naar deze zaak${modus != 'inrichten' ? ' (morgenochtend)' : ''}</button>`;
       else knoppen = `<button class="knop rood" id="naarzaak">🍕 Terug naar binnen</button>`; }
-    else { const B = BUURT[p.buurt], m = S.manager, mag = m && (m.dagen || 0) >= 7;
+    else { const B = BUURT[p.buurt], m = S.manager, mag = m && (m.dagen || 0) >= MANAGERDAGEN;
       h += `<p>Een leeg pand${p.buurt == 'studenten' ? ' in een smal straatje vol fietsen' : p.buurt == 'toeristen' ? ' aan het plein, vlak bij de fontein' : ' met een grote tuin, in de villawijk'}. ${esc(B.uitleg)}</p>
         <p>Borg en verbouwing: <b>€ ${p.borg}</b>, daarna <b>€ ${p.huur} huur per dag</b>.</p>
         <p class="buurt" style="${S.geld < p.borg ? 'color:#b33a1e;font-weight:bold' : ''}">💶 De huisbaas wil de borg <b>contant</b> (hij vertrouwt geen banken). Je hebt € ${Math.floor(S.geld)} in de kassa${(S.bankSaldo || 0) >= 1 ? ` en € ${Math.floor(S.bankSaldo)} op de bank` : ''}.${S.geld < p.borg && S.geld + (S.bankSaldo || 0) >= p.borg ? ' Haal eerst geld van de bank (Banca Fortuna → ⬆️ Opnemen).' : ''}</p>
-        <p class="buurt">${mag ? `Je manager ${esc(MANAGER[m.wie].n)} kan je huidige zaak runnen terwijl jij hier begint.` : 'Een tweede pizzeria kan pas als je een manager hebt die minstens een week bij je werkt (Personeel): die runt dan je zaak als jij er niet bent.'}</p>`;
+        <p class="buurt">${mag ? `Je manager ${esc(MANAGER[m.wie].n)} kan je huidige zaak runnen terwijl jij hier begint.` : m ? `Een tweede pizzeria kan pas als je manager ${esc(MANAGER[m.wie].n)} al ${MANAGERDAGEN} dagen bij je werkt: die runt dan je zaak als jij er niet bent. Nog ${MANAGERDAGEN - (m.dagen || 0)} dag${MANAGERDAGEN - (m.dagen || 0) > 1 ? 'en' : ''} te gaan!` : `Een tweede pizzeria kan pas als je een manager hebt die minstens ${MANAGERDAGEN} dagen bij je werkt (Personeel, vanaf populariteit 40): die runt dan je zaak als jij er niet bent.`}</p>`;
       knoppen = `<button class="knop rood" id="huren" ${!mag || S.geld < p.borg ? 'disabled' : ''}>🔑 Huren (€ ${p.borg} contant)</button>`; } }
   if (plek == 'wissel') { h += `<p>Een smal winkeltje met een knipperend bord: <b>CRYPTO → CASH. GEEN VRAGEN.</b> Achter de toonbank zit Snelle Sjonnie met drie telefoons.
       "${pak(['Wisselen? Tien procent voor mij, de rest voor jou. Eerlijk is eerlijk.', 'Ik vraag niks, jij vraagt niks. Zo houden we het gezellig.', 'DogePizza? Mooi spul. Ik heb er zelf ook nog een paar miljoen.'])}"</p>
@@ -3824,7 +3824,7 @@ function stap(dt) {
       if (Math.random() < 0.35) zeg(m, R(ZEG.eten));
     }
   }
-  for (const m of mensen) if (m.st == 'eet' && Math.random() < dt * 0.014 && vlekken.length < 8) { // er valt wat
+  for (const m of mensen) if (m.st == 'eet' && Math.random() < dt * 0.022 && vlekken.length < 8) { // er valt wat
     const p = stoelPlekken(m.tafel)[m.stoel]; if (p) nieuweVlek(p.sx - RICHTING[p.kant][0] * 0.7 + (Math.random() - 0.5) * 0.4, p.sy - RICHTING[p.kant][1] * 0.7 + (Math.random() - 0.5) * 0.4);
   }
   for (const v of vlekken) { v.t += dt; if (v.soort == 'scherven') for (const m of mensen) if ((m.st == 'loop' || m.st == 'weg') && !m.au && Math.hypot(m.x - v.x, m.y - v.y) < 0.4) { m.au = true; zeg(m, R(['Au! Scherven!', 'Auw, mijn voet!', 'Wie ruimt dit op?!'])); rep(-1); } }
@@ -4824,8 +4824,9 @@ function zaakWaarde() {
 // Pizzabaas 2 (16 nov): 6 hoofdstukken, elk 15 doelen; doelen geven vlagfiches (k: g groen eerlijk, w wit goed voor de stad, r rood schimmig; f = aantal).
 // Een hoofdstuk is af bij HOOFDNODIG doelen en zijn afsluiter (HOOFDSTUK[h].af). Doelen van latere hoofdstukken tellen pas als je daar bent.
 const HOOFDNODIG = 10;
+const MANAGERDAGEN = 3; // zoveel dagen moet je manager bij je werken voor je een tweede zaak opent (was 7; 15 nov)
 const HOOFDSTUK = [null,
-  { n: 'Het eerste pizzeriaatje', ik: '🍕', af: () => S.zaken.length >= 2, afn: 'Open je tweede pizzeria (huur een pand in de stad)' },
+  { n: 'Het eerste pizzeriaatje', ik: '🍕', af: () => S.zaken.length >= 2, afn: `Open je tweede pizzeria (huur een pand in de stad). Daarvoor heb je een manager nodig die ${MANAGERDAGEN} dagen bij je werkt` },
   { n: 'De stad in', ik: '🗺️', af: () => (S.scheppen || 0) >= 1 || (S.wedWinst || 0) >= 1, afn: 'Win de Gouden Pizzaschep of de pizzawedstrijd tegen Luigi' },
   { n: 'De achterkamer', ik: '🗝️', af: () => heb('inval'), afn: 'Overleef de grote inval (komt vanzelf als je 10 doelen hebt)' },
   { n: 'Oorlog met Luigi', ik: '😡', af: () => S.liefde && S.liefde.fase >= 5, afn: 'Het verhaal van Marco en Valentina loopt af' },
@@ -4841,13 +4842,13 @@ const DOELEN = [
   { id: 'dertig', tip: "Meer tafels, een tweede ober en lekkere pizza's: dan krijg je meer tevreden klanten.", h: 1, k: 'g', f: 5, n: 'Haal 30 tevreden klanten op één dag', ok: () => (S.besteDag || 0) >= 30 },
   { id: 'rep40', tip: "Tevreden klanten vertellen het door. Gezellige tafels en lekkere pizza's helpen!", h: 1, k: 'g', f: 5, n: 'Bereik populariteit 40', ok: () => S.rep >= 40 },
   { id: 'zelfbestel', tip: "Tik op 📦 Voorraad, zet het vinkje van Mario uit en bestel zelf. 'Zoals gisteren' is handig.", h: 1, k: 'g', f: 5, n: 'Bestel zelf je voorraad (zet Mario\'s automatische inkoop uit)', ok: () => heb('zelfbesteld') },
-  { id: 'vlekken', tip: "Tijdens het werk vallen er dingen op de grond. Tik op een vlek om hem op te ruimen.", h: 1, k: 'g', f: 3, n: 'Ruim 10 vlekken op in één dag', ok: () => heb('vlekken') },
+  { id: 'vlekken', tip: "Tijdens het werk vallen er dingen op de grond. Tik op een vlek om hem op te ruimen.", h: 1, k: 'g', f: 3, n: 'Ruim 5 vlekken op in één dag', ok: () => heb('vlekken') },
   { id: 'rat', tip: "Komt er een rat van Luigi? Tik erop om hem te vangen!", h: 1, k: 'r', f: 3, n: 'Vang een rat van Luigi', ok: () => heb('rat') },
   { id: 'personeel', tip: "Tik op Personeel of Oven: met twee obers of twee ovens gaat alles sneller.", h: 1, k: 'g', f: 5, n: 'Neem een tweede ober of een tweede oven', ok: () => S.obers >= 2 || S.ovens >= 2 },
   { id: 'ster5', tip: "Maak een pizza met van alles erop. Op de kaart zie je de sterren: probeer er 5 te halen.", h: 1, k: 'g', f: 10, n: 'Verzin een pizza van 5 sterren', ok: () => S.menu.some((p) => p.sinds && pizzaSter(p) >= 5) },
   { id: 'voedselbank', h: 1, k: 'w', f: 5, n: 'Help de voedselbank', ok: () => antw('voedselbank:0') || antw('voedselbank:1') },
   { id: 'muzikant', h: 1, k: 'w', f: 3, n: 'Laat de straatmuzikant spelen', ok: () => antw('muzikant:0') },
-  { id: 'zes', tip: "Verzin meer pizza's: voor elk soort klant iets lekkers.", h: 1, k: 'g', f: 5, n: 'Zet 6 pizza\'s op de kaart', ok: () => S.menu.length >= 6 },
+  { id: 'zes', tip: "Verzin meer pizza's: voor elk soort klant iets lekkers.", h: 2, k: 'g', f: 5, n: 'Zet 6 pizza\'s op de kaart', ok: () => S.menu.length >= 6 },
   { id: 'pizzaregen', h: 1, k: 'g', f: 5, geheim: 'De oven wordt heel boos als je hem plaagt…', n: 'Pizzaregen! (7× snel op de oven tikken)', ok: () => heb('pizzaregen') },
   // H2 De stad in
   { id: 'stad', tip: "Tik linksboven op 🗺️ om de stad in te gaan.", h: 2, k: 'g', f: 3, n: 'Ga de stad in (🗺️)', ok: () => !!S.stad },
@@ -4855,7 +4856,7 @@ const DOELEN = [
   { id: 'markt', tip: "Op de markt kun je korting kopen op een ingrediënt.", h: 2, k: 'g', f: 3, n: 'Koop korting op de markt', ok: () => heb('markt') },
   { id: 'acro', h: 2, k: 'g', f: 5, n: 'Pizza-acrobatiek: 10 keer vangen', ok: () => (S.acroBest || 0) >= 10 },
   { id: 'eet', h: 2, k: 'g', f: 5, n: 'Win de eetwedstrijd bij het studentenhuis', ok: () => heb('eet') },
-  { id: 'manager', tip: "Met populariteit 40 kun je bij Personeel een manager aannemen. Die heb je nodig voor een tweede zaak!", h: 2, k: 'g', f: 5, n: 'Neem een manager aan', ok: () => !!S.manager || S.zaken.some((z) => z.manager) },
+  { id: 'manager', tip: "Met populariteit 40 kun je bij Personeel een manager aannemen. Die heb je nodig voor een tweede zaak!", h: 1, k: 'g', f: 5, n: 'Neem een manager aan', ok: () => !!S.manager || S.zaken.some((z) => z.manager) },
   { id: 'bezorg', h: 2, k: 'g', f: 5, n: 'Start een bezorgdienst', ok: () => !!S.bezorg },
   { id: 'toren8', h: 2, k: 'g', f: 5, n: 'Stapel 8 pizza\'s bij de bouwplaats', ok: () => (S.torenBest || 0) >= 8 },
   { id: 'reclame', h: 2, k: 'g', f: 3, n: 'Hang een reclamebord op', ok: () => !!S.reclame },
@@ -5050,14 +5051,14 @@ function hoofdstukKlaar(H) { // afsluiter (de filmpjes komen later): feestelijk 
 function toonDoelen() {
   S.doelen = S.doelen || {}; S.vlag = S.vlag || { g: 0, w: 0, r: 0 }; const H = hoofd(), mijn = DOELEN.filter((d) => d.h == H), af = mijn.filter((d) => S.doelen[d.id]).length;
   const balk = (n, max, kl) => `<span style="display:inline-block;width:90px;height:10px;background:#0002;border-radius:5px;vertical-align:middle;overflow:hidden"><span style="display:block;height:100%;width:${Math.min(100, n / max * 100)}%;background:${kl}"></span></span>`;
-  const rij = (d) => { const ok = S.doelen[d.id]; return `<tr style="${ok ? 'opacity:.6' : ''}"><td>${ok ? '✅' : d.geheim ? '❓' : '⬜'} ${esc(ok || !d.geheim ? d.n : d.geheim)}</td><td style="white-space:nowrap">${VLAGKLEUR[d.k][0]} ${d.f}</td></tr>`; };
+  const rij = (d) => { const ok = S.doelen[d.id]; return `<tr style="${ok ? 'opacity:.6' : ''}"><td>${ok ? '🍕' : d.geheim ? '❓' : '⬜'} ${esc(ok || !d.geheim ? d.n : d.geheim)}</td><td style="white-space:nowrap">${VLAGKLEUR[d.k][0]} ${d.f}</td></tr>`; };
   $('eindkaart').innerHTML = `<h1>🎯 Hoofdstuk ${H}: ${esc(HOOFDSTUK[H].n)}</h1>
-    <p class="buurt">Haal ${HOOFDNODIG} van de 15 doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}. Dan is het hoofdstuk uitgespeeld. ${balk(af, HOOFDNODIG, '#c0392b')} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}${HOOFDSTUK[H].afn ? ` ${HOOFDSTUK[H].af() ? '✅' : '⬜'}` : ''}</p>
+    <p class="buurt">Haal ${HOOFDNODIG} van de 15 doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}. Dan is het hoofdstuk uitgespeeld. ${balk(af, HOOFDNODIG, '#c0392b')} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}${HOOFDSTUK[H].afn ? ` ${HOOFDSTUK[H].af() ? '🍕' : '⬜'}` : ''}</p>
     <div style="background:#fff7e0;border-radius:8px;padding:6px 8px;margin:6px 0"><b>🇮🇹 Vlagkist</b> (elk doel geeft vlagfiches; ${VLAGNODIG} van elke kleur = de vlag op de toren)<br>
       ${Object.entries(VLAGKLEUR).map(([k, v]) => `${v[0]} ${balk(S.vlag[k], VLAGNODIG, v[3])} <b>${S.vlag[k]}</b>/${VLAGNODIG} <small>${v[2]}</small>`).join('<br>')}</div>
     <table>${mijn.map(rij).join('')}</table>
     ${H > 1 ? `<details style="margin-top:8px"><summary>Eerdere hoofdstukken (nog te halen: dat mag altijd)</summary><table>${DOELEN.filter((d) => d.h < H).map(rij).join('')}</table></details>` : ''}
-    <p class="buurt">${[1, 2, 3, 4, 5, 6].map((h) => `${h < H ? '✅' : h == H ? '▶️' : '🔒'} ${h}. ${h <= H ? esc(HOOFDSTUK[h].n) : '…'}`).join('<br>')}</p>
+    <p class="buurt">${[1, 2, 3, 4, 5, 6].map((h) => `${h < H ? '🍕' : h == H ? '▶️' : '🔒'} ${h}. ${h <= H ? esc(HOOFDSTUK[h].n) : '…'}`).join('<br>')}</p>
     <button class="groot" id="verder">Verder</button><button class="knop" id="rondeweer" style="margin-top:8px">👨‍🍳 Rondleiding van Mario</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen');
   $('rondeweer').onclick = () => { $('einde').classList.add('verborgen'); rondleiding(); };
