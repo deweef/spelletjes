@@ -558,3 +558,6 @@ Praat-als-een-piraat-dag (19-9), Werelddierendag, Halloween, Dag van de Vriendel
 gezinnetjes), `zeg` (35% van de klantwolkjes wordt een piraten/Halloween-zin, in `zeg()`); `vandaag.feest`. Staan op het kalenderblad.
 Jukebox (15 nov): tik = keuzelijstje (`jukeboxKeuze`) met alle liedjes, € 1 per liedje uit de kassa ("wie drukt, betaalt"), komt na het huidige liedje;
 nieuwe liedjes `LIED.ode` (Ode an die Freude), `elise` (Für Elise), `jacob` (Vader Jacob). Geheime combinatie blijft.
+Race (15 nov, Marcel won te makkelijk): Henk 8,45 en Luigi 8,7 m/s, ze sturen minder vaak te laat (16% / 12%); wie achter je rijdt en sneller is, rijdt
+je aan ("BOEM! Henk rijdt achterop!": je slipt en verliest snelheid, `R.boem` 1,5 s rust); zenuwachtig deuntje (`raceMuziek`: blokgolf-loopje over
+4 akkoorden, steeds een maat vooruit gepland, sneller na 75%); knop "Nog een keer" weg (één race per dag). Bot (t147): goed sturen ≈ 55% winst.

@@ -199,7 +199,7 @@
 <div class="scherm verborgen" id="race" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🦼 Scootmobielrace</h1><div id="racetekst" class="buurt" style="margin:0 0 6px"></div>
   <canvas id="racedoek" width="360" height="540" style="width:100%;max-width:360px;aspect-ratio:2/3;display:block;margin:0 auto;border-radius:12px;touch-action:none;cursor:pointer"></canvas>
-  <div class="rij" style="justify-content:center;margin-top:8px"><button class="knop" id="racestart">▶️ Nog een keer</button><button class="knop" id="racedicht">Sluiten</button></div></div></div>
+  <div class="rij" style="justify-content:center;margin-top:8px"><button class="knop" id="racedicht">Sluiten</button></div></div></div>
 <div class="scherm verborgen" id="toren" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🍕 Toren van Pizza</h1><div id="torentekst" class="buurt" style="margin:0 0 6px">Tik op het goede moment: stapel de pizza's zo hoog mogelijk. Te scheef = omvallen!</div>
   <canvas id="torendoek" width="360" height="540" style="width:100%;max-width:360px;aspect-ratio:2/3;display:block;margin:0 auto;border-radius:12px;touch-action:none;cursor:pointer"></canvas>
@@ -2089,12 +2089,11 @@ const torenOpen = () => S.toren && S.toren.open;
 // je niet van baan wisselen, achter iemand moet je inhalen (je kunt er niet doorheen). Bochten (`race.bochten` = [van, tot, richting]): de weg schuift
 // opzij en de binnenbaan gaat 8% sneller. Henk snijdt in de grote bocht af over het gras (40%: vast in het rozenperk). Luigi gooit bananen die je
 // door de lucht ziet vliegen (`race.vlieg`), meestal voor jouw wielen; Henk en Luigi glijden er zelf ook over uit.
-const RACE = { lengte: 320, max: 9, henk: 8.2, luigi: 8.5, banaan: 5.5, px: 22 }, TEHUIS = { n: 20, korting: 0.8 };
+const RACE = { lengte: 320, max: 9, henk: 8.45, luigi: 8.7, banaan: 5.5, px: 22 }, TEHUIS = { n: 20, korting: 0.8 };
 const BAANX = (l) => (l - 1) * 82;
 let race = null;
 function toonRace() {
   $('race').classList.remove('verborgen'); startRace();
-  $('racestart').onclick = () => { if (S.raceDag == S.dag) { $('racetekst').textContent = 'Opa Henk moet eerst een dutje doen. Morgen weer!'; return; } startRace(); };
   $('racedicht').onclick = () => { $('race').classList.add('verborgen'); race = null; toonStad('tehuis'); };
   const c = $('racedoek'); c.onpointerdown = (e) => { e.preventDefault(); wekGeluid(); const r = c.getBoundingClientRect(); raceStuur((e.clientX - r.left) < r.width / 2 ? -1 : 1); };
 }
@@ -2121,15 +2120,22 @@ function raceAI(p, dt) { const R = race;
   const gevaar = (L) => { const d = R.dingen.filter((o) => !o.weg && o.b == L && o.m > p.m && o.m < p.m + 14 && o.s != '🍕').reduce((a, o) => Math.min(a, o.m - p.m), 99);
     const voor = R.r.some((q) => q != p && Math.abs(q.x - L) < 0.6 && q.m > p.m && q.m - p.m < 3 && q.v < p.v) ? 3 : 99; return Math.min(d, voor); };
   const nu = gevaar(p.baan); if (nu > 13 && !(raceBocht(p.m + 6) && Math.random() < 0.3)) return;
-  if (Math.random() < (p.id == 'henk' ? 0.25 : 0.2)) return; // soms te laat
+  if (Math.random() < (p.id == 'henk' ? 0.16 : 0.12)) return; // soms te laat
   const kandidaten = [p.baan - 1, p.baan + 1].filter((L) => raceVrij(p, L)).sort((a, b) => gevaar(b) - gevaar(a) + raceBocht(p.m + 6) * (a - b) * 0.3);
   if (kandidaten.length && gevaar(kandidaten[0]) > nu) p.baan = kandidaten[0];
 }
+// zenuwachtig deuntje tijdens de race (zelf gespeeld, steeds een maatje vooruit gepland; sneller op het eind)
+function raceMuziek() { if (!ac || !race || race.uit) return; const R = race; R.muziekTot = R.muziekTot || ac.currentTime;
+  if (R.muziekTot > ac.currentTime + 0.4) return; const ver = Math.max(...R.r.map((p) => p.m)) / RACE.lengte, stap = ver > 0.75 ? 0.095 : 0.12;
+  const maat = R.maat = (R.maat || 0) + 1, wortel = [0, 0, 5, 7][Math.floor(maat / 2) % 4], basis = 220 * 2 ** (wortel / 12);
+  const loopje = [0, 1, 0, 1, 0, 3, 2, 1, 0, 1, 0, 1, 4, 3, 2, 1];
+  loopje.forEach((n, i) => { const t = R.muziekTot + i * stap; toon(t, basis * 2 ** (n / 12), stap * 0.9, 0.035, 'square'); if (i % 4 == 0) toon(t, basis / 2, stap * 1.8, 0.05, 'triangle'); });
+  R.muziekTot += loopje.length * stap; }
 function raceLus(nu) {
   if (!race || $('race').classList.contains('verborgen')) return;
   const R = race, dt = Math.max(0, Math.min(0.05, (nu - R.vorig) / 1000)); R.vorig = Math.max(R.vorig, nu);
   if (R.go && !R.uit) {
-    R.tt -= dt; const [ik, henk, luigi] = R.r;
+    R.tt -= dt; R.boem = (R.boem || 0) - dt; const [ik, henk, luigi] = R.r; raceMuziek();
     for (const p of R.r) {
       if (p != ik) raceAI(p, dt);
       p.boost -= dt; p.slip -= dt;
@@ -2138,7 +2144,9 @@ function raceLus(nu) {
         if (p.m >= C.tot) { p.cut = null; p.baan = raceVrij(p, C.terug) ? C.terug : 1; p.x = p.baan; } continue; }
       p.x += (p.baan - p.x) * Math.min(1, dt * 9);
       const doel = p.slip > 0 ? 2 : p.boost > 0 ? p.vmax + 4 : p.vmax; p.v += (doel - p.v) * Math.min(1, dt * (p.slip > 0 ? 4 : p == ik ? 1.1 : 0.9));
-      for (const q of R.r) if (q != p && !q.cut && Math.abs(q.x - p.x) < 0.55 && q.m > p.m && q.m - p.m < 1.3) { p.v = Math.min(p.v, q.v * 0.95); if (p == ik && R.tt <= 0) { R.tekst = q.id == 'henk' ? 'Je zit achter Henk: inhalen!' : 'Luigi blokkeert je: inhalen!'; R.tt = 0.8; } }
+      for (const q of R.r) if (q != p && !q.cut && Math.abs(q.x - p.x) < 0.55 && q.m > p.m && q.m - p.m < 1.3) {
+        if (q == ik && p.v > q.v + 1.2 && !(R.boem > 0)) { R.boem = 1.5; ik.slip = 0.45; ik.v *= 0.55; R.tekst = p.id == 'henk' ? 'BOEM! Henk rijdt achterop!' : 'BOEM! Luigi ramt je van achteren!'; R.tt = 1.3; boos(); if (ac) klak(ac.currentTime, 0.15, 300, 0.2); } // aangereden van achteren
+        p.v = Math.min(p.v, q.v * 0.95); if (p == ik && R.tt <= 0) { R.tekst = q.id == 'henk' ? 'Je zit achter Henk: inhalen!' : 'Luigi blokkeert je: inhalen!'; R.tt = 0.8; } }
       p.m += p.v * dt * (1 + 0.08 * raceBocht(p.m) * (p.x - 1)); // binnenbocht is korter
       for (const d of R.dingen) if (!d.weg && Math.abs(d.m - p.m) < 1.3 && Math.abs(d.b - p.x) < 0.5) { d.weg = true;
         if (d.s == '🍕') { p.boost = 2; if (p == ik) { R.tekst = 'TURBO! 🍕'; R.tt = 1; ding(1200, 0.1); setTimeout(() => ding(1600, 0.1), 80); } }
