@@ -551,3 +551,10 @@ boogje (`race.vlieg`, 0,8 s) en landen 15-20 m voor je. Racers buiten beeld: pij
 hack, herstart, fiches, Sjonnie) en "Nieuws van afgelopen nacht"; stadskaart: het studentenpand (`PLEK.huur1`) staat nu in het gele winkelpand naast de
 universiteit (bestaande zaken verhuizen mee, ze verwijzen naar 'huur1'), het tweede 🎓-gebouw is `PLEK.college` (Collegezaal, tekstje), en het oude
 TE HUUR-bordje bovenaan heeft een vast VERHUURD-bordje (svg-overlay, `tekst`).
+Speciale dagen (15 nov, Marcel: "elke dag is wel dag van…"): `feestdag(d)` kent nu ook o.a. Wereldpizzadag (17-1), Achterstevorendag (31-1), Dikke
+Truiendag (1e vrijdag feb), Pi-dag (14-3), 1 april, Koningsdag, Moederdag/Vaderdag (2e zondag mei / 3e zondag juni), Kinderdag (1-6), langste/kortste dag,
+Praat-als-een-piraat-dag (19-9), Werelddierendag, Halloween, Dag van de Vriendelijkheid (13-11), Mannendag (19-11), Dag van het Kind (20-11), Black Friday
+(4e vrijdag nov). Velden: `aankomst`, `kaars`, `fooi` (×), `gez` (+gezellig), `soort` (extra van een soort klant, in `kiesSoort`), `kind` (× kans op
+gezinnetjes), `zeg` (35% van de klantwolkjes wordt een piraten/Halloween-zin, in `zeg()`); `vandaag.feest`. Staan op het kalenderblad.
+Jukebox (15 nov): tik = keuzelijstje (`jukeboxKeuze`) met alle liedjes, € 1 per liedje uit de kassa ("wie drukt, betaalt"), komt na het huidige liedje;
+nieuwe liedjes `LIED.ode` (Ode an die Freude), `elise` (Für Elise), `jacob` (Vader Jacob). Geheime combinatie blijft.

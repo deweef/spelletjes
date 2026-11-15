@@ -382,7 +382,8 @@ const LEKKER = { // per soort klant: [vond het heerlijk, vond het niks]
 };
 function kiesSoort() { // op zondag komen er meer opa's en oma's, op vrijdag meer werkers en studenten
   const wd = modus == 'inrichten' ? 0 : weekdag(), w = Object.entries(SOORT).map(([k, d]) => [k, d.kans * (wd == 6 && k == 'opa' ? 2.5 : wd == 4 && (k == 'werker' || k == 'student') ? 1.4 : 1) * (k == 'student' && vandaag.studenten ? 2 : 1) * ((BUURT[S.buurt] || BUURT.oud).soort[k] ?? 1) * (k == 'toerist' && torenOpen() ? 2 : 1)]); // de Toren van Pizza trekt toeristen
-  if (S.opaTot > S.dag) w.forEach((e) => { if (e[0] == 'opa') e[1] *= 1.4; }); // de pizzamiddag in het tehuis was een succes
+  if (S.opaTot > S.dag) w.forEach((e) => { if (e[0] == 'opa') e[1] *= 1.4; });
+  if (vandaag.feest && vandaag.feest.soort) w.forEach((e) => { e[1] *= vandaag.feest.soort[e[0]] || 1; }); // speciale dag // de pizzamiddag in het tehuis was een succes
   let r = Math.random() * w.reduce((a, [, v]) => a + v, 0); for (const [k, v] of w) if ((r -= v) < 0) return k; return 'werker'; }
 
 // ---------- spullen en stoelen ----------
@@ -629,9 +630,28 @@ const belastingDag = (d = S.dag) => laatsteVanDeMaand(d) || (datum(d).getDate() 
 const periode = () => datum().getMonth() * 2 + (datum().getDate() > 15 ? 1 : 0); // welke helft van de maand (boekhouder één keer per helft)
 const laatsteVanDeMaand = (d = S.dag) => datum(d + 1).getDate() == 1 || (weekdag(d + 1) == 0 && datum(d + 2).getDate() == 1); // laatste wérkdag van de maand (maandag is de zaak dicht)
 const DRUKTE = [0.7, 0.85, 0.9, 1, 1.3, 1.5, 1.1]; // maandag rustig, vrijdag en zaterdag druk, zondag gezinnen
-function feestdag(d = S.dag) { // { n, aankomst, tekst, kaars? }
-  const dt = datum(d), k = (dt.getMonth() + 1) + '-' + dt.getDate();
-  return { '11-11': { n: 'Sint-Maarten', aankomst: 1.05, tekst: 'Sint-Maarten! Vanavond komen er kinderen met lampionnen langs. (En in het zuiden begint carnaval.)' },
+function feestdag(d = S.dag) { // { n, aankomst, tekst, kaars?, fooi?, soort? (extra van een soort klant), kind? (meer gezinnen), zeg? (extra wolkje), gez? }
+  const dt = datum(d), k = (dt.getMonth() + 1) + '-' + dt.getDate(), wd = dt.getDay(), dag = dt.getDate(), mnd = dt.getMonth() + 1; // wd: 0 = zondag
+  // dagen die op een weekdag vallen
+  if (mnd == 11 && wd == 5 && dag >= 23 && dag <= 29) return { n: 'Black Friday', aankomst: 1.35, fooi: 0.7, tekst: 'Black Friday! Iedereen wil korting. Het is druk, maar de fooi is mager.' };
+  if (mnd == 2 && wd == 5 && dag <= 7) return { n: 'Dikke Truiendag', aankomst: 1.05, gez: 0.5, tekst: 'Dikke Truiendag: de verwarming gaat lager. De ovens maken het extra knus.' };
+  if (mnd == 5 && wd == 0 && dag >= 8 && dag <= 14) return { n: 'Moederdag', aankomst: 1.3, kind: 2, tekst: 'Moederdag! Gezinnen nemen mama mee uit eten.' };
+  if (mnd == 6 && wd == 0 && dag >= 15 && dag <= 21) return { n: 'Vaderdag', aankomst: 1.25, soort: { werker: 1.5 }, tekst: 'Vaderdag! Papa wil de grootste pizza.' };
+  return {
+    '1-17': { n: 'Wereldpizzadag', aankomst: 1.4, tekst: 'Wereldpizzadag! Vandaag wil iedereen pizza. Echt iedereen.' },
+    '1-31': { n: 'Achterstevorendag', aankomst: 1.05, zeg: ['Toetje eerst!', 'Mijn trui zit achterstevoren. Expres!', '!ppel jit, ajizz'], tekst: 'Achterstevorendag: klanten dragen hun trui achterstevoren en willen het toetje eerst.' },
+    '3-14': { n: 'Pi-dag', aankomst: 1.2, tekst: 'Pi-dag (3,14)! Wiskundigen vieren het met iets ronds. Pizza dus.' },
+    '4-1': { n: '1 april', aankomst: 1, zeg: ['Er zit een vis op mijn rug!', 'April, april!', 'Is dit een echte pizza?'], tekst: '1 april! Mario heeft zout in de suikerpot gedaan. Grapje. Of niet?' },
+    '4-27': { n: 'Koningsdag', aankomst: 1.4, soort: { toerist: 1.5 }, tekst: 'Koningsdag! De hele stad in het oranje, vrijmarkt voor de deur.' },
+    '6-1': { n: 'Kinderdag', aankomst: 1.15, kind: 2.5, tekst: 'Internationale Kinderdag! Vandaag komen er veel gezinnen.' },
+    '6-21': { n: 'Langste dag', aankomst: 1.15, tekst: 'De langste dag van het jaar: iedereen blijft lang hangen.' },
+    '9-19': { n: 'Praat-als-een-piraat-dag', aankomst: 1.05, zeg: ['Arrr!', 'Ahoy, maatje!', 'Een pizza met… arrrtisjok!', 'Waar is de schat? Oh, de kaas.'], tekst: 'Praat-als-een-piraat-dag! Arrr. Klanten praten vandaag als piraten.' },
+    '10-4': { n: 'Werelddierendag', aankomst: 1.05, tekst: 'Werelddierendag! Honden mogen vandaag mee naar binnen.' },
+    '10-31': { n: 'Halloween', aankomst: 1.2, zeg: ['Boe!', 'Mag ik een spookpizza?', 'Trick or treat!'], tekst: 'Halloween! Er komen spoken, heksen en zombies eten.' },
+    '11-13': { n: 'Dag van de Vriendelijkheid', aankomst: 1, fooi: 1.25, tekst: 'Wereldvriendelijkheidsdag! Iedereen is extra aardig: meer fooi.' },
+    '11-19': { n: 'Mannendag', aankomst: 1.05, soort: { werker: 1.6 }, tekst: 'Internationale Mannendag: de werkers bestellen de grootste pizza\'s.' },
+    '11-20': { n: 'Dag van het Kind', aankomst: 1.1, kind: 2.5, tekst: 'Internationale Dag van het Kind! Vandaag komen er veel gezinnen.' },
+    '12-21': { n: 'Kortste dag', aankomst: 1.05, kaars: true, tekst: 'De kortste dag: om half vijf al donker. Kaarsjes doen het extra goed.' }, '11-11': { n: 'Sint-Maarten', aankomst: 1.05, tekst: 'Sint-Maarten! Vanavond komen er kinderen met lampionnen langs. (En in het zuiden begint carnaval.)' },
     '12-5': { n: 'Pakjesavond', aankomst: 1.2, tekst: 'Pakjesavond! Er komen gezinnen met chocoladeletters.' },
     '12-24': { n: 'Kerstavond', aankomst: 1.4, tekst: 'Kerstavond! Iedereen wil uit eten.' },
     '12-25': { n: 'Eerste kerstdag', aankomst: 1.2, tekst: 'Eerste kerstdag. Opa en oma komen gezellig eten.' },
@@ -684,7 +704,7 @@ function openDeuren() {
   if (S.zaak && !S.kamer && kans(0.3)) { const id = { studenten: 'printer', toeristen: 'gokker', villa: 'kelder' }[S.buurt]; if (id && !(S.verplicht || []).includes(id)) S.verplicht = [...(S.verplicht || []), id]; } // de achterkamer van deze zaak: de vraag komt nu vanzelf
   if (achterOpen()) { const id = kamerBezoek(); if (id && !(S.verplicht || []).includes(id)) { S.verplicht = [...(S.verplicht || []), id]; vandaag.sleutel = true; setTimeout(() => meld('🗝️ Er hangt een sleutel aan het haakje. Vandaag komt er iemand voor de achterkamer…', 4000), 3500); } }
   if (S.dag >= 5 && !S.luigiKwam) { S.luigiKwam = S.dag; S.verplicht = [...(S.verplicht || []), 'luigi']; }
-  vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ if (torenOpen()) vandaag.aankomst *= 1.1; /* toeristen voor de toren */ if (reclameAan()) vandaag.aankomst *= 1.15; /* reclamebord */ if (kunstAan()) { vandaag.gezellig += 0.5; vandaag.fooi *= 1.1; } /* geleend meesterwerk */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars;
+  vandaag.aankomst *= (BUURT[S.buurt] || BUURT.oud).aankomst; if (klusLoopt()) vandaag.aankomst *= 1 + KLUS[S.klus.k].bonus; /* Barrie heeft Luigi een hak gezet */ if (torenOpen()) vandaag.aankomst *= 1.1; /* toeristen voor de toren */ if (reclameAan()) vandaag.aankomst *= 1.15; /* reclamebord */ if (kunstAan()) { vandaag.gezellig += 0.5; vandaag.fooi *= 1.1; } /* geleend meesterwerk */ const fd = feestdag(); vandaag.aankomst *= DRUKTE[weekdag()] * (fd ? fd.aankomst : 1); vandaag.kaars = fd && fd.kaars; vandaag.feest = fd; if (fd && fd.fooi) vandaag.fooi *= fd.fooi; if (fd && fd.gez) vandaag.gezellig += fd.gez;
   if (belastingDag() && S.belasting > 0) vraagTijden.push(-1); // de inspecteur komt vandaag (een vraag met voorrang)
   if (belastingDag() && S.geld > 400 && S.dag >= 8 && !(S.luigiRust > S.dag) && kans(0.3 + Math.min(0.3, (S.ruzie || 0) / 200))) ochtendVraag(crewVraag(), 2500); // Luigi weet ook wanneer de belasting komt…
   if (S.ijs && S.gianniStreek && S.gianniStreek.dag == S.dag && S.gianniStreek.wat == 'kar') ochtendVraag(karVraag(), 2000); // Gianni's ijskar voor je ijssalon
@@ -3231,7 +3251,7 @@ function nieuweGroep() {
   const vrijS = (s, i) => !mensen.some((m) => m.tafel == s && m.stoel == i) && stoelBereik(stoelPlekken(s)[i].stoel);
   const kan = (s, i) => vrijS(s, i) && !kinderst(s, i); // vrij, je kunt erbij, en geen kinderstoel
   // gezinnetje: twee of meer, soms met een peuter (die moet in een kinderstoel); geen kinderstoel vrij = ze gaan naar Luigi
-  if (n >= 2 && n <= 4 && kans(S.dag >= 4 ? 0.16 : 0)) { const gez = S.spullen.filter(isTafel).filter((s) => !mensen.some((m) => m.tafel == s))
+  if (n >= 2 && n <= 4 && kans(S.dag >= 4 ? 0.16 * ((vandaag.feest && vandaag.feest.kind) || 1) : 0)) { const gez = S.spullen.filter(isTafel).filter((s) => !mensen.some((m) => m.tafel == s))
       .map((s) => ({ s, ks: stoelen(s).map((p, i) => i).filter((i) => vrijS(s, i) && kinderst(s, i)), vrij: stoelen(s).map((p, i) => i).filter((i) => kan(s, i)) }))
       .filter((t) => t.ks.length && t.vrij.length >= n - 1).sort((a, b) => a.vrij.length - b.vrij.length)[0];
     if (!gez) { tel.geenKinderstoel = (tel.geenKinderstoel || 0) + 1; S.rep = Math.max(0, S.rep - 0.3);
@@ -3303,7 +3323,7 @@ function kiesPizza(m) { // kiesPizza.uitv = er was iets lekkers, maar dat was op
     if (r > bo) { bo = r; best = { p, o }; } }
   if (best && best.o >= 1) { kiesPizza.uitv = false; return best; } return null;
 }
-function zeg(m, tekst) { wolkjes.push({ m, tekst, t: 3 }); }
+function zeg(m, tekst) { if (vandaag.feest && vandaag.feest.zeg && m && m.soort && Math.random() < 0.35) tekst = pak(vandaag.feest.zeg); wolkjes.push({ m, tekst, t: 3 }); } // speciale dag: piraten, Halloween…
 // ---------- om de tafels heen lopen ----------
 // raster van halve tegels over de zaal; tafelbladen, stoelen, planten en de jukebox zijn bezet. zoekPad zoekt met A* een weg
 // en trekt die daarna strak (rechte stukken waar dat kan); loopNaar loopt die route af
@@ -4302,9 +4322,9 @@ doek.addEventListener('pointerdown', (e) => {
   if (modus != 'inrichten') { // tijdens het werk: tik op een vlek om hem op te ruimen
     const v = naarVak(e), vl = vlekBij(v.fx, v.fy);
     const jb = S.spullen.find((t) => t.t == 'jukebox' && v.fx >= t.x && v.fx < t.x + SPUL.jukebox.w && v.fy >= t.y && v.fy < t.y + SPUL.jukebox.h);
-    if (jb && (!ac || ac.currentTime > liedTot)) { const nu = performance.now(), rk = tikReeks.filter((x) => nu - x.t < 8000).map((x) => x.w).join(',');
+    if (jb) { const nu = performance.now(), rk = tikReeks.filter((x) => nu - x.t < 8000).map((x) => x.w).join(',');
       if (rk.endsWith('oven,bel') && operaDag != S.dag) { operaDag = S.dag; tikReeks = []; speelLied('vincero'); if (ovens[0]) zeg(ovens[0].kok, 'VINCERÒÒÒ!'); for (const m of mensen.filter((m) => m.st == 'eet').slice(0, 4)) zeg(m, R(['👏 Bravo!', 'Bravissimo!', 'Encore!'])); vandaag.gezellig += 0.5; spat(jb.x + 1, jb.y, ['🎵', '🎶', '✨'], 8, 3); meld('🎭 Geheime combinatie! Mario zingt een aria.', 3500); return; }
-      speelWillekeurig(); return; } // tik op de jukebox: een Italiaans liedje (oven → bel → jukebox = Mario zingt opera)
+      jukeboxKeuze(e); return; } // tik op de jukebox: kies een liedje (€ 1) (oven → bel → jukebox = Mario zingt opera)
     if (!vlekBij(v.fx, v.fy) && !(rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) && tikEffect(v.fx, v.fy)) return; // verrassende effectjes
     if (rat && Math.hypot(rat.x - v.fx, rat.y - v.fy) < 0.9) { muntjes.push({ x: rat.x, y: rat.y, t: 1.2, tekst: '🐀 Gevangen!' }); rat = null; vandaag.gezellig += 1; kassa(); return; }
     if (vl) { vlekken.splice(vlekken.indexOf(vl), 1); tel.opgeruimd = (tel.opgeruimd || 0) + 1; ding(1500, 0.05, 'sine', 0.05); setTimeout(() => ding(1900, 0.06, 'sine', 0.05), 50);
@@ -4730,6 +4750,9 @@ const LIED = {
     bas: 'D3:6 G3:6 D3:6 A2:5 D3:4' },
   donna: { n: 'La donna è mobile (Verdi)', tempo: 0.3, noten: 'G4:.5 G4:.5 G4:.5 B4:1 A4:.5 F4:1.5 -:.5 F4:.5 F4:.5 F4:.5 A4:1 G4:.5 E4:1.5 -:.5 G4:.5 G4:.5 G4:.5 C5:1 B4:.5 A4:1.5 -:.5 G4:.5 E4:.5 F4:.5 D4:.5 C4:2.5',
     bas: 'G2:5 C3:5 F2:2.5 G2:2.5 G2:2 C3:2.5' },
+  ode: { n: 'Ode an die Freude (Beethoven)', tempo: 0.33, noten: 'E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 E4:1.5 D4:.5 D4:2 E4:1 E4:1 F4:1 G4:1 G4:1 F4:1 E4:1 D4:1 C4:1 C4:1 D4:1 E4:1 D4:1.5 C4:.5 C4:2', bas: 'C3:4 G2:4 C3:4 G2:4 C3:4 G2:4 C3:4 G2:2 C3:2' },
+  elise: { n: 'Für Elise (Beethoven)', tempo: 0.27, noten: 'E5:.5 D#5:.5 E5:.5 D#5:.5 E5:.5 B4:.5 D5:.5 C5:.5 A4:1.5 C4:.5 E4:.5 A4:.5 B4:1.5 E4:.5 G#4:.5 B4:.5 C5:1.5 E4:.5 E5:.5 D#5:.5 E5:.5 D#5:.5 E5:.5 B4:.5 D5:.5 C5:.5 A4:1.5 C4:.5 E4:.5 A4:.5 B4:1.5 E4:.5 C5:.5 B4:.5 A4:3', bas: 'A2:5.5 E2:1.5 A2:1.5 E2:1.5 A2:15.0' },
+  jacob: { n: 'Vader Jacob', tempo: 0.3, noten: 'C4:1 D4:1 E4:1 C4:1 C4:1 D4:1 E4:1 C4:1 E4:1 F4:1 G4:2 E4:1 F4:1 G4:2 G4:.5 A4:.5 G4:.5 F4:.5 E4:1 C4:1 G4:.5 A4:.5 G4:.5 F4:.5 E4:1 C4:1 C4:1 G3:1 C4:2 C4:1 G3:1 C4:2', bas: 'C3:8 C3:8 C3:8 C3:8' },
   jingle: { n: 'Jingle Bells', tempo: 0.24, noten: 'E4:1 E4:1 E4:2 E4:1 E4:1 E4:2 E4:1 G4:1 C4:1.5 D4:.5 E4:4 F4:1 F4:1 F4:1.5 F4:.5 F4:1 E4:1 E4:1 E4:.5 E4:.5 E4:1 D4:1 D4:1 E4:1 D4:2 G4:2', bas: 'C3:4 C3:4 C3:4 C3:4 F2:4 C3:4 G2:4 G2:4' },
   bella: { n: 'Bella ciao', tempo: 0.27, noten: 'E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:2 B4:1 A4:1 C5:2 B4:1 A4:1 E5:2 E5:1 E5:1 E5:1 D5:1 E5:1 F5:1 F5:2 -:1 F5:1 E5:1 D5:1 F5:1 E5:2 -:1 E5:1 D5:1 C5:1 B4:2 E5:2 C5:2 B4:2 A4:4',
     bas: 'A2:8 A2:8 A2:5 E2:4 A2:6 D3:7 A2:7 E2:5 E2:2 A2:8' } };
@@ -4744,6 +4767,10 @@ function speelLied(id, vals) { // vals = zo zing jij (een beetje ernaast)
         o.connect(gn).connect(ac.destination); o.start(tt); o.stop(tt + dur); } tt += dur; } return tt; };
   liedTot = Math.max(stem(L.noten, 'triangle', 0.09, 1), L.bas ? stem(L.bas, 'sine', 0.06, 1) : 0); meld(`🎵 ${L.n}`, 3000);
 }
+function jukeboxKeuze(e) { // een liedje uitkiezen: € 1 uit de kassa (eigenlijk betaalt de klant, maar wie op de jukebox drukt, betaalt zelf 😉)
+  const bezig = ac && ac.currentTime < liedTot;
+  toonKeuze('🎵 Jukebox: kies een liedje', Object.entries(LIED).filter(([k]) => k != 'jingle' || isDecember()).map(([k, L]) => ({ ik: '🎵', n: L.n, pr: '€ 1' + (bezig ? ' (na het huidige liedje)' : ''), uit: S.geld < 1,
+    doe: () => { ge(-1); kassa(); speelLied(k); if (!jukeboxKeuze.gedaan) { jukeboxKeuze.gedaan = true; vandaag.gezellig += 0.2; } } })), { left: e.clientX, top: e.clientY, width: 0, height: 0 }, 'jukebox', '💶 Een liedje kost € 1, uit je eigen kassa. De klanten vinden het gezellig.'); }
 const speelWillekeurig = () => speelLied(isDecember() && (S.adventLied == S.dag || Math.random() < 0.5) ? 'jingle' : pak(Object.keys(LIED).filter((k) => k != 'jingle'))); // in december vaak Jingle Bells
 
 // ---------- het zwarte schermpje in het paneel ----------
