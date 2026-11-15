@@ -614,3 +614,6 @@ gezet; t167 = in elk hoofdstuk alle stadsplekken, schermen en minispelletjes ope
 antwoorden zonder fouten; doelen worden nu ook aan het eind van elke dag gecontroleerd.
 Prijs en budget (16 nov, beide versies): `oordeel` rekende de prijs al mee (boven `SOORT.budget` −0,6 per euro, ≥ 3 eronder +0,5), maar dat stond
 nergens. Bij het maken van een pizza staat nu onder de prijs "Wat ze willen betalen" per soort (`#budgetten`: rood = te duur, groen = lekker goedkoop).
+Wie eerst (16 nov, Marcel: een eenling ging boos weg terwijl de ober een later groepje hielp): keuken (`wachtrij`) en ober (`ritten`) pakten op volgorde
+van binnenkomst; nu `eersteNodig(lijst)` = de bestelling met het minste geduld over (`restGeduld`: groep.geduld − groep.t; bezorging: tijd tot koud;
+afhalen 30). Gemeten (t171, 6 drukke dagen, 1 oven + 1 ober): boos weg 43 → 17, tevreden 75 → 94. In beide versies.

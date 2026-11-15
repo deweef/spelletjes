@@ -586,7 +586,7 @@ function stapOven(o, dt) {
   if (k.st == 'vrij') {
     if (klareP.length) { if (beweeg(k, [o.x, 1.7], 2.6, dt)) { o.in = o.in.filter((p) => !klareP.includes(p)); k.hand = klareP.map((p) => p.b); k.draagt = true; k.st = 'breng'; } }
     else { // nieuwe bestellingen: zoveel als er in de oven passen; ook als hij nog bakt: alvast deeg maken
-      while (wachtrij.length && k.hand.length < ruimte(o.i)) { const b = wachtrij.shift(); k.hand.push(b);
+      while (wachtrij.length && k.hand.length < ruimte(o.i)) { const b = wachtrij.splice(eersteNodig(wachtrij), 1)[0]; k.hand.push(b);
       } // de ingrediënten zijn al uit de voorraad gehaald toen de klant bestelde (gebruik)
       if (k.hand.length) { k.t = 0; k.st = 'deeg'; } else kokRust(o, k, dt); }
   } else if (k.st == 'uit') { // door het luik naar een klant die zit te eten: "Is het lekker?"
@@ -940,6 +940,10 @@ const mijnBuurten = () => [...new Set(S.zaken.map((z, i) => (i == S.zaak ? S.buu
 const buurtSmaak = (b) => { const w = buurtKans(b); return S.menu.length ? Object.keys(SOORT).reduce((a, k) => a + w[k] * Math.max(...S.menu.map((p) => oordeel(p, k))), 0) / 6 : 0.3; }; // 0-1: vindt iedereen hier iets lekkers?
 const maxMenu = () => Math.min(9, MAXMENU + S.zaken.length - 1); // per extra zaak één pizza meer op de kaart // sterren 0-6 op de menukaart (de beste mogelijke pizza ≈ 6)
 const besteOordeel = () => Math.max(...S.menu.map(pizzaSter)); // in sterren (recensent)
+// wie heeft het minste geduld over? (16 nov, Marcel: een eenling wachtte al lang, maar de ober hielp eerst een groepje dat net binnen was)
+// keuken (wachtrij) en ober (ritten) kiezen eerst die bestelling; bij gelijk spel de oudste. Bezorgingen: tijd tot ze koud zijn.
+function restGeduld(b) { const g = b.groep || (b.m && b.m.groep); if (g) return g.geduld - g.t; if (b.bezorg) return b.bezorg.afhaal ? 30 : KOUD - (klok - (b.bezorg.t0 || klok)); return 99; }
+function eersteNodig(lijst) { let beste = 0, br = Infinity; lijst.forEach((b, i) => { const r = restGeduld(b) + i * 0.01; if (r < br) { br = r; beste = i; } }); return beste; }
 function oberWeg() { if (obers.length > 1) { const o = obers.pop(); if (o.taak) ritten.unshift(o.taak); return true; } return false; }
 // hulpjes voor de vragen: morgen meer/minder klanten, de kok of ober trager/sneller, een ingrediënt op
 const morgenKl = (f) => { S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * f }; };
@@ -3798,7 +3802,7 @@ function stap(dt) {
   // obers brengen de pizza's rond
   for (const ob of obers) {
     if (ob.serveer > 0) { ob.serveer -= dt; continue; } // even de stolp optillen: "Prego!"
-    if (!ob.taak && ritten.length) { ob.taak = ritten.shift(); ob.fase = 'halen'; ob.taak.groep.opgehaald = true; ob.draagt = 0; }
+    if (!ob.taak && ritten.length) { ob.taak = ritten.splice(eersteNodig(ritten), 1)[0]; ob.fase = 'halen'; ob.taak.groep.opgehaald = true; ob.draagt = 0; }
     if (!ob.taak) { oberRust(ob, dt); continue; } else ob.plek = null;
     const borden = ob.taak.borden = ob.taak.borden.filter((b) => mensen.includes(b.m) && b.m.st == 'wacht'); // wie er nog zit
     if (!borden.length) { ob.taak = null; ob.draagt = 0; continue; }
