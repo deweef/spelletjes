@@ -87,6 +87,20 @@
   #snelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 258px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 18px; cursor: pointer; }
   #snelknop.aan { background: #e8a33a; }
   #doelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 208px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
+  #doelknop img { width: 30px; height: 30px; display: block; margin: auto; }
+  #welkom { padding: 0; background: #2a1405; overflow: hidden; flex-direction: column; justify-content: flex-end; align-items: center; }
+  #titelplaat { position: absolute; inset: 0; background: url(pizza/plaat0.jpg) 40% 70% / cover no-repeat; animation: titelzoom 30s ease-in-out infinite alternate; }
+  @keyframes titelzoom { from { transform: scale(1); } to { transform: scale(1.12) translate(2%, 1%); } }
+  #titellogo { position: absolute; left: 50%; top: max(4vh, env(safe-area-inset-top)); width: min(86vw, 640px); transform: translateX(-50%); filter: drop-shadow(0 6px 10px rgba(0,0,0,.45)); animation: logovallen .9s cubic-bezier(.3,1.6,.5,1) both; }
+  @keyframes logovallen { from { transform: translate(-50%, -60vh) rotate(-8deg); } to { transform: translate(-50%, 0) rotate(0); } }
+  #titelkaart { position: relative; margin: 0 14px max(18px, env(safe-area-inset-bottom)); max-width: 400px; background: rgba(255,247,232,.94); padding: 14px 18px; }
+  #plaatscene { padding: 0; background: #000; flex-direction: column; overflow: hidden; }
+  #plaatvak { position: absolute; inset: 0; overflow: hidden; }
+  #plaatimg { width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 40%; transition: object-position 3.5s ease-in-out; }
+  #plaatscene.speelt #plaatimg { animation: plaatzoom 14s ease-out both; }
+  @keyframes plaatzoom { from { transform: scale(1.1); } to { transform: scale(1); } }
+  #plaattekst { position: absolute; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(92vw, 620px); background: rgba(20,10,4,.78); color: #fff; border-radius: 14px; padding: 12px 16px; font: 600 17px/1.4 system-ui, sans-serif; min-height: 3.2em; }
+  #plaatverder { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(60vw, 280px); border: 0; border-radius: 14px; padding: 13px; background: #b5361f; color: #fff; font: 700 17px system-ui, sans-serif; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
   #doelknop b { position: absolute; right: -4px; top: -4px; background: #e74c3c; color: #fff; border-radius: 9px; font: 700 11px system-ui; padding: 1px 5px; }
   #zoomknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 158px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #kaartrol { width: min(100%, 1100px); max-width: calc(100vw - 28px); margin: 0 auto; border: 6px solid #7a4520; border-radius: 10px; overflow: auto; -webkit-overflow-scrolling: touch; }
@@ -165,14 +179,26 @@
 <div id="paneel"><div id="lcd"></div><div id="raster"></div></div>
 <div id="menu"></div>
 
-<div class="scherm" id="welkom">
-  <div class="kaart">
-    <h1>🍕 Pizzabaas 2</h1>
-    <p style="background:#ffe08a;border-radius:8px;padding:6px 8px;font-size:14px">🧪 <b>Testversie</b> met hoofdstukken (in de maak). Je speelt hier met een aparte opslag: je gewone Pizzabaas blijft zoals hij is.</p>
-    <p>Je hebt een klein zaakje gehuurd aan de rand van de stad. Een oven, een kok, een ober en twee wiebelige tafeltjes. Maak er de beste pizzeria van de stad van!</p>
-    <button class="groot" id="begin">👨‍🍳 Mario laat je alles zien</button>
-    <button class="knop" id="beginzelf" style="margin-top:8px">Overslaan, ik weet het al</button>
+<div class="scherm" id="welkom"><!-- titelscherm: plaat 0 (pizza/plaat0.jpg) met het logo in de lucht -->
+  <div id="titelplaat"></div>
+  <img src="pizza/logo.png" id="titellogo" alt="Pizzabaas">
+  <div class="kaart" id="titelkaart">
+    <p style="background:#ffe08a;border-radius:8px;padding:5px 8px;font-size:13px;margin:0 0 8px">🧪 <b>Testversie</b> met hoofdstukken (in de maak). Aparte opslag: je gewone Pizzabaas blijft zoals hij is.</p>
+    <div id="titelnieuw">
+      <p style="margin:0">Je hebt een klein zaakje gehuurd aan de rand van de stad. Een oven, een kok, een ober en twee wiebelige tafeltjes. Maak er de beste pizzeria van de stad van!</p>
+      <button class="groot" id="begin">👨‍🍳 Mario laat je alles zien</button>
+      <button class="knop" id="beginzelf" style="margin-top:8px">Overslaan, ik weet het al</button>
+    </div>
+    <div id="titelverder" style="display:none">
+      <button class="groot" id="verderspelen" style="margin-top:0">▶️ Verder spelen</button>
+      <button class="knop" id="nieuwspel" style="margin-top:8px">🔄 Nieuw spel</button>
+    </div>
   </div>
+</div>
+<div class="scherm verborgen" id="plaatscene" style="z-index:12"><!-- verhaalplaat aan het eind van een hoofdstuk (VERHAAL) -->
+  <div id="plaatvak"><img id="plaatimg" alt=""></div>
+  <div id="plaattekst"></div>
+  <button class="groot" id="plaatverder">Verder</button>
 </div>
 <div class="scherm verborgen" id="einde"><div class="kaart" id="eindkaart"></div></div>
 <div class="scherm verborgen" id="vraag"><div class="kaart" id="vraagkaart"></div></div>
@@ -181,7 +207,7 @@
 <button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
 <button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
 <button id="zoomknop" title="Inzoomen (of knijp met twee vingers)">🔍</button>
-<button id="doelknop" title="Doelen">🎯</button>
+<button id="doelknop" title="Doelen"><img src="pizza/doel.png" alt="🎯"></button>
 <button id="snelknop" title="Tijd sneller (2x)">⏩</button>
  <div class="scherm verborgen" id="acrob" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🤹 Pizza-acrobatiek</h1><div id="acrotekst" class="buurt" style="margin:0 0 6px">Het deeg vliegt omhoog. Tik als het weer bij Mario's handen is! Hoe langer je volhoudt, hoe hoger en hoe meer de toeristen geven.</div>
@@ -4947,7 +4973,7 @@ function controleerDoelen() {
   if (nu.length) { let geld = 0; for (const d of nu) { S.doelen[d.id] = S.dag; geld += d.f * 2; S.vlag[d.k] += d.f; } S.geld += geld; bewaar(); kassa();
     meld(`🎯 Doel gehaald: ${nu.map((d) => d.n + ' ' + VLAGKLEUR[d.k][0] + '+' + d.f).join(' · ')}`, 4500, true); if ($('mariotip')) setTimeout(marioTip, 400); }
   const H = hoofd(), mijn = DOELEN.filter((d) => d.h == H), af = mijn.filter((d) => S.doelen[d.id]).length;
-  $('doelknop').innerHTML = `🎯<b>H${H} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}</b>`;
+  $('doelknop').innerHTML = `<img src="pizza/doel.png" alt="🎯"><b>H${H} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}</b>`;
   if (H == 3 && af >= HOOFDNODIG && !heb('inval') && modus == 'inrichten' && !toonInval.bezig && $('einde').classList.contains('verborgen')) setTimeout(toonInval, 800);
   if (H < 6 && af >= HOOFDNODIG && HOOFDSTUK[H].af() && modus == 'inrichten' && !hoofdstukKlaar.bezig) hoofdstukKlaar(H);
 }
@@ -5045,8 +5071,23 @@ function marioTip() { // klein ballonnetje onderin met Mario en de volgende stap
   b.innerHTML = `<div style="flex:none;width:52px;height:88px;background:url(pizza/kok.png) 0 0 / auto 88px no-repeat"></div><div style="background:#fff7e0;border:2px solid #c0392b;border-radius:12px;padding:6px 9px;font:14px system-ui;color:#3a2a1a;box-shadow:0 3px 10px #0004">
     <b>Tip van Mario:</b> ${esc(d.tip || d.n)}<br><small style="opacity:.7">(${VLAGKLEUR[d.k][0]} +${d.f}) · tik om weg te doen</small></div>`;
   b.onclick = () => { S.tipWeg = S.dag; bewaar(); b.remove(); }; }
-function hoofdstukKlaar(H) { // afsluiter (de filmpjes komen later): feestelijk scherm, dan het volgende hoofdstuk
-  hoofdstukKlaar.bezig = true; S.hoofdstuk = H + 1; bewaar(); kassa(); setTimeout(kassa, 300); speelLied('vincero');
+// verhaalplaten van ChatGPT (pizza/plaatN.jpg uit pizza/plaatN-chatgpt.png, extra/platen_knip.py): langzaam inzoomen, tekst regel voor regel, een liedje
+const VERHAAL = {
+  1: { plaat: 'pizza/plaat1.jpg', // kijk = per regel waar de plaat naartoe schuift (object-position in %)
+       lied: 'bella', kijk: [[50, 50], [52, 35], [12, 60], [96, 40]], tekst: ['Groot feest in de studentenwijk!', 'Mario klimt op een krukje en knipt met de pizzaschep het lint door: je tweede pizzeria is open!', 'De studenten juichen, de telefoons gaan omhoog, de confetti dwarrelt…', 'En daar, om de hoek: Luigi. Met zijn zonnebril op. Hij lacht niet.'] },
+};
+function toonPlaat(H, klaar) {
+  const V = VERHAAL[H]; if (!V) { klaar(); return; }
+  const sc = $('plaatscene'), img = $('plaatimg'); let n = 0, timer = null;
+  const volgende = () => { clearTimeout(timer); if (n >= V.tekst.length) { $('plaatverder').textContent = 'Verder'; return; } if (V.kijk && V.kijk[n]) img.style.objectPosition = V.kijk[n].map((v) => v + '%').join(' '); /* de plaat schuift naar wie het over gaat (op de telefoon zie je maar een stukje) */ $('plaattekst').textContent = V.tekst[n++]; $('plaatverder').textContent = n < V.tekst.length ? 'Verder ›' : 'Verder'; if (n < V.tekst.length) timer = setTimeout(volgende, 4200); };
+  img.src = V.plaat; img.style.transition = 'none'; img.style.objectPosition = V.kijk ? V.kijk[0].map((v) => v + '%').join(' ') : '50% 50%'; void img.offsetWidth; img.style.transition = ''; sc.classList.remove('speelt'); void sc.offsetWidth; sc.classList.add('speelt'); sc.classList.remove('verborgen');
+  if (V.lied) speelLied(V.lied); volgende();
+  $('plaatverder').onclick = () => { wekGeluid(); if (n < V.tekst.length) { volgende(); return; } clearTimeout(timer); sc.classList.add('verborgen'); sc.classList.remove('speelt'); klaar(); };
+}
+function hoofdstukKlaar(H, naPlaat) { // afsluiter: eerst de verhaalplaat (als die er is), dan het feestelijke scherm en het volgende hoofdstuk
+  hoofdstukKlaar.bezig = true; S.hoofdstuk = H + 1; bewaar(); kassa(); setTimeout(kassa, 300);
+  if (VERHAAL[H] && !naPlaat) { toonPlaat(H, () => hoofdstukKlaar(H, true)); return; } // het hoofdstuk is al opgeslagen als klaar: na de plaat het feestscherm
+  if (!VERHAAL[H]) speelLied('vincero');
   const V = HOOFDSTUK[H + 1];
   $('eindkaart').innerHTML = `<h1>🎉 Hoofdstuk ${H} uitgespeeld!</h1><p style="font-size:40px;text-align:center;margin:4px">${HOOFDSTUK[H].ik} → ${V.ik}</p>
     <p><b>${esc(HOOFDSTUK[H].n)}</b> zit erop. Op naar hoofdstuk ${H + 1}: <b>${esc(V.n)}</b>!</p>
@@ -5211,7 +5252,11 @@ function rondleiding(n = 0) {
   if ($('rstop')) $('rstop').onclick = (e) => { e.stopPropagation(); o.remove(); hoofdIntro(); };
   o.onclick = (e) => { if (r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6) rondleiding(n + 1); };
 }
-if (lees(SLEUTEL) && !TEGEL) { $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); }
+if (lees(SLEUTEL) && !TEGEL) { // je speelt al: titelscherm met Verder spelen (dat tikje maakt meteen het geluid wakker)
+  $('titelnieuw').style.display = 'none'; $('titelverder').style.display = '';
+  $('verderspelen').onclick = () => { wekGeluid(); $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); };
+  $('nieuwspel').onclick = () => { if (confirm(`Echt een nieuw spel beginnen${speler ? ' voor ' + speler : ''}? Je zaak, je geld, je doelen en je vlagfiches zijn dan weg.`)) herstart(); };
+}
 
 if (TEGEL) { // plaatje voor de startpagina
   $('welkom').classList.add('verborgen');

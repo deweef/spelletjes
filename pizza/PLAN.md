@@ -399,3 +399,5 @@ Verhaalplaten (16 nov, ChatGPT; Marcel maakt ze): 0 titel (pizzeriaatje bij zons
 huilt), 5 startlijn stadsrace (Henk, Luigi, Mevrouw Bosch met vlag, Gianni), 6 de vlag op de Toren van Pizza met vuurwerk, 7 aftiteling (buiging,
 rood gordijn, Pepperoni). Stijlopdracht: met `pizza/portretten.png` en `pizza/stad-gemini.jpg` als voorbeeld, 16:9, geen tekst. Bewaren als
 `pizza/plaat-N-chatgpt.png`; in het spel als scène (zoom/schuiven, tekstregels, muziek).
+Binnen (15 nov): 0 titel (`pizza/plaat0.jpg`, titelscherm), 1 opening tweede zaak (`pizza/plaat1.jpg`, scène na H1), logo (`pizza/logo.png`), dartpijltje
+(`pizza/doel.png`, doelknop), race-vel (`pizza/race.png`). Nog nodig: 2 krant, 3 inval, 4 bruiloft, 5 startlijn stadsrace, 6 vlag op de toren, 7 aftiteling.

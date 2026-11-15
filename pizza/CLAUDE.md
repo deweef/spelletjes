@@ -622,3 +622,9 @@ gedraaid): Afrikaanse man groen shirt → wit, studente paars haar → grijsgroe
 staan ook in het tabblad Totaal (niet alleen bij Geld).
 16 nov: een schilderij (`SPUL.schilderij.muur`) blokkeert het looppad niet meer (`maakBezet` slaat `muur`-spullen over): eerder kon een stoel naast een
 schilderij onbereikbaar worden (rood kruisje). Beide versies.
+Platen en titelscherm (15 nov, ChatGPT, alleen Pizzabaas 2): `extra/platen_knip.py` maakt `pizza/logo.png` (groen weg via flood vanaf de rand, blaadjes
+blijven), `pizza/doel.png` (dartpijltje op een pizza, 96 px, op de doelknop i.p.v. 🎯) en `pizza/plaatN.jpg` (1280 breed) uit `pizza/*-chatgpt.png`.
+Titelscherm `#welkom`: plaat 0 schuift langzaam (`#titelplaat`), logo valt erin (`#titellogo`), kaart onderaan: nieuw = Mario laat je alles zien /
+Overslaan; met opslag = ▶️ Verder spelen / 🔄 Nieuw spel (`herstart`, met bevestiging). Verhaalplaat na een hoofdstuk: `VERHAAL[H]` = { plaat, lied,
+kijk (per regel object-position in %, zodat je op de telefoon ziet wie het over gaat), tekst } → `toonPlaat(H, klaar)` (scherm `#plaatscene`, inzoomen,
+regels om de 4,2 s of met Verder) en daarna het feestscherm (`hoofdstukKlaar(H, naPlaat)`). Nu alleen H1 (plaat 1, Bella ciao, eindigt bij Luigi om de hoek).
