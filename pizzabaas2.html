@@ -2158,6 +2158,7 @@ const RACE = { lengte: 320, max: 9, henk: 8.45, luigi: 8.7, banaan: 5.5, px: 22 
 const BAANX = (l) => (l - 1) * 82;
 let race = null;
 function toonRace() {
+  if (ac && typeof Muziek != 'undefined') Muziek.laadStijl('rock', ac); // racemuziek met echte instrumenten
   $('race').classList.remove('verborgen'); startRace();
   $('racedicht').onclick = () => { $('race').classList.add('verborgen'); race = null; toonStad('tehuis'); };
   const c = $('racedoek'); c.onpointerdown = (e) => { e.preventDefault(); wekGeluid(); const r = c.getBoundingClientRect(); raceStuur((e.clientX - r.left) < r.width / 2 ? -1 : 1); };
@@ -2194,7 +2195,12 @@ function raceMuziek() { if (!ac || !race || race.uit) return; const R = race; R.
   if (R.muziekTot > ac.currentTime + 0.4) return; const ver = Math.max(...R.r.map((p) => p.m)) / RACE.lengte, stap = ver > 0.75 ? 0.095 : 0.12;
   const maat = R.maat = (R.maat || 0) + 1, wortel = [0, 0, 5, 7][Math.floor(maat / 2) % 4], basis = 220 * 2 ** (wortel / 12);
   const loopje = [0, 1, 0, 1, 0, 3, 2, 1, 0, 1, 0, 1, 4, 3, 2, 1];
-  loopje.forEach((n, i) => { const t = R.muziekTot + i * stap; toon(t, basis * 2 ** (n / 12), stap * 0.9, 0.035, 'square'); if (i % 4 == 0) toon(t, basis / 2, stap * 1.8, 0.05, 'triangle'); });
+  if (typeof Muziek != 'undefined' && Muziek.klaar('rock')) { const r = 57 + wortel; // echte instrumenten (16 nov): gitaarloopje, basgitaar, powerchords en drums
+    loopje.forEach((n, i) => { const t = R.muziekTot + i * stap; Muziek.noot(ac, 'overdriven_guitar', r + n, t, stap * 0.85, 0.13, 0.05);
+      if (i % 2 == 0) Muziek.noot(ac, 'electric_bass_pick', r - 24, t, stap * 1.7, 0.2, 0.05);
+      if (i % 8 == 0) [r - 12, r - 5, r].forEach((m) => Muziek.noot(ac, 'distortion_guitar', m, t, stap * 7.5, 0.045, 0.1));
+      Muziek.slag(ac, i % 8 == 0 ? 'kick' : i % 8 == 4 ? 'snare' : 'hihat', t, i % 8 == 0 ? 0.22 : i % 8 == 4 ? 0.14 : i % 2 ? 0.025 : 0.04); });
+  } else loopje.forEach((n, i) => { const t = R.muziekTot + i * stap; toon(t, basis * 2 ** (n / 12), stap * 0.9, 0.035, 'square'); if (i % 4 == 0) toon(t, basis / 2, stap * 1.8, 0.05, 'triangle'); });
   R.muziekTot += loopje.length * stap; }
 function raceLus(nu) {
   if (!race || $('race').classList.contains('verborgen')) return;

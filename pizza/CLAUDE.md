@@ -634,4 +634,4 @@ stijl = die van de zaak (`BUURTSTIJL`: eerste zaak italiaans, studenten rock, pl
 Nog niet geladen = laden en dan spelen (`liedTot` schat de duur, `liedDuur`); mislukt of `vals` = de oude piepjes. `openDeuren` laadt de stijl van de zaak alvast.
 Titelscherm: na de eerste tik Tarantella (italiaans) en de effecten laden; "Mario laat je alles zien" / Overslaan / Verder spelen faden hem uit (`Muziek.stop`).
 Effecten: deurmat = buisklokken ding-dong, bel van de uitgifte = klokkenspel, aria = applaus aan het eind, vraag van iemand "(telefoon)" = echte telefoon;
-anders de oude `ding`-piepjes. Liedjes zonder `bas` krijgen akkoorden van `Muziek.harmoniseer`. De race-muziek (`raceMuziek`) is nog de oude blokgolf.
+anders de oude `ding`-piepjes. Liedjes zonder `bas` krijgen akkoorden van `Muziek.harmoniseer`. Racemuziek (`raceMuziek`, maat voor maat) met rock-instrumenten via `Muziek.noot`/`Muziek.slag` (gitaarloopje, basgitaar, powerchords, drums; `toonRace` laadt rock), anders de oude blokgolf.

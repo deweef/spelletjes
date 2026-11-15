@@ -5,6 +5,7 @@
 //   Muziek.speel(ctx, lied, t0, stijl) -> eindtijd   (alleen als Muziek.klaar(stijl); anders eerst laadStijl)
 //   Muziek.stop(ctx, 1.5)                    alle muziek uitfaden (effecten niet)
 //   Muziek.effect(ctx, 'deurbel' | 'bel' | 'applaus' | 'telefoon') -> true als het lukte (anders zelf een piepje doen)
+//   Muziek.noot(ctx, instrument, midi, t, duur, volume) / Muziek.slag(ctx, 'kick'|'snare'|'hihat'|'tamboerijn', t, volume): losse noten voor eigen muziek
 const Muziek = (() => {
   const BASIS = (document.currentScript && document.currentScript.src.replace(/js\/muziek\.js.*$/, '')) || './';
   const STIJL = {
@@ -94,7 +95,7 @@ const Muziek = (() => {
       t += dur; }
     return Math.max(eind, t);
   }
-  function stop(ctx, fade = 1.2) { const B = bussen.get(ctx); if (!B) return; const nu = ctx.currentTime; B.muz.gain.cancelScheduledValues(nu); B.muz.gain.setValueAtTime(B.muz.gain.value, nu); B.muz.gain.linearRampToValueAtTime(0.0001, nu + fade);
+  function stop(ctx, fade = 1.2) { const B = bussen.get(ctx); if (!B) return; const nu = ctx.currentTime; B.stilTot = nu + fade; B.muz.gain.cancelScheduledValues(nu); B.muz.gain.setValueAtTime(B.muz.gain.value, nu); B.muz.gain.linearRampToValueAtTime(0.0001, nu + fade);
     const weg = B.bronnen; B.bronnen = []; setTimeout(() => { weg.forEach((b) => { try { b.stop(); } catch (e) {} }); }, fade * 1000 + 50); }
   function effect(ctx, naam) {
     if (!ctx || !klaar('effecten')) return false; const fx = bus(ctx).fx, t = ctx.currentTime + 0.02;
@@ -105,5 +106,9 @@ const Muziek = (() => {
     else return false;
     return true;
   }
-  return { STIJL, laadStijl, klaar, speel, stop, effect, midi, harmoniseer };
+  // losse noten en slagen, voor muziek die het spel zelf maat voor maat maakt (zoals de race in Pizzabaas): gaat via de muziekbus (stop faadt ze uit)
+  function weerAan(ctx) { const B = bus(ctx); if (B.stilTot && ctx.currentTime > B.stilTot) { B.stilTot = 0; B.muz.gain.cancelScheduledValues(0); B.muz.gain.setValueAtTime(1, ctx.currentTime); } return B; } // na een stop weer hoorbaar
+  const losseNoot = (ctx, ins, m, t, dur, vol, los) => noot(ctx, weerAan(ctx).muz, ins, m, t, dur, vol, los);
+  const losseSlag = (ctx, soort, t, vol) => { weerAan(ctx); slag(ctx, soort, t, vol); }; // 'kick' | 'snare' | 'hihat' | 'tamboerijn'
+  return { STIJL, laadStijl, klaar, speel, stop, effect, midi, harmoniseer, noot: losseNoot, slag: losseSlag };
 })();
