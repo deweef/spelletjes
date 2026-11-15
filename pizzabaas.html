@@ -4422,7 +4422,7 @@ function tekenSpul(s, nu, zitten) {
     bord(px * T, py * T, m.st == 'eet', m.st == 'eet' && m.t > ETEN / 2, m.pizza);
   }
   if (s.kaars) {
-    const kx = cx, ky = cy;
+    const kl = kleedVan(s), kx = cx, ky = cy - (kl && s.t == "tafel" && !s.punt ? (KLEED[kl].rond ? 0.12 : KLEED[kl].chic ? 0.42 : 0) : kl && s.t == "tafeltje" ? 0.05 : 0) * T; // midden van het tafelblad: een chic kleed hangt verder naar voren (15 nov)
     const fl = 1 + Math.sin(nu / 70 + s.x) * 0.25;
     g.fillStyle = 'rgba(255,190,60,.3)'; g.beginPath(); g.arc(kx, ky, 13 * fl, 0, 7); g.fill();
     g.fillStyle = '#fff3d6'; g.beginPath(); g.arc(kx, ky, 4, 0, 7); g.fill();
