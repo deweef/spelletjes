@@ -617,3 +617,6 @@ nergens. Bij het maken van een pizza staat nu onder de prijs "Wat ze willen beta
 Wie eerst (16 nov, Marcel: een eenling ging boos weg terwijl de ober een later groepje hielp): keuken (`wachtrij`) en ober (`ritten`) pakten op volgorde
 van binnenkomst; nu `eersteNodig(lijst)` = de bestelling met het minste geduld over (`restGeduld`: groep.geduld − groep.t; bezorging: tijd tot koud;
 afhalen 30). Gemeten (t171, 6 drukke dagen, 1 oven + 1 ober): boos weg 43 → 17, tevreden 75 → 94. In beide versies.
+16 nov: kleuren van "lopen naar voren" (vakjes 18-25, ChatGPT) gelijk getrokken met de oude Gemini-plaatjes (`extra/kleur_voor.py`, één keer
+gedraaid): Afrikaanse man groen shirt → wit, studente paars haar → grijsgroen, Chinese dame rood minder fel. Dagoverzicht: aflossingen en belasting
+staan ook in het tabblad Totaal (niet alleen bij Geld).

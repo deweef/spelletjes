@@ -771,6 +771,7 @@ function eindeDag() {
     <table>
       <tr><td>🍕 ${esc(zaakNaam())}</td><td>${zaakWinst < 0 ? '− ' : ''}€ ${Math.abs(Math.round(zaakWinst))}</td></tr>${anderen.map((o) => `<tr><td>🏪 ${esc(BUURT[o.z.buurt || 'oud'].n)}</td><td>${o.winst < 0 ? '− ' : ''}€ ${Math.abs(o.winst)}</td></tr>`).join('')}${ijs ? `<tr><td>🍨 IJssalon</td><td>${ijs.winst < 0 ? '− ' : ''}€ ${Math.abs(ijs.winst)}</td></tr>` : ''}
       <tr><td><b>Verdiend vandaag</b></td><td><b>${totaal >= 0 ? '' : '− '}€ ${Math.abs(Math.round(totaal))}</b></td></tr>
+      ${lening.map(([t, v]) => `<tr><td style="font-size:.9em">${esc(t)}</td><td>${v ? '− € ' + -v : ''}</td></tr>`).join('')}
     </table>
     ${tipTekst}
     </div>
