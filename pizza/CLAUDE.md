@@ -639,3 +639,6 @@ Plaat 2 (16 nov, de krant, `pizza/plaat2.jpg`): `VERHAAL[2]` met `krant.kop` = [
 gemeten aan de randlijnen); `krantKop(V, img)` schrijft de kop (`V.kop()`: "GOUDEN PIZZASCHEP VOOR PIZZERIA <NAAM>!" of "PIZZERIA <NAAM> VERSLAAT LUIGI!")
 met een canvas in de plaat; de kop staat ook in het eerste tekstje (op de telefoon past hij niet in beeld). Tekstregels mogen een functie zijn.
 Voorbeeldvel voor ChatGPT met vijf klanten tegelijk: `pizza/voorbeeld/vijf-figuren.png` (werker, student, villadame, Afrikaanse man, Chinese dame).
+Recht zitten (16 nov, ChatGPT, beide versies): per klant een vel met 6 houdingen (voor zit/eet, achter zit/eet, opzij zit/eet; opdracht in de chat en in
+PLAN.md) → `python3 extra/zit_vel.py pizza/<naam>-zit-chatgpt.png <rij>` zet ze in vakjes 12-17 van `pizza/klanten.png` (zelfde schaal, voeten op 188;
+`alleen=12,13,14,15` om alleen voor/achter te vervangen). Klaar: werker (rij 0, `pizza/werker-zit-chatgpt.png`).
