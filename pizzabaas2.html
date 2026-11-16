@@ -5089,12 +5089,30 @@ function marioTip() { // klein ballonnetje onderin met Mario en de volgende stap
 const VERHAAL = {
   1: { plaat: 'pizza/plaat1.jpg', // kijk = per regel waar de plaat naartoe schuift (object-position in %)
        lied: 'bella', kijk: [[50, 50], [52, 35], [12, 60], [96, 40]], tekst: ['Groot feest in de studentenwijk!', 'Mario klimt op een krukje en knipt met de pizzaschep het lint door: je tweede pizzeria is open!', 'De studenten juichen, de telefoons gaan omhoog, de confetti dwarrelt…', 'En daar, om de hoek: Luigi. Met zijn zonnebril op. Hij lacht niet.'] },
+  2: { plaat: 'pizza/plaat2.jpg', lied: 'vincero', kijk: [[30, 15], [35, 55], [80, 45], [50, 40]],
+    // de krant: het spel schrijft zelf de naam van de krant en de kop in de lege vakken (midden x/y, breedte, hoek; in pixels van de plaat, 1280x720)
+    krant: { kop: [512, 124, 760, -0.148] }, // de krant ligt 8,5° scheef (gemeten aan de randlijnen)
+    kop: () => (S.scheppen || 0) >= 1 ? `GOUDEN PIZZASCHEP VOOR PIZZERIA ${(speler || 'DE BAAS').toUpperCase()}!` : `PIZZERIA ${(speler || 'DE BAAS').toUpperCase()} VERSLAAT LUIGI!`,
+    tekst: [() => `De volgende ochtend ligt De Avondpost op elke cafétafel van de stad. Op de voorpagina: "${(S.scheppen || 0) >= 1 ? `Gouden Pizzaschep voor Pizzeria ${speler || 'de baas'}!` : `Pizzeria ${speler || 'de baas'} verslaat Luigi!`}"`,
+      () => (S.scheppen || 0) >= 1 ? 'Op de voorpagina: Mario met de Gouden Pizzaschep. De fotografen flitsen erop los.' : 'Op de voorpagina: Mario, die na de pizzawedstrijd met zijn gouden schep zwaait alsof hij het WK heeft gewonnen.',
+      'En aan de rand van de foto: Luigi. Armen over elkaar. Hij heeft de krant vanochtend al drie keer verscheurd.',
+      'De hele stad kent je nu. En dat trekt ook… andere types aan.'] },
 };
+function krantKop(V, img) { // naam van de krant en de kop in de lege vakken van de plaat schrijven (canvas → nieuw plaatje)
+  const bron = new Image(); bron.onload = () => { const c = document.createElement('canvas'); c.width = bron.naturalWidth; c.height = bron.naturalHeight; const g2 = c.getContext('2d'), k = c.width / 1280;
+    g2.drawImage(bron, 0, 0);
+    const schrijf = ([x, y, b, hoek], tekst, max, stijl) => { g2.save(); g2.translate(x * k, y * k); g2.rotate(hoek); g2.textAlign = 'center'; g2.textBaseline = 'middle'; let p = max * k;
+      do { g2.font = `${stijl} ${p}px Georgia, 'Times New Roman', serif`; p -= 2; } while (g2.measureText(tekst).width > b * k && p > 10);
+      g2.fillStyle = '#2b1a0e'; g2.fillText(tekst, 0, 0); g2.restore(); };
+    if (V.krant.naam) schrijf(V.krant.naam, 'DE AVONDPOST', 46, '900'); schrijf(V.krant.kop, V.kop(), 58, 'bold');
+    try { img.src = c.toDataURL('image/jpeg', 0.9); } catch (e) {} };
+  bron.src = V.plaat;
+}
 function toonPlaat(H, klaar) {
   const V = VERHAAL[H]; if (!V) { klaar(); return; }
   const sc = $('plaatscene'), img = $('plaatimg'); let n = 0, timer = null;
-  const volgende = () => { clearTimeout(timer); if (n >= V.tekst.length) { $('plaatverder').textContent = 'Verder'; return; } if (V.kijk && V.kijk[n]) img.style.objectPosition = V.kijk[n].map((v) => v + '%').join(' '); /* de plaat schuift naar wie het over gaat (op de telefoon zie je maar een stukje) */ $('plaattekst').textContent = V.tekst[n++]; $('plaatverder').textContent = n < V.tekst.length ? 'Verder ›' : 'Verder'; if (n < V.tekst.length) timer = setTimeout(volgende, 4200); };
-  img.src = V.plaat; img.style.transition = 'none'; img.style.objectPosition = V.kijk ? V.kijk[0].map((v) => v + '%').join(' ') : '50% 50%'; void img.offsetWidth; img.style.transition = ''; sc.classList.remove('speelt'); void sc.offsetWidth; sc.classList.add('speelt'); sc.classList.remove('verborgen');
+  const volgende = () => { clearTimeout(timer); if (n >= V.tekst.length) { $('plaatverder').textContent = 'Verder'; return; } if (V.kijk && V.kijk[n]) img.style.objectPosition = V.kijk[n].map((v) => v + '%').join(' '); /* de plaat schuift naar wie het over gaat (op de telefoon zie je maar een stukje) */ const r = V.tekst[n++]; $('plaattekst').textContent = typeof r == 'function' ? r() : r; $('plaatverder').textContent = n < V.tekst.length ? 'Verder ›' : 'Verder'; if (n < V.tekst.length) timer = setTimeout(volgende, 4200); };
+  img.src = V.plaat; if (V.krant) krantKop(V, img); img.style.transition = 'none'; img.style.objectPosition = V.kijk ? V.kijk[0].map((v) => v + '%').join(' ') : '50% 50%'; void img.offsetWidth; img.style.transition = ''; sc.classList.remove('speelt'); void sc.offsetWidth; sc.classList.add('speelt'); sc.classList.remove('verborgen');
   if (V.lied) speelLied(V.lied); volgende();
   $('plaatverder').onclick = () => { wekGeluid(); if (n < V.tekst.length) { volgende(); return; } clearTimeout(timer); sc.classList.add('verborgen'); sc.classList.remove('speelt'); klaar(); };
 }

@@ -635,3 +635,7 @@ Nog niet geladen = laden en dan spelen (`liedTot` schat de duur, `liedDuur`); mi
 Titelscherm: na de eerste tik Tarantella (italiaans) en de effecten laden; "Mario laat je alles zien" / Overslaan / Verder spelen faden hem uit (`Muziek.stop`).
 Effecten: deurmat = buisklokken ding-dong, bel van de uitgifte = klokkenspel, aria = applaus aan het eind, vraag van iemand "(telefoon)" = echte telefoon;
 anders de oude `ding`-piepjes. Liedjes zonder `bas` krijgen akkoorden van `Muziek.harmoniseer`. Racemuziek (`raceMuziek`, maat voor maat) met rock-instrumenten via `Muziek.noot`/`Muziek.slag` (gitaarloopje, basgitaar, powerchords, drums; `toonRace` laadt rock), anders de oude blokgolf.
+Plaat 2 (16 nov, de krant, `pizza/plaat2.jpg`): `VERHAAL[2]` met `krant.kop` = [midden x, y, breedte, hoek] in pixels van de plaat (de krant ligt 8,5° scheef,
+gemeten aan de randlijnen); `krantKop(V, img)` schrijft de kop (`V.kop()`: "GOUDEN PIZZASCHEP VOOR PIZZERIA <NAAM>!" of "PIZZERIA <NAAM> VERSLAAT LUIGI!")
+met een canvas in de plaat; de kop staat ook in het eerste tekstje (op de telefoon past hij niet in beeld). Tekstregels mogen een functie zijn.
+Voorbeeldvel voor ChatGPT met vijf klanten tegelijk: `pizza/voorbeeld/vijf-figuren.png` (werker, student, villadame, Afrikaanse man, Chinese dame).
