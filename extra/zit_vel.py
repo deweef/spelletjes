@@ -13,7 +13,9 @@ while q:  # achtergrond = groen dat vanaf de rand bereikbaar is
     y, x = q.popleft()
     if 0 <= y < H and 0 <= x < W and weg[y, x] and not m[y, x]: m[y, x] = True; q.extend([(y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)])
 m |= np.sqrt(((a - bg) ** 2).sum(-1)) < 35  # ingesloten stukjes pure achtergrond (tussen arm en lijf)
-g = a[..., 1]; mx = np.maximum(a[..., 0], a[..., 2]); b = a.copy(); b[..., 1] = np.where(g > mx + 40, mx + 40, g)  # groene rand dempen
+from scipy import ndimage
+rand = ndimage.binary_dilation(m, iterations=2) & ~m  # alleen vlak naast de achtergrond ontgroenen: groene kleren (Afrikaanse man) blijven groen
+g = a[..., 1]; mx = np.maximum(a[..., 0], a[..., 2]); b = a.copy(); b[..., 1] = np.where(rand & (g > mx + 40), mx + 40, g)
 kol = (~m).sum(0) > 3; st = []; x = 0
 while x < W:
     if kol[x]:
