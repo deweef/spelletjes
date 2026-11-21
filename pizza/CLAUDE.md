@@ -653,3 +653,5 @@ Nieuwe liedjes (Funiculì funiculà, O sole mio, Santa Lucia) komen er later bij
 dan in `LIED` en in `ITALIAANS`. Claude kon geen bladmuziek ophalen (wikipedia geblokkeerd) en kent ze niet zeker genoeg uit het hoofd.
 MIDI-liedjes (21 nov): `LIED.santalucia` (CC0) en `LIED.bella` spelen nu de echte MIDI van Wikimedia Commons (`klank/liedjes/*.json`); bella houdt zijn
 noten als reserve (piepjes als de instrumenten niet laden). `ITALIAANS` = funiculi, santalucia, bella, tarantella, donna, vincero.
+21 nov (beide versies): pizza-acrobatiek en eetwedstrijd konden vaker per dag: de knop in de stad werd na het spel niet opnieuw getekend. Nu zet de knop
+zichzelf meteen op slot ("morgen weer") en de klik doet niets meer als `S.acroDag`/`S.eetDag` vandaag is. (De race tekende de stad al opnieuw.)
