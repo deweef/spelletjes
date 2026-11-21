@@ -5030,7 +5030,7 @@ function toonVlag() {
   const c = $('filmdoek'), g2 = c.getContext('2d'), W2 = 360, H2 = 420, start = performance.now(); speelLied('vincero', false, 'klassiek'); setTimeout(() => speelLied('ode'), 12000);
   const vuur = []; const zin = [[0, 'De vlagfiches gaan de smeltoven in…'], [3, 'Groen, wit en rood: de Italiaanse vlag!'], [6, 'Hij gaat omhoog… omhoog… omhoog…'], [10, 'De hele stad juicht!'], [13, 'Jij bent de pizzabaas van de stad. 👑']];
   $('filmverder').textContent = 'Verder (overslaan)';
-  $('filmverder').onclick = () => { $('film').classList.add('verborgen'); pauze = false; mijl('vlag'); S.uitgespeeld = S.uitgespeeld || S.dag; bewaar(); toonAftiteling(); };
+  $('filmverder').onclick = () => { $('film').classList.add('verborgen'); pauze = false; mijl('vlag'); S.uitgespeeld = S.uitgespeeld || S.dag; bewaar(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1); liedTot = 0; } toonPlaat(6, toonAftiteling); }; // eerst plaat 6 (de vlag met iedereen), dan de aftiteling
   (function lus(nu) {
     if ($('film').classList.contains('verborgen')) return; const t = (nu - start) / 1000;
     const lucht = g2.createLinearGradient(0, 0, 0, H2); lucht.addColorStop(0, t > 9 ? '#1b2340' : '#f39c4a'); lucht.addColorStop(1, t > 9 ? '#6b3a5a' : '#ffd88a'); g2.fillStyle = lucht; g2.fillRect(0, 0, W2, H2);
@@ -5115,6 +5115,13 @@ const VERHAAL = {
       'Mevrouw Bosch van Huize Avondrood heft de vlag. "Geen valsspelen. Geen bananen. Ik kijk naar jou, Luigi."',
       'Mario juicht vanaf de kant. Het hele plein houdt zijn adem in.',
       'Drie… twee… één… VROEMMM! (Met 6 kilometer per uur.)'] },
+  6: { plaat: 'pizza/plaat6.jpg', lied: 'funiculi', stijl: 'italiaans', kijk: [[50, 30], [52, 5], [10, 80], [70, 80], [95, 75], [50, 40]], // na de vlag (toonVlag), vóór de aftiteling
+    tekst: ['Vuurwerk boven de grachten. De Toren van Pizza staat scheef, en trots.',
+      'Bovenop zwaait Mario met de Italiaanse vlag. Groen, wit en rood. Van jouw vlagfiches.',
+      'Beneden juicht iedereen: Opa Henk, Marco en Valentina in hun trouwkleren…',
+      '…Gianni met een ijsje, en Pepperoni de kat, die nergens van schrikt.',
+      'En Luigi? Die klapt. Echt waar. "Niet slecht, collega. Niet slecht."',
+      () => `De stad heeft een nieuwe pizzabaas: ${speler || 'jij'}!`] },
 };
 function krantKop(V, img) { // naam van de krant en de kop in de lege vakken van de plaat schrijven (canvas → nieuw plaatje)
   const bron = new Image(); bron.onload = () => { const c = document.createElement('canvas'); c.width = bron.naturalWidth; c.height = bron.naturalHeight; const g2 = c.getContext('2d'), k = c.width / 1280;
