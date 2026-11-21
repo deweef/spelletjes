@@ -659,3 +659,5 @@ Plaat 6 (21 nov, `pizza/plaat6.jpg`, de vlag op de toren met iedereen): `VERHAAL
 `toonPlaat(6, toonAftiteling)`), dan de aftiteling. Nog nodig: plaat 7 (aftiteling, opdracht in PLAN.md).
 Plaat 7 (21 nov, `pizza/plaat7.jpg`, iedereen buigt op het podium, Pepperoni vooraan): `VERHAAL[7]` (Santa Lucia) na plaat 6, daarna `toonAftiteling` met de plaat
 bovenaan de kaart. Alle verhaalplaten 0-7 zijn nu binnen.
+Tips van Mario uitzetten (21 nov, Marcel: "af en toe irritant op de telefoon"): knop "🔕 Geen tips meer" in de ballon en een aan/uit-knop onder 🎯 Doelen
+(`#tipsknop`); `S.tipsUit` = geen ballon meer. Tik op de ballon zelf = alleen weg voor vandaag (zoals eerst).

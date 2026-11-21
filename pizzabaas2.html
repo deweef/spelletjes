@@ -5080,11 +5080,12 @@ function hoofdIntro(nu) { const H = hoofd(); S.introGezien = S.introGezien || {}
     <button class="groot" id="verder">👨‍🍳 Andiamo!</button>`;
   $('einde').classList.remove('verborgen'); speelLied('donna', false, 'klassiek'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); setTimeout(marioTip, 600); }; }
 function marioTip() { // klein ballonnetje onderin met Mario en de volgende stap (alleen in hoofdstuk 1 en 2, tot je hem wegklikt voor vandaag)
-  if (hoofd() > 2 || modus != 'inrichten' || S.tipWeg == S.dag) return; const d = DOELEN.find((d) => d.h == hoofd() && !d.geheim && !(S.doelen || {})[d.id]); if (!d) return;
+  if (S.tipsUit || hoofd() > 2 || modus != 'inrichten' || S.tipWeg == S.dag) return; /* S.tipsUit = de speler wil geen tips meer (21 nov) */ const d = DOELEN.find((d) => d.h == hoofd() && !d.geheim && !(S.doelen || {})[d.id]); if (!d) return;
   let b = $('mariotip'); if (!b) { b = document.createElement('div'); b.id = 'mariotip'; b.style.cssText = 'position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 64px);z-index:6;display:flex;align-items:flex-end;gap:6px;max-width:330px;pointer-events:auto'; document.body.appendChild(b); }
   b.innerHTML = `<div style="flex:none;width:52px;height:88px;background:url(pizza/kok.png) 0 0 / auto 88px no-repeat"></div><div style="background:#fff7e0;border:2px solid #c0392b;border-radius:12px;padding:6px 9px;font:14px system-ui;color:#3a2a1a;box-shadow:0 3px 10px #0004">
-    <b>Tip van Mario:</b> ${esc(d.tip || d.n)}<br><small style="opacity:.7">(${VLAGKLEUR[d.k][0]} +${d.f}) · tik om weg te doen</small></div>`;
-  b.onclick = () => { S.tipWeg = S.dag; bewaar(); b.remove(); }; }
+    <b>Tip van Mario:</b> ${esc(d.tip || d.n)}<br><small style="opacity:.7">(${VLAGKLEUR[d.k][0]} +${d.f}) · tik = weg voor vandaag</small><br><button id="tipsuit" style="margin-top:4px;border:0;background:#e9d3ad;border-radius:8px;padding:3px 8px;font:12px system-ui;color:#3a2a1a">🔕 Geen tips meer</button></div>`;
+  b.onclick = () => { S.tipWeg = S.dag; bewaar(); b.remove(); };
+  $('tipsuit').onclick = (e) => { e.stopPropagation(); S.tipsUit = true; bewaar(); b.remove(); meld('Geen tips meer van Mario. Aanzetten kan weer bij 🎯 Doelen.', 4000); }; }
 // verhaalplaten van ChatGPT (pizza/plaatN.jpg uit pizza/plaatN-chatgpt.png, extra/platen_knip.py): langzaam inzoomen, tekst regel voor regel, een liedje
 const VERHAAL = {
   1: { plaat: 'pizza/plaat1.jpg', // kijk = per regel waar de plaat naartoe schuift (object-position in %)
@@ -5165,9 +5166,10 @@ function toonDoelen() {
     <table>${mijn.map(rij).join('')}</table>
     ${H > 1 ? `<details style="margin-top:8px"><summary>Eerdere hoofdstukken (nog te halen: dat mag altijd)</summary><table>${DOELEN.filter((d) => d.h < H).map(rij).join('')}</table></details>` : ''}
     <p class="buurt">${[1, 2, 3, 4, 5, 6].map((h) => `${h < H ? '🍕' : h == H ? '▶️' : '🔒'} ${h}. ${h <= H ? esc(HOOFDSTUK[h].n) : '…'}`).join('<br>')}</p>
-    <button class="groot" id="verder">Verder</button><button class="knop" id="rondeweer" style="margin-top:8px">👨‍🍳 Rondleiding van Mario</button>`;
+    <button class="groot" id="verder">Verder</button><button class="knop" id="rondeweer" style="margin-top:8px">👨‍🍳 Rondleiding van Mario</button><button class="knop" id="tipsknop" style="margin-top:8px">${S.tipsUit ? '💡 Tips van Mario weer aanzetten' : '🔕 Tips van Mario uitzetten'}</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen');
   $('rondeweer').onclick = () => { $('einde').classList.add('verborgen'); rondleiding(); };
+  $('tipsknop').onclick = () => { S.tipsUit = !S.tipsUit; if (!S.tipsUit) S.tipWeg = 0; bewaar(); if (S.tipsUit && $('mariotip')) $('mariotip').remove(); $('tipsknop').textContent = S.tipsUit ? '💡 Tips van Mario weer aanzetten' : '🔕 Tips van Mario uitzetten'; meld(S.tipsUit ? 'Mario houdt zijn tips voor zich.' : 'Mario geeft weer tips (in hoofdstuk 1 en 2).', 3000); };
 }
 let snel = 1; $('snelknop').onclick = () => { wekGeluid(); snel = snel == 1 ? 2 : 1; $('snelknop').classList.toggle('aan', snel == 2); meld(snel == 2 ? '⏩ De tijd gaat twee keer zo snel.' : '▶️ Weer gewoon tempo.'); };
 $('doelknop').onclick = () => { wekGeluid(); sluitMenu(); toonDoelen(); };
