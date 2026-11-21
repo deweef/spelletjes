@@ -5,6 +5,6 @@ De originele MIDI's staan in `bronnen/`. Wikimedia blokkeert de cloudserver vaak
 
 | Bestand | Bron | Licentie / maker |
 |---|---|---|
-| funiculi.json | https://commons.wikimedia.org/wiki/File:Funiculì_funiculà.mid | nog nagaan (Commons: vrije licentie) |
+| funiculi.json | https://commons.wikimedia.org/wiki/File:Funiculì_funiculà.mid | CC0, Rabanus Flavus (Peter Gerloff); melodie Luigi Denza (1846-1922) |
 | santalucia.json | https://commons.wikimedia.org/wiki/File:Santa_Lucia.mid (`bronnen/santa-lucia-commons.mid`) | CC0, Rabanus Flavus (Peter Gerloff) |
 | bellaciao.json | https://commons.wikimedia.org/wiki/File:Bella_ciao.mid (`bronnen/bella-ciao-commons.mid`) | CC0, Rabanus Flavus (Peter Gerloff) |
