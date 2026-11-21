@@ -23,10 +23,17 @@ while x < W:
         while x < W and kol[x]: x += 1
         if x - s > 40: st.append((s, x))
     x += 1
+tel = (~m).sum(0)
+while len(st) < 6:  # twee figuren raken elkaar (dame in rood: arm van 4 tegen het haar van 5): de breedste groep splitsen op de dunste kolom
+    i = max(range(len(st)), key=lambda j: st[j][1] - st[j][0]); s0, e0 = st[i]; a0, b0 = s0 + (e0 - s0) * 3 // 10, s0 + (e0 - s0) * 7 // 10
+    knip = a0 + int(np.argmin(tel[a0:b0])); st[i:i + 1] = [(s0, knip), (knip + 1, e0)]
 assert len(st) == 6, ('verwacht 6 figuren, gevonden', st)
 fig = []
 for s, e in st:
-    f = Image.fromarray(np.dstack([b[:, s:e], np.where(m[:, s:e], 0, 255)]).astype(np.uint8)); fig.append(f.crop(f.getbbox()))
+    al = np.where(m[:, s:e], 0, 255).astype(np.uint8); lab, n = ndimage.label(al > 0)
+    if n > 1:  # losse snippers (een handje van de buurman) weg: alleen stukken van minstens 3% van de grootste
+        gr = ndimage.sum(al > 0, lab, range(1, n + 1)); al[np.isin(lab, [i + 1 for i, g_ in enumerate(gr) if g_ < gr.max() * 0.03])] = 0
+    f = Image.fromarray(np.dstack([b[:, s:e], al]).astype(np.uint8)); fig.append(f.crop(f.getbbox()))
 k = HOOG / max(f.size[1] for f in fig); k = min(k, 111 / max(f.size[0] for f in fig))
 im = Image.open('pizza/klanten.png').convert('RGBA'); Wc, Hc = 113, 192
 for doel, f in zip(range(12, 18), fig):

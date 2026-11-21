@@ -551,7 +551,7 @@ const ruimte = (i) => S.groot && S.groot[i] ? 2 : 1; // pizza's tegelijk in oven
 const DEEG = 1.6, BAKKEN = BAKTIJD - DEEG, VERBRAND = 9; // VERBRAND: zo lang mag een klare pizza in de oven blijven liggen // deeg maken, en zo lang zit een pizza in de oven
 // de kok heeft even niks te doen: hij poetst, loopt een stukje, of gaat soms de zaal in om aan een klant te vragen of het smaakt.
 // Is dat een leuke dame (`DAMES`), dan blijft hij veel te lang hangen… en brandt de pizza in de oven aan (VERBRAND).
-const DAMES = [2, 4, 7, 8]; // figuren in pizza/klanten.png: villadame, Chinese dame, studente, Afrikaanse vrouw
+const DAMES = [2, 4, 7, 8, 11]; // figuren in pizza/klanten.png: villadame, Chinese dame, studente, Afrikaanse vrouw, dame in rood
 function kokRust(o, k, dt) {
   k.rust = (k.rust || 0) + dt; k.poets = (k.poets || 0) + dt;
   if (k.rust > 4 && modus == 'open' && !(bezoeker && bezoeker.achter) && Math.random() < dt * 0.12 && !ovens.some((x) => x.kok != k && ['uit', 'praat', 'terug'].includes(x.kok.st))) {
@@ -4042,10 +4042,10 @@ function figuur(img, p, bijzonder, rug, achter, vel) {
 // rijen: 0 werker (pizza/werker2-gemini.jpg), 1 student (student2), 2 villadame, 3 Afrikaanse man (afrikaan), 4 Chinese dame (dame-china2), 5 Chinese toerist (toerist),
 // 6 opa (opa2), 7 studente, 8 Afrikaanse vrouw (afrikaanse-vrouw), 9 zakenman, 10 oma (oma2)
 const KLANTEN = new Image(); KLANTEN.src = 'pizza/klanten.png';
-const VOORLOOP = { 12: [18, 19, 20, 21], 0: [18, 19, 20, 21], 1: [18, 19, 20, 21], 2: [18, 19, 20, 21], 3: [18, 19, 20, 21], 4: [[18, 19, 20, 21], [22, 23, 24, 25]], 5: [18, 19, 20, 21], 6: [18, 19, 20, 21], 7: [18, 19, 20, 21], 8: [18, 19, 20, 21], 9: [18, 19, 20, 21], 10: [18, 19, 20, 21] }; // vakjes 18-21: lopen naar de kijker toe (uit extra/poppetjes_generator.py en extra/poppetjes_voor.py); nu opa en oma
+const VOORLOOP = { 12: [18, 19, 20, 21], 0: [18, 19, 20, 21], 1: [18, 19, 20, 21], 2: [18, 19, 20, 21], 3: [18, 19, 20, 21], 4: [[18, 19, 20, 21], [22, 23, 24, 25]], 5: [18, 19, 20, 21], 6: [18, 19, 20, 21], 7: [18, 19, 20, 21], 8: [18, 19, 20, 21], 9: [18, 19, 20, 21], 10: [18, 19, 20, 21], 11: [18, 19, 20, 21] }; // vakjes 18-21: lopen naar de kijker toe (uit extra/poppetjes_generator.py en extra/poppetjes_voor.py); nu opa en oma
 const KLANTVEL = (rij, m) => { const vl = VOORLOOP[rij], twee = vl && Array.isArray(vl[0]); // twee versies (Chinese dame): per klant vast gekozen
   return { rij, staan: 11, opzij: [0, 1, 2, 3, 4, 5, 6], rechts: true, rug: 7, rugLoop: [7, 8, 9, 10], voorLoop: twee ? vl[m && m.versie != null ? m.versie : (m ? (m.versie = Math.random() < 0.5 ? 0 : 1) : 0)] : vl, fps: 9 }; };
-const FIGUREN = { werker: [0, 0, 3], student: [1, 7], villa: [2, 9], toerist: [5, 4, 3, 8], opa: [6, 10] };
+const FIGUREN = { werker: [0, 0, 3], student: [1, 7], villa: [2, 9, 11], toerist: [5, 4, 3, 8], opa: [6, 10] };
 function feestHoed(x, y) { // puntig feesthoedje op een peuter op een kinderfeestje
   g.fillStyle = '#8e44ad'; g.beginPath(); g.moveTo(x - 7, y + 4); g.lineTo(x + 7, y + 4); g.lineTo(x + 1, y - 13); g.closePath(); g.fill();
   g.fillStyle = '#f1c40f'; g.fillRect(x - 4, y - 3, 3, 3); g.fillRect(x + 2, y, 3, 3); g.beginPath(); g.arc(x + 1, y - 13, 2.5, 0, 7); g.fill(); }
