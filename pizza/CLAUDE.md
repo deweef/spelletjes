@@ -657,3 +657,5 @@ noten als reserve (piepjes als de instrumenten niet laden). `ITALIAANS` = funicu
 zichzelf meteen op slot ("morgen weer") en de klik doet niets meer als `S.acroDag`/`S.eetDag` vandaag is. (De race tekende de stad al opnieuw.)
 Plaat 6 (21 nov, `pizza/plaat6.jpg`, de vlag op de toren met iedereen): `VERHAAL[6]` (Funiculì), getoond na het zelfgetekende vlagfilmpje (`toonVlag` → Verder →
 `toonPlaat(6, toonAftiteling)`), dan de aftiteling. Nog nodig: plaat 7 (aftiteling, opdracht in PLAN.md).
+Plaat 7 (21 nov, `pizza/plaat7.jpg`, iedereen buigt op het podium, Pepperoni vooraan): `VERHAAL[7]` (Santa Lucia) na plaat 6, daarna `toonAftiteling` met de plaat
+bovenaan de kaart. Alle verhaalplaten 0-7 zijn nu binnen.

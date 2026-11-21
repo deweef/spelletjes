@@ -5030,7 +5030,7 @@ function toonVlag() {
   const c = $('filmdoek'), g2 = c.getContext('2d'), W2 = 360, H2 = 420, start = performance.now(); speelLied('vincero', false, 'klassiek'); setTimeout(() => speelLied('ode'), 12000);
   const vuur = []; const zin = [[0, 'De vlagfiches gaan de smeltoven in…'], [3, 'Groen, wit en rood: de Italiaanse vlag!'], [6, 'Hij gaat omhoog… omhoog… omhoog…'], [10, 'De hele stad juicht!'], [13, 'Jij bent de pizzabaas van de stad. 👑']];
   $('filmverder').textContent = 'Verder (overslaan)';
-  $('filmverder').onclick = () => { $('film').classList.add('verborgen'); pauze = false; mijl('vlag'); S.uitgespeeld = S.uitgespeeld || S.dag; bewaar(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1); liedTot = 0; } toonPlaat(6, toonAftiteling); }; // eerst plaat 6 (de vlag met iedereen), dan de aftiteling
+  $('filmverder').onclick = () => { $('film').classList.add('verborgen'); pauze = false; mijl('vlag'); S.uitgespeeld = S.uitgespeeld || S.dag; bewaar(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1); liedTot = 0; } toonPlaat(6, () => toonPlaat(7, toonAftiteling)); }; // eerst plaat 6 (de vlag met iedereen), dan plaat 7 (de buiging), dan de aftiteling
   (function lus(nu) {
     if ($('film').classList.contains('verborgen')) return; const t = (nu - start) / 1000;
     const lucht = g2.createLinearGradient(0, 0, 0, H2); lucht.addColorStop(0, t > 9 ? '#1b2340' : '#f39c4a'); lucht.addColorStop(1, t > 9 ? '#6b3a5a' : '#ffd88a'); g2.fillStyle = lucht; g2.fillRect(0, 0, W2, H2);
@@ -5053,7 +5053,7 @@ function toonVlag() {
 }
 function toonAftiteling() { // de aftiteling: alle personages, en hoe lang je erover deed
   const rij = (e, n, w) => `<tr><td style="font-size:22px">${e}</td><td><b>${n}</b><br><small>${w}</small></td></tr>`;
-  $('eindkaart').innerHTML = `<h1>👑 Uitgespeeld!</h1><p>De Italiaanse vlag wappert op de Toren van Pizza. De stad heeft een nieuwe pizzabaas: <b>${esc(speler || 'jij')}</b>!</p>
+  $('eindkaart').innerHTML = `<img src="pizza/plaat7.jpg" alt="Iedereen maakt een buiging" style="width:100%;border-radius:10px;margin-bottom:8px"><h1>👑 Uitgespeeld!</h1><p>De Italiaanse vlag wappert op de Toren van Pizza. De stad heeft een nieuwe pizzabaas: <b>${esc(speler || 'jij')}</b>!</p>
     ${eindStand()}<p><b>Met dank aan:</b></p><table>
     ${rij('👨‍🍳', 'Mario', 'kok, zanger, pizza-acrobaat')}${rij('🕶️', 'Luigi', 'aartsrivaal, schoonvader van Marco, toch een beetje vriend')}${rij('🤵💃', 'Marco en Valentina', 'getrouwd in jouw zaak')}
     ${rij('🦼', 'Opa Henk', 'snelste opa van de stad (volgens hemzelf)')}${rij('🍦', 'Gianni IJskoud', 'de vijand van je vijand')}${rij('😎', 'Barrie de Bink', 'streken op bestelling')}
@@ -5122,6 +5122,8 @@ const VERHAAL = {
       '…Gianni met een ijsje, en Pepperoni de kat, die nergens van schrikt.',
       'En Luigi? Die klapt. Echt waar. "Niet slecht, collega. Niet slecht."',
       () => `De stad heeft een nieuwe pizzabaas: ${speler || 'jij'}!`] },
+  7: { plaat: 'pizza/plaat7.jpg', lied: 'santalucia', stijl: 'italiaans', kijk: [[50, 45], [8, 50], [50, 40], [92, 50], [50, 80]], // het doek valt: vóór de aftiteling
+    tekst: ['Het rode doek gaat nog één keer open. Applaus!', 'Opa Henk, Luigi, Marco en Valentina buigen…', '…Mario, Gianni, Barrie en Mevrouw Bosch ook.', 'Ze buigen voor jou, de pizzabaas.', 'En Pepperoni? Die buigt het diepst. Hij weet dat er na de voorstelling pizza is.'] },
 };
 function krantKop(V, img) { // naam van de krant en de kop in de lege vakken van de plaat schrijven (canvas → nieuw plaatje)
   const bron = new Image(); bron.onload = () => { const c = document.createElement('canvas'); c.width = bron.naturalWidth; c.height = bron.naturalHeight; const g2 = c.getContext('2d'), k = c.width / 1280;
