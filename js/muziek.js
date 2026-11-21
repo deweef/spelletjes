@@ -4,6 +4,7 @@
 //   await Muziek.laadStijl('italiaans', ctx)   instrumenten van een stijl laden (eenmalig, daarna in het geheugen; de service worker bewaart ze offline)
 //   Muziek.speel(ctx, lied, t0, stijl) -> eindtijd   (alleen als Muziek.klaar(stijl); anders eerst laadStijl)
 //   Muziek.stop(ctx, 1.5)                    alle muziek uitfaden (effecten niet)
+//   const d = await Muziek.laadLied('klank/liedjes/funiculi.json'); Muziek.speelMidi(ctx, d, t0, stijl)   een echt MIDI-bestand met al zijn sporen
 //   Muziek.effect(ctx, 'deurbel' | 'bel' | 'applaus' | 'telefoon') -> true als het lukte (anders zelf een piepje doen)
 //   Muziek.noot(ctx, instrument, midi, t, duur, volume) / Muziek.slag(ctx, 'kick'|'snare'|'hihat'|'tamboerijn', t, volume): losse noten voor eigen muziek
 const Muziek = (() => {
@@ -115,5 +116,36 @@ const Muziek = (() => {
   function weerAan(ctx) { const B = bus(ctx); if (B.stilTot && ctx.currentTime > B.stilTot) { B.stilTot = 0; B.muz.gain.cancelScheduledValues(0); B.muz.gain.setValueAtTime(1, ctx.currentTime); } return B; } // na een stop weer hoorbaar
   const losseNoot = (ctx, ins, m, t, dur, vol, los) => noot(ctx, weerAan(ctx).muz, ins, m, t, dur, vol, los);
   const losseSlag = (ctx, soort, t, vol) => { weerAan(ctx); slag(ctx, soort, t, vol); }; // 'kick' | 'snare' | 'hihat' | 'tamboerijn'
-  return { STIJL, laadStijl, klaar, speel, solist: () => speel.laatste, stop, effect, midi, harmoniseer, noot: losseNoot, slag: losseSlag };
+  // ---------- echte MIDI-bestanden (klank/liedjes/<naam>.json, gemaakt met extra/midi_naar_json.py) ----------
+  // Elk spoor krijgt een rol: solo (hoogste melodie), tweede stem, akkoorden (veel noten tegelijk), bas (laagste), drums; per stijl een instrument.
+  const ROL = {
+    italiaans: { tweede: 'accordion', akk: 'acoustic_guitar_nylon', bas: 'acoustic_bass', pad: 'string_ensemble_1' },
+    rock: { tweede: 'overdriven_guitar', akk: 'distortion_guitar', bas: 'electric_bass_pick' },
+    volks: { tweede: 'accordion', akk: 'accordion', bas: 'tuba' },
+    klassiek: { tweede: 'cello', akk: 'acoustic_grand_piano', bas: 'cello', pad: 'string_ensemble_1' },
+  };
+  const liedjes = {};
+  const laadLied = (url) => liedjes[url] || (liedjes[url] = fetch(BASIS + url).then((r) => r.json()).catch(() => { delete liedjes[url]; return null; }));
+  function rollen(data) { // spoor -> rol
+    const sp = data.sporen.map((s, i) => ({ i, s, akkoord: s.noten.filter((n, j) => j && Math.abs(n[0] - s.noten[j - 1][0]) < 0.02).length / s.noten.length }));
+    const rol = {}, mel = sp.filter((x) => !x.s.drum).sort((a, b) => b.s.hoog - a.s.hoog);
+    sp.filter((x) => x.s.drum).forEach((x) => rol[x.i] = 'drum');
+    mel.forEach((x, k) => rol[x.i] = k == 0 ? 'solo' : (k == mel.length - 1 && x.s.hoog < 52 && mel.length > 1) ? 'bas' : x.akkoord > 0.4 ? 'akk' : 'tweede');
+    return rol;
+  }
+  function speelMidi(ctx, data, t0, stijl = 'italiaans', lead) { // -> eindtijd
+    const S = STIJL[stijl] || STIJL.italiaans, R = ROL[stijl] || ROL.italiaans, B = bus(ctx), uit = ctx.createGain();
+    uit.gain.value = { hoempa: 1, klassiek: 1.1, rock: 0.45, volks: 0.5 }[S.soort] || 1; uit.connect(B.muz); B.muz.gain.cancelScheduledValues(t0); B.muz.gain.setValueAtTime(1, t0);
+    const solo = lead || (S.leads ? S.leads[Math.floor(Math.random() * S.leads.length)] : S.mel); speel.laatste = solo;
+    const rol = rollen(data), sterk = { solo: 0.42, tweede: 0.34, akk: 0.13, bas: 0.42, drum: 0.3 };
+    data.sporen.forEach((sp, i) => { const r = rol[i];
+      for (const [st, du, m, v] of sp.noten) { const t = t0 + st, vol = sterk[r] * (0.4 + 0.8 * v);
+        if (r == 'drum') { slag(ctx, m == 35 || m == 36 ? 'kick' : m == 38 || m == 40 ? 'snare' : 'hihat', t, vol * (m < 37 ? 1.2 : 0.5), uit); continue; }
+        let ins = r == 'solo' ? solo : R[r] || S.akk;
+        if (ins == solo && r != 'solo' && R.pad) ins = R.pad; // tweede stem niet op hetzelfde instrument als de solist
+        if (ins == 'mandoline') { const tik = 0.075; for (let tt = 0; tt < du * 0.95 - 0.01; tt += tik) noot(ctx, uit, 'acoustic_guitar_nylon', m + 12, t + tt, Math.min(tik, du - tt), vol * 0.85 * (tt ? 0.75 : 1), 0.06); }
+        else noot(ctx, uit, ins, r == 'bas' && m > 52 ? m - 12 : m, t, Math.max(0.05, du * 0.97), vol * (ins == 'violin' ? 0.8 : 1), r == 'akk' ? 0.25 : 0.2); } });
+    return t0 + data.duur;
+  }
+  return { STIJL, laadStijl, klaar, speel, laadLied, speelMidi, rollen, solist: () => speel.laatste, stop, effect, midi, harmoniseer, noot: losseNoot, slag: losseSlag };
 })();
