@@ -9,13 +9,14 @@
 const Muziek = (() => {
   const BASIS = (document.currentScript && document.currentScript.src.replace(/js\/muziek\.js.*$/, '')) || './';
   const STIJL = {
-    italiaans: { mel: 'accordion', bas: 'acoustic_bass', akk: 'acoustic_guitar_nylon', pad: 'string_ensemble_1', soort: 'hoempa' },
+    italiaans: { mel: 'accordion', leads: ['accordion', 'mandoline', 'violin'], bas: 'acoustic_bass', akk: 'acoustic_guitar_nylon', pad: 'string_ensemble_1', soort: 'hoempa' },
     rock: { mel: 'overdriven_guitar', bas: 'electric_bass_pick', akk: 'distortion_guitar', soort: 'rock' },
     volks: { mel: 'clarinet', bas: 'tuba', akk: 'accordion', soort: 'volks' },
     klassiek: { mel: 'violin', bas: 'cello', akk: 'acoustic_grand_piano', pad: 'string_ensemble_1', soort: 'klassiek' },
     effecten: { fx: ['tubular_bells', 'glockenspiel', 'applause', 'telephone_ring'] },
   };
-  const instr = (s) => { const S = STIJL[s]; return S.fx || [S.mel, S.bas, S.akk, S.pad].filter(Boolean); };
+  const echt = (i) => i == 'mandoline' ? 'acoustic_guitar_nylon' : i; // mandoline = de nylongitaar, getokkeld (tremolo)
+  const instr = (s) => { const S = STIJL[s]; return S.fx || [...new Set([S.mel, ...(S.leads || []), S.bas, S.akk, S.pad].filter(Boolean).map(echt))]; };
   const KLANK = {}, laden = {}, bussen = new WeakMap();
   function laad(ins, ctx) {
     if (!laden[ins]) laden[ins] = fetch(BASIS + 'klank/' + ins + '.json').then((r) => r.json()).then(async (j) => { const s = {};
@@ -71,12 +72,16 @@ const Muziek = (() => {
       const r = (toon + kies[0]) % 12, m = 40 + ((r - 4 + 12) % 12); uit.push(NAAM[m % 12] + (Math.floor(m / 12) - 1) + ':' + Math.min(maat, u - a)); } // bas tussen E2 en D#3
     return (L._bas = uit.join(' '));
   }
-  function speel(ctx, L, t0, stijl = 'italiaans') {
+  function speel(ctx, L, t0, stijl = 'italiaans', lead) { // lead = solist (anders: L.lead, of willekeurig uit STIJL.leads)
     const S = STIJL[stijl] || STIJL.italiaans, B = bus(ctx), tel = L.tempo, mel = [], uit = ctx.createGain();
     uit.gain.value = { hoempa: 1, klassiek: 1.1, rock: 0.42, volks: 0.45 }[S.soort] || 1; uit.connect(B.muz); // alle stijlen ongeveer even hard
     B.muz.gain.cancelScheduledValues(t0); B.muz.gain.setValueAtTime(1, t0);
     const mv = { hoempa: 0.42, rock: 0.3, volks: 0.4, klassiek: 0.38 }[S.soort] || 0.4;
-    let t = t0; for (const st of L.noten.split(' ')) { const [n, d] = st.split(':'), dur = +d * tel; if (n != '-') { const m = midi(n); mel.push([t, t + dur, m]); noot(ctx, uit, S.mel, m, t, dur * 0.95, mv, S.soort == 'klassiek' ? 0.3 : 0.18); } t += dur; }
+    const solo = lead || L.lead || (S.leads ? S.leads[Math.floor(Math.random() * S.leads.length)] : S.mel); speel.laatste = solo;
+    const sv = { mandoline: 0.85, violin: 0.8 }[solo] || 1; // even hard als de accordeon
+    let t = t0; for (const st of L.noten.split(' ')) { const [n, d] = st.split(':'), dur = +d * tel; if (n != '-') { const m = midi(n); mel.push([t, t + dur, m]);
+        if (solo == 'mandoline') { const tik = 0.075; for (let tt = 0; tt < dur * 0.95 - 0.01; tt += tik) noot(ctx, uit, 'acoustic_guitar_nylon', m + 12, t + tt, Math.min(tik, dur - tt), mv * sv * (tt ? 0.75 : 1), 0.06); } // snelle tokkel, een octaaf hoger
+        else noot(ctx, uit, solo, m, t, dur * 0.95, mv * sv, S.soort == 'klassiek' || solo == 'violin' ? 0.3 : 0.18); } t += dur; }
     const eind = t, basLijn = L.bas || harmoniseer(L); if (!basLijn) return eind;
     t = t0; for (const st of basLijn.split(' ')) { const [n, d] = st.split(':'), tellen = +d, dur = tellen * tel;
       if (n != '-') { const r = midi(n), pc = new Set(mel.filter(([a, b]) => a < t + dur && b > t).map(([, , m]) => (m - r + 120) % 12));
@@ -110,5 +115,5 @@ const Muziek = (() => {
   function weerAan(ctx) { const B = bus(ctx); if (B.stilTot && ctx.currentTime > B.stilTot) { B.stilTot = 0; B.muz.gain.cancelScheduledValues(0); B.muz.gain.setValueAtTime(1, ctx.currentTime); } return B; } // na een stop weer hoorbaar
   const losseNoot = (ctx, ins, m, t, dur, vol, los) => noot(ctx, weerAan(ctx).muz, ins, m, t, dur, vol, los);
   const losseSlag = (ctx, soort, t, vol) => { weerAan(ctx); slag(ctx, soort, t, vol); }; // 'kick' | 'snare' | 'hihat' | 'tamboerijn'
-  return { STIJL, laadStijl, klaar, speel, stop, effect, midi, harmoniseer, noot: losseNoot, slag: losseSlag };
+  return { STIJL, laadStijl, klaar, speel, solist: () => speel.laatste, stop, effect, midi, harmoniseer, noot: losseNoot, slag: losseSlag };
 })();
