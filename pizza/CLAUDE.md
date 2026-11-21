@@ -645,3 +645,5 @@ PLAN.md) → `python3 extra/zit_vel.py pizza/<naam>-zit-chatgpt.png <rij>` zet z
 Platen 3-5 (21 nov, ChatGPT): `VERHAAL[3]` inval (`pizza/plaat3.jpg`, Bergkoning in rock, laatste regel hangt af van `heb('invalBetrapt')`, gezet in `toonInval`
 bij ≥ 2 gevonden), `VERHAAL[4]` bruiloft (`pizza/plaat4.jpg`, Canon klassiek; `als`: niet als Marco ontslagen is (fase 9); eerste regel kijkt of het bij Luigi was
 via `antw('marco2:1')`), `VERHAAL[5]` startlijn stadsrace (`pizza/plaat5.jpg`, Wilhelm Tell in rock). `VERHAAL[H].stijl` = muziekstijl, `.als()` = plaat overslaan.
+Opnieuw beginnen (21 nov, beide versies): `herstart` zet `nieuw: true` in de nieuwe opslag; bij het laden toont het spel dan het welkomscherm met
+"Mario laat je alles zien" (de rondleiding) in plaats van meteen de zaak / "Verder spelen", en haalt de vlag weg. Eerder werd de rondleiding na Nieuw spel nooit aangeboden.

@@ -4869,7 +4869,7 @@ function toonKoning() {
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); kassa(); setTimeout(kassa, 300);
 }
 function herstart() { // alles opnieuw, behalve je hoogste pizzatoren
-  schrijf(SLEUTEL, { ...NIEUW(), torenBest: S.torenBest || 0 }); location.reload();
+  schrijf(SLEUTEL, { ...NIEUW(), torenBest: S.torenBest || 0, nieuw: true }); location.reload(); // nieuw = het welkomscherm met de rondleiding weer laten zien
 }
 $('sleutel').onclick = () => { wekGeluid(); sluitMenu(); // één keer per dag naar de achterkamer (S.achterDag), anders valt het op
   if (S.achterDag == S.dag) { meld('Je bent vandaag al in de achterkamer geweest. Te vaak naar binnen glippen valt op… Morgen weer!', 3500); return; }
@@ -4995,7 +4995,8 @@ function rondleiding(n = 0) {
   if ($('rstop')) $('rstop').onclick = (e) => { e.stopPropagation(); o.remove(); };
   o.onclick = (e) => { if (r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6) rondleiding(n + 1); };
 }
-if (lees(SLEUTEL) && !TEGEL) { $('welkom').classList.add('verborgen'); tekenKnoppen(); }
+if (S.nieuw && !TEGEL) { delete S.nieuw; bewaar(); } // net opnieuw begonnen: welkomscherm met Mario's rondleiding
+else if (lees(SLEUTEL) && !TEGEL) { $('welkom').classList.add('verborgen'); tekenKnoppen(); }
 
 if (TEGEL) { // plaatje voor de startpagina
   $('welkom').classList.add('verborgen');
