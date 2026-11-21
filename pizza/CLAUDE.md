@@ -651,3 +651,5 @@ Italiaanse liedjes (21 nov, Pizzabaas 2): `ITALIAANS` (tarantella, bella, donna,
 De opening (eerste tik op het titelscherm) speelt nu altijd Funiculì (echte MIDI, `LIED.funiculi` = { midi, duur, snel 1.12 }, via `Muziek.speelMidi`); de jukebox heeft bovenaan "🎲 Verrassing: een Italiaans liedje" (€ 1).
 Nieuwe liedjes (Funiculì funiculà, O sole mio, Santa Lucia) komen er later bij: noten via ChatGPT in het LIED-formaat (opdracht in de chat van 21 nov),
 dan in `LIED` en in `ITALIAANS`. Claude kon geen bladmuziek ophalen (wikipedia geblokkeerd) en kent ze niet zeker genoeg uit het hoofd.
+MIDI-liedjes (21 nov): `LIED.santalucia` (CC0) en `LIED.bella` spelen nu de echte MIDI van Wikimedia Commons (`klank/liedjes/*.json`); bella houdt zijn
+noten als reserve (piepjes als de instrumenten niet laden). `ITALIAANS` = funiculi, santalucia, bella, tarantella, donna, vincero.
