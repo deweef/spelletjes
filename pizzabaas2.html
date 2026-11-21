@@ -5263,10 +5263,13 @@ function speelLied(id, vals, stijl) { // vals = zo zing jij (een beetje ernaast)
         o.connect(gn).connect(ac.destination); o.start(tt); o.stop(tt + dur); } tt += dur; } return tt; };
   liedTot = Math.max(stem(L.noten, 'triangle', 0.09, 1), L.bas ? stem(L.bas, 'sine', 0.06, 1) : 0); meld(`🎵 ${L.n}`, 3000);
 }
+// Italiaanse liedjes (21 nov, Marcel): de opening speelt er willekeurig één, en de jukebox heeft "🎲 Verrassing". Nieuw Italiaans liedje = in LIED zetten en hier bij.
+const ITALIAANS = ['tarantella', 'bella', 'donna', 'vincero'];
+const pakItaliaans = () => { const k = pak(ITALIAANS.filter((k) => LIED[k] && k != pakItaliaans.vorig)); pakItaliaans.vorig = k; return k; }; // niet twee keer hetzelfde achter elkaar
 function jukeboxKeuze(e) { // een liedje uitkiezen: € 1 uit de kassa (eigenlijk betaalt de klant, maar wie op de jukebox drukt, betaalt zelf 😉)
   const bezig = ac && ac.currentTime < liedTot;
-  toonKeuze('🎵 Jukebox: kies een liedje', Object.entries(LIED).filter(([k, L]) => (k != 'jingle' || isDecember()) && (!L.buurt || L.buurt == (S.buurt || 'oud'))).sort((a, b) => !!b[1].buurt - !!a[1].buurt).map(([k, L]) => ({ ik: L.buurt ? '⭐' : '🎵', n: L.n, pr: '€ 1' + (bezig ? ' (na het huidige liedje)' : ''), uit: S.geld < 1,
-    doe: () => { ge(-1); kassa(); speelLied(k); mijl('jukebox'); if (!jukeboxKeuze.gedaan) { jukeboxKeuze.gedaan = true; vandaag.gezellig += 0.2; } } })), { left: e.clientX, top: e.clientY, width: 0, height: 0 }, 'jukebox', '⭐ = speciaal voor deze buurt. 💶 Een liedje kost € 1, uit je eigen kassa. De klanten vinden het gezellig.'); }
+  toonKeuze('🎵 Jukebox: kies een liedje', [{ ik: '🎲', n: 'Verrassing: een Italiaans liedje', pr: '€ 1' + (bezig ? ' (na het huidige liedje)' : ''), uit: S.geld < 1, doe: () => { ge(-1); kassa(); speelLied(pakItaliaans()); mijl('jukebox'); } }].concat(Object.entries(LIED).filter(([k, L]) => (k != 'jingle' || isDecember()) && (!L.buurt || L.buurt == (S.buurt || 'oud'))).sort((a, b) => !!b[1].buurt - !!a[1].buurt).map(([k, L]) => ({ ik: L.buurt ? '⭐' : '🎵', n: L.n, pr: '€ 1' + (bezig ? ' (na het huidige liedje)' : ''), uit: S.geld < 1,
+    doe: () => { ge(-1); kassa(); speelLied(k); mijl('jukebox'); if (!jukeboxKeuze.gedaan) { jukeboxKeuze.gedaan = true; vandaag.gezellig += 0.2; } } }))), { left: e.clientX, top: e.clientY, width: 0, height: 0 }, 'jukebox', '⭐ = speciaal voor deze buurt. 💶 Een liedje kost € 1, uit je eigen kassa. De klanten vinden het gezellig.'); }
 const speelWillekeurig = () => speelLied(isDecember() && (S.adventLied == S.dag || Math.random() < 0.5) ? 'jingle' : pak(Object.keys(LIED).filter((k) => k != 'jingle' && (!LIED[k].buurt || LIED[k].buurt == (S.buurt || 'oud'))))); // in december vaak Jingle Bells
 
 // ---------- het zwarte schermpje in het paneel ----------
@@ -5289,7 +5292,7 @@ $('terug').onclick = (e) => {
 
 // ---------- start ----------
 // titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
-$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); speelLied('tarantella', false, 'italiaans'); } $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
+$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); speelLied(pakItaliaans(), false, 'italiaans'); } $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
 $('begin').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
 $('beginzelf').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over
