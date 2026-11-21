@@ -400,7 +400,7 @@ huilt), 5 startlijn stadsrace (Henk, Luigi, Mevrouw Bosch met vlag, Gianni), 6 d
 rood gordijn, Pepperoni). Stijlopdracht: met `pizza/portretten.png` en `pizza/stad-gemini.jpg` als voorbeeld, 16:9, geen tekst. Bewaren als
 `pizza/plaat-N-chatgpt.png`; in het spel als scène (zoom/schuiven, tekstregels, muziek).
 Binnen (15-16 nov): 2 krant (`pizza/plaat2.jpg`), 0 titel (`pizza/plaat0.jpg`, titelscherm), 1 opening tweede zaak (`pizza/plaat1.jpg`, scène na H1), logo (`pizza/logo.png`), dartpijltje
-(`pizza/doel.png`, doelknop), race-vel (`pizza/race.png`). Nog nodig: 3 inval, 4 bruiloft, 5 startlijn stadsrace, 6 vlag op de toren, 7 aftiteling.
+(`pizza/doel.png`, doelknop), race-vel (`pizza/race.png`). Binnen sinds 21 nov ook: 3 inval, 4 bruiloft, 5 startlijn. Nog nodig: 6 vlag op de toren, 7 aftiteling.
 Opdrachten voor ChatGPT (15 nov; ChatGPT viel over de naam Mario, dus de kok heet daarin "de pizzabaas"; in het spel blijft hij Mario). Elke opdracht
 begint met de stijlregel: "Pixel art in dezelfde stijl als de vorige platen (warm, vrolijk, gedetailleerd, dikke donkere omlijning), liggend 16:9, geen tekst
 of letters in beeld." Figuren: de pizzabaas (dikke Italiaanse kok, zwarte krulsnor, witte koksmuts, witte koksjas met zwarte knopen, rode halsdoek, rood

@@ -5015,7 +5015,7 @@ function toonInval() {
     for (const o of spul) if (!o.weg && !o.gezien && t < 21 && inBundel(o) && Math.random() < dt * 1.2) { o.gezien = true; tekst = `🔦 Ze schijnen op ${o.n}…`; tt = 1.3; }
     teken(); const gezien = spul.filter((o) => o.gezien).length, open = spul.filter((o) => !o.weg && !o.gezien).length;
     if (t <= 0 || !open) { // klaar: de rest die nog ligt wordt ook gevonden
-      const totaal = gezien + open, ok = totaal <= 1; mijl('inval'); toonInval.bezig = false;
+      const totaal = gezien + open, ok = totaal <= 1; mijl('inval'); if (!ok) mijl('invalBetrapt'); toonInval.bezig = false;
       if (!ok) { ge(-150 * totaal); rep(-3); } else { rep(3); vlagErbij('r', 10, 'je ontkwam aan de grote inval'); }
       $('achterkaart').innerHTML = `<h1>${ok ? '😅 Ontkomen!' : '🚨 Betrapt…'}</h1><p>${ok ? 'De rechercheurs zoeken een uur en vinden alleen pizzadozen. "Hmpf. Een gewone pizzeria." Ze vertrekken. Mario plakt het nepschilderij weer aan de muur.' : `Ze vonden ${totaal} verboden spullen. € ${150 * totaal} boete, en de krant schrijft over "de pizzeria met de geheime kamer". Maar ze konden niks bewijzen over de rest. Je mag door.`}</p>
         <p>Je accountant was erg geschrokken. <b>Meneer Cijfer, de boekhouder, komt voortaan voor je werken</b>: zet hem aan bij de bank in de stad (📒), dan brengt hij elke avond alles boven € 500 naar de bank.</p><button class="groot" id="invalklaar">Verder</button>`;
@@ -5097,6 +5097,24 @@ const VERHAAL = {
       () => (S.scheppen || 0) >= 1 ? 'Op de voorpagina: Mario met de Gouden Pizzaschep. De fotografen flitsen erop los.' : 'Op de voorpagina: Mario, die na de pizzawedstrijd met zijn gouden schep zwaait alsof hij het WK heeft gewonnen.',
       'En aan de rand van de foto: Luigi. Armen over elkaar. Hij heeft de krant vanochtend al drie keer verscheurd.',
       'De hele stad kent je nu. En dat trekt ook… andere types aan.'] },
+  3: { plaat: 'pizza/plaat3.jpg', lied: 'bergkoning', stijl: 'rock', kijk: [[50, 50], [12, 35], [50, 40], [92, 20], [55, 50]],
+    tekst: ['Drie uur \'s nachts. BONK BONK BONK. "POLITIE! Kunstrecherche!"',
+      'Zaklampen schijnen door de deur. Recht op een halve Mona Lisa.',
+      'Mario houdt een pizza omhoog. "Pizza, agent? Van het huis? Er is hier niks te zien!"',
+      'En achter hem verdwijnt een blauw trainingspak door het raampje. Barrie heeft nog nooit iets gezien. Nooit.',
+      () => heb('invalBetrapt') ? 'Ze vonden toch een paar dingen. Dat kostte wat. Maar de zaak blijft open!' : 'Ze vinden niks. "Excuses voor het storen, meneer." De deur gaat dicht. Mario gaat héél langzaam op een kruk zitten.'] },
+  4: { plaat: 'pizza/plaat4.jpg', lied: 'canon', stijl: 'klassiek', als: () => S.liefde && S.liefde.fase != 9, kijk: [[50, 40], [48, 35], [12, 35], [92, 65], [50, 50]],
+    tekst: [() => antw('marco2:1') ? 'De grote dag! Bij Luigi, maar jij en Mario zijn natuurlijk de eregasten. Half de stad is er, en de hele familie.' : 'De grote dag! Jouw pizzeria zit stampvol: half de stad, alle obers, en de hele familie.',
+      'Marco en Valentina snijden samen de taart aan. Een taart van vijf pizza\'s, met kaarsjes.',
+      'Mario heft zijn glas: "Op de liefde! En op de mozzarella!"',
+      'En aan de zijkant zit Luigi. Hij huilt in een servet. "Ik ben niet aan het huilen. Er zit oregano in mijn oog."',
+      'Vanaf vandaag is Luigi familie. Of hij dat nou leuk vindt of niet.'] },
+  5: { plaat: 'pizza/plaat5.jpg', lied: 'tell', stijl: 'rock', kijk: [[50, 45], [30, 65], [90, 45], [5, 35], [50, 45]],
+    tekst: ['Opa Henk verslagen?! Daar neemt hij geen genoegen mee. "Revanche! Op het plein! De hele stad mag kijken!"',
+      'De grote stadsrace. Jij, Opa Henk met zijn vlammen, Luigi… én Gianni IJskoud, met een ijshoorntje voorop.',
+      'Mevrouw Bosch van Huize Avondrood heft de vlag. "Geen valsspelen. Geen bananen. Ik kijk naar jou, Luigi."',
+      'Mario juicht vanaf de kant. Het hele plein houdt zijn adem in.',
+      'Drie… twee… één… VROEMMM! (Met 6 kilometer per uur.)'] },
 };
 function krantKop(V, img) { // naam van de krant en de kop in de lege vakken van de plaat schrijven (canvas → nieuw plaatje)
   const bron = new Image(); bron.onload = () => { const c = document.createElement('canvas'); c.width = bron.naturalWidth; c.height = bron.naturalHeight; const g2 = c.getContext('2d'), k = c.width / 1280;
@@ -5109,11 +5127,11 @@ function krantKop(V, img) { // naam van de krant en de kop in de lege vakken van
   bron.src = V.plaat;
 }
 function toonPlaat(H, klaar) {
-  const V = VERHAAL[H]; if (!V) { klaar(); return; }
+  const V = VERHAAL[H]; if (!V || (V.als && !V.als())) { klaar(); return; }
   const sc = $('plaatscene'), img = $('plaatimg'); let n = 0, timer = null;
   const volgende = () => { clearTimeout(timer); if (n >= V.tekst.length) { $('plaatverder').textContent = 'Verder'; return; } if (V.kijk && V.kijk[n]) img.style.objectPosition = V.kijk[n].map((v) => v + '%').join(' '); /* de plaat schuift naar wie het over gaat (op de telefoon zie je maar een stukje) */ const r = V.tekst[n++]; $('plaattekst').textContent = typeof r == 'function' ? r() : r; $('plaatverder').textContent = n < V.tekst.length ? 'Verder ›' : 'Verder'; if (n < V.tekst.length) timer = setTimeout(volgende, 4200); };
   img.src = V.plaat; if (V.krant) krantKop(V, img); img.style.transition = 'none'; img.style.objectPosition = V.kijk ? V.kijk[0].map((v) => v + '%').join(' ') : '50% 50%'; void img.offsetWidth; img.style.transition = ''; sc.classList.remove('speelt'); void sc.offsetWidth; sc.classList.add('speelt'); sc.classList.remove('verborgen');
-  if (V.lied) speelLied(V.lied); volgende();
+  if (V.lied) speelLied(V.lied, false, V.stijl); volgende();
   $('plaatverder').onclick = () => { wekGeluid(); if (n < V.tekst.length) { volgende(); return; } clearTimeout(timer); sc.classList.add('verborgen'); sc.classList.remove('speelt'); klaar(); };
 }
 function hoofdstukKlaar(H, naPlaat) { // afsluiter: eerst de verhaalplaat (als die er is), dan het feestelijke scherm en het volgende hoofdstuk
