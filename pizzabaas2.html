@@ -5239,6 +5239,7 @@ const LIED = {
   nachtmusik: { n: 'Eine kleine Nachtmusik (Mozart)', tempo: 0.3, buurt: 'villa', noten: 'G4:1 D4:.5 G4:1 D4:.5 G4:.5 D4:.5 G4:.5 B4:.5 D5:2 C5:1 A4:.5 C5:1 A4:.5 C5:.5 A4:.5 F#4:.5 A4:.5 D4:2 G4:1 G4:.5 B4:.5 A4:.5 G4:.5 G4:.5 F#4:.5 F#4:1 A4:.5 C5:.5 F#4:.5 A4:.5 G4:1 G4:.5 B4:.5 A4:.5 G4:.5 G4:.5 F#4:.5 F#4:1 A4:.5 C5:.5 F#4:.5 A4:.5 G4:2' },
   canon: { n: 'Canon (Pachelbel)', tempo: 0.5, buurt: 'villa', noten: 'F#5:2 E5:2 D5:2 C#5:2 B4:2 A4:2 B4:2 C#5:2 D5:1 C#5:1 D5:1 F#4:1 A4:1 G4:1 A4:1 B4:1 G4:1 F#4:1 G4:1 E4:1 A4:1 G4:1 F#4:1 E4:1', bas: 'D3:2 A2:2 B2:2 F#2:2 G2:2 D2:2 G2:2 A2:2 D3:2 A2:2 B2:2 F#2:2 G2:2 D2:2 G2:2 A2:2' },
   jingle: { n: 'Jingle Bells', tempo: 0.24, noten: 'E4:1 E4:1 E4:2 E4:1 E4:1 E4:2 E4:1 G4:1 C4:1.5 D4:.5 E4:4 F4:1 F4:1 F4:1.5 F4:.5 F4:1 E4:1 E4:1 E4:.5 E4:.5 E4:1 D4:1 D4:1 E4:1 D4:2 G4:2', bas: 'C3:4 C3:4 C3:4 C3:4 F2:4 C3:4 G2:4 G2:4' },
+  funiculi: { n: 'Funiculì, Funiculà', midi: 'klank/liedjes/funiculi.json', duur: 141, snel: 1.12 }, // echte MIDI (Wikimedia Commons), 12% sneller
   bella: { n: 'Bella ciao', tempo: 0.27, noten: 'E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:1 A4:3 -:1 E4:1 A4:1 B4:1 C5:2 B4:1 A4:1 C5:2 B4:1 A4:1 E5:2 E5:1 E5:1 E5:1 D5:1 E5:1 F5:1 F5:2 -:1 F5:1 E5:1 D5:1 F5:1 E5:2 -:1 E5:1 D5:1 C5:1 B4:2 E5:2 C5:2 B4:2 A4:4',
     bas: 'A2:8 A2:8 A2:5 E2:4 A2:6 D3:7 A2:7 E2:5 E2:2 A2:8' } };
 let liedTot = 0;
@@ -5248,10 +5249,13 @@ const nootHz = (n) => { const m = n.match(/^([A-G])(#?)(\d)$/); return 440 * 2 *
 // Opera (de aria) is altijd klassiek. Nog niet geladen = eerst laden en dan spelen; lukt dat niet, of `vals` (jij zingt) = de oude piepjes.
 const BUURTSTIJL = { oud: 'italiaans', studenten: 'rock', toeristen: 'volks', villa: 'klassiek' };
 const zaakStijl = () => BUURTSTIJL[S.buurt || 'oud'] || 'italiaans';
-const liedDuur = (L) => L.noten.split(' ').reduce((a, st) => a + +st.split(':')[1], 0) * L.tempo;
+const liedDuur = (L) => L.midi ? L.duur : L.noten.split(' ').reduce((a, st) => a + +st.split(':')[1], 0) * L.tempo;
 function speelLied(id, vals, stijl) { // vals = zo zing jij (een beetje ernaast); stijl = 'italiaans' / 'rock' / 'volks' / 'klassiek' (anders die van de zaak)
   wekGeluid(); if (!ac) return; const L = LIED[id]; let t = Math.max(ac.currentTime + 0.05, liedTot); stijl = stijl || zaakStijl();
+  if (L.midi && (vals || typeof Muziek == 'undefined')) return; // een MIDI-liedje heeft geen piepjesversie
   if (!vals && typeof Muziek != 'undefined') {
+    if (L.midi) { liedTot = t + L.duur; meld(`🎵 ${L.n}`, 3000); // echt MIDI-bestand: laden (eenmalig) en met alle sporen spelen
+      Promise.all([Muziek.laadLied(L.midi), Muziek.laadStijl(stijl, ac)]).then(([d, ok]) => { if (!d || !ok) { liedTot = t; return; } const nu = Math.max(t, ac.currentTime + 0.05); liedTot = Muziek.speelMidi(ac, d, nu, stijl, undefined, L.snel || 1); }); return; }
     if (Muziek.klaar(stijl)) { liedTot = Muziek.speel(ac, L, t, stijl); meld(`🎵 ${L.n}`, 3000); return; }
     liedTot = t + liedDuur(L) + 0.6; meld(`🎵 ${L.n}`, 3000); // even laden, dan spelen (het lied schuift een tikje op)
     Muziek.laadStijl(stijl, ac).then((ok) => { const nu = Math.max(t, ac.currentTime + 0.05); if (ok) liedTot = Math.max(liedTot, Muziek.speel(ac, L, nu, stijl)); else { liedTot = nu; speelLied(id, true); } });
@@ -5264,7 +5268,7 @@ function speelLied(id, vals, stijl) { // vals = zo zing jij (een beetje ernaast)
   liedTot = Math.max(stem(L.noten, 'triangle', 0.09, 1), L.bas ? stem(L.bas, 'sine', 0.06, 1) : 0); meld(`🎵 ${L.n}`, 3000);
 }
 // Italiaanse liedjes (21 nov, Marcel): de opening speelt er willekeurig één, en de jukebox heeft "🎲 Verrassing". Nieuw Italiaans liedje = in LIED zetten en hier bij.
-const ITALIAANS = ['tarantella', 'bella', 'donna', 'vincero'];
+const ITALIAANS = ['funiculi', 'tarantella', 'bella', 'donna', 'vincero'];
 const pakItaliaans = () => { const k = pak(ITALIAANS.filter((k) => LIED[k] && k != pakItaliaans.vorig)); pakItaliaans.vorig = k; return k; }; // niet twee keer hetzelfde achter elkaar
 function jukeboxKeuze(e) { // een liedje uitkiezen: € 1 uit de kassa (eigenlijk betaalt de klant, maar wie op de jukebox drukt, betaalt zelf 😉)
   const bezig = ac && ac.currentTime < liedTot;
@@ -5292,7 +5296,7 @@ $('terug').onclick = (e) => {
 
 // ---------- start ----------
 // titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
-$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); speelLied(pakItaliaans(), false, 'italiaans'); } $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
+$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); speelLied('funiculi', false, 'italiaans'); } $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
 $('begin').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
 $('beginzelf').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over

@@ -648,6 +648,6 @@ via `antw('marco2:1')`), `VERHAAL[5]` startlijn stadsrace (`pizza/plaat5.jpg`, W
 Opnieuw beginnen (21 nov, beide versies): `herstart` zet `nieuw: true` in de nieuwe opslag; bij het laden toont het spel dan het welkomscherm met
 "Mario laat je alles zien" (de rondleiding) in plaats van meteen de zaak / "Verder spelen", en haalt de vlag weg. Eerder werd de rondleiding na Nieuw spel nooit aangeboden.
 Italiaanse liedjes (21 nov, Pizzabaas 2): `ITALIAANS` (tarantella, bella, donna, vincero) en `pakItaliaans()` (willekeurig, niet twee keer hetzelfde achter elkaar).
-De opening (eerste tik op het titelscherm) speelt er één in de Italiaanse stijl; de jukebox heeft bovenaan "🎲 Verrassing: een Italiaans liedje" (€ 1).
+De opening (eerste tik op het titelscherm) speelt nu altijd Funiculì (echte MIDI, `LIED.funiculi` = { midi, duur, snel 1.12 }, via `Muziek.speelMidi`); de jukebox heeft bovenaan "🎲 Verrassing: een Italiaans liedje" (€ 1).
 Nieuwe liedjes (Funiculì funiculà, O sole mio, Santa Lucia) komen er later bij: noten via ChatGPT in het LIED-formaat (opdracht in de chat van 21 nov),
 dan in `LIED` en in `ITALIAANS`. Claude kon geen bladmuziek ophalen (wikipedia geblokkeerd) en kent ze niet zeker genoeg uit het hoofd.
