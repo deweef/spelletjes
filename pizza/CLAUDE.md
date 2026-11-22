@@ -752,3 +752,4 @@ Haperende muziek (22 nov): js/muziek.js maakte bij `speel`/`speelMidi` in één 
 AudioBufferSources), daar haperde de iPad van. Nu plant een `planner` steeds ~5 s vooruit (elke seconde bijvullen); `Muziek.stop` verhoogt `B.gen`, dan
 worden de rest-noten niet meer ingepland. OfflineAudioContext (proefopnames) plant alles meteen. Bergkoning (plaat 3) was 10 s en laag: nu 4 keer, steeds
 sneller, daarna een octaaf hoger (18 s). De juryfoto wordt alvast geladen zodra je de stad in gaat en heeft een vaste maat (stond op de iPad half in beeld).
+iPad schoof de hele pagina omhoog (22 nov, foto Marcel: vloer half weg, tikken kwamen op de verkeerde plek/het vorige commando): html/body nu `position: fixed; inset: 0; overscroll-behavior: none` en bij scroll/resize meteen terug naar 0. Ook in pizzabaas.html (samen met de vinger-fix en touch-action in vensters).

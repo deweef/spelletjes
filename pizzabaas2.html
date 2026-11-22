@@ -6,7 +6,7 @@
 <title>Pizzabaas 2 (testversie)</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #2b1a10; font-family: system-ui, sans-serif; color: #fff; user-select: none; }
+  html, body { position: fixed; inset: 0; width: 100%; margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; /* 22 nov: de iPad mag de hele pagina niet meer omhoog schuiven (dan klopten de tikken niet meer) */ background: #2b1a10; font-family: system-ui, sans-serif; color: #fff; user-select: none; }
   html, body, button, .scherm, .scherm * { touch-action: manipulation; } /* geen inzoomen bij snel twee keer tikken (iPhone) */
   #ronde { position: fixed; inset: 0; z-index: 30; }
   #ronde .rgat { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0,0,0,.6); outline: 3px solid #ffd23f; animation: rpuls 1.2s infinite; pointer-events: none; }
@@ -5347,6 +5347,7 @@ function meld(t, ms = 2600, doel) { if (!doel && Date.now() < doelMeldTot) retur
 
 // ---------- geluid (zelfgemaakt, Web Audio) ----------
 let ac = null;
+['scroll', 'resize'].forEach((ev) => addEventListener(ev, () => { if (scrollX || scrollY) scrollTo(0, 0); if (document.body.scrollTop) document.body.scrollTop = 0; if (document.documentElement.scrollTop) document.documentElement.scrollTop = 0; }, { passive: true })); // en als hij het toch doet: meteen terug
 function wekGeluid() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state != 'running' && ac.state != 'closed') ac.resume(); } // iOS zet het geluid soms op 'interrupted' (melding, scherm uit): dan weer aan
 addEventListener('pointerdown', () => { if (ac && ac.state != 'running') wekGeluid(); }, true); // elke tik maakt het geluid weer wakker
 function ding(f, d, type = 'sine', v = 0.08) { if (!ac) return; const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f; gn.gain.setValueAtTime(v, ac.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + d); o.connect(gn).connect(ac.destination); o.start(); o.stop(ac.currentTime + d); }

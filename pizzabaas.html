@@ -6,8 +6,8 @@
 <title>Pizzabaas</title>
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #2b1a10; font-family: system-ui, sans-serif; color: #fff; user-select: none; }
-  html, body, button { touch-action: manipulation; } /* geen inzoomen bij snel twee keer tikken (iPhone) */
+  html, body { position: fixed; inset: 0; width: 100%; margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; /* 22 nov: de iPad mag de hele pagina niet meer omhoog schuiven (dan klopten de tikken niet meer) */ background: #2b1a10; font-family: system-ui, sans-serif; color: #fff; user-select: none; }
+  html, body, button, .scherm, .scherm * { touch-action: manipulation; } /* geen inzoomen bij snel twee keer tikken (iPhone) */
   #ronde { position: fixed; inset: 0; z-index: 30; }
   #ronde .rgat { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0,0,0,.6); outline: 3px solid #ffd23f; animation: rpuls 1.2s infinite; pointer-events: none; }
   @keyframes rpuls { 50% { outline-color: #fff; } }
@@ -4475,6 +4475,7 @@ doek.addEventListener('pointermove', (e) => {
   if (modus != 'inrichten' || !kies) return; const v = naarVak(e); const d = SPUL[kies]; hover = { x: Math.max(0, Math.min(W - d.w, v.x - Math.floor(d.w / 2))), y: Math.max(KEUKEN, Math.min(H - d.h, v.y - Math.floor(d.h / 2))) }; });
 doek.addEventListener('pointerdown', (e) => {
   wekGeluid();
+  if (e.isPrimary) { vingers.clear(); knijp = null; } // 22 nov: een vinger die boven een menu werd losgelaten bleef hangen; de volgende tik 'kneep' dan en het beeld schoof
   if (e.pointerType != 'mouse') vingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (vingers.size == 2) { sleep = null; hover = null; laatsteTik = null; schuif = null; knijp = null; knijpStap(); return; } // knijpen = zoomen
   const begin = () => ({ x: e.clientX, y: e.clientY, mx: zoomMidden[0], my: zoomMidden[1], bewogen: false });
@@ -4525,6 +4526,7 @@ doek.addEventListener('pointerup', (e) => {
   if (!aanDeMuur(SPUL[s.t], x)) { meld('Een schilderij hangt aan de muur.'); return; }
   s.x = x; s.y = y; plof(); bewaar();
 });
+addEventListener('pointerup', (e) => { if (vingers.has(e.pointerId)) { vingers.delete(e.pointerId); if (vingers.size < 2) knijp = null; } }, true);
 doek.addEventListener('pointercancel', (e) => { sleep = null; schuif = null; knijp = null; vingers.delete(e.pointerId); });
 let sleep = null; // het spul dat nu versleept wordt
 let laatsteTik = null;
@@ -4893,6 +4895,7 @@ function meld(t, ms = 2600, doel) { if (!doel && Date.now() < doelMeldTot) retur
 
 // ---------- geluid (zelfgemaakt, Web Audio) ----------
 let ac = null;
+['scroll', 'resize'].forEach((ev) => addEventListener(ev, () => { if (scrollX || scrollY) scrollTo(0, 0); if (document.body.scrollTop) document.body.scrollTop = 0; if (document.documentElement.scrollTop) document.documentElement.scrollTop = 0; }, { passive: true })); // en als hij het toch doet: meteen terug
 function wekGeluid() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state == 'suspended') ac.resume(); }
 function ding(f, d, type = 'sine', v = 0.08) { if (!ac) return; const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f; gn.gain.setValueAtTime(v, ac.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + d); o.connect(gn).connect(ac.destination); o.start(); o.stop(ac.currentTime + d); }
 // kassa: klak van de la, een belletje en rinkelende muntjes (allemaal zelf gemaakt met Web Audio)
