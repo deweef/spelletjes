@@ -5372,7 +5372,7 @@ function startTitel() { if (!$('welkom').classList.contains('wacht')) return; we
   $('voorstart').classList.add('weg'); $('welkom').classList.remove('wacht'); setTimeout(() => $('voorstart').remove(), 700); setTimeout(() => $('welkom').click(), 2600); } // na het vallen van het logo komt het kaartje vanzelf // de tik op Start maakt het geluid wakker: de muziek begint meteen bij de voorplaat
 if (TEGEL) startTitel(); else $('voorstart').addEventListener('click', (e) => { e.stopPropagation(); startTitel(); });
 $('welkom').addEventListener('click', function tik() { if ($('welkom').classList.contains('wacht')) return; if ($('titelkaart').style.display != 'none') return; wekGeluid(); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
-$('begin').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
+$('begin').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined' && !(liedTot > ac.currentTime)) speelLied('funiculi', false, 'italiaans'); /* de muziek speelt door tijdens de rondleiding (na opnieuw beginnen begint hij hier) */ $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
 $('beginzelf').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over
 const RONDE = [
@@ -5385,16 +5385,17 @@ const RONDE = [
   ['#doelknop', 'Weet je even niet wat je moet doen? Hier staan je doelen. Elk doel geeft wat geld.'],
   ['#stadknop', 'En hier ga je de stad in: de markt, de bank… en wie weet wat nog meer. 😉'],
   [null, 'Dat was het! Succes, baas. Maak er de beste pizzeria van de stad van!'] ];
+function rondeKlaar(o) { o.remove(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } hoofdIntro(); } // pas na de rondleiding stopt de titelmuziek
 function rondleiding(n = 0) {
   let o = $('ronde'); if (!o) { o = document.createElement('div'); o.id = 'ronde'; document.body.appendChild(o); }
-  if (n >= RONDE.length) { o.remove(); hoofdIntro(); return; }
+  if (n >= RONDE.length) { rondeKlaar(o); return; }
   const [sel, tekst] = RONDE[n], el = sel && document.querySelector(sel), r = el && el.getBoundingClientRect(), laatste = n == RONDE.length - 1;
   const gat = r ? `<div class="rgat" style="left:${r.left - 6}px;top:${r.top - 6}px;width:${r.width + 12}px;height:${r.height + 12}px"></div>` : '<div class="rgat" style="left:50%;top:40%;width:0;height:0"></div>';
   const boven = r && r.top > innerHeight / 2, bx = r ? Math.max(12, Math.min(innerWidth - 292, r.left + r.width / 2 - 140)) : innerWidth / 2 - 140;
   o.innerHTML = `${gat}<div class="rballon" style="left:${bx}px;${r ? (boven ? `bottom:${innerHeight - r.top + 16}px` : `top:${r.bottom + 16}px`) : 'top:30%'}"><b>👨‍🍳 Mario</b><p>${tekst}</p>
     <div class="rij"><button class="knop rood" id="rverder">${laatste ? 'Aan de slag!' : 'Verder'}</button>${laatste ? '' : '<button class="knop" id="rstop">Overslaan</button>'}<small style="margin-left:auto;opacity:.6">${n + 1}/${RONDE.length}</small></div></div>`;
   $('rverder').onclick = (e) => { e.stopPropagation(); rondleiding(n + 1); };
-  if ($('rstop')) $('rstop').onclick = (e) => { e.stopPropagation(); o.remove(); hoofdIntro(); };
+  if ($('rstop')) $('rstop').onclick = (e) => { e.stopPropagation(); rondeKlaar(o); };
   o.onclick = (e) => { if (r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6) rondleiding(n + 1); };
 }
 if (S.nieuw && !TEGEL) { delete S.nieuw; bewaar(); $('voorstart').remove(); $('welkom').classList.remove('wacht'); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; } // net opnieuw begonnen: geen voorblad, meteen het kaartje met de rondleiding (de muziek komt bij de volgende tik) // net opnieuw begonnen: het titelscherm biedt Mario's rondleiding aan (zoals bij de allereerste keer)
