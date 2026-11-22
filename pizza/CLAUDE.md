@@ -712,3 +712,4 @@ Geheime kist (22 nov, keuze Marcel): tot H6 heet de vlagkist "🧰 Mario's gehei
 geen balkjes, geen woord "vlag" (ook niet in meldingen en de roulettebonus); Mario's rondleiding: "Waarvoor? Dat vertel ik je later". Feest na elk
 hoofdstuk: een plaagzinnetje per hoofdstuk (H2: "Van elke kleur evenveel"); intro H3: "de kist houdt van álle kleuren, ook van rood". Intro H6 =
 de onthulling (kist open → omsmelten tot de Italiaanse vlag op de toren, 100 van elke kleur); vanaf dan Vlagkist met /100.
+Voorblad-muziek (22 nov): Marcel hoorde op de iPad het liedje "dubbel"; in Chromium start het maar één keer. Nu: de AudioContext wordt al bij het laden gemaakt (stil) en de italiaanse instrumenten + funiculi.json laden terwijl het voorblad er staat; Start doet resume() en speelt pas als het geluid echt aan staat.
