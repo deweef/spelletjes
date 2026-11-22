@@ -699,4 +699,4 @@ te laat (11%/8%), en wie meer dan 6 m achterligt geeft 7% extra gas (blijft span
 met weinig fouten win je soms, met veel fouten niet. Wijnkelder: bij het namaken geen Terug-knop meer (spieken kon). Nieuw: Café 't Achterafje
 (PLEK `kroeg`, het bakstenen pand met de luifel links van de markt, open vanaf H4): Barrie zit er altijd, met dezelfde menukaart
 (`barrieBlok()`, `barrieKnoppen()`, `toonKroeg()`; `inKroeg` zorgt dat de minispelletjes daarna terug naar het café gaan; als je Barrie nog
-niet kende, leer je hem daar kennen). Plaatje voor het café: nog vragen aan ChatGPT (nu alleen tekst).
+niet kende, leer je hem daar kennen). Plaatje: `pizza/kroeg.jpg` (ChatGPT, 1024 breed). Crypto (keuze Marcel): bewaarkosten 1% per nacht (was 2%), hack 1% per munt per nacht (was 2%).
