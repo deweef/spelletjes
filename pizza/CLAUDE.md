@@ -708,3 +708,7 @@ In tests: eerst `#startknop` klikken (met force: hij pulseert), daarna het kaart
 Na "Ja, helemaal opnieuw" (herstart = reload met `nieuw: true`): geen voorblad, meteen de voorplaat met het kaartje "Mario laat je alles zien" (zonder muziek: na een reload mag de browser pas na een tik geluid maken).
 Rondleiding (22 nov): de titelmuziek speelt door tot de rondleiding klaar is of overgeslagen wordt (`rondeKlaar`); na opnieuw beginnen start hij bij "Mario laat je alles zien".
 Doelen (22 nov, Marcel): een gehaald doel geeft alleen vlagfiches, geen geld meer (was f × € 2); de rondleiding zegt dat ook.
+Geheime kist (22 nov, keuze Marcel): tot H6 heet de vlagkist "🧰 Mario's geheime kist" (`kistOpen()`, `kistNaam()`): wel de aantallen, geen /100 en
+geen balkjes, geen woord "vlag" (ook niet in meldingen en de roulettebonus); Mario's rondleiding: "Waarvoor? Dat vertel ik je later". Feest na elk
+hoofdstuk: een plaagzinnetje per hoofdstuk (H2: "Van elke kleur evenveel"); intro H3: "de kist houdt van álle kleuren, ook van rood". Intro H6 =
+de onthulling (kist open → omsmelten tot de Italiaanse vlag op de toren, 100 van elke kleur); vanaf dan Vlagkist met /100.

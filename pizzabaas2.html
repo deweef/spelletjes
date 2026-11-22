@@ -2748,7 +2748,7 @@ function klaarWiel(n) {
     gok.tekst = `🚨 POLITIE! Een inval! Alle fiches (${kwijt}) worden in beslag genomen en je krijgt € 100 boete.`; ding(400, 0.4, 'sawtooth', 0.05); tekenGokhal(); return; }
   const kl = kleurVan(n), regels = [], gokInzetKopie = { ...gok.inzet }; let terug = 0, in_ = 0;
   for (const [k, a] of Object.entries(gok.inzet)) { in_ += a; if (vakRaak(k, n)) { const w = a * vakKeer(k); terug += w; if (k[0] == 'n') mijl('getal'); if (k == 'n0') mijl('nul'); regels.push(`✅ ${a} op ${vakNaam(k)} → ${w} terug`); } else regels.push(`❌ ${a} op ${vakNaam(k)}`); }
-  gok.fiches += terug; gok.inzet = {}; gok.winVak = 'n' + n; const vlagWin = []; for (const [k2, a2] of Object.entries(gokInzetKopie)) if (vakRaak(k2, n)) { if (k2 == 'n0') vlagWin.push(['g', 3]); else if (k2[0] == 'n') vlagWin.push(['r', 2]); else if (k2[0] == 'd') vlagWin.push(['w', 1]); } for (const [k3, f3] of vlagWin) vlagErbij(k3, f3); const vlagTekst = vlagWin.length ? ' Bonus voor je vlagkist: ' + vlagWin.map(([k3, f3]) => VLAGKLEUR[k3][0] + ' +' + f3).join(' ') + '!' : '';
+  gok.fiches += terug; gok.inzet = {}; gok.winVak = 'n' + n; const vlagWin = []; for (const [k2, a2] of Object.entries(gokInzetKopie)) if (vakRaak(k2, n)) { if (k2 == 'n0') vlagWin.push(['g', 3]); else if (k2[0] == 'n') vlagWin.push(['r', 2]); else if (k2[0] == 'd') vlagWin.push(['w', 1]); } for (const [k3, f3] of vlagWin) vlagErbij(k3, f3); const vlagTekst = vlagWin.length ? ' Bonus voor ' + (kistOpen() ? 'je vlagkist' : "Mario's geheime kist") + ': ' + vlagWin.map(([k3, f3]) => VLAGKLEUR[k3][0] + ' +' + f3).join(' ') + '!' : '';
   gok.tekst = `Het balletje valt op <b>${n}, ${kl}</b>!<br><small>${regels.join(' · ')}</small><br>${terug > in_ ? `🎉 Je had ${in_} fiche${in_ == 1 ? "" : "s"} ingezet en krijgt er ${terug} terug: +${terug - in_}!` : terug ? `Je had ${in_} ingezet en krijgt ${terug} terug.` : `Al je ${in_} fiches zijn weg.`}${vlagTekst}${gok.ronde >= 3 ? ' Dat was de laatste ronde.' : ''}`;
   if (terug > in_) kassa(); else ding(200, 0.15, 'triangle', 0.04);
   tekenGokhal();
@@ -5029,7 +5029,9 @@ const DOELEN = [
 
 const VLAGKLEUR = { g: ['🟢', 'groen', 'eerlijk ondernemen', '#2e9d52'], w: ['⚪', 'wit', 'goed voor de stad', '#d8d2c4'], r: ['🔴', 'rood', 'de schimmige kant', '#c0392b'] }, VLAGNODIG = 100;
 const hoofd = () => S.hoofdstuk || 1;
-function vlagErbij(k, n, waarom) { S.vlag = S.vlag || { g: 0, w: 0, r: 0 }; S.vlag[k] += n; if (waarom) meld(`${VLAGKLEUR[k][0]} +${n} vlagfiche${n > 1 ? 's' : ''}: ${waarom}`, 3000); }
+const kistOpen = () => hoofd() >= 6 || heb('vlag'); // pas in H6 vertelt Mario waar de fiches voor zijn (de vlag op de toren); daarvoor is het 'Mario's geheime kist' (22 nov)
+const kistNaam = () => kistOpen() ? '🇮🇹 Vlagkist' : "🧰 Mario's geheime kist";
+function vlagErbij(k, n, waarom) { S.vlag = S.vlag || { g: 0, w: 0, r: 0 }; S.vlag[k] += n; if (waarom) meld(`${VLAGKLEUR[k][0]} +${n} ${kistOpen() ? 'vlag' : ''}fiche${n > 1 ? 's' : ''}: ${waarom}`, 3000); }
 function controleerDoelen() {
   if (TEGEL || !S) return; S.doelen = S.doelen || {}; S.vlag = S.vlag || { g: 0, w: 0, r: 0 };
   const okNu = (d) => { try { return !!d.ok(); } catch (e) { return false; } };
@@ -5118,10 +5120,10 @@ function toonAftiteling() { // de aftiteling: alle personages, en hoe lang je er
 const HOOFDINTRO = [null,
   'Benvenuti, baas! Dit is jouw eigen pizzeria. Klein, maar fijn. Eerst het belangrijkste: tafels en stoelen neerzetten, een eigen pizza verzinnen en de deuren open. Kijk bij 🎯 wat we moeten doen. En pas op voor Luigi, aan de overkant…',
   'Baas, we zijn een échte zaak! Nu gaan we de stad in: het studentenhuis, de kunstuitleen en de bouwplaats zijn open. Neem een manager, start een bezorgdienst, en versla Luigi. Mijn droom: de Gouden Pizzaschep!',
-  'Psst, baas. Ik heb iets gehoord… Er zijn mensen in de stad die het niet zo nauw nemen. Een man met een gleufhoed houdt van schilderijen: hang er een op in je eerste zaak (🪴 Plant → Schilderij). En in je andere zaak komt er vast ook iemand met een plannetje. Snelle Sjonnie zit bij de bank. Spannend, maar pas op voor de politie!',
+  'Psst, baas. Ik heb iets gehoord… Er zijn mensen in de stad die het niet zo nauw nemen. Een man met een gleufhoed houdt van schilderijen: hang er een op in je eerste zaak (🪴 Plant → Schilderij). En in je andere zaak komt er vast ook iemand met een plannetje. Snelle Sjonnie zit bij de bank. Spannend, maar pas op voor de politie! O ja: mijn geheime kist houdt van álle kleuren fiches, ook van rood.',
   'Baas, Luigi is woedend. Dit wordt oorlog! Barrie heeft een hele kaart vol streken, en Luigi heeft vrienden in groene pakken. Maar… onze Marco is verliefd op iemand. Op wie? Dat hoor je nog wel.',
   'Wat een rust na al die ruzie, baas. Tijd voor iets lekkers: er staat een ijssalon te koop! En in Huize Avondrood willen ze graag pizza op zondag. Maar Opa Henk zegt: eerst racen.',
-  'Baas… dit is het. Vier zaken, de Toren van Pizza afbouwen, en dan de Italiaanse vlag erbovenop. Daar heb je van elke kleur 100 vlagfiches voor nodig. Kijk in de vlagkist hoeveel je er nog mist. Forza!' ];
+  'Baas… dit is het. Weet je nog, mijn geheime kist? Ik doe hem open: groen, wit en rood… Als de Toren van Pizza af is, smelten we ze om tot de Italiaanse vlag, en die hijsen we bovenop! Dan ben jij de pizzabaas van de stad. Daar heb je van elke kleur 100 fiches voor nodig. Kijk in de vlagkist (🎯) hoeveel je er nog mist. Forza!' ];
 new MutationObserver((ms) => { for (const m of ms) if (/\bverborgen\b/.test(m.oldValue || '') && !m.target.classList.contains('verborgen')) { m.target.scrollTop = 0; m.target.querySelectorAll('.kaart').forEach((k) => k.scrollTop = 0); } })
   .observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true }); // een venster dat opengaat begint bovenaan (niet halverwege waar het vorige venster gescrold was)
 function hoofdIntro(nu) { const H = hoofd(); S.introGezien = S.introGezien || {}; if (S.introGezien[H] || TEGEL) return; if (!nu) { setTimeout(() => hoofdIntro(true), 700); return; }
@@ -5209,7 +5211,7 @@ function hoofdstukKlaar(H, naPlaat) {
   const V = HOOFDSTUK[H + 1];
   $('eindkaart').innerHTML = `<h1>🎉 Hoofdstuk ${H} uitgespeeld!</h1><p style="font-size:40px;text-align:center;margin:4px">${HOOFDSTUK[H].ik} → ${V.ik}</p>
     <p><b>${esc(HOOFDSTUK[H].n)}</b> zit erop. Op naar hoofdstuk ${H + 1}: <b>${esc(V.n)}</b>!</p>
-    <p class="buurt">🎁 Hoofdstukbonus: 🟢 +10 ⚪ +10 🔴 +10. In je vlagkist: ${Object.entries(VLAGKLEUR).map(([k, v]) => `${v[0]} ${S.vlag[k]}`).join(' · ')} (voor de vlag op de toren heb je van elke kleur ${VLAGNODIG} nodig).</p>
+    <p class="buurt">🎁 Hoofdstukbonus: 🟢 +10 ⚪ +10 🔴 +10. In ${kistOpen() ? 'je vlagkist' : "Mario's geheime kist"}: ${Object.entries(VLAGKLEUR).map(([k, v]) => `${v[0]} ${S.vlag[k]}`).join(' · ')}. ${kistOpen() ? `(Voor de vlag op de toren heb je van elke kleur ${VLAGNODIG} nodig.)` : `Mario klopt op de kist: "${['Hij wordt al zwaar, baas.', 'Van elke kleur evenveel, baas. Geloof me.', 'Nog even geduld… In het laatste hoofdstuk vertel ik het.', 'Rood, wit én groen. Vergeet er niet één!', 'Bijna, baas. Bijna mag je erin kijken.'][H - 1] || 'Spaar ze goed!'}"`}</p>
     <button class="groot" id="verder">Verder</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); hoofdstukKlaar.bezig = false; controleerDoelen(); hoofdIntro(); };
 }
@@ -5219,8 +5221,8 @@ function toonDoelen() {
   const rij = (d) => { const ok = S.doelen[d.id]; return `<tr style="${ok ? 'opacity:.6' : ''}"><td>${ok ? '🍕' : d.geheim ? '❓' : '⬜'} ${esc(ok || !d.geheim ? d.n : d.geheim)}</td><td style="white-space:nowrap">${VLAGKLEUR[d.k][0]} ${d.f}</td></tr>`; };
   $('eindkaart').innerHTML = `<h1>🎯 Hoofdstuk ${H}: ${esc(HOOFDSTUK[H].n)}</h1>
     <p class="buurt">Haal ${HOOFDNODIG} van de 15 doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}. Dan is het hoofdstuk uitgespeeld. ${balk(af, HOOFDNODIG, '#c0392b')} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}${HOOFDSTUK[H].afn ? ` ${HOOFDSTUK[H].af() ? '🍕' : '⬜'}` : ''}</p>
-    <div style="background:#fff7e0;border-radius:8px;padding:6px 8px;margin:6px 0"><b>🇮🇹 Vlagkist</b> (elk doel geeft vlagfiches; ${VLAGNODIG} van elke kleur = de vlag op de toren)<br>
-      ${Object.entries(VLAGKLEUR).map(([k, v]) => `${v[0]} ${balk(S.vlag[k], VLAGNODIG, v[3])} <b>${S.vlag[k]}</b>/${VLAGNODIG} <small>${v[2]}</small>`).join('<br>')}</div>
+    <div style="background:#fff7e0;border-radius:8px;padding:6px 8px;margin:6px 0"><b>${kistNaam()}</b> ${kistOpen() ? `(elk doel geeft vlagfiches; ${VLAGNODIG} van elke kleur = de vlag op de toren)` : '(elk doel geeft fiches. Waarvoor? "Dat vertel ik je later, baas. Spaar ze goed!")'}<br>
+      ${Object.entries(VLAGKLEUR).map(([k, v]) => kistOpen() ? `${v[0]} ${balk(S.vlag[k], VLAGNODIG, v[3])} <b>${S.vlag[k]}</b>/${VLAGNODIG} <small>${v[2]}</small>` : `${v[0]} <b>${S.vlag[k]}</b> <small>${v[2]}</small>`).join('<br>')}</div>
     <table>${mijn.map(rij).join('')}</table>
     ${H > 1 ? `<details style="margin-top:8px"><summary>Eerdere hoofdstukken (nog te halen: dat mag altijd)</summary><table>${DOELEN.filter((d) => d.h < H).map(rij).join('')}</table></details>` : ''}
     <p class="buurt">${[1, 2, 3, 4, 5, 6].map((h) => `${h < H ? '🍕' : h == H ? '▶️' : '🔒'} ${h}. ${h <= H ? esc(HOOFDSTUK[h].n) : '…'}`).join('<br>')}</p>
@@ -5382,7 +5384,7 @@ const RONDE = [
   ['[data-pizza]', "Hier verzin je je eigen pizza's. Studenten, opa's en toeristen houden allemaal van iets anders!"],
   ['[data-p="ober"]', 'Hier neem je obers aan, en later een manager die op de zaak past.'],
   ['#open', 'Klaar? Open de deuren! Klanten komen binnen, bestellen en eten. Laat ze niet te lang wachten.'],
-  ['#doelknop', 'Weet je even niet wat je moet doen? Hier staan je doelen. Elk doel geeft vlagfiches 🟢⚪🔴: daarmee hijs je aan het eind de Italiaanse vlag op de toren.'],
+  ['#doelknop', 'Weet je even niet wat je moet doen? Hier staan je doelen. Elk doel geeft fiches 🟢⚪🔴 voor mijn geheime kist. Waarvoor? Dat vertel ik je later, baas. Spaar ze goed!'],
   ['#stadknop', 'En hier ga je de stad in: de markt, de bank… en wie weet wat nog meer. 😉'],
   [null, 'Dat was het! Succes, baas. Maak er de beste pizzeria van de stad van!'] ];
 function rondeKlaar(o) { o.remove(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } hoofdIntro(); } // pas na de rondleiding stopt de titelmuziek
