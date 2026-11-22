@@ -84,10 +84,11 @@
   #sleutel.verborgen, #stadknop.verborgen { display: none; }
   #stadknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 108px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #stadknop:disabled { opacity: .35; }
-  #snelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 258px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 18px; cursor: pointer; }
-  #snelknop.aan { background: #e8a33a; }
-  #doelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 208px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
-  #doelknop img { width: 30px; height: 30px; display: block; margin: auto; }
+  #snelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 318px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); color: #fff; font: 800 20px/40px system-ui; cursor: pointer; padding: 0; }
+  #snelknop.aan { background: #c0392b; box-shadow: 0 0 0 3px #fff; }
+  #doelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 208px; height: 40px; padding: 0 12px 0 5px; border-radius: 20px; border: 0; background: rgba(0,0,0,.5); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  #doelknop img { width: 30px; height: 30px; display: block; }
+  #doelknop.vol { box-shadow: inset 0 0 0 3px #2e9d52; }
   #welkom { padding: 0; background: #2a1405; overflow: hidden; flex-direction: column; justify-content: flex-end; align-items: center; }
   #titelplaat { position: absolute; inset: 0; background: url(pizza/plaat0.jpg) 40% 70% / cover no-repeat; animation: titelzoom 30s ease-in-out infinite alternate; }
   @keyframes titelzoom { from { transform: scale(1); } to { transform: scale(1.12) translate(2%, 1%); } }
@@ -124,7 +125,7 @@
   @keyframes plaatzoom { from { transform: scale(1.1); } to { transform: scale(1); } }
   #plaattekst { position: absolute; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(92vw, 620px); background: rgba(20,10,4,.78); color: #fff; border-radius: 14px; padding: 12px 16px; font: 600 17px/1.4 system-ui, sans-serif; min-height: 3.2em; }
   #plaatverder { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(60vw, 280px); border: 0; border-radius: 14px; padding: 13px; background: #b5361f; color: #fff; font: 700 17px system-ui, sans-serif; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.4); }
-  #doelknop b { position: absolute; right: -4px; top: -4px; background: #e74c3c; color: #fff; border-radius: 9px; font: 700 11px system-ui; padding: 1px 5px; }
+  #doelknop b { color: #fff; font: 700 14px system-ui; white-space: nowrap; } /* 22 nov: gewoon in de knop (was een rood labeltje over de pizza heen) */
   #zoomknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 158px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #kaartrol { width: min(100%, 1100px); max-width: calc(100vw - 28px); margin: 0 auto; border: 6px solid #7a4520; border-radius: 10px; overflow: auto; -webkit-overflow-scrolling: touch; }
   #kaartvak { position: relative; width: 100%; aspect-ratio: 1376 / 768; }
@@ -234,7 +235,7 @@
 <button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
 <button id="zoomknop" title="Inzoomen (of knijp met twee vingers)">🔍</button>
 <button id="doelknop" title="Doelen"><img src="pizza/doel.png" alt="🎯"></button>
-<button id="snelknop" title="Tijd sneller (2x)">⏩</button>
+<button id="snelknop" title="Tijd sneller (2x)">»</button>
  <div class="scherm verborgen" id="acrob" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🤹 Pizza-acrobatiek</h1><div id="acrotekst" class="buurt" style="margin:0 0 6px">Het deeg vliegt omhoog. Tik als het weer bij Mario's handen is! Hoe langer je volhoudt, hoe hoger en hoe meer de toeristen geven.</div>
   <canvas id="acrodoek" width="360" height="480" style="width:100%;max-width:340px;aspect-ratio:3/4;display:block;margin:0 auto;border-radius:12px;touch-action:none;cursor:pointer"></canvas>
@@ -3382,6 +3383,7 @@ function toonStad(plek) {
   if (plek == 'politie') {
     const kan = S.gesaboteerd && S.gesaboteerd >= S.dag - 3 && !(S.aangifte >= S.gesaboteerd);
     h += `<p>Agent Jansen zit achter de balie met een kop koffie en een gevulde koek. "${pak(['Rustig dagje vandaag.', 'Komt u een fiets ophalen? Nee? Jammer, we hebben er driehonderd.', 'Lekkere pizza had u laatst, trouwens.'])}"</p>${kan ? '<p>Je zou aangifte kunnen doen tegen Luigi voor die sabotage…</p>' : ''}`;
+    if (S.aangifteUit && S.aangifte == S.dag) h += `<div class="opdracht" style="display:block">📝 <b>Je aangifte</b><br>${esc(S.aangifteUit)}</div>`;
     if (kan) knoppen = `<button class="knop rood" id="aangifte">📝 Aangifte doen tegen Luigi</button>`;
   }
   if (plek == 'luigi') h += `<p>Je gluurt door het raam van Pizzeria Luigi. ${klusLoopt() ? { stinkbom: 'Er hangt een groene walm voor de deur. Voorbijgangers knijpen hun neus dicht. Hehe.', ratten: 'Er staat een bord: "Tijdelijk gesloten wegens… dieren." Luigi staat met een bezem in de deuropening.', recensie: 'Luigi zit achter zijn laptop en typt woedend: "KARTON?!"', keuring: 'Er zit een rode sticker op de deur: GESLOTEN door de keuringsdienst.' }[S.klus.k] : pak(['Het is er vol met studenten. Hij verkoopt pizza\'s voor € 6!', 'Het is er stil. Luigi zit zelf aan een tafel, met zijn zonnebril op, binnen.', 'Luigi staat te telefoneren en kijkt boos naar jouw zaak aan de overkant.', 'Er staat een bord: "Pizza Kapsalon, NIEUW!" Hmm.'])}</p>`;
@@ -3455,7 +3457,8 @@ function toonStad(plek) {
   const bedrag = (vraag, max, voorstel = max) => { const v = prompt(vraag, String(Math.max(0, Math.floor(voorstel)))); const n = Math.min(Math.floor(max), Math.floor(+String(v).replace(',', '.') || 0)); return n > 0 ? n : 0; };
   if ($('storten')) $('storten').onclick = () => { const n = bedrag(`Hoeveel contant geld wil je storten? (je hebt € ${Math.floor(S.geld)}; we stellen voor € 500 in de kassa te houden voor wisselgeld en de belasting)`, S.geld, S.geld - 500); if (!n) return; S.geld -= n; S.bankSaldo = (S.bankSaldo || 0) + n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} op je bankrekening gezet.`); toonStad('bank'); };
   if ($('opnemen')) $('opnemen').onclick = () => { const n = bedrag(`Hoeveel wil je opnemen? (er staat € ${Math.floor(S.bankSaldo)} op de bank)`, S.bankSaldo); if (!n) return; S.bankSaldo -= n; S.geld += n; kassa(); bewaar(); tekenKnoppen(); meld(`€ ${n} opgenomen. Contant in de kassa.`); toonStad('bank'); };
-  if ($('aangifte')) $('aangifte').onclick = () => { S.aangifte = S.dag; if (kans(0.6)) { S.luigiRust = S.dag + 10; ge(0); bewaar(); meld('De politie gaat met Luigi praten. Hij laat je voorlopig met rust.'); } else meld('"Zonder bewijs kunnen we weinig doen," zegt agent Jansen.'); bewaar(); toonStad('politie'); };
+  if ($('aangifte')) $('aangifte').onclick = () => { S.aangifte = S.dag; if (kans(0.6)) { S.luigiRust = S.dag + 10; S.aangifteUit = `Agent Jansen pakt zijn pet. "Ik ga even met meneer Luigi praten." Een uur later belt hij: Luigi heeft beloofd dat hij je met rust laat. Tot ${datumLang(S.dag + 10).toLowerCase()} is het vrede.`; }
+    else S.aangifteUit = '"Zonder bewijs kunnen we weinig doen," zegt agent Jansen. Hij schrijft het op een bierviltje. Volgende keer: een bewakingscamera?'; bewaar(); toonStad('politie'); };
   if ($('acro')) $('acro').onclick = () => { if (S.acroDag == S.dag) return; S.acroDag = S.dag; bewaar(); const k = $('acro'); k.disabled = true; k.textContent = '🤹 Pizza-acrobatiek: morgen weer'; toonAcro(); }; // knop meteen op slot: de stadkaart wordt na het spel niet opnieuw getekend
   if ($('wedstrijd')) $('wedstrijd').onclick = () => toonWedstrijd();
   if ($('eetwed')) $('eetwed').onclick = () => { if (S.eetDag == S.dag) return; $('eetwed').disabled = true; $('eetwed').textContent = '🍕 Eetwedstrijd: morgen weer'; ge(-EET.inleg); S.eetDag = S.dag; bewaar(); kassa(); tekenKnoppen(); toonEet(); };
@@ -4788,6 +4791,7 @@ function toonMaak(nr) {
   $('bak').innerHTML = Object.entries(ING).map(([k, d]) => `<button data-i="${k}"><span class="ing" style="background-position:-${d.i * 40}px 0"></span>${esc(d.n)}<small>${geld(d.k)}</small></button>`).join('');
   $('bak').querySelectorAll('button').forEach((b) => b.onclick = () => legOp(b.dataset.i));
   $('bodem').onclick = (e) => { // tik op de pizza: het stukje dat daar ligt weghalen (of anders het laatste)
+    if (document.activeElement && document.activeElement.id == 'pnaam') { document.activeElement.blur(); return; } // je was de naam aan het tikken: eerst alleen het toetsenbord weg
     if (!bewerk.stukjes.length) return;
     const r = $('bodem').getBoundingClientRect(), x = ((e.clientX - r.left) / r.width * 2 - 1) / 0.78, y = ((e.clientY - r.top) / r.height * 2 - 1) / 0.78;
     let best = bewerk.stukjes.length - 1, bd = 0.3;
@@ -4928,7 +4932,8 @@ function zaakWaarde() {
 const HOOFDNODIG = 10;
 const MANAGERDAGEN = 3; // zoveel dagen moet je manager bij je werken voor je een tweede zaak opent (was 7; 15 nov)
 const HOOFDSTUK = [null,
-  { n: 'Het eerste pizzeriaatje', ik: '🍕', af: () => S.zaken.length >= 2, afn: `Open je tweede pizzeria (huur een pand in de stad). Daarvoor heb je een manager nodig die ${MANAGERDAGEN} dagen bij je werkt` },
+  { n: 'Het eerste pizzeriaatje', ik: '🍕', af: () => S.zaken.length >= 2, stappen: () => { const m = S.zaken.length >= 2 ? null : S.manager, d = m ? Math.min(MANAGERDAGEN, m.dagen || 0) : 0;
+      return [['Neem een manager aan (Personeel, vanaf populariteit 40)', S.zaken.length >= 2 || !!S.manager], [`Je manager werkt ${MANAGERDAGEN} dagen bij je${m && d < MANAGERDAGEN ? ` (nu ${d} van de ${MANAGERDAGEN})` : ''}`, S.zaken.length >= 2 || d >= MANAGERDAGEN], ['Huur een tweede pand (🗺️ Stad)', S.zaken.length >= 2]]; }, afn: `Open je tweede pizzeria (huur een pand in de stad). Daarvoor heb je een manager nodig die ${MANAGERDAGEN} dagen bij je werkt` },
   { n: 'De stad in', ik: '🗺️', af: () => (S.scheppen || 0) >= 1 || (S.wedWinst || 0) >= 1, afn: 'Win de Gouden Pizzaschep of de pizzawedstrijd tegen Luigi' },
   { n: 'De achterkamer', ik: '🗝️', af: () => heb('inval'), afn: 'Overleef de grote inval (komt vanzelf als je 10 doelen hebt)' },
   { n: 'Oorlog met Luigi', ik: '😡', af: () => S.liefde && S.liefde.fase >= 5, afn: 'Het verhaal van Marco en Valentina loopt af' },
@@ -4947,9 +4952,10 @@ const DOELEN = [
   { id: 'zelfbestel', tip: "Tik op 📦 Voorraad, zet het vinkje van Mario uit en bestel zelf. 'Zoals gisteren' is handig.", h: 2, k: 'g', f: 5, n: 'Bestel zelf je voorraad (zet Mario\'s automatische inkoop uit)', ok: () => heb('zelfbesteld') },
   { id: 'vlekken', tip: "Tijdens het werk vallen er dingen op de grond. Tik op een vlek om hem op te ruimen.", h: 1, k: 'g', f: 3, n: 'Ruim 5 vlekken op in één dag', ok: () => heb('vlekken') },
   { id: 'rat', tip: "Komt er een rat van Luigi? Tik erop om hem te vangen!", h: 1, k: 'r', f: 3, n: 'Vang een rat van Luigi', ok: () => heb('rat') },
+  { id: 'vloer', tip: "Tik op Vloer (onder in het menu) en kies een andere vloer. Kasseien, terracotta of hout: het maakt je zaak gezelliger.", h: 1, k: 'g', f: 3, n: 'Leg een nieuwe vloer', ok: () => (S.vloer && S.vloer != 'klassiek') || S.zaken.some((z) => z && z.vloer && z.vloer != 'klassiek') },
   { id: 'personeel', tip: "Tik op Personeel of Oven: met twee obers of twee ovens gaat alles sneller.", h: 1, k: 'g', f: 5, n: 'Neem een tweede ober of een tweede oven', ok: () => S.obers >= 2 || S.ovens >= 2 },
-  { id: 'ster5', tip: "Maak een pizza met van alles erop. Op de kaart zie je de sterren: probeer er twee van 5 sterren te maken.", h: 1, k: 'g', f: 10, n: 'Verzin twee pizza\'s van 5 sterren', ok: () => S.menu.filter((p) => p.sinds && pizzaSter(p) >= 5).length >= 2 },
-  { id: 'voedselbank', h: 1, k: 'w', f: 5, n: 'Help de voedselbank', ok: () => antw('voedselbank:0') || antw('voedselbank:1') },
+  { id: 'ster5', tip: "Maak een pizza met van alles erop. Op de kaart zie je de sterren: probeer er twee van 5 sterren te maken.", h: 1, k: 'g', f: 10, n: 'Verzin twee pizza\'s van 5 sterren', ok: () => S.menu.filter((p) => p.sinds && Math.round(pizzaSter(p)) >= 5).length >= 2 }, // zoals op de kaart: 4,5 = 5 sterren
+  { id: 'voedselbank', h: 1, k: 'w', f: 5, n: 'Help de voedselbank (als ze langskomen)', ok: () => antw('voedselbank:0') || antw('voedselbank:1') },
   { id: 'muzikant', h: 1, k: 'w', f: 3, n: 'Laat de straatmuzikant spelen', ok: () => antw('muzikant:0') },
   { id: 'zes', tip: "Verzin meer pizza's: voor elk soort klant iets lekkers.", h: 1, k: 'g', f: 5, n: 'Zet 6 pizza\'s op de kaart', ok: () => S.menu.length >= 6 },
   { id: 'pizzaregen', h: 1, k: 'g', f: 5, geheim: 'De oven wordt heel boos als je hem plaagt…', n: 'Pizzaregen! (7× snel op de oven tikken)', ok: () => heb('pizzaregen') },
@@ -5021,7 +5027,7 @@ const DOELEN = [
   { id: 'vier', h: 6, k: 'g', f: 10, n: 'Open je derde en vierde pizzeria', ok: () => S.zaken.length >= 4 },
   { id: 'managers', h: 6, k: 'g', f: 5, n: 'In elke zaak een manager', ok: () => S.zaken.length >= 2 && S.zaken.every((z, i) => i == S.zaak ? !!S.manager : !!z.manager) },
   { id: 'rep80', h: 6, k: 'w', f: 10, n: 'Populariteit 80 in een zaak', ok: () => S.rep >= 80 || S.zaken.some((z) => (z.rep || 0) >= 80) },
-  { id: 'sterbuurt', h: 6, k: 'g', f: 10, n: 'In elke buurt een pizza van 5 sterren', ok: () => S.zaken.length >= 4 && mijnBuurten().every((b) => S.menu.some((p) => pizzaSter(p, b) >= 5)) },
+  { id: 'sterbuurt', h: 6, k: 'g', f: 10, n: 'In elke buurt een pizza van 5 sterren', ok: () => S.zaken.length >= 4 && mijnBuurten().every((b) => S.menu.some((p) => Math.round(pizzaSter(p, b)) >= 5)) },
   { id: 'toren1', h: 6, k: 'w', f: 5, n: 'De fundering van de toren', ok: () => toren4(1) },
   { id: 'toren2', h: 6, k: 'w', f: 5, n: 'De toren op een derde', ok: () => toren4(2) },
   { id: 'toren3', h: 6, k: 'w', f: 5, n: 'De toren op twee derde', ok: () => toren4(3) },
@@ -5049,7 +5055,7 @@ function controleerDoelen() {
   if (nu.length) { for (const d of nu) { S.doelen[d.id] = S.dag; S.vlag[d.k] += d.f; } bewaar(); kassa(); /* een doel geeft vlagfiches, geen geld (22 nov) */
     meld(`🎯 Doel gehaald: ${nu.map((d) => d.n + ' ' + VLAGKLEUR[d.k][0] + '+' + d.f).join(' · ')}`, 4500, true); if ($('mariotip')) setTimeout(marioTip, 400); }
   const H = hoofd(), mijn = DOELEN.filter((d) => d.h == H), af = mijn.filter((d) => S.doelen[d.id]).length;
-  $('doelknop').innerHTML = `<img src="pizza/doel.png" alt="🎯"><b>H${H} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}</b>`;
+  $('doelknop').innerHTML = `<img src="pizza/doel.png" alt="🎯"><b>H${H} · ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}</b>`; $('doelknop').classList.toggle('vol', af >= HOOFDNODIG);
   if (H == 3 && af >= HOOFDNODIG && !heb('inval') && modus == 'inrichten' && !toonInval.bezig && $('einde').classList.contains('verborgen')) setTimeout(toonInval, 800);
   if (H < 6 && af >= HOOFDNODIG && HOOFDSTUK[H].af() && modus == 'inrichten' && !hoofdstukKlaar.bezig && !toonInval.bezig && $('achter').classList.contains('verborgen')) hoofdstukKlaar(H); /* niet bovenop de uitslag van de inval: die roept zelf controleerDoelen als je Verder tikt */
 }
@@ -5132,7 +5138,7 @@ const HOOFDINTRO = [null,
   'Baas, Luigi is woedend. Dit wordt oorlog! Barrie heeft een hele kaart vol streken, en Luigi heeft vrienden in groene pakken. Maar… onze Marco is verliefd op iemand. Op wie? Dat hoor je nog wel.',
   'Wat een rust na al die ruzie, baas. Tijd voor iets lekkers: er staat een ijssalon te koop! En in Huize Avondrood willen ze graag pizza op zondag. Maar Opa Henk zegt: eerst racen.',
   'Baas… dit is het. Weet je nog, mijn geheime kist? Ik doe hem open: groen, wit en rood… Als de Toren van Pizza af is, smelten we ze om tot de Italiaanse vlag, en die hijsen we bovenop! Dan ben jij de pizzabaas van de stad. Daar heb je van elke kleur 100 fiches voor nodig. Kijk in de vlagkist (🎯) hoeveel je er nog mist. Forza!' ];
-new MutationObserver((ms) => { for (const m of ms) if (/\bverborgen\b/.test(m.oldValue || '') && !m.target.classList.contains('verborgen')) { m.target.scrollTop = 0; m.target.querySelectorAll('.kaart').forEach((k) => k.scrollTop = 0); } })
+new MutationObserver((ms) => { for (const m of ms) if (m.target.classList.contains('scherm') && /\bverborgen\b/.test(m.oldValue || '') && !m.target.classList.contains('verborgen')) { /* alleen vensters (.scherm), niet de vloer of het paneel */ m.target.scrollTop = 0; m.target.querySelectorAll('.kaart').forEach((k) => k.scrollTop = 0); } })
   .observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true }); // een venster dat opengaat begint bovenaan (niet halverwege waar het vorige venster gescrold was)
 function hoofdIntro(nu) { const H = hoofd(); S.introGezien = S.introGezien || {}; if (S.introGezien[H] || TEGEL) return; if (!nu) { setTimeout(() => hoofdIntro(true), 700); return; }
   if (!$('einde').classList.contains('verborgen') || !$('welkom').classList.contains('verborgen') || $('ronde') || pauze) { setTimeout(() => hoofdIntro(true), 1500); return; }
@@ -5140,11 +5146,11 @@ function hoofdIntro(nu) { const H = hoofd(); S.introGezien = S.introGezien || {}
   $('eindkaart').innerHTML = `<div style="display:flex;gap:10px;align-items:flex-end"><div class="introkok" style="flex:none;width:85px;height:145px;background:url(pizza/kok.png) 0 0 / auto 145px no-repeat"></div>
     <div><h1 style="margin:0">${HOOFDSTUK[H].ik} Hoofdstuk ${H}</h1><h2 style="margin:2px 0 6px">${esc(HOOFDSTUK[H].n)}</h2></div></div>
     <p class="vraagtekst" style="text-align:left">"${esc(HOOFDINTRO[H])}"</p>
-    <p class="buurt">Haal ${HOOFDNODIG} van de 15 doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}.</p>
+    <p class="buurt">Haal ${HOOFDNODIG} van de ${DOELEN.filter((d) => d.h == H).length} doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}.</p>
     <button class="groot" id="verder">👨‍🍳 Andiamo!</button>`;
   $('einde').classList.remove('verborgen'); speelLied('donna', false, 'klassiek'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); setTimeout(marioTip, 600); }; }
 function marioTip() { // klein ballonnetje onderin met Mario en de volgende stap (alleen in hoofdstuk 1 en 2, tot je hem wegklikt voor vandaag)
-  if (S.tipsUit || hoofd() > 2 || modus != 'inrichten' || S.tipWeg == S.dag) return; /* S.tipsUit = de speler wil geen tips meer (21 nov) */ const d = DOELEN.find((d) => d.h == hoofd() && !d.geheim && !(S.doelen || {})[d.id]); if (!d) return;
+  if (S.tipsUit || hoofd() > 2 || modus != 'inrichten' || S.tipWeg == S.dag) return; /* S.tipsUit = de speler wil geen tips meer (21 nov) */ const open = DOELEN.filter((d) => d.h == hoofd() && !d.geheim && !(S.doelen || {})[d.id]), d = open.find((d) => d.tip) || open[0]; if (!d) return; // eerst een doel met een tip (iets wat je zelf kunt doen), niet 'help de voedselbank' als die nog niet kwam
   let b = $('mariotip'); if (!b) { b = document.createElement('div'); b.id = 'mariotip'; b.style.cssText = 'position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 64px);z-index:6;display:flex;align-items:flex-end;gap:6px;max-width:330px;pointer-events:auto'; document.body.appendChild(b); }
   b.innerHTML = `<div style="flex:none;width:52px;height:88px;background:url(pizza/kok.png) 0 0 / auto 88px no-repeat"></div><div style="background:#fff7e0;border:2px solid #c0392b;border-radius:12px;padding:6px 9px;font:14px system-ui;color:#3a2a1a;box-shadow:0 3px 10px #0004">
     <b>Tip van Mario:</b> ${esc(d.tip || d.n)}<br><small style="opacity:.7">(${VLAGKLEUR[d.k][0]} +${d.f}) · tik = weg voor vandaag</small><br><button id="tipsuit" style="margin-top:4px;border:0;background:#e9d3ad;border-radius:8px;padding:3px 8px;font:12px system-ui;color:#3a2a1a">🔕 Geen tips meer</button></div>`;
@@ -5202,8 +5208,12 @@ function krantKop(V, img) { // naam van de krant en de kop in de lege vakken van
     try { img.src = c.toDataURL('image/jpeg', 0.9); } catch (e) {} };
   bron.src = V.plaat;
 }
-function toonPlaat(H, klaar) {
-  const V = VERHAAL[H]; if (!V || (V.als && !V.als())) { klaar(); return; }
+function toonPlaat(H, klaar) { // eerst de plaat en het liedje laden (met de opbouwende pizza), dan pas tonen: zo begint de muziek meteen bij de plaat
+  const V = VERHAAL[H]; if (!V || (V.als && !V.als())) { klaar(); return; } wekGeluid();
+  pizzaLaden([...liedLaden(V.lied, V.stijl), new Promise((ok) => { const im = new Image(); im.onload = im.onerror = ok; im.src = V.plaat; })], () => toonPlaatNu(H, klaar), 'Het verhaal gaat verder…');
+}
+function toonPlaatNu(H, klaar) {
+  const V = VERHAAL[H];
   const sc = $('plaatscene'), img = $('plaatimg'); let n = 0, timer = null, zelf = false; // zelf = de speler tikt zelf: dan niet meer vanzelf doorschuiven
   const volgende = () => { clearTimeout(timer); if (n >= V.tekst.length) { $('plaatverder').textContent = 'Verder'; return; } if (V.kijk && V.kijk[n]) img.style.objectPosition = V.kijk[n].map((v) => v + '%').join(' '); /* de plaat schuift naar wie het over gaat (op de telefoon zie je maar een stukje) */ const r = V.tekst[n++]; $('plaattekst').textContent = typeof r == 'function' ? r() : r; $('plaatverder').textContent = n < V.tekst.length ? 'Verder ›' : 'Verder'; if (n < V.tekst.length && !zelf) timer = setTimeout(volgende, 4200); };
   img.src = V.plaat; if (V.krant) krantKop(V, img); img.style.transition = 'none'; img.style.objectPosition = V.kijk ? V.kijk[0].map((v) => v + '%').join(' ') : '50% 50%'; void img.offsetWidth; img.style.transition = ''; sc.classList.remove('speelt'); void sc.offsetWidth; sc.classList.add('speelt'); sc.classList.remove('verborgen');
@@ -5216,26 +5226,27 @@ function hoofdstukKlaar(H, naPlaat) {
   hoofdstukKlaar.bezig = true; S.hoofdstuk = H + 1; if ((S.hoofdBonus || 0) < H) { S.hoofdBonus = H; S.vlag = S.vlag || { g: 0, w: 0, r: 0 }; for (const k of ['g', 'w', 'r']) S.vlag[k] += 10; } /* elk uitgespeeld hoofdstuk: 10 vlagfiches van elke kleur */ bewaar(); kassa(); setTimeout(kassa, 300);
   if (VERHAAL[H] && !naPlaat && !(S.plaatGezien || {})[H]) { toonPlaat(H, () => hoofdstukKlaar(H, true)); return; } // het hoofdstuk is al opgeslagen als klaar: na de plaat het feestscherm
   if (!VERHAAL[H]) speelLied('vincero', false, 'klassiek');
-  const V = HOOFDSTUK[H + 1];
+  const V = HOOFDSTUK[H + 1], naarNieuw = H == 1 && S.zaken.length >= 2 && S.zaak != S.zaken.length - 1 && modus == 'inrichten'; // na de opening van je tweede zaak: meteen daarheen
   $('eindkaart').innerHTML = `<h1>🎉 Hoofdstuk ${H} uitgespeeld!</h1><p style="font-size:40px;text-align:center;margin:4px">${HOOFDSTUK[H].ik} → ${V.ik}</p>
     <p><b>${esc(HOOFDSTUK[H].n)}</b> zit erop. Op naar hoofdstuk ${H + 1}: <b>${esc(V.n)}</b>!</p>
     <p class="buurt">🎁 Hoofdstukbonus: 🟢 +10 ⚪ +10 🔴 +10. In ${kistOpen() ? 'je vlagkist' : "Mario's geheime kist"}: ${Object.entries(VLAGKLEUR).map(([k, v]) => `${v[0]} ${S.vlag[k]}`).join(' · ')}. ${kistOpen() ? `(Voor de vlag op de toren heb je van elke kleur ${VLAGNODIG} nodig.)` : `Mario klopt op de kist: "${['Hij wordt al zwaar, baas.', 'Van elke kleur evenveel, baas. Geloof me.', 'Nog even geduld… In het laatste hoofdstuk vertel ik het.', 'Rood, wit én groen. Vergeet er niet één!', 'Bijna, baas. Bijna mag je erin kijken.'][H - 1] || 'Spaar ze goed!'}"`}</p>
-    <button class="groot" id="verder">Verder</button>`;
-  $('einde').classList.remove('verborgen'); $('verder').onclick = () => { $('einde').classList.add('verborgen'); hoofdstukKlaar.bezig = false; controleerDoelen(); hoofdIntro(); };
+    <button class="groot" id="verder">${naarNieuw ? '🍕 Naar je nieuwe pizzeria' : 'Verder'}</button>${naarNieuw ? '<button class="knop" id="blijf" style="margin-top:8px">Nog even in deze zaak blijven</button>' : ''}`;
+  $('einde').classList.remove('verborgen'); const door = () => { $('einde').classList.add('verborgen'); hoofdstukKlaar.bezig = false; controleerDoelen(); hoofdIntro(); };
+  $('verder').onclick = () => { if (naarNieuw) { wisselZaak(S.zaken.length - 1); meld('Welkom in ' + zaakNaam() + '! Richt hem in en open de deuren.', 4000); } door(); }; if ($('blijf')) $('blijf').onclick = door;
 }
 function toonDoelen() {
   S.doelen = S.doelen || {}; S.vlag = S.vlag || { g: 0, w: 0, r: 0 }; const H = hoofd(), mijn = DOELEN.filter((d) => d.h == H), af = mijn.filter((d) => S.doelen[d.id]).length;
   const balk = (n, max, kl) => `<span style="display:inline-block;width:90px;height:10px;background:#0002;border-radius:5px;vertical-align:middle;overflow:hidden"><span style="display:block;height:100%;width:${Math.min(100, n / max * 100)}%;background:${kl}"></span></span>`;
   const rij = (d) => { const ok = S.doelen[d.id]; return `<tr style="${ok ? 'opacity:.6' : ''}"><td>${ok ? '🍕' : d.geheim ? '❓' : '⬜'} ${esc(ok || !d.geheim ? d.n : d.geheim)}</td><td style="white-space:nowrap">${VLAGKLEUR[d.k][0]} ${d.f}</td></tr>`; };
-  $('eindkaart').innerHTML = `<h1>🎯 Hoofdstuk ${H}: ${esc(HOOFDSTUK[H].n)}</h1>
-    <p class="buurt">Haal ${HOOFDNODIG} van de 15 doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}. Dan is het hoofdstuk uitgespeeld. ${balk(af, HOOFDNODIG, '#c0392b')} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}${HOOFDSTUK[H].afn ? ` ${HOOFDSTUK[H].af() ? '🍕' : '⬜'}` : ''}</p>
+  $('eindkaart').innerHTML = `<button class="knop" id="doelendicht" style="float:right;margin:0 0 4px 8px">✖ Sluiten</button><h1>🎯 Hoofdstuk ${H}: ${esc(HOOFDSTUK[H].n)}</h1>
+    <p class="buurt">Haal ${HOOFDNODIG} van de ${mijn.length} doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}. Dan is het hoofdstuk uitgespeeld. ${balk(af, HOOFDNODIG, '#c0392b')} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}${HOOFDSTUK[H].afn ? ` ${HOOFDSTUK[H].af() ? '🍕' : '⬜'}` : ''}</p>${HOOFDSTUK[H].stappen ? `<p class="buurt" style="margin-top:-4px">${HOOFDSTUK[H].stappen().map(([t, ok]) => `${ok ? '🍕' : '⬜'} ${esc(t)}`).join('<br>')}</p>` : ''}
     <div style="background:#fff7e0;border-radius:8px;padding:6px 8px;margin:6px 0"><b>${kistNaam()}</b> ${kistOpen() ? `(elk doel geeft vlagfiches; ${VLAGNODIG} van elke kleur = de vlag op de toren)` : '(elk doel geeft fiches. Waarvoor? "Dat vertel ik je later, baas. Spaar ze goed!")'}<br>
       ${Object.entries(VLAGKLEUR).map(([k, v]) => kistOpen() ? `${v[0]} ${balk(S.vlag[k], VLAGNODIG, v[3])} <b>${S.vlag[k]}</b>/${VLAGNODIG} <small>${v[2]}</small>` : `${v[0]} <b>${S.vlag[k]}</b> <small>${v[2]}</small>`).join('<br>')}</div>
     <table>${mijn.map(rij).join('')}</table>
     ${H > 1 ? `<details style="margin-top:8px"><summary>Eerdere hoofdstukken (nog te halen: dat mag altijd)</summary><table>${DOELEN.filter((d) => d.h < H).map(rij).join('')}</table></details>` : ''}
     <p class="buurt">${[1, 2, 3, 4, 5, 6].map((h) => `${h < H ? '🍕' : h == H ? '▶️' : '🔒'} ${h}. ${h <= H ? esc(HOOFDSTUK[h].n) : '…'}`).join('<br>')}</p>
     <button class="groot" id="verder">Verder</button><button class="knop" id="rondeweer" style="margin-top:8px">👨‍🍳 Rondleiding van Mario</button><button class="knop" id="tipsknop" style="margin-top:8px">${S.tipsUit ? '💡 Tips van Mario weer aanzetten' : '🔕 Tips van Mario uitzetten'}</button>`;
-  $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen');
+  $('einde').classList.remove('verborgen'); $('verder').onclick = $('doelendicht').onclick = () => $('einde').classList.add('verborgen');
   $('rondeweer').onclick = () => { $('einde').classList.add('verborgen'); rondleiding(); };
   $('tipsknop').onclick = () => { S.tipsUit = !S.tipsUit; if (!S.tipsUit) S.tipWeg = 0; bewaar(); if (S.tipsUit && $('mariotip')) $('mariotip').remove(); $('tipsknop').textContent = S.tipsUit ? '💡 Tips van Mario weer aanzetten' : '🔕 Tips van Mario uitzetten'; meld(S.tipsUit ? 'Mario houdt zijn tips voor zich.' : 'Mario geeft weer tips (in hoofdstuk 1 en 2).', 3000); };
 }
@@ -5261,6 +5272,15 @@ function tekenPizzaPunten(x, stuk) { // pizza van 8 punten op een canvas van 240
   x.fillStyle = '#a5281b'; for (const [px, py] of PEP) { x.beginPath(); x.arc(px * 90, py * 90, 11, 0, 7); x.fill(); }
   x.strokeStyle = '#b5762a'; x.lineWidth = 2; for (let i = 0; i < 8; i++) { x.beginPath(); x.moveTo(0, 0); x.lineTo(112 * Math.cos(-Math.PI / 2 + i * Math.PI / 4), 112 * Math.sin(-Math.PI / 2 + i * Math.PI / 4)); x.stroke(); } x.restore();
 }
+function pizzaLaden(taken, klaar, tekst = 'Even geduld… de oven wordt warm') { // een pizza die zich opbouwt terwijl de muziek (en het plaatje) laden; daarna pas verder
+  const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;z-index:50;background:rgba(30,12,2,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font:700 18px system-ui;text-align:center;padding:20px';
+  o.innerHTML = `<canvas width="240" height="240" style="width:150px;height:150px"></canvas><div>${tekst}</div>`; document.body.appendChild(o);
+  let af = 0; taken.forEach((t) => Promise.resolve(t).catch(() => {}).then(() => af++));
+  const x = o.querySelector('canvas').getContext('2d'), start = performance.now();
+  (function bouw(nu) { const s = (nu - start) / 1000, alles = af >= taken.length || s > 8, stuk = Math.min(alles ? 8 : 7, Math.floor(s / 0.12) + 1); tekenPizzaPunten(x, stuk);
+    if (stuk < 8) { requestAnimationFrame(bouw); return; } setTimeout(() => { o.remove(); klaar(); }, 150); })(start);
+}
+function liedLaden(id, stijl) { const L = LIED[id]; if (!L || !ac || typeof Muziek == 'undefined') return []; return [Muziek.laadStijl(stijl || zaakStijl(), ac), L.midi ? Muziek.laadLied(L.midi) : null].filter(Boolean); }
 function wisAnimatie(klaar) { // opnieuw beginnen (22 nov): de muziek faadt uit en een pizza wordt stukje voor stukje opgegeten, dan pas wissen en herladen
   if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 2.2); liedTot = 0; }
   const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;z-index:50;background:rgba(30,12,2,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font:700 20px system-ui;opacity:0;transition:opacity .4s';
@@ -5292,7 +5312,8 @@ function meld(t, ms = 2600, doel) { if (!doel && Date.now() < doelMeldTot) retur
 
 // ---------- geluid (zelfgemaakt, Web Audio) ----------
 let ac = null;
-function wekGeluid() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state == 'suspended') ac.resume(); }
+function wekGeluid() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.state != 'running' && ac.state != 'closed') ac.resume(); } // iOS zet het geluid soms op 'interrupted' (melding, scherm uit): dan weer aan
+addEventListener('pointerdown', () => { if (ac && ac.state != 'running') wekGeluid(); }, true); // elke tik maakt het geluid weer wakker
 function ding(f, d, type = 'sine', v = 0.08) { if (!ac) return; const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f; gn.gain.setValueAtTime(v, ac.currentTime); gn.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + d); o.connect(gn).connect(ac.destination); o.start(); o.stop(ac.currentTime + d); }
 // kassa: klak van de la, een belletje en rinkelende muntjes (allemaal zelf gemaakt met Web Audio)
 let ruis = null;
@@ -5452,7 +5473,7 @@ function titelVerder() { // het kaartje Verder spelen / Nieuw spel (ook als je t
 $('terug').addEventListener('click', (e) => { if (TEGEL || !$('welkom').classList.contains('verborgen')) return; e.preventDefault(); bewaar();
   titelVerder.pauze = pauze; pauze = true; if ($('mariotip')) $('mariotip').remove(); if ($('voorstart')) $('voorstart').remove(); $('welkom').classList.remove('wacht');
   $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; titelVerder(); $('welkom').classList.remove('verborgen');
-  wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 0.5); liedTot = 0; const speel = () => speelLied('funiculi', false, 'italiaans'); if (ac.state == 'running') speel(); else ac.resume().then(speel, speel); } });
+  wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 0.6); liedTot = 0; const gen = liedGen; pizzaLaden([...liedLaden('funiculi', 'italiaans'), new Promise((ok) => setTimeout(ok, 700))], () => { if (gen == liedGen && !$('welkom').classList.contains('verborgen')) speelLied('funiculi', false, 'italiaans'); }, 'Even naar buiten…'); } }); // eerst de oude muziek rustig uit, dan pas Funiculì
 
 if (TEGEL) { // plaatje voor de startpagina
   $('welkom').classList.add('verborgen');
@@ -5475,7 +5496,7 @@ function lus(nu) {
   const dt = Math.min(0.1, (nu - vorig) / 1000); vorig = nu;
   if (achterPauze && $('achter').classList.contains('verborgen')) achterPauze = false;
   if (!TEGEL && $('einde').classList.contains('verborgen') && !pauze && !achterPauze) stap(dt * (modus == 'sluiten' ? 3 : snel)); // na sluitingstijd 3x zo snel; ⏩ = 2x
-  teken(nu); balk(nu);
+  if ($('welkom').classList.contains('verborgen') || TEGEL) { teken(nu); balk(nu); } // achter het beginscherm hoeft de zaak niet getekend te worden
   requestAnimationFrame(lus);
 }
 requestAnimationFrame(lus);

@@ -722,3 +722,11 @@ traag netwerk); js/muziek.js: een nieuw lied wacht tot de lopende fade klaar is 
 slaat het vallende logo niet meer over; telefoon liggend: kleiner logo/Start-knop, rondleidingballon binnen beeld, intro zonder Mario-plaatje en minder
 rand (`@media (max-height: 430px)`); geen 🎵-melding over het logo of de intro (`liedMeld`); Gisteren → "Helemaal opnieuw" gebruikt hetzelfde kaartje als
 Nieuw spel; opeet-filmpje donkerder; de opbouwende pizza loopt gelijkmatig door en wacht alleen met de laatste punt ("Bijna… de mozzarella smelt nog").
+Marcel speelde H1 op de iPad (22 nov), gerepareerd: doelenscherm heeft "✖ Sluiten" bovenaan; H1 toont de stappen (manager aangenomen, x van de 3 dagen,
+tweede pand; `HOOFDSTUK[1].stappen`); nieuw H1-doel `vloer` (16 doelen in H1, teksten tellen nu zelf); `ster5`/`sterbuurt` rekenen met afgeronde sterren
+zoals de kaart (4,5 = 5); eerste tik op de pizza terwijl je de naam tikt haalt alleen het toetsenbord weg; aangifte: de uitslag blijft op het politiebureau
+staan (`S.aangifteUit`; de melding werd verdrongen door "Doel gehaald"); Mario's tip kiest eerst een doel met een tip (niet "help de voedselbank");
+doelknop is een pil "H1 · 3/10" (groene rand bij 10/10) en de snelknop "»" staat er los naast (rood als hij aan staat); het venster-scroll-herstel
+(MutationObserver) geldt alleen voor .scherm (anders sprong de vloer na dubbel tikken omhoog); geluid wordt bij elke tik weer gewekt (iOS 'interrupted');
+achter het beginscherm wordt de zaak niet getekend; verhaalplaten en ‹ laden eerst met een opbouwende pizza (`pizzaLaden`, `liedLaden`) zodat de muziek
+meteen bij de plaat begint; na hoofdstuk 1: "🍕 Naar je nieuwe pizzeria" (of nog even blijven).
