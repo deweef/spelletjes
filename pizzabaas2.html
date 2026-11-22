@@ -296,7 +296,8 @@ const KEUKEN = 3;                     // rijen 0 t/m 2 zijn de keuken
 const DEUR = { x: (W - 1) / 2, y: H };         // de deur zit in de onderste muur
 const MAT = { x: DEUR.x - 1, y: H - 1, w: 3 };    // deurmat voor de deur: daar kan je niets neerzetten
 const DAG = 100;                      // seconden per werkdag
-const HUUR = 60, LOON = 15, PRIJS = 9, BAKTIJD = 5, ETEN = 8, GEDULD = 25;
+const HUUR = 60, LOON = 15, PRIJS = 9, BAKTIJD = 5, ETEN = 8, GEDULD = 22; // 22 nov: was 25
+const GEDULDSOORT = { student: 0.75, werker: 0.75, toerist: 1, villa: 1.15, opa: 1.35 }; // 22 nov (Marcel): studenten en werkers hebben haast, opa's en villabewoners nemen de tijd
 
 const SPUL = {
   tafel: { n: 'Tafel', ik: '🍽️', prijs: 40, w: 2, h: 2 }, // tafels en stoelen los, zoals in het origineel
@@ -3506,7 +3507,7 @@ function nieuweGroep() {
       .filter((t) => t.ks.length && t.vrij.length >= n - 1).sort((a, b) => a.vrij.length - b.vrij.length)[0];
     if (!gez) { tel.geenKinderstoel = (tel.geenKinderstoel || 0) + 1; S.rep = Math.max(0, S.rep - 0.3);
       const m = maakMens(null, 0); m.st = 'weg'; m.doel = [DEUR.x + 0.5, H + 0.6]; mensen.push(m); zeg(m, R(['Geen kinderstoel? Dan gaan we naar Luigi.', 'Waar moet ons kindje dan zitten?', 'Geen kinderstoel… Kom schat, we gaan.'])); return; }
-    const soort = R(['werker', 'opa', 'villa', 'toerist']), groep = { mensen: [], t: 0, geduld: GEDULD + (n - 1) * 7, besteld: false, opgehaald: false };
+    const soort = R(['werker', 'opa', 'villa', 'toerist']), groep = { mensen: [], t: 0, geduld: (GEDULD + (n - 1) * 7) * (GEDULDSOORT[soort] || 1), besteld: false, opgehaald: false };
     for (let i = 0; i < n; i++) { const kind = i == n - 1, m = maakMens(gez.s, kind ? gez.ks[0] : gez.vrij[i], soort); if (kind) { m.kind = true; m.fig = 12; }
       m.groep = groep; groep.mensen.push(m); m.x += i * 0.25; m.y += i * 0.3; mensen.push(m); if (i == 0) zeg(m, R(['Een tafel met een kinderstoel, graag!', 'Hij heeft zo\'n honger!', 'Pizzaaa! zegt hij de hele dag.'])); }
     return; }
@@ -3525,7 +3526,7 @@ function nieuweGroep() {
   const soort = kiesSoort(); // een groepje is van dezelfde soort (studenten samen, werkers samen)
   keus.forEach(({ t, n: k }, gi) => {
     // de tafel bestelt samen en wacht samen: geduld telt per tafel (een grotere tafel heeft wat meer geduld, er moet meer gebakken worden)
-    const groep = { mensen: [], t: 0, geduld: GEDULD + (k - 1) * 7, besteld: false, opgehaald: false };
+    const groep = { mensen: [], t: 0, geduld: (GEDULD + (k - 1) * 7) * (GEDULDSOORT[soort] || 1), besteld: false, opgehaald: false };
     for (let i = 0; i < k; i++) { const m = maakMens(t.s, t.vrij[i], soort); m.groep = groep; groep.mensen.push(m); m.x += i * 0.25 + gi * 0.4; m.y += i * 0.3; mensen.push(m);
       if (vandaag.incognito == 'komt' && klok > DAG * 0.15 && kans(0.3)) { m.incognito = true; vandaag.incognito = 'binnen'; } // de recensent: een gewone klant, je weet niet wie
       if (i == 0 && gi == 0) zeg(m, keus.length > 1 ? R(['Dan zitten we wel apart!', 'We splitsen ons wel op.', 'Niet naast elkaar? Ook goed!']) : R(ZEG.binnen)); }
