@@ -681,3 +681,11 @@ de aftiteling klopt ook als Marco ontslagen is (fase 9) of de bruiloft bij Luigi
 Open (keuze Marcel): rode vlagfiches zijn krap (rood per hoofdstuk 3/0/77/31/3/20, wit 8/12/0/36/44/40, groen ruim); Barrie 1 klus per 3 dagen;
 inval makkelijk; plaat 4 "De grote dag!" komt pas bij 10 doelen (soms dagen na de bruiloft); plaat 5 eindigt met VROEMMM zonder race;
 verhaalplaat schuift om de 4,2 s door; H3-start hint (schilderij ophangen / tweede zaak).
+Keuze Marcel (22 nov): elk uitgespeeld hoofdstuk geeft 10 vlagfiches van elke kleur (`S.hoofdBonus`, oude standen krijgen het alsnog);
+een doel uit een later hoofdstuk dat je al eerder deed telt zodra je in dat hoofdstuk bent (`S.vroeg`); Barrie kan elke dag een streek doen (een nieuwe
+vervangt de lopende, `S.klus.van`, `klusVandaag()`; barrieLangs 30%), doel `rood10` = 5 streken; H3: Mario's intro noemt het schilderij en de andere zaak,
+en 2 dagen na de intro belt je eerste zaak één keer als je in een andere zaak staat (`gerritBel`: lekkende vaatwasser + man met gleufhoed); terug in zaak 1
+met een schilderij komt Gerrit meteen (verplicht `gleufhoed`); de kunstrechercheur kan in H3 ook komen als er nog geen achterkamer is (vindt dan niks);
+de gokker opent de gokhal de tweede keer ook bij fout raden (`S.gokMis`); plaat 4 komt direct na de bruiloft (film of "bij Luigi"), plaat 5 direct na
+de eerste racewinst (`plaatNu`, `S.plaatGezien`; hoofdstukKlaar slaat hem dan over), plaat 5 heeft een slotregel; tik je zelf op Verder, dan schuift
+de plaat niet meer vanzelf door.
