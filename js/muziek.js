@@ -74,7 +74,7 @@ const Muziek = (() => {
     return (L._bas = uit.join(' '));
   }
   function speel(ctx, L, t0, stijl = 'italiaans', lead) { // lead = solist (anders: L.lead, of willekeurig uit STIJL.leads)
-    const S = STIJL[stijl] || STIJL.italiaans, B = bus(ctx), tel = L.tempo, mel = [], uit = ctx.createGain();
+    t0 = naFade(ctx, t0); const S = STIJL[stijl] || STIJL.italiaans, B = bus(ctx), tel = L.tempo, mel = [], uit = ctx.createGain();
     uit.gain.value = { hoempa: 1, klassiek: 1.1, rock: 0.42, volks: 0.45 }[S.soort] || 1; uit.connect(B.muz); // alle stijlen ongeveer even hard
     B.muz.gain.cancelScheduledValues(t0); B.muz.gain.setValueAtTime(1, t0);
     const mv = { hoempa: 0.42, rock: 0.3, volks: 0.4, klassiek: 0.38 }[S.soort] || 0.4;
@@ -101,6 +101,7 @@ const Muziek = (() => {
       t += dur; }
     return Math.max(eind, t);
   }
+  const naFade = (ctx, t0) => { const B = bussen.get(ctx); return B && B.stilTot && B.stilTot > t0 ? B.stilTot + 0.05 : t0; }; // een nieuw lied begint pas als de vorige uitgefaad is (anders zet het de fade terug op vol)
   function stop(ctx, fade = 1.2) { const B = bussen.get(ctx); if (!B) return; const nu = ctx.currentTime; B.stilTot = nu + fade; B.muz.gain.cancelScheduledValues(nu); B.muz.gain.setValueAtTime(B.muz.gain.value, nu); B.muz.gain.linearRampToValueAtTime(0.0001, nu + fade);
     const weg = B.bronnen; B.bronnen = []; setTimeout(() => { weg.forEach((b) => { try { b.stop ? b.stop() : b.disconnect(); } catch (e) {} }); }, fade * 1000 + 50); }
   function effect(ctx, naam) {
@@ -134,7 +135,7 @@ const Muziek = (() => {
     return rol;
   }
   function speelMidi(ctx, data, t0, stijl = 'italiaans', lead, snel = 1) { // -> eindtijd; snel = 1.1 is 10% sneller
-    const S = STIJL[stijl] || STIJL.italiaans, R = ROL[stijl] || ROL.italiaans, B = bus(ctx), uit = ctx.createGain();
+    t0 = naFade(ctx, t0); const S = STIJL[stijl] || STIJL.italiaans, R = ROL[stijl] || ROL.italiaans, B = bus(ctx), uit = ctx.createGain();
     uit.gain.value = { hoempa: 1, klassiek: 1.1, rock: 0.45, volks: 0.5 }[S.soort] || 1; uit.connect(B.muz); B.muz.gain.cancelScheduledValues(t0); B.muz.gain.setValueAtTime(1, t0);
     const solo = lead || (S.leads ? S.leads[Math.floor(Math.random() * S.leads.length)] : S.mel); speel.laatste = solo;
     const rol = rollen(data), sterk = { solo: 0.42, tweede: 0.34, akk: 0.13, bas: 0.42, drum: 0.3 };

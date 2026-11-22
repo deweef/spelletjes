@@ -99,19 +99,21 @@
   #voorstart { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; cursor: pointer;
     background: repeating-conic-gradient(#c0392b 0 25%, #f6efe2 0 50%) 0 0 / 64px 64px; transition: opacity .6s; }
   #voorstart::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(40,10,0,.55) 100%); }
-  #voorstart img { position: relative; width: min(80vw, 560px); filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
+  #voorstart img { position: relative; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
   #voorstart button { position: relative; width: 100%; aspect-ratio: 1; border-radius: 50%; border: 8px solid #fff; background: #e8a33a; box-shadow: 0 10px 24px rgba(0,0,0,.45); cursor: pointer;
     font: 900 clamp(28px, 6vw, 44px) system-ui, sans-serif; color: #fff; text-shadow: 0 3px 0 #8a3b0a; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   @keyframes startpuls { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
   #voorstart button span { font-size: clamp(60px, 14vw, 110px); line-height: 1; text-shadow: none; }
   #voorstart.weg { opacity: 0; pointer-events: none; }
-  #startvak { position: relative; width: min(46vw, 230px); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+  #voorstart img { max-height: 24vh; width: auto; max-width: min(80vw, 560px); }
+  #startvak { position: relative; width: min(46vw, 230px, 44vh); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
   #startpizza { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); transition: transform .35s, opacity .35s; }
   #startpizza.klaar { transform: scale(.6) rotate(90deg); opacity: 0; }
   #startknop.op { animation: knopop .45s cubic-bezier(.3,1.6,.5,1) both, startpuls 1.6s ease-in-out .45s infinite; }
   @keyframes knopop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   #startladen { position: relative; color: #fff; font: 700 18px system-ui, sans-serif; text-shadow: 0 2px 4px rgba(0,0,0,.7); transition: opacity .3s; }
   #welkom.wacht #titellogo, #welkom.wacht #titeltik { visibility: hidden; animation-play-state: paused; }
+  @media (max-height: 430px) { .introkok { display: none; } #eindkaart .vraagtekst { font-size: 15px; } .scherm:not(#welkom) { padding-top: 6px; padding-bottom: 6px; } } /* telefoon liggend: de knoppen onderaan blijven in beeld */
   #titelkaart.in { animation: kaartin .35s ease-out both; }
   @keyframes kaartin { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
   #titelkaart { position: relative; margin: 0 14px max(18px, env(safe-area-inset-bottom)); max-width: 400px; background: rgba(255,247,232,.94); padding: 14px 18px; }
@@ -4907,7 +4909,7 @@ function tekenKnoppen() {
   k.querySelector('[data-dag]').onclick = () => { $('eindkaart').innerHTML = (laatsteDag || '<h1>📊 Gisteren</h1><p>Je hebt nog geen dag gedraaid.</p><button class="groot" id="verder">Sluiten</button>')
       + '<p style="text-align:center;margin-top:14px"><button class="knop" id="herbegin">🔄 Helemaal opnieuw beginnen (alles kwijt!)</button></p>'; $('einde').classList.remove('verborgen');
     $('verder').onclick = () => $('einde').classList.add('verborgen');
-    $('herbegin').onclick = () => { if (confirm('Echt helemaal opnieuw beginnen? Je zaak, je geld en al je spullen zijn dan weg (je hoogste pizzatoren blijft).')) wisAnimatie(herstart); }; };
+    $('herbegin').onclick = () => { $('einde').classList.add('verborgen'); $('terug').click(); $('nieuwspel').click(); }; }; // dezelfde vraag als bij Nieuw spel (in het kaartje)
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
 let laatsteDag = '';
@@ -5135,7 +5137,7 @@ new MutationObserver((ms) => { for (const m of ms) if (/\bverborgen\b/.test(m.ol
 function hoofdIntro(nu) { const H = hoofd(); S.introGezien = S.introGezien || {}; if (S.introGezien[H] || TEGEL) return; if (!nu) { setTimeout(() => hoofdIntro(true), 700); return; }
   if (!$('einde').classList.contains('verborgen') || !$('welkom').classList.contains('verborgen') || $('ronde') || pauze) { setTimeout(() => hoofdIntro(true), 1500); return; }
   S.introGezien[H] = S.dag; bewaar();
-  $('eindkaart').innerHTML = `<div style="display:flex;gap:10px;align-items:flex-end"><div style="flex:none;width:85px;height:145px;background:url(pizza/kok.png) 0 0 / auto 145px no-repeat"></div>
+  $('eindkaart').innerHTML = `<div style="display:flex;gap:10px;align-items:flex-end"><div class="introkok" style="flex:none;width:85px;height:145px;background:url(pizza/kok.png) 0 0 / auto 145px no-repeat"></div>
     <div><h1 style="margin:0">${HOOFDSTUK[H].ik} Hoofdstuk ${H}</h1><h2 style="margin:2px 0 6px">${esc(HOOFDSTUK[H].n)}</h2></div></div>
     <p class="vraagtekst" style="text-align:left">"${esc(HOOFDINTRO[H])}"</p>
     <p class="buurt">Haal ${HOOFDNODIG} van de 15 doelen${HOOFDSTUK[H].afn ? ` en: <b>${esc(HOOFDSTUK[H].afn)}</b>` : ''}.</p>
@@ -5261,7 +5263,7 @@ function tekenPizzaPunten(x, stuk) { // pizza van 8 punten op een canvas van 240
 }
 function wisAnimatie(klaar) { // opnieuw beginnen (22 nov): de muziek faadt uit en een pizza wordt stukje voor stukje opgegeten, dan pas wissen en herladen
   if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 2.2); liedTot = 0; }
-  const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;z-index:50;background:rgba(30,12,2,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font:700 20px system-ui;opacity:0;transition:opacity .4s';
+  const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;z-index:50;background:rgba(30,12,2,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font:700 20px system-ui;opacity:0;transition:opacity .4s';
   o.innerHTML = '<canvas width="240" height="240" style="width:180px;height:180px"></canvas><div>Mario ruimt de oude zaak op…</div>'; document.body.appendChild(o); requestAnimationFrame(() => o.style.opacity = 1);
   const c = o.querySelector('canvas'), x = c.getContext('2d'), start = performance.now(), duur = 2600;
   (function teken(nu) { const t = Math.min(1, (nu - start) / duur); tekenPizzaPunten(x, Math.ceil(8 * (1 - t))); // 8 punten, één voor één weg
@@ -5344,15 +5346,18 @@ const nootHz = (n) => { const m = n.match(/^([A-G])(#?)(\d)$/); return 440 * 2 *
 const BUURTSTIJL = { oud: 'italiaans', studenten: 'rock', toeristen: 'volks', villa: 'klassiek' };
 const zaakStijl = () => BUURTSTIJL[S.buurt || 'oud'] || 'italiaans';
 const liedDuur = (L) => L.midi ? L.duur / (L.snel || 1) : L.noten.split(' ').reduce((a, st) => a + +st.split(':')[1], 0) * L.tempo;
+const liedMeld = () => $('welkom').classList.contains('verborgen') && $('einde').classList.contains('verborgen'); // geen 🎵-melding over het logo of over Mario in de intro
+let liedGen = 0; // telt elke Muziek.stop: een liedje dat nog aan het laden was, start daarna niet alsnog (traag netwerk + Overslaan)
+if (typeof Muziek != 'undefined') { const st = Muziek.stop; Muziek.stop = (...a) => { liedGen++; return st(...a); }; }
 function speelLied(id, vals, stijl) { // vals = zo zing jij (een beetje ernaast); stijl = 'italiaans' / 'rock' / 'volks' / 'klassiek' (anders die van de zaak)
   wekGeluid(); if (!ac) return; const L = LIED[id]; let t = Math.max(ac.currentTime + 0.05, liedTot); stijl = stijl || zaakStijl();
   if (L.midi && !L.noten && (vals || typeof Muziek == 'undefined')) return; // een MIDI-liedje zonder noten heeft geen piepjesversie
   if (!vals && typeof Muziek != 'undefined') {
-    if (L.midi && !vals) { liedTot = t + liedDuur(L); meld(`🎵 ${L.n}`, 3000); // echt MIDI-bestand: laden (eenmalig) en met alle sporen spelen
-      Promise.all([Muziek.laadLied(L.midi), Muziek.laadStijl(stijl, ac)]).then(([d, ok]) => { if (!d || !ok) { liedTot = t; return; } const nu = Math.max(t, ac.currentTime + 0.05); liedTot = Muziek.speelMidi(ac, d, nu, stijl, undefined, L.snel || 1); }); return; }
-    if (Muziek.klaar(stijl)) { liedTot = Muziek.speel(ac, L, t, stijl); meld(`🎵 ${L.n}`, 3000); return; }
-    liedTot = t + liedDuur(L) + 0.6; meld(`🎵 ${L.n}`, 3000); // even laden, dan spelen (het lied schuift een tikje op)
-    Muziek.laadStijl(stijl, ac).then((ok) => { const nu = Math.max(t, ac.currentTime + 0.05); if (ok) liedTot = Math.max(liedTot, Muziek.speel(ac, L, nu, stijl)); else { liedTot = nu; speelLied(id, true); } });
+    if (L.midi && !vals) { liedTot = t + liedDuur(L); if (liedMeld()) meld(`🎵 ${L.n}`, 3000); // echt MIDI-bestand: laden (eenmalig) en met alle sporen spelen
+      const gen = liedGen; Promise.all([Muziek.laadLied(L.midi), Muziek.laadStijl(stijl, ac)]).then(([d, ok]) => { if (gen != liedGen) return; if (!d || !ok) { liedTot = t; return; } const nu = Math.max(t, ac.currentTime + 0.05); liedTot = Muziek.speelMidi(ac, d, nu, stijl, undefined, L.snel || 1); }); return; }
+    if (Muziek.klaar(stijl)) { liedTot = Muziek.speel(ac, L, t, stijl); if (liedMeld()) meld(`🎵 ${L.n}`, 3000); return; }
+    liedTot = t + liedDuur(L) + 0.6; if (liedMeld()) meld(`🎵 ${L.n}`, 3000); // even laden, dan spelen (het lied schuift een tikje op)
+    const gen = liedGen; Muziek.laadStijl(stijl, ac).then((ok) => { if (gen != liedGen) return; const nu = Math.max(t, ac.currentTime + 0.05); if (ok) liedTot = Math.max(liedTot, Muziek.speel(ac, L, nu, stijl)); else { liedTot = nu; speelLied(id, true); } });
     return; }
   const stem = (spoor, type, v, oct) => { let tt = t; for (const st of spoor.split(' ')) { const [n, d] = st.split(':'), dur = +d * L.tempo;
       if (n != '-') { let f = nootHz(n) * oct; if (vals) f *= 2 ** ((Math.random() - 0.5) * 0.12 * (Math.random() < 0.4 ? 3 : 1)); const o = ac.createOscillator(), gn = ac.createGain(); o.type = type; o.frequency.value = f;
@@ -5388,7 +5393,7 @@ const uur = (f) => { const m = Math.floor(17 * 60 + f * 5 * 60); return String(M
 // ---------- start ----------
 // titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
 if (Math.min(innerWidth, innerHeight) < 600 && innerHeight > innerWidth) $('titeltablet').style.display = ''; // telefoon, staand
-function startTitel() { if (!$('welkom').classList.contains('wacht')) return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); const speel = () => speelLied('funiculi', false, 'italiaans'); if (ac.state == 'running') speel(); else ac.resume().then(speel, speel); } // pas spelen als het geluid echt aan staat
+function startTitel() { if (!$('welkom').classList.contains('wacht')) return; startTitel.tijd = performance.now(); wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); const speel = () => speelLied('funiculi', false, 'italiaans'); if (ac.state == 'running') speel(); else ac.resume().then(speel, speel); } // pas spelen als het geluid echt aan staat
   $('voorstart').classList.add('weg'); $('welkom').classList.remove('wacht'); setTimeout(() => $('voorstart').remove(), 700); setTimeout(() => $('welkom').click(), 2600); } // na het vallen van het logo komt het kaartje vanzelf // de tik op Start maakt het geluid wakker: de muziek begint meteen bij de voorplaat
 // het voorblad laadt eerst alles (instrumenten, het liedje, de voorplaat); ondertussen bouwt de pizza zich punt voor punt op. Pas als hij af is, komt de Start-knop
 // (anders kun je te snel tikken en moet de iPad laden en spelen tegelijk: dan hapert de muziek). De context blijft stil tot de tik op Start.
@@ -5398,12 +5403,12 @@ function voorbladLaden() {
   let klaar = 0; taken.forEach((t) => Promise.resolve(t).catch(() => {}).then(() => klaar++));
   const x = $('startpizza').getContext('2d'), start = performance.now();
   (function bouw(nu) { if (!$('startpizza')) return; const s = (nu - start) / 1000, alles = klaar >= taken.length || s > 12; // na 12 s toch door (traag netwerk)
-    const stuk = Math.min(8, Math.floor(s / 0.22) + 1, alles ? 8 : 1 + Math.floor(7 * klaar / taken.length)); tekenPizzaPunten(x, stuk);
+    const stuk = Math.min(alles ? 8 : 7, Math.floor(s / 0.25) + 1); tekenPizzaPunten(x, stuk); if (s > 4 && !alles) $('startladen').textContent = 'Bijna… de mozzarella smelt nog'; // gelijkmatig op; de laatste punt wacht tot alles geladen is
     if (stuk < 8 || !alles) { requestAnimationFrame(bouw); return; }
     $('startpizza').classList.add('klaar'); $('startladen').style.opacity = 0; setTimeout(() => { $('startknop').style.display = ''; $('startknop').classList.add('op'); }, 250); })(start);
 }
 if (TEGEL) startTitel(); else { voorbladLaden(); $('voorstart').addEventListener('click', (e) => { e.stopPropagation(); if ($('startknop').style.display != 'none') startTitel(); }); } // tikken vóór de knop er is doet niks
-$('welkom').addEventListener('click', function tik() { if ($('welkom').classList.contains('wacht')) return; if ($('titelkaart').style.display != 'none') return; wekGeluid(); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
+$('welkom').addEventListener('click', function tik(e) { if ($('welkom').classList.contains('wacht')) return; if (e.isTrusted && performance.now() - (startTitel.tijd || -9e9) < 2400) return; /* een tweede tik op Start: het logo eerst laten vallen */ if ($('titelkaart').style.display != 'none') return; wekGeluid(); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
 $('begin').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined' && !(liedTot > ac.currentTime)) { const speel = () => speelLied('funiculi', false, 'italiaans'); if (ac.state == 'running') speel(); else ac.resume().then(speel, speel); } /* de muziek speelt door tijdens de rondleiding (na opnieuw beginnen begint hij hier) */ $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
 $('beginzelf').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over
@@ -5426,6 +5431,7 @@ function rondleiding(n = 0) {
   const boven = r && r.top > innerHeight / 2, bx = r ? Math.max(12, Math.min(innerWidth - 292, r.left + r.width / 2 - 140)) : innerWidth / 2 - 140;
   o.innerHTML = `${gat}<div class="rballon" style="left:${bx}px;${r ? (boven ? `bottom:${innerHeight - r.top + 16}px` : `top:${r.bottom + 16}px`) : 'top:30%'}"><b>👨‍🍳 Mario</b><p>${tekst}</p>
     <div class="rij"><button class="knop rood" id="rverder">${laatste ? 'Aan de slag!' : 'Verder'}</button>${laatste ? '' : '<button class="knop" id="rstop">Overslaan</button>'}<small style="margin-left:auto;opacity:.6">${n + 1}/${RONDE.length}</small></div></div>`;
+  { const bal = o.querySelector('.rballon'), q = bal.getBoundingClientRect(); if (q.bottom > innerHeight - 6) { bal.style.bottom = ''; bal.style.top = Math.max(6, innerHeight - q.height - 6) + 'px'; } if (bal.getBoundingClientRect().top < 6) { bal.style.bottom = ''; bal.style.top = '6px'; } } // telefoon liggend: het ballonnetje blijft binnen beeld
   $('rverder').onclick = (e) => { e.stopPropagation(); rondleiding(n + 1); };
   if ($('rstop')) $('rstop').onclick = (e) => { e.stopPropagation(); rondeKlaar(o); };
   o.onclick = (e) => { if (r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6) rondleiding(n + 1); };

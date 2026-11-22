@@ -717,3 +717,8 @@ Na opnieuw beginnen (reload) is het eerst stil; "Mario laat je alles zien" wacht
 Opnieuw beginnen (22 nov): `wisAnimatie(herstart)`: muziek faadt 2,2 s uit, een pizza van 8 punten wordt punt voor punt opgegeten ("Mario ruimt de oude zaak op…", ±2,6 s), dan wissen en herladen. Ook bij failliet en de herbegin-knop.
 Voorblad laadt eerst (22 nov, idee Marcel): `voorbladLaden()` laadt plaat0, de italiaanse instrumenten, funiculi.json en de effecten; ondertussen bouwt een pizza zich punt voor punt op (`tekenPizzaPunten`, ook gebruikt door `wisAnimatie`), "De oven wordt warm…". Pas als alles klaar is (of na 12 s) komt de Start-knop; tikken daarvoor doet niks. Lokaal: knop na ±2 s.
 Terugknop ‹ (22 nov): tijdens het spelen naar het beginscherm van Pizzabaas (bewaard, spel op pauze, ook midden op een werkdag; Funiculì speelt), kaartje Verder spelen / Nieuw spel / 🏠 Naar alle spelletjes (`titelVerder()`). Het oude "Zaak nu sluiten?" is weg.
+Speeltest 4 (begin van het spel, 22 nov), gerepareerd: een liedje dat nog laadt, start niet meer alsnog na een Muziek.stop (`liedGen`, Overslaan bij
+traag netwerk); js/muziek.js: een nieuw lied wacht tot de lopende fade klaar is (`naFade`; anders zette `speel` de fade terug op vol); tweede tik op Start
+slaat het vallende logo niet meer over; telefoon liggend: kleiner logo/Start-knop, rondleidingballon binnen beeld, intro zonder Mario-plaatje en minder
+rand (`@media (max-height: 430px)`); geen 🎵-melding over het logo of de intro (`liedMeld`); Gisteren → "Helemaal opnieuw" gebruikt hetzelfde kaartje als
+Nieuw spel; opeet-filmpje donkerder; de opbouwende pizza loopt gelijkmatig door en wacht alleen met de laatste punt ("Bijna… de mozzarella smelt nog").
