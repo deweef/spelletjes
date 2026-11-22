@@ -702,3 +702,6 @@ met weinig fouten win je soms, met veel fouten niet. Wijnkelder: bij het namaken
 niet kende, leer je hem daar kennen). Plaatje: `pizza/kroeg.jpg` (ChatGPT, 1024 breed). Crypto (keuze Marcel): bewaarkosten 1% per nacht (was 2%), hack blijft 2% per munt per nacht.
 Titelscherm (22 nov): "🎵 Tik om te beginnen" (een browser, zeker op de iPad, speelt pas geluid na een tik: daarom start de muziek bij die eerste tik);
 🔄 Nieuw spel vraagt het in het kaartje zelf (hoofdstuk, datum, kassa; "Nee, verder met mijn spel" / "Ja, helemaal opnieuw") in plaats van een pop-up.
+Voor-voorblad (22 nov, idee Marcel): eerst `#voorstart` (rood-wit tafelkleed, logo, grote ronde 🍕 Start-knop; `#welkom.wacht` houdt het vallende logo
+tegen). Start = de tik die het geluid wakker maakt: de voorplaat komt met Funiculì meteen erbij, na 2,6 s komt het kaartje vanzelf (`startTitel`).
+In tests: eerst `#startknop` klikken (met force: hij pulseert), daarna het kaartje. Met `#tegel` wordt het voorblad overgeslagen.

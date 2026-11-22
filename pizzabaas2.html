@@ -95,6 +95,17 @@
   @keyframes logovallen { from { transform: translate(-50%, -60vh) rotate(-8deg); } to { transform: translate(-50%, 0) rotate(0); } }
   #titeltik { position: relative; margin-bottom: max(40px, env(safe-area-inset-bottom)); color: #fff; font: 800 32px system-ui, sans-serif; text-shadow: 0 3px 0 #5a1e08, 0 0 14px rgba(0,0,0,.6); animation: tikpuls 1.4s ease-in-out infinite; pointer-events: none; }
   @keyframes tikpuls { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.94); } }
+  /* voor-voorblad (22 nov): een browser speelt pas geluid na een tik, dus eerst een startknop; daarna de voorplaat mét muziek */
+  #voorstart { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4vh; cursor: pointer;
+    background: repeating-conic-gradient(#c0392b 0 25%, #f6efe2 0 50%) 0 0 / 64px 64px; transition: opacity .6s; }
+  #voorstart::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(40,10,0,.55) 100%); }
+  #voorstart img { position: relative; width: min(80vw, 560px); filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
+  #voorstart button { position: relative; width: min(46vw, 230px); aspect-ratio: 1; border-radius: 50%; border: 8px solid #fff; background: #e8a33a; box-shadow: 0 10px 24px rgba(0,0,0,.45); cursor: pointer;
+    font: 900 clamp(28px, 6vw, 44px) system-ui, sans-serif; color: #fff; text-shadow: 0 3px 0 #8a3b0a; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: startpuls 1.6s ease-in-out infinite; }
+  @keyframes startpuls { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+  #voorstart button span { font-size: clamp(60px, 14vw, 110px); line-height: 1; text-shadow: none; }
+  #voorstart.weg { opacity: 0; pointer-events: none; }
+  #welkom.wacht #titellogo, #welkom.wacht #titeltik { visibility: hidden; animation-play-state: paused; }
   #titelkaart.in { animation: kaartin .35s ease-out both; }
   @keyframes kaartin { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
   #titelkaart { position: relative; margin: 0 14px max(18px, env(safe-area-inset-bottom)); max-width: 400px; background: rgba(255,247,232,.94); padding: 14px 18px; }
@@ -183,10 +194,11 @@
 <div id="paneel"><div id="lcd"></div><div id="raster"></div></div>
 <div id="menu"></div>
 
-<div class="scherm" id="welkom"><!-- titelscherm: plaat 0 (pizza/plaat0.jpg) met het logo in de lucht -->
+<div class="scherm wacht" id="welkom"><!-- titelscherm: plaat 0 (pizza/plaat0.jpg) met het logo in de lucht -->
+  <div id="voorstart"><img src="pizza/logo.png" alt="Pizzabaas"><button id="startknop"><span>🍕</span>Start</button></div>
   <div id="titelplaat"></div>
   <img src="pizza/logo.png" id="titellogo" alt="Pizzabaas">
-  <div id="titeltik">🎵 Tik om te beginnen</div>
+  <div id="titeltik">Tik om te beginnen</div>
   <div class="kaart" id="titelkaart" style="display:none">
     <p style="background:#ffe08a;border-radius:8px;padding:5px 8px;font-size:13px;margin:0 0 8px">🧪 <b>Testversie</b> met hoofdstukken (in de maak). Aparte opslag: je gewone Pizzabaas blijft zoals hij is.</p>
     <div id="titelnieuw">
@@ -5356,7 +5368,10 @@ $('terug').onclick = (e) => {
 // ---------- start ----------
 // titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
 if (Math.min(innerWidth, innerHeight) < 600 && innerHeight > innerWidth) $('titeltablet').style.display = ''; // telefoon, staand
-$('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); speelLied('funiculi', false, 'italiaans'); } $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
+function startTitel() { if (!$('welkom').classList.contains('wacht')) return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); speelLied('funiculi', false, 'italiaans'); }
+  $('voorstart').classList.add('weg'); $('welkom').classList.remove('wacht'); setTimeout(() => $('voorstart').remove(), 700); setTimeout(() => $('welkom').click(), 2600); } // na het vallen van het logo komt het kaartje vanzelf // de tik op Start maakt het geluid wakker: de muziek begint meteen bij de voorplaat
+if (TEGEL) startTitel(); else $('voorstart').addEventListener('click', (e) => { e.stopPropagation(); startTitel(); });
+$('welkom').addEventListener('click', function tik() { if ($('welkom').classList.contains('wacht')) return; if ($('titelkaart').style.display != 'none') return; wekGeluid(); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
 $('begin').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
 $('beginzelf').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };
 // rondleiding: Mario wijst de knoppen aan (een gat in een donker scherm); tik op het lichte vak of op Verder, of sla over
