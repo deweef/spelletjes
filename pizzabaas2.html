@@ -82,6 +82,12 @@
   .antwoord:hover { background: #ead2a8; }
   #sleutel { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 60px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #sleutel.verborgen, #stadknop.verborgen { display: none; }
+  #bovenbalk { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 60px; display: flex; gap: 10px; align-items: center; }
+  #bovenbalk > button { position: static !important; flex: none; }
+  #stadknop { width: auto !important; display: flex; align-items: center; gap: 6px; padding: 0 12px 0 4px; border-radius: 20px !important; color: #fff; }
+  #stadknop .stadmini { width: 34px; height: 30px; border-radius: 7px; background: url(pizza/stad-gemini.jpg) 45% 40% / 120px auto; box-shadow: 0 0 0 2px #fff8; }
+  #stadknop b { font: 700 14px system-ui; }
+  @media (max-width: 430px) { #stadknop b { display: none; } #stadknop { padding: 0 4px !important; } #bovenbalk { gap: 6px; } } /* telefoon staand: alleen het kaartje */
   #stadknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 108px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); font-size: 20px; cursor: pointer; }
   #stadknop:disabled { opacity: .35; }
   #snelknop { position: fixed; z-index: 5; top: calc(8px + env(safe-area-inset-top)); left: 318px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(0,0,0,.5); color: #fff; font: 800 20px/40px system-ui; cursor: pointer; padding: 0; }
@@ -231,11 +237,13 @@
 <div class="scherm verborgen" id="vraag"><div class="kaart" id="vraagkaart"></div></div>
 <div class="scherm verborgen" id="kalender"><div class="kaart" id="kalenderkaart" style="max-width:360px"></div></div>
 <div class="scherm verborgen" id="achter"><div class="kaart breed" id="achterkaart"></div></div>
+<div id="bovenbalk"><!-- 22 nov: de knoppen bovenin in één rij (flex), zodat een bredere knop de rest opschuift -->
 <button id="sleutel" class="verborgen" title="De achterkamer">🗝️</button>
-<button id="stadknop" title="Naar buiten, de stad in">🗺️</button>
+<button id="stadknop" title="Naar buiten, de stad in"><span class="stadmini"></span><b>Stad</b></button>
 <button id="zoomknop" title="Inzoomen (of knijp met twee vingers)">🔍</button>
 <button id="doelknop" title="Doelen"><img src="pizza/doel.png" alt="🎯"></button>
 <button id="snelknop" title="Tijd sneller (2x)">»</button>
+</div>
  <div class="scherm verborgen" id="acrob" style="z-index:10"><div class="kaart" style="max-width:420px;text-align:center;padding:14px">
   <h1 style="margin:0 0 4px">🤹 Pizza-acrobatiek</h1><div id="acrotekst" class="buurt" style="margin:0 0 6px">Het deeg vliegt omhoog. Tik als het weer bij Mario's handen is! Hoe langer je volhoudt, hoe hoger en hoe meer de toeristen geven.</div>
   <canvas id="acrodoek" width="360" height="480" style="width:100%;max-width:340px;aspect-ratio:3/4;display:block;margin:0 auto;border-radius:12px;touch-action:none;cursor:pointer"></canvas>
@@ -356,7 +364,7 @@ const ING = {
 };
 Object.keys(ING).forEach((k, i) => ING[k].i = i);
 const BODEM = { f: [0.5, 0.5, 0.5, 0], k: 0.5 }; // deeg met tomatensaus
-const SMAAK = ['VET', 'ZOET', 'ZOUT', 'PITTIG'], SMAAKKLEUR = ['#f4b942', '#ff6fa5', '#7fd3ff', '#ff4d2e'];
+const SMAAK = ['VET', 'ZOET', 'ZOUT', 'PITTIG'], SMAAKKLEUR = ['#f4b942', '#ff6fa5', '#7fd3ff', '#ff4d2e'], SMAAKTEKST = ['#b07800', '#d63a77', '#1f7fb8', '#d42a14']; // tekst op licht papier: iets donkerder
 const MAXSTUK = 14, MAXPER = 4, MAXMENU = 6;
 // soorten klanten: wil = de smaak die ze het lekkerst vinden, budget = wat ze ervoor over hebben, kans = hoe vaak ze in deze buurt komen
 const SOORT = {
@@ -3164,6 +3172,8 @@ function lijstjeWens() { if (!S.lijstje || S.lijstje.tot < S.dag) S.lijstje = { 
 // Luigi krijgt 5-8 per jurylid. Winst = € 120, populariteit +3 en Luigi boos; gelijk = inleg terug; verlies = populariteit −1.
 const week = () => Math.floor((S.dag - 1) / 7), WEDINLEG = 20;
 const JURY = [['werker', 'Bert de marktkoopman'], ['opa', 'Oma Ria'], ['student', 'Kleine Daan']];
+const veelTekst = (n) => n >= 5 ? 'veel' : n >= 3 ? 'wat' : n >= 1 ? 'een beetje' : 'geen';
+const wensLijst = () => `<details style="margin-top:6px;font-size:13px"><summary>👅 Wie houdt waarvan?</summary>${Object.entries(SOORT).map(([k, d]) => `${d.ik} <b>${d.n}</b>: ${d.wil.map((n, j) => `${veelTekst(n)} <b style="color:${SMAAKTEKST[j]}">${SMAAK[j].toLowerCase()}</b>`).join(', ')}`).join('<br>')}<br><small>De smaakmeter laat zien wat jouw pizza heeft; hoe dichter bij wat ze willen, hoe blijer het gezichtje.</small></details>`; // 22 nov: hulp bij het pizza verzinnen (pizzawedstrijd)
 const wensTekst = (soort) => { const w = SOORT[soort].wil, nm = ['vet', 'zoet', 'zout', 'pittig']; const o = w.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
   return `houdt van ${nm[o[0][1]]} en ${nm[o[1][1]]}${w[3] < 1 ? ', niet pittig' : ''}`; };
 function toonWedstrijd() {
@@ -3171,7 +3181,7 @@ function toonWedstrijd() {
   k2.innerHTML = `<div class="kaart" style="margin:auto"><h1>🏆 Pizzawedstrijd</h1>
     <img src="pizza/jury.jpg" alt="De jury" style="width:100%;max-width:340px;display:block;margin:4px auto;border-radius:10px">
     <p>Luigi staat al klaar met zijn pizza en een grote grijns. "Kom maar op, collega!" Inleg: € ${WEDINLEG}. De jury:</p>
-    <p class="buurt">${JURY.map(([s, n]) => `${SOORT[s].ik} <b>${n}</b> ${wensTekst(s)}`).join('<br>')}</p>
+    <p class="buurt">${JURY.map(([s, n]) => `${SOORT[s].ik} <b>${n}</b>: ${SOORT[s].wil.map((v, j) => `${veelTekst(v)} <b style="color:${SMAAKTEKST[j]}">${SMAAK[j].toLowerCase()}</b>`).join(', ')}`).join('<br>')}<br><small>Zoek in 📖 Pizza's een pizza waar alle drie blij van worden (kijk naar de gezichtjes), of verzin er een.</small></p>
     <p><b>Welke pizza bak jij?</b></p>
     <div class="rij">${menu.map((p, i) => `<button class="knop rood" data-wed="${i}" ${S.geld < WEDINLEG ? 'disabled' : ''}>🍕 ${esc(p.naam)}</button>`).join('')}</div>
     <div class="rij"><button class="knop" id="wedterug">Toch maar niet</button></div></div>`;
@@ -4794,7 +4804,7 @@ function toonMaak(nr) {
     </div>
     <div class="rij" style="margin-top:12px"><button class="knop rood" id="pbewaar">✅ Op de kaart</button><button class="knop" id="pterug">Terug</button>
       ${nr >= 0 && S.menu.length > 1 ? '<button class="knop" id="pweg">🗑️ Van de kaart</button>' : ''}</div>`;
-  $('bak').innerHTML = Object.entries(ING).map(([k, d]) => `<button data-i="${k}"><span class="ing" style="background-position:-${d.i * 40}px 0"></span>${esc(d.n)}<small>${geld(d.k)}</small></button>`).join('');
+  $('bak').innerHTML = Object.entries(ING).map(([k, d]) => `<button data-i="${k}"><span class="ing" style="background-position:-${d.i * 40}px 0"></span>${esc(d.n)}<small>${geld(d.k)}</small><small style="font-size:9px;line-height:1.1">${d.f.map((v, j) => v >= 0.3 ? `<b style="color:${SMAAKTEKST[j]}">${SMAAK[j].toLowerCase()}</b>` : '').filter(Boolean).join(' ') || '&nbsp;'}</small></button>`).join(''); // 22 nov: per ingrediënt de smaak (zelfde kleuren als de smaakmeter)
   $('bak').querySelectorAll('button').forEach((b) => b.onclick = () => legOp(b.dataset.i));
   $('bodem').onclick = (e) => { // tik op de pizza: het stukje dat daar ligt weghalen (of anders het laatste)
     if (document.activeElement && document.activeElement.id == 'pnaam') { document.activeElement.blur(); return; } // je was de naam aan het tikken: eerst alleen het toetsenbord weg
@@ -4836,7 +4846,7 @@ function tekenMaak() {
     `<div style="margin-top:6px">INKOOP  ${geld(k)}<br>PRIJS   ${geld(bewerk.prijs)}<br><span class="geel">WINST   ${geld(winst)}</span></div>`;
   $('pprijs').textContent = geld(bewerk.prijs);
   if ($('budgetten')) $('budgetten').innerHTML = '💶 Wat ze willen betalen: ' + Object.entries(SOORT).map(([k, d]) => `<span style="white-space:nowrap;${bewerk.prijs > d.budget ? 'color:#c0392b;font-weight:bold' : bewerk.prijs <= d.budget - 3 ? 'color:#2e9d52;font-weight:bold' : ''}">${d.ik} € ${d.budget}</span>`).join(' · ') + '<br>Rood = te duur: ze vinden hem minder lekker. Groen = lekker goedkoop: net iets blijer. Dan betalen ze wel minder…';
-  $('oordelen').innerHTML = oordeelHTML(bewerk);
+  $('oordelen').innerHTML = oordeelHTML(bewerk) + wensLijst();
   $('bak').querySelectorAll('button').forEach((b) => b.disabled = bewerk.stukjes.length >= MAXSTUK || bewerk.stukjes.filter((s) => s.i == b.dataset.i).length >= MAXPER);
 }
 function bewaarPizza() {

@@ -735,3 +735,7 @@ telde als knijpen): bij een nieuwe aanraking (`isPrimary`) worden oude vingers v
 manipulation ook in vensters; eetwedstrijd haalbaar op de iPad (4 happen per punt, Vincent ~1,3 punt/s; bij ±5 tikken per seconde win je), dorst staat
 in de tekst; bonnetje: "Bedorven en weggegooid (al betaald bij de inkoop) € x" zonder haakjes; borden op de lange houten tafels blijven op het blad
 (de poten); torenstapelen: een gele kraanarm met loopkat waar het touw aan hangt (schuift mee omhoog).
+Bovenbalk (22 nov): de knoppen staan in `#bovenbalk` (flex); 🗺️ is nu een knop met een mini-stadskaart (stukje van stad-gemini.jpg) en "Stad"
+(op een staande telefoon alleen het kaartje). Smaakhulp: in Pizza maken staat per ingrediënt de smaak (vet/zoet/zout/pittig in de kleuren van de
+smaakmeter, `SMAAKTEKST` voor tekst) en een uitklapper "👅 Wie houdt waarvan?" (`wensLijst`, `veelTekst`: veel/wat/een beetje/geen); de pizzawedstrijd
+toont de jury zo ook.
