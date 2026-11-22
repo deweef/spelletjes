@@ -3172,31 +3172,46 @@ function lijstjeWens() { if (!S.lijstje || S.lijstje.tot < S.dag) S.lijstje = { 
 // Drie juryleden (werker = marktkoopman, opa = oma met hoedje, student = het kind) geven elk een cijfer: 3 + oordeel × 1,1 (± toeval).
 // Luigi krijgt 5-8 per jurylid. Winst = € 120, populariteit +3 en Luigi boos; gelijk = inleg terug; verlies = populariteit −1.
 const week = () => Math.floor((S.dag - 1) / 7), WEDINLEG = 20;
-const JURY = [['werker', 'Bert de marktkoopman'], ['opa', 'Oma Ria'], ['student', 'Kleine Daan']];
+const VASTEJURY = [['werker', 'Bert de marktkoopman', 'Bert'], ['opa', 'Oma Ria', 'Ria'], ['student', 'Kleine Daan', 'Daan']];
+// 22 nov (Marcel): een wisselende jury. Ongeveer één op de drie dagen de vaste jury (met de foto), anders drie gastjuryleden van verschillende soorten.
+// Villabewoners en toeristen vinden veel lekker: dan proeft Luigi ook beter (+1 per zo'n jurylid), zodat het niet vanzelf gaat.
+const GASTJURY = {
+  student: [['Sanne van de studentenvereniging', 'Sanne'], ['Joep met de koptelefoon', 'Joep'], ['Fleur, die Italiaans studeert', 'Fleur']],
+  werker: [['Henk de stratenmaker', 'Henk'], ['Gerda van de bouwplaats', 'Gerda'], ['Kees van de vuilniswagen', 'Kees']],
+  opa: [['Opa Gerrit van de duivenclub', 'Gerrit'], ['Tante Toos', 'Toos'], ['Oma Wil van de breiclub', 'Wil']],
+  villa: [['Mevrouw Van Dijk-Hoogendoorn', 'Mevr. Van Dijk'], ['Meneer De Wit van de golfclub', 'De Wit'], ['Barones Van Zuylen', 'Barones']],
+  toerist: [['Hans uit Hamburg', 'Hans'], ['Yuki uit Tokio', 'Yuki'], ['Brenda uit Texas', 'Brenda'], ['Pierre uit Parijs', 'Pierre']] };
+function juryVandaag() { // vast per dag (zelfde jury als je terugkomt)
+  let z = (Math.imul(S.dag + 17, 2654435761) >>> 0) % 2147483646 + 1; const rnd = () => (z = (z * 16807) % 2147483647) / 2147483647; rnd(); rnd(); // goed husselen: anders kwamen de eerste dagen steeds hetzelfde uit
+  if (rnd() < 0.34) return { vast: true, leden: VASTEJURY };
+  const soorten = Object.keys(GASTJURY).sort(() => rnd() - 0.5).slice(0, 3);
+  return { vast: false, leden: soorten.map((s) => { const l = GASTJURY[s], [n, kort] = l[Math.floor(rnd() * l.length)]; return [s, n, kort]; }) };
+}
 const veelTekst = (n) => n >= 5 ? 'veel' : n >= 3 ? 'wat' : n >= 1 ? 'een beetje' : 'geen';
 const wensLijst = () => `<details style="margin-top:6px;font-size:13px"><summary>👅 Wie houdt waarvan?</summary>${Object.entries(SOORT).map(([k, d]) => `${d.ik} <b>${d.n}</b>: ${d.wil.map((n, j) => `${veelTekst(n)} <b style="color:${SMAAKTEKST[j]}">${SMAAK[j].toLowerCase()}</b>`).join(', ')}`).join('<br>')}<br><small>De smaakmeter laat zien wat jouw pizza heeft; hoe dichter bij wat ze willen, hoe blijer het gezichtje.</small></details>`; // 22 nov: hulp bij het pizza verzinnen (pizzawedstrijd)
 const wensTekst = (soort) => { const w = SOORT[soort].wil, nm = ['vet', 'zoet', 'zout', 'pittig']; const o = w.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
   return `houdt van ${nm[o[0][1]]} en ${nm[o[1][1]]}${w[3] < 1 ? ', niet pittig' : ''}`; };
 function toonWedstrijd() {
-  const k2 = $('stadkaart'), menu = S.menu;
+  const k2 = $('stadkaart'), menu = S.menu, J = juryVandaag(), JURY = J.leden;
   k2.innerHTML = `<div class="kaart" style="margin:auto"><h1>🏆 Pizzawedstrijd</h1>
-    <img src="pizza/jury.jpg" alt="De jury" style="width:100%;max-width:340px;display:block;margin:4px auto;border-radius:10px">
-    <p>Luigi staat al klaar met zijn pizza en een grote grijns. "Kom maar op, collega!" Inleg: € ${WEDINLEG}. De jury:</p>
+    ${J.vast ? '<img src="pizza/jury.jpg" alt="De jury" style="width:100%;max-width:340px;display:block;margin:4px auto;border-radius:10px">'
+      : `<div class="rij" style="justify-content:center;gap:8px;margin:6px 0">${JURY.map(([s, n, kort]) => `<div style="background:#fff3d6;border:2px solid #e0c48a;border-radius:12px;padding:6px 10px;text-align:center;min-width:80px"><div style="font-size:40px;line-height:1.1">${SOORT[s].ik}</div><b style="font-size:13px">${esc(kort)}</b><br><small>${esc(SOORT[s].n.toLowerCase())}</small></div>`).join('')}</div>`}
+    <p>Luigi staat al klaar met zijn pizza en een grote grijns. "Kom maar op, collega!" Inleg: € ${WEDINLEG}. ${J.vast ? 'De vaste jury:' : '<b>Vandaag een gastjury!</b>'}</p>
     <p class="buurt">${JURY.map(([s, n]) => `${SOORT[s].ik} <b>${n}</b>: ${SOORT[s].wil.map((v, j) => `${veelTekst(v)} <b style="color:${SMAAKTEKST[j]}">${SMAAK[j].toLowerCase()}</b>`).join(', ')}`).join('<br>')}<br><small>Zoek in 📖 Pizza's een pizza waar alle drie blij van worden (kijk naar de gezichtjes), of verzin er een.</small></p>
     <p><b>Welke pizza bak jij?</b></p>
     <div class="rij">${menu.map((p, i) => `<button class="knop rood" data-wed="${i}" ${S.geld < WEDINLEG ? 'disabled' : ''}>🍕 ${esc(p.naam)}</button>`).join('')}</div>
     <div class="rij"><button class="knop" id="wedterug">Toch maar niet</button></div></div>`;
   $('wedterug').onclick = () => toonStad('markt');
-  k2.querySelectorAll('[data-wed]').forEach((b) => b.onclick = () => wedstrijdUitslag(menu[+b.dataset.wed]));
+  k2.querySelectorAll('[data-wed]').forEach((b) => b.onclick = () => wedstrijdUitslag(menu[+b.dataset.wed], J));
 }
-function wedstrijdUitslag(p) {
+function wedstrijdUitslag(p, J = juryVandaag()) { const JURY = J.leden;
   S.wedDag = S.dag; ge(-WEDINLEG); kassa(); bewaar(); tekenKnoppen(); // 22 nov: elke dag een poging (was eens per week)
   const jij = JURY.map(([s]) => Math.max(1, Math.min(10, Math.round(3.5 + oordeel(p, s) * 1.1 + (Math.random() - 0.5))))); // 22 nov: iets milder (was 3 + …)
-  const lu = JURY.map(() => 5 + Math.floor(Math.random() * 4) + ((S.ruzie || 0) > 50 ? 1 : 0)) /* Luigi 5-8 per jurylid; 22 nov: jouw cijfers +0,5. Kans om te winnen: Margherita ~35%, een pizza met drie keer 😐 ~58%, drie keer 🙂 ~97% */, sj = jij.reduce((a, n) => a + n, 0), sl = lu.reduce((a, n) => a + n, 0);
+  const lu = JURY.map(([s]) => 5 + Math.floor(Math.random() * 4) + ((S.ruzie || 0) > 50 ? 1 : 0) + (s == 'villa' || s == 'toerist' ? 1 : 0)) /* Luigi 5-8 per jurylid; 22 nov: jouw cijfers +0,5. Kans om te winnen: Margherita ~35%, een pizza met drie keer 😐 ~58%, drie keer 🙂 ~97% */, sj = jij.reduce((a, n) => a + n, 0), sl = lu.reduce((a, n) => a + n, 0);
   const k2 = $('stadkaart');
   k2.innerHTML = `<div class="kaart" style="margin:auto"><h1>🏆 De jury proeft…</h1>
-    <img src="pizza/jury.jpg" alt="De jury" style="width:100%;max-width:300px;display:block;margin:4px auto;border-radius:10px">
-    <table style="width:100%;text-align:center"><tr><td></td>${JURY.map(([s, n]) => `<td>${SOORT[s].ik}<br><small>${n.split(' ')[0] == 'Bert' ? 'Bert' : n.split(' ').pop()}</small></td>`).join('')}<td><b>Totaal</b></td></tr>
+    ${J.vast ? '<img src="pizza/jury.jpg" alt="De jury" style="width:100%;max-width:300px;display:block;margin:4px auto;border-radius:10px">' : ''}
+    <table style="width:100%;text-align:center"><tr><td></td>${JURY.map(([s, n, kort]) => `<td>${SOORT[s].ik}<br><small>${esc(kort)}</small></td>`).join('')}<td><b>Totaal</b></td></tr>
       <tr><td style="text-align:left">🍕 Jij<br><small>${esc(p.naam)}</small></td>${jij.map((n, i) => `<td class="wedcijfer" data-i="${i}" style="font-size:22px;font-weight:700;opacity:0">${n}</td>`).join('')}<td id="wedjij" style="font-size:22px;font-weight:700;opacity:0">${sj}</td></tr>
       <tr><td style="text-align:left">🕶️ Luigi</td>${lu.map((n, i) => `<td class="wedcijfer" data-i="${i + 3}" style="font-size:22px;font-weight:700;opacity:0">${n}</td>`).join('')}<td id="wedlu" style="font-size:22px;font-weight:700;opacity:0">${sl}</td></tr></table>
     <p id="weduit" style="opacity:0"></p><div class="rij"><button class="knop rood" id="wedklaar" style="visibility:hidden">Terug naar de markt</button></div></div>`;
@@ -3205,9 +3220,9 @@ function wedstrijdUitslag(p) {
   setTimeout(() => {
     $('wedjij').style.opacity = 1; $('wedlu').style.opacity = 1; const u = $('weduit'); u.style.opacity = 1; $('wedklaar').style.visibility = 'visible';
     if (sj > sl) { ge(120, 'spel'); rep(3); S.ruzie = Math.min(100, (S.ruzie || 0) + 10); S.wedWinst = (S.wedWinst || 0) + 1; kassa(); ding(880, 0.1); setTimeout(() => ding(1320, 0.12), 150);
-      u.innerHTML = `🎉 <b>Gewonnen!</b> € 120 en een gouden lintje. De markt juicht. Luigi gooit zijn pizza in de fontein en stampt weg. "Volgende week, collega. VOLGENDE WEEK!"`; }
+      u.innerHTML = `🎉 <b>Gewonnen!</b> € 120 en een gouden lintje. De markt juicht. Luigi gooit zijn pizza in de fontein en stampt weg. "Morgen, collega. MORGEN!"`; }
     else if (sj == sl) { ge(WEDINLEG); kassa(); u.innerHTML = `🤝 <b>Gelijkspel!</b> Je krijgt je inleg terug. Luigi en jij kijken elkaar een minuut lang zwijgend aan.`; }
-    else { rep(-1); u.innerHTML = `😩 <b>Verloren.</b> Luigi danst over de markt met zijn pizzaschep. Tip: kijk naar wat de jury lekker vindt (de gezichtjes in 📖 Pizza's).`; }
+    else { rep(-1); u.innerHTML = `😩 <b>Verloren.</b> Luigi danst over de markt met zijn pizzaschep. Tip: kijk naar wat de jury lekker vindt (👅 Wie houdt waarvan? en de gezichtjes in 📖 Pizza's). Morgen zit er misschien een andere jury.`; }
     bewaar(); tekenKnoppen(); $('wedklaar').onclick = () => toonStad('markt');
   }, (t += 900));
 }

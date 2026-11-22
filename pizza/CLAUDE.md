@@ -747,3 +747,4 @@ ze al gebouwd zijn). Jingle Bells: couplet + refrein, twee keer (61 s). Kunstuit
 Simulatie 30 dagen (2 → 6 tafels, 1 oven): 375 blije klanten, 2 boos weggelopen, 350 weg omdat er geen plek was. Boos weglopen gebeurt dus bijna nooit
 (GEDULD = 25 s per tafel + 7 s per extra persoon): keuze aan Marcel of dat strenger moet.
 Geduld (22 nov, Marcel akkoord): GEDULD 22 (was 25) × per soort (`GEDULDSOORT`: student/werker 0,75, toerist 1, villa 1,15, opa 1,35). Simulatie 30 dagen: 377 blij, 15 boos (was 2), 344 geen plek; met 6 tafels en 1 oven ±4% boos.
+Wisselende jury (22 nov, Marcel): `juryVandaag()` vast per dag; ±1 op de 3 dagen de vaste jury (VASTEJURY, met jury.jpg), anders 3 gastjuryleden van verschillende soorten uit `GASTJURY` (namen, kaartjes met de emoji van de soort). Villabewoner/toerist in de jury: Luigi +1 per zo iemand (die vinden alles lekker).
