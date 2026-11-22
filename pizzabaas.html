@@ -727,7 +727,7 @@ function openDeuren() {
 }
 function dagTab(knop, k) { const kaart = knop.closest('.kaart'); kaart.querySelectorAll('.dagtab').forEach((d) => d.style.display = d.dataset.tab == k ? '' : 'none'); kaart.querySelectorAll('.dagtabs button').forEach((b) => b.classList.toggle('rood', b == knop)); }
 function eindeDag() {
-  modus = 'inrichten'; for (const p of S.menu) p.gisteren = tel.verkocht[p.naam] || 0; // verkopen per pizza (menukaart) eindeVoorraad();
+  modus = 'inrichten'; for (const p of S.menu) p.gisteren = tel.verkocht[p.naam] || 0; /* verkopen per pizza (menukaart) */ eindeVoorraad();
   const opslagKost = (S.opslag || []).length * OPSLAGPRIJS, huur = (S.huur || HUUR) + opslagKost, wd = weekdag(), anderen = S.zaken.map((z, i) => i == S.zaak ? null : { i, z, ...simuleerZaak(z, wd) }).filter(Boolean);
   const ijs = ijsDag(), andereWinst = anderen.reduce((a, o) => a + o.winst, 0) + (ijs ? ijs.winst : 0);
   const manLoon = MANLOON() + (S.bezorg ? BEZORG.loon + (S.bezorg.abo ? BEZORG.abo : 0) : 0), lonen = (S.obers - 1) * LOON + manLoon, totaal = tel.omzet + tel.fooi + extraTotaal() - tel.kosten - huur - lonen + andereWinst;
@@ -757,7 +757,8 @@ function eindeDag() {
 
   const zaakWinst = totaal - andereWinst, tipTekst = `${S.trendMorgen ? `<p class="buurt" style="background:#fff3c4;border-radius:8px;padding:6px 8px">📈 <b>Trend van morgen: ${TREND[S.trendMorgen].ik} ${TREND[S.trendMorgen].n}.</b> ${esc(TREND[S.trendMorgen].tekst)} ${S.menu.some((p) => TREND[S.trendMorgen].ok(p)) ? `Op je kaart: ${S.menu.filter((p) => TREND[S.trendMorgen].ok(p)).map((p) => esc(p.naam)).join(', ')}.` : 'Je hebt er nog geen pizza voor: verzin er een (📖 Pizza\'s)!'}</p>` : ''}
     ${schepUitslag()}
-    <p>${tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
+    <p>${tel.uitverkocht > 3 ? `${kl(tel.uitverkocht)} klanten gingen weg omdat hun pizza op was. Bestel meer bij 📦 Voorraad (of zet Mario's automatische inkoop weer aan)!`
+      : tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
       : tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.geenKinderstoel > 1 ? 'Er kwamen gezinnetjes met een peuter, maar er was geen kinderstoel vrij. Zet er een neer (Stoel → Kinderstoel)!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>`;
   const dagTabKnoppen = [['totaal', '📊 Totaal'], ['zaak', '🍕 Deze zaak'], ...anderen.map((o, j) => ['z' + j, '🏪 ' + BUURT[o.z.buurt || 'oud'].n]), ...(ijs ? [['ijs', '🍨 IJs']] : []), ['geld', '🏦 Geld']].map(([k, n], j) => `<button class="knop${j ? '' : ' rood'}" style="padding:5px 9px;margin:2px" onclick="dagTab(this, '${k}')">${esc(n)}</button>`).join('');
   $('eindkaart').innerHTML = `<h1>${datumLang(oud)} zit erop!</h1>
@@ -853,11 +854,11 @@ function toonBank(gekozen, bedrag) {
     $('akkoord').onchange = () => { $('teken').disabled = !$('akkoord').checked; };
     $('teken').onclick = () => {
       S.leningen.push({ van: gekozen, rest: terug, perDag, achter: 0 }); S.geld += bedrag; kassa(); bewaar(); tekenKnoppen();
-      $('bank').classList.add('verborgen'); meld(gekozen == 'sjaak' ? 'Ome Sjaak telt de briefjes uit. "Tot over vijf dagen, vriend."' : gekozen == 'oma' ? 'Oma geeft je ook nog een kus en een rolletje pepermunt.' : 'Banca Fortuna: "Prettig zaken doen."');
+      $('bank').classList.add('verborgen'); if (!$('stad').classList.contains('verborgen')) toonStad('bank'); meld(gekozen == 'sjaak' ? 'Ome Sjaak telt de briefjes uit. "Tot over vijf dagen, vriend."' : gekozen == 'oma' ? 'Oma geeft je ook nog een kus en een rolletje pepermunt.' : 'Banca Fortuna: "Prettig zaken doen."');
     };
     $('terugbank').onclick = () => toonBank();
   }
-  if ($('bankdicht')) $('bankdicht').onclick = () => $('bank').classList.add('verborgen');
+  if ($('bankdicht')) $('bankdicht').onclick = () => { $('bank').classList.add('verborgen'); if (!$('stad').classList.contains('verborgen')) toonStad('bank'); }; // terug in de bank: bedragen verversen
   $('bank').classList.remove('verborgen');
 }
 // ---------- het kalenderblad: elke nieuwe dag, met wat er de komende week staat te gebeuren ----------
@@ -2047,7 +2048,7 @@ const CRYPTONIEUWS = [
   ['ethertje', 0.6, 'De update van Ethertje mislukt. Alle munten heten nu per ongeluk "Ethertje2".'] ];
 function crypto() { if (!S.crypto) { S.crypto = { koers: {}, hist: {}, bezit: {}, nieuws: [] }; for (const [k, m] of Object.entries(MUNT)) { S.crypto.koers[k] = m.start; S.crypto.hist[k] = [m.start]; S.crypto.bezit[k] = 0; } } return S.crypto; }
 const cryptoWaarde = () => { const c = crypto(); return Object.keys(MUNT).reduce((a, k) => a + (c.bezit[k] || 0) * c.koers[k], 0); };
-const euro = (n) => '€ ' + (n >= 100 ? Math.round(n) : n >= 1 ? n.toFixed(2) : n.toFixed(3)).toString().replace('.', ',');
+const euro = (n) => '€ ' + (n >= 100 ? Math.round(n) : n >= 1 ? n.toFixed(2) : n >= 0.0005 ? n.toFixed(3) : 0).toString().replace('.', ',');
 function cryptoAvond() { // elke avond: nieuwe koersen
   const c = crypto(); c.nieuws = [];
   for (const [k, m] of Object.entries(MUNT)) { const z = (Math.random() + Math.random() + Math.random() - 1.5) * 2; c.koers[k] = Math.max(m.start * 0.002, c.koers[k] * Math.exp(z * m.vol - m.vol * m.vol / 2 - 0.004)); } // gemiddeld geen winst (−vol²/2), een tikje omlaag
@@ -4581,7 +4582,7 @@ function toonVloer(cx, cy) { // menuutje: de vloer van de zaak kiezen
     S.geld -= VLOER[k].prijs; S.vloer = k; tekenAchter(); kassa(); bewaar(); tekenKnoppen(); sluitMenu(); meld('Nieuwe vloer: ' + VLOER[k].n + '!');
   });
 }
-function sluitMenu() { $('menu').style.display = 'none'; $('menu').dataset.knop = ''; gekozen = null; }
+function sluitMenu() { if ($('mariotip')) $('mariotip').style.display = ''; $('menu').style.display = 'none'; $('menu').dataset.knop = ''; gekozen = null; }
 // keuzelijstje bij een knop in het paneel: lijst = [{ ik, n, pr, uit, aan, doe }]; staat boven of naast de knop
 // opslag (14 nov, idee Dana): meubels die je even niet nodig hebt, voor € 2 per stuk per dag; gedeeld door al je zaken (verhuizen kan dus ook)
 const OPSLAGPRIJS = 2; let uitOpslag = null;
@@ -4590,6 +4591,7 @@ const opslagKeuze = (gr) => (S.opslag || []).filter((o) => gr.includes(o.t)).map
 function toonKeuze(titel, lijst, r, knop, voet) {
   sluitMenu(); const m = $('menu'); m.dataset.knop = knop;
   m.innerHTML = `<b><span class="dicht" title="Sluiten">✖</span>${titel}</b>` + lijst.map((o, i) => `<button data-i="${i}" ${o.uit ? 'disabled' : ''} class="${o.aan ? 'aan' : ''}"><span class="kik">${o.ik}</span><span>${esc(o.n)}<small>${esc(o.pr)}</small></span></button>`).join('') + (voet ? `<small style="display:block;padding:6px 6px 0;opacity:.75">${esc(voet)}</small>` : '');
+  m.style.maxHeight = (innerHeight - 16) + 'px'; m.style.overflowY = 'auto'; if ($('mariotip')) $('mariotip').style.display = 'none'; // lange lijst past altijd; Mario's tip niet eroverheen
   m.style.display = 'block'; const bw = m.offsetWidth, bh = m.offsetHeight, staand = innerHeight > innerWidth;
   m.style.left = Math.min(innerWidth - bw - 8, Math.max(8, staand ? r.left + r.width / 2 - bw / 2 : r.left - bw - 8)) + 'px';
   m.style.top = Math.min(innerHeight - bh - 8, Math.max(8, staand ? r.top - bh - 8 : r.top)) + 'px';

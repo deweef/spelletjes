@@ -661,3 +661,10 @@ Plaat 7 (21 nov, `pizza/plaat7.jpg`, iedereen buigt op het podium, Pepperoni voo
 bovenaan de kaart. Alle verhaalplaten 0-7 zijn nu binnen.
 Tips van Mario uitzetten (21 nov, Marcel: "af en toe irritant op de telefoon"): knop "🔕 Geen tips meer" in de ballon en een aan/uit-knop onder 🎯 Doelen
 (`#tipsknop`); `S.tipsUit` = geen ballon meer. Tik op de ballon zelf = alleen weg voor vandaag (zoals eerst).
+Speeltest door een helper (22 nov, beide versies tenzij anders): `eindeVoorraad()` stond sinds 14 nov achter een `//`-commentaar op dezelfde regel en draaide
+nooit (geen bederf, geen "gisteren op", "Zoals gisteren" bestelde €0): gerepareerd. LET OP: zet nooit code achter een `//`-opmerking op dezelfde regel.
+Verder: `euro(0)` = "€ 0" (was "€ 0,000"); bank in de stad ververst na lenen/sluiten (`toonStad('bank')`); keuzelijstjes krijgen een max-hoogte met
+scrollen (de versieringslijst viel op de telefoon boven het scherm uit) en verbergen Mario's tip zolang ze open zijn; het dagoverzicht noemt "pizza was op"
+als hoofdtip (`tel.uitverkocht > 3`); Pizzabaas 2: `hoofdstukKlaar` sluit eerst de stadskaart (het feestscherm viel erachter na het huren van de tweede zaak).
+Nog open uit de speeltest (keuze Marcel): minder vragen per dag, voorraad-waarschuwing in een venster, doel "inkoop uit" later, Mario's tip niet over de
+keuken, acrobatiek levert veel op (€ 251 in 40 s), stoel tussen twee tafels telt bij de verkeerde tafel, doel "5 sterren" te makkelijk.
