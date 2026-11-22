@@ -767,6 +767,9 @@ function openDeuren() {
   // vaste bezoeken: Gerrit 1-2 dagen na het ophangen van een schilderij (en daarna om de 4 dagen tot je het goede antwoord geeft), Luigi rond dag 5
   if (!S.zaak && !S.achterkamer && S.spullen.some((t) => t.t == 'schilderij')) { if (!S.gerritNa) S.gerritNa = S.dag + 1 + (Math.random() < 0.5 ? 1 : 0);
     if (S.dag >= S.gerritNa && hoofd() >= 3) { S.verplicht = [...(S.verplicht || []), 'gleufhoed']; S.gerritNa = S.dag + 4; } }
+  // H3 (22 nov, Marcel: Luigi deed niks, dus Barrie kwam nooit): een dag na de intro saboteert Luigi je zeker een keer; daarna komt Barrie vanzelf langs
+  if (hoofd() >= 3 && !S.barrie && !S.h3Wraak && S.introGezien && S.introGezien[3] != null && S.dag >= S.introGezien[3] + 1 && !S.sabotage) { S.h3Wraak = S.dag; S.luigiRust = 0; S.ruzie = Math.max(S.ruzie || 0, 30); S.sabotage = pak(['rat', 'stinkbom']); }
+  if (hoofd() >= 3 && !S.barrie && S.gesaboteerd && S.gesaboteerd >= S.dag - 5 && S.gesaboteerd < S.dag && !(S.verplicht || []).includes('barrie')) S.verplicht = [...(S.verplicht || []), 'barrie'];
   // H3 en je staat in een andere zaak: je eerste zaak belt (één keer) dat er een man met een gleufhoed rondhangt, zodat je teruggaat (22 nov)
   if (S.zaak && hoofd() >= 3 && !S.achterkamer && !S.gerritBel && S.introGezien && S.introGezien[3] != null && S.dag >= S.introGezien[3] + 2) { S.gerritBel = S.dag; S.verplicht = [...(S.verplicht || []), 'gerritBel']; }
   if (!S.zaak && S.gerritBel && !S.achterkamer && S.spullen.some((t) => t.t == 'schilderij') && !(S.verplicht || []).includes('gleufhoed')) S.verplicht = [...(S.verplicht || []), 'gleufhoed']; // je bent terug: hij staat er meteen
@@ -1336,11 +1339,12 @@ const VRAGEN = [
       ['Mooi. Ik laat ook flyers drukken (€ 25).', () => { ge(-25); if (S.ginoTip == 'oven') { S.luigiDicht = ginoDag(); S.luigiFlyers = true; return 'Op die dag ligt de hele buurt vol flyers: "LUIGI DICHT? KOM NAAR ONS!" Dat wordt druk.'; }
         S.korting = { i: 'kaas', tot: S.dag + 7 }; rep(1); return 'Goedkope kaas én flyers: "Nu met de mozzarella waar Luigi niet voor betaalde!" Hmm. Grappig, maar wel een beetje gemeen.'; }],
       ['Nee Gino, ik wil een eerlijke strijd.', () => { S.ruzie = Math.max(0, (S.ruzie || 0) - 10); rep(1); return 'Gino haalt zijn schouders op. Het nieuws gaat rond dat jij een nette zaak bent. (Ruzie met Luigi −10)'; }] ] },
-  { id: 'barrie', ik: '🕶️', portret: 5, rij: 4, wie: 'Barrie de Bink', kans: 6, als: () => achterOpen() && !S.barrie && S.gesaboteerd >= S.dag - 5,
+  { id: 'barrie', ik: '🕶️', portret: 5, rij: 4, wie: 'Barrie de Bink', kans: 6, als: () => !S.barrie && S.gesaboteerd >= S.dag - 5, // 22 nov: ook zonder open achterkamer (dan zit hij in het café)
     vraag: 'Een man in een blauw trainingspak schuift aan bij de toonbank en fluistert: "Ik hoorde dat er laatst wat… misging bij jou. Rat? Stinkbom? Toevallig van de overkant, hè?"',
     a: [['Ik ga naar de politie.', () => '"De politie. Ook goed." Hij tikt tegen zijn neus en eet rustig zijn pizza op.'],
       ['Dat zal wel toeval zijn.', () => '"Toeval, ja. Net als mijn Rolex." Hij grijnst en vertrekt.'],
-      ['Wraak is een gerecht dat je koud serveert.', () => { S.barrie = S.dag; if (bezoeker) bezoeker.achter = true; return 'Barrie knikt langzaam. "Dan spreken we elkaar in je achterkamer, baas. Ik weet de weg." Hij klapt het luikje in de toonbank omhoog en loopt zo je keuken in…'; }] ] },
+      ['Wraak is een gerecht dat je koud serveert.', () => { S.barrie = S.dag; if (achterOpen()) { if (bezoeker) bezoeker.achter = true; return 'Barrie knikt langzaam. "Dan spreken we elkaar in je achterkamer, baas. Ik weet de weg." Hij klapt het luikje in de toonbank omhoog en loopt zo je keuken in…'; }
+        return 'Barrie knikt langzaam en schuift een bierviltje over de toonbank: "Café \'t Achterafje". "Daar zit ik altijd, baas. Kom maar langs als je Luigi een lesje wilt leren." (🗺️ Stad → het bruine café links van de markt)'; }] ] },
   { id: 'cryptoklant', ik: '📱', wie: 'Klant met een dure telefoon', kans: 3, als: () => S.dag >= 5,
     vraag: () => `"Ik heb geen contant geld bij me. Kan ik met ${MUNT[pak(Object.keys(MUNT))].n} betalen? Het gaat zo de lucht in, echt!"`,
     a: [['Prima, in crypto dan.', () => { naVraag = () => kiesMunt(Math.round(PRIJS * 2 * TELT), 'De klant', '"Top! Welke munt wil je? Ik heb ze allemaal."'); return 'Hij houdt zijn telefoon omhoog. "Even scannen…"'; }],
@@ -3367,7 +3371,7 @@ function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze ni
 }
 // Pizzabaas 2: plekken in de stad gaan per hoofdstuk open (PLEKH = vanaf welk hoofdstuk). De panden te huur zijn er vanaf het begin: je tweede zaak is
 // de afsluiter van hoofdstuk 1. Snelle Sjonnie bij de achterkamer (3), ijs, tehuis en Gianni in 5; de toren zelf betalen pas in 6.
-const PLEKH = { studenten: 2, kunst: 2, bouw: 2, college: 2, wissel: 3, kroeg: 4, ijssalon: 5, gianni: 5, tehuis: 5 };
+const PLEKH = { studenten: 2, kunst: 2, bouw: 2, college: 2, wissel: 3, kroeg: 3, ijssalon: 5, gianni: 5, tehuis: 5 };
 const plekOpen = (id) => hoofd() >= (PLEKH[id] || 1);
 function toonStad(plek) {
   if (!JURYIMG.src) JURYIMG.src = 'pizza/jury.jpg'; // de foto van de jury alvast laden zodra je de stad in gaat
