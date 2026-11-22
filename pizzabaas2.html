@@ -186,7 +186,7 @@
 <div class="scherm" id="welkom"><!-- titelscherm: plaat 0 (pizza/plaat0.jpg) met het logo in de lucht -->
   <div id="titelplaat"></div>
   <img src="pizza/logo.png" id="titellogo" alt="Pizzabaas">
-  <div id="titeltik">Tik om te beginnen</div>
+  <div id="titeltik">🎵 Tik om te beginnen</div>
   <div class="kaart" id="titelkaart" style="display:none">
     <p style="background:#ffe08a;border-radius:8px;padding:5px 8px;font-size:13px;margin:0 0 8px">🧪 <b>Testversie</b> met hoofdstukken (in de maak). Aparte opslag: je gewone Pizzabaas blijft zoals hij is.</p>
     <div id="titelnieuw">
@@ -5385,8 +5385,11 @@ function rondleiding(n = 0) {
 if (S.nieuw && !TEGEL) { delete S.nieuw; bewaar(); } // net opnieuw begonnen: het titelscherm biedt Mario's rondleiding aan (zoals bij de allereerste keer)
 else if (lees(SLEUTEL) && !TEGEL) { // je speelt al: titelscherm met Verder spelen (dat tikje maakt meteen het geluid wakker)
   $('titelnieuw').style.display = 'none'; $('titelverder').style.display = '';
-  $('verderspelen').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); };
-  $('nieuwspel').onclick = () => { if (confirm(`Echt een nieuw spel beginnen${speler ? ' voor ' + speler : ''}? Je zaak, je geld, je doelen en je vlagfiches zijn dan weg.`)) herstart(); };
+  const verderSpelen = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); }; $('verderspelen').onclick = verderSpelen;
+  $('nieuwspel').onclick = () => { const v = $('titelverder'); // eerst vragen of het echt moet (in het kaartje zelf, niet in een pop-up)
+    v.innerHTML = `<p style="margin:0 0 6px"><b>⚠️ Weet je het zeker?</b> Je hebt nog een spel lopen${speler ? ' (' + esc(speler) + ')' : ''}: hoofdstuk ${hoofd()}, ${esc(datumLang(S.dag).toLowerCase())}, € ${Math.floor(S.geld)} in de kassa. Bij een nieuw spel zijn je zaak, je geld, je doelen en je vlagfiches weg.</p>
+      <button class="groot" id="nieuwnee" style="margin-top:0">▶️ Nee, verder met mijn spel</button><button class="knop rood" id="nieuwja" style="margin-top:8px">🔄 Ja, helemaal opnieuw</button>`;
+    $('nieuwja').onclick = () => herstart(); $('nieuwnee').onclick = verderSpelen; };
 }
 
 if (TEGEL) { // plaatje voor de startpagina

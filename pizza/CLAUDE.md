@@ -700,3 +700,5 @@ met weinig fouten win je soms, met veel fouten niet. Wijnkelder: bij het namaken
 (PLEK `kroeg`, het bakstenen pand met de luifel links van de markt, open vanaf H4): Barrie zit er altijd, met dezelfde menukaart
 (`barrieBlok()`, `barrieKnoppen()`, `toonKroeg()`; `inKroeg` zorgt dat de minispelletjes daarna terug naar het café gaan; als je Barrie nog
 niet kende, leer je hem daar kennen). Plaatje: `pizza/kroeg.jpg` (ChatGPT, 1024 breed). Crypto (keuze Marcel): bewaarkosten 1% per nacht (was 2%), hack blijft 2% per munt per nacht.
+Titelscherm (22 nov): "🎵 Tik om te beginnen" (een browser, zeker op de iPad, speelt pas geluid na een tik: daarom start de muziek bij die eerste tik);
+🔄 Nieuw spel vraagt het in het kaartje zelf (hoofdstuk, datum, kassa; "Nee, verder met mijn spel" / "Ja, helemaal opnieuw") in plaats van een pop-up.
