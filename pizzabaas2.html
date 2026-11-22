@@ -795,7 +795,7 @@ function eindeDag() {
 
   const zaakWinst = totaal - andereWinst, tipTekst = `${S.trendMorgen ? `<p class="buurt" style="background:#fff3c4;border-radius:8px;padding:6px 8px">📈 <b>Trend van morgen: ${TREND[S.trendMorgen].ik} ${TREND[S.trendMorgen].n}.</b> ${esc(TREND[S.trendMorgen].tekst)} ${S.menu.some((p) => TREND[S.trendMorgen].ok(p)) ? `Op je kaart: ${S.menu.filter((p) => TREND[S.trendMorgen].ok(p)).map((p) => esc(p.naam)).join(', ')}.` : 'Je hebt er nog geen pizza voor: verzin er een (📖 Pizza\'s)!'}</p>` : ''}
     ${schepUitslag()}
-    <p>${tel.uitverkocht > 3 ? `${kl(tel.uitverkocht)} klanten gingen weg omdat hun pizza op was. Bestel meer bij 📦 Voorraad (of zet Mario's automatische inkoop weer aan)!`
+    <p>${tel.uitverkocht > 3 ? `${kl(tel.uitverkocht)} klanten gingen weg omdat hun pizza op was. Bestel meer bij 📦 Voorraad${S.zaken.length > 1 ? '' : " (of zet Mario's automatische inkoop weer aan)"}!`
       : tel.boos > 2 && tel.boos >= tel.vol ? (tel.boosKeuken >= tel.boosOber ? (S.ovens < 2 ? 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Een tweede oven met bakker helpt!' : 'De keuken kon het niet bijhouden: de pizza\'s waren niet op tijd klaar. Je hebt meer stoelen dan twee ovens aankunnen: haal een paar stoelen weg.') : 'De pizza\'s stonden klaar, maar de obers kwamen ze niet op tijd brengen. Neem een extra ober!')
       : tel.niks > 2 ? 'Een paar klanten vonden niks lekkers op de kaart. Verzin een pizza voor ze (📖 Pizza\'s)!' : tel.vol > 3 ? 'Er moesten veel klanten weg omdat het vol was. Tijd voor meer tafels!' : tel.geenKinderstoel > 1 ? 'Er kwamen gezinnetjes met een peuter, maar er was geen kinderstoel vrij. Zet er een neer (Stoel → Kinderstoel)!' : tel.blij && tel.lekker / tel.blij < 3 ? 'Het smaakte niet iedereen. Kijk bij 📖 Pizza\'s wie wat lekker vindt.' : gemGezellig() < 2.5 ? 'Het is nog wat kaal. Kleedjes, kaarsjes en plantjes geven meer fooi.' : 'Lekker bezig! De mensen beginnen je zaak te kennen.'}</p>`;
   const dagTabKnoppen = [['totaal', '📊 Totaal'], ['zaak', '🍕 Deze zaak'], ...anderen.map((o, j) => ['z' + j, '🏪 ' + BUURT[o.z.buurt || 'oud'].n]), ...(ijs ? [['ijs', '🍨 IJs']] : []), ['geld', '🏦 Geld']].map(([k, n], j) => `<button class="knop${j ? '' : ' rood'}" style="padding:5px 9px;margin:2px" onclick="dagTab(this, '${k}')">${esc(n)}</button>`).join('');
@@ -1342,7 +1342,7 @@ const VRAGEN = [
       ['Een sterke espresso brengen.', () => { ge(3); rep(1); return 'Opa schrikt wakker: "Ik was niet aan het slapen!" Hij betaalt de espresso.'; }],
       ['Filmen en op internet zetten.', () => { S.morgen = { ...(S.morgen || {}), aankomst: ((S.morgen || {}).aankomst || 1) * 1.1 }; rep(-1); return '"Snurkopa" gaat viraal. Morgen komen er mensen kijken, maar opa vindt het minder leuk.'; }] ] },
   { id: 'goochelaar', kans: 2.5, ik: '🎩', wie: 'Goochelaar', vraag: 'Goedenavond! Mag ik voor een gratis pizza wat trucs doen voor uw gasten?',
-    a: [['Ja, leuk!', () => { vandaag.gezellig += 1; naVraag = () => toonVraag({ id: 'vervolg', ik: '🎩', wie: 'Goochelaar', vraag: 'Voor mijn laatste truc heb ik een vrijwilliger nodig. U, baas! Mag ik u doormidden zagen?', zelf: true, a: [['Natuurlijk, ik ben nergens bang voor.', () => { rep(2); return 'Hij zaagt, je schreeuwt, iedereen gilt… en je staat er weer heel bij. Daverend applaus!'; }], ['Zaag Mario maar doormidden.', () => { if (kans(0.5)) { vandaag.gezellig += 1; return 'Mario verdwijnt in de kist en komt eruit met een pizza. Hoe?!'; } kokTraag(); return 'Mario is zo geschrokken dat hij de rest van de avond trillend deeg kneedt.'; }], ['Liever niet, ik moet nog werken.', () => 'Hij zaagt dan maar een calzone doormidden. Ook mooi.']] }); return 'Hij tovert een duif uit een calzone. Iedereen klapt.'; }],
+    a: [['Ja, leuk!', () => { vandaag.gezellig += 1; naVraag = () => toonVraag({ id: 'zagen', ik: '🎩', wie: 'Goochelaar', vraag: 'Voor mijn laatste truc heb ik een vrijwilliger nodig. U, baas! Mag ik u doormidden zagen?', zelf: true, a: [['Natuurlijk, ik ben nergens bang voor.', () => { rep(2); return 'Hij zaagt, je schreeuwt, iedereen gilt… en je staat er weer heel bij. Daverend applaus!'; }], ['Zaag Mario maar doormidden.', () => { if (kans(0.5)) { vandaag.gezellig += 1; return 'Mario verdwijnt in de kist en komt eruit met een pizza. Hoe?!'; } kokTraag(); return 'Mario is zo geschrokken dat hij de rest van de avond trillend deeg kneedt.'; }], ['Liever niet, ik moet nog werken.', () => 'Hij zaagt dan maar een calzone doormidden. Ook mooi.']] }); return 'Hij tovert een duif uit een calzone. Iedereen klapt.'; }],
       ['Nee, dank je.', () => 'Hij verdwijnt. Letterlijk. Hoe deed hij dat?'],
       ['Laat mijn schulden maar verdwijnen.', () => { ge(-10); return 'Hij laat je portemonnee verdwijnen… en weer verschijnen. Er zit € 10 minder in. "Dat is de truc!"'; }] ] },
   { id: 'supermarkt', ik: '🛒', wie: 'Zuinige klant', vraag: '€ ' + PRIJS + ' voor een pizza?! In de supermarkt kost een pizza € 2!',
@@ -2352,7 +2352,7 @@ function tehuisCheck(t) { if (S.tehuis.tevreden < 20) { S.tehuis = null; S.tehui
 function toonToren(opening) {
   $('toren').classList.remove('verborgen'); startToren(); toren.opening = !!opening;
   if (opening) $('torentekst').textContent = '🎉 De grote opening! De burgemeester kijkt mee: hoe hoger je stapelt, hoe meer de stad over je pizzeria praat.';
-  $('torenstart').onclick = () => { wekGeluid(); startToren(); }; /* een nieuwe ronde is geen opening meer */ $('torendicht').onclick = () => { $('toren').classList.add('verborgen'); toren = null; };
+  $('torenstart').onclick = () => { wekGeluid(); startToren(); }; /* een nieuwe ronde is geen opening meer */ $('torendicht').onclick = () => { $('toren').classList.add('verborgen'); toren = null; controleerDoelen(); if (!$('stad').classList.contains('verborgen')) toonStad('bouw'); }; /* na het lintknippen: de bouwplaats laat de open toren zien */
   const c = $('torendoek'); c.onpointerdown = (e) => { e.preventDefault(); wekGeluid(); torenTik(); };
   torenBord();
 }
@@ -3310,7 +3310,7 @@ function toonStad(plek) {
     $('stad').classList.remove('verborgen'); requestAnimationFrame(() => { const rol = $('kaartrol'); if (rol) rol.scrollLeft = (rol.scrollWidth - rol.clientWidth) / 2; }); return; // telefoon: begin in het midden
   }
   const p = PLEK[plek], terug = `<button class="knop" id="plekterug">🗺️ Terug naar de kaart</button>`;
-  let h = `<h1>${p.ik} ${esc(p.n)}</h1>`, knoppen = '';
+  let h = zaakVan(plek) >= 0 && p.buurt ? `<h1>🍕 Jouw pizzeria (${esc(BUURT[p.buurt].n)})</h1>` : `<h1>${p.ik} ${esc(p.n)}</h1>`, knoppen = '';
   if (plek == 'bank' && toonStad.app) { toonStad.app = false; h += `<p>Meneer Fortuna draait zijn scherm naar je toe. "Onze nieuwe app: <b>Fortuna Beleggen</b>. Veilig, snel, en maar ${APPPROV * 100}% provisie." Hij knipoogt. "Die laatste zin moest ik van de directie zeggen."</p>${cryptoBlok(false, APPPROV)}`; knoppen = ''; }
   else if (plek == 'bank') { h += `<div style="background:#c0392b;color:#fff;border-radius:8px;padding:8px 10px;margin:4px 0 8px;text-align:center;font-weight:700;transform:rotate(-1.5deg);box-shadow:0 3px 8px rgba(0,0,0,.25)">💸 LENEN BIJ BANCA FORTUNA: <s style="opacity:.75">10%</s> <span style="font-size:1.25em;color:#ffe08a">9%!</span><br><small style="font-weight:400">Alleen hier aan het loket: 1% minder rente</small></div>`;
     h += `<p>Een deftige hal met marmer en een klok die heel hard tikt. Achter het loket zit meneer Fortuna. "Wie persoonlijk langskomt, krijgt van ons <b>1% minder rente</b>."</p>`; knoppen = `<button class="knop rood" id="balie">💰 Geld lenen aan het loket</button><button class="knop" id="storten" ${S.geld < 1 ? 'disabled' : ''}>⬇️ Storten</button><button class="knop" id="opnemen" ${(S.bankSaldo || 0) < 1 ? 'disabled' : ''}>⬆️ Opnemen</button>${hoofd() >= 3 || (S.crypto && cryptoWaarde() >= 0.5) ? '<button class="knop" id="beleggen">📱 Beleggen (crypto)</button>' : ''}${hoofd() >= 4 ? `<button class="knop" id="boekhouder">📒 Boekhouder: ${S.boekhouder ? 'aan' : 'uit'}</button>` : ''}`;
@@ -3382,7 +3382,7 @@ function toonStad(plek) {
     h += S.torenBest ? `<p class="buurt">Jouw hoogste pizzatoren: <b>${S.torenBest} pizza's</b>.</p>` : '';
     knoppen = (t.fase < 4 && !t.bouwt && hoofd() < 6 ? '<p class="buurt">🔒 Meebetalen aan de toren kan in hoofdstuk 6.</p>' : '') + (t.fase < 4 && !t.bouwt && hoofd() >= 6 ? `<button class="knop rood" id="torenbetaal" ${S.geld < f.prijs ? 'disabled' : ''}>💶 Meebetalen aan ${esc(f.n)} (€ ${f.prijs})</button>` : '')
       + (reclameAan() ? '' : `<button class="knop" id="reclame" ${S.geld < RECLAME ? 'disabled' : ''}>📣 Reclame (€ ${RECLAME})</button>`)
-      + (hoofd() >= 6 && t.open && !heb('vlag') ? `<button class="knop rood" id="vlaghijs" ${['g', 'w', 'r'].every((k) => (S.vlag || {})[k] >= VLAGNODIG) ? '' : 'disabled'}>🇮🇹 De vlag hijsen (${['g', 'w', 'r'].map((k) => VLAGKLEUR[k][0] + ' ' + Math.min(VLAGNODIG, (S.vlag || {})[k] || 0) + '/' + VLAGNODIG).join(' ')})</button>` : '')
+      + (hoofd() >= 6 && t.open && !heb('vlag') ? `<button class="knop rood" id="vlaghijs" ${['g', 'w', 'r'].every((k) => (S.vlag || {})[k] >= VLAGNODIG) && doelenH6() >= HOOFDNODIG ? '' : 'disabled'}>🇮🇹 De vlag hijsen (🎯 ${Math.min(HOOFDNODIG, doelenH6())}/${HOOFDNODIG} ${['g', 'w', 'r'].map((k) => VLAGKLEUR[k][0] + ' ' + Math.min(VLAGNODIG, (S.vlag || {})[k] || 0) + '/' + VLAGNODIG).join(' ')})</button>` : '')
       + (t.fase == 4 && !t.open ? `<button class="knop rood" id="torenopen">✂️ Lint doorknippen: openingswedstrijd!</button>` : `<button class="knop" id="stapel">🍕 Pizza's stapelen</button>`); }
   const k2 = $('stadkaart'); k2.innerHTML = `<div class="kaart" style="margin:auto">${h}<div class="rij">${knoppen}${terug}</div></div>`;
   $('plekterug').onclick = () => toonStad(); ijsKnoppen(k2, plek); if ($('racego')) $('racego').onclick = () => toonRace();
@@ -4890,7 +4890,8 @@ const HOOFDSTUK = [null,
   { n: 'De achterkamer', ik: '🗝️', af: () => heb('inval'), afn: 'Overleef de grote inval (komt vanzelf als je 10 doelen hebt)' },
   { n: 'Oorlog met Luigi', ik: '😡', af: () => S.liefde && S.liefde.fase >= 5, afn: 'Het verhaal van Marco en Valentina loopt af' },
   { n: 'IJs en ouderen', ik: '🍨', af: () => heb('henk'), afn: 'Versla opa Henk in de scootmobielrace' },
-  { n: 'De Toren van Pizza', ik: '🗼', af: () => heb('vlag'), afn: 'Hijs de Italiaanse vlag op de toren (bij de bouwplaats; 100 vlagfiches van elke kleur, en de toren moet open zijn)' } ];
+  { n: 'De Toren van Pizza', ik: '🗼', af: () => heb('vlag'), afn: 'Hijs de Italiaanse vlag op de toren (bij de bouwplaats; 100 vlagfiches van elke kleur, de toren moet open zijn en je hebt 10 doelen van dit hoofdstuk)' } ];
+const doelenH6 = () => DOELEN.filter((d) => d.h == 6 && S.doelen && S.doelen[d.id]).length; // de vlag mag pas als je 10 doelen van hoofdstuk 6 hebt
 const toren4 = (k) => { const t = typeof torenBij == 'function' ? torenBij() : null; return t && (t.fase || 0) >= k; };
 const DOELEN = [
   // H1 Het eerste pizzeriaatje
@@ -4924,11 +4925,11 @@ const DOELEN = [
   { id: 'schep', h: 2, k: 'g', f: 10, n: 'Win de Gouden Pizzaschep', ok: () => (S.scheppen || 0) >= 1 },
   { id: 'kunst', h: 2, k: 'w', f: 3, n: 'Leen een meesterwerk bij de kunstuitleen', ok: () => !!S.kunstHuur },
   { id: 'aangifte', h: 2, k: 'w', f: 3, n: 'Doe aangifte tegen Luigi', ok: () => !!S.aangifte },
-  { id: 'zagen', h: 2, k: 'w', f: 3, geheim: 'Zaag eens iets doormidden…', n: 'Laat de goochelaar jou doormidden zagen', ok: () => antw('Goochelaar:0') },
+  { id: 'zagen', h: 2, k: 'w', f: 3, geheim: 'Zaag eens iets doormidden…', n: 'Laat de goochelaar jou doormidden zagen', ok: () => antw('zagen:0') },
   // H3 De achterkamer
   { id: 'achter', h: 3, k: 'r', f: 5, n: 'Ontdek een achterkamer', ok: () => !!S.achterkamer || !!S.kamer || S.zaken.some((z) => z.kamer) },
   { id: 'vervalsing', h: 3, k: 'r', f: 5, n: 'Schilder je eerste vervalsing', ok: () => heb('vervalsing') },
-  { id: 'gerrit', h: 3, k: 'r', f: 5, n: 'Verkoop een schilderij aan Gerrit', ok: () => antw('koper:0') || antw('koper:1') || antw('koper:2') },
+  { id: 'gerrit', h: 3, k: 'r', f: 5, n: 'Verkoop een schilderij aan Gerrit', ok: () => antw('koper:0') || antw('koper:2') },
   { id: 'gravin', h: 3, k: 'r', f: 10, n: 'Verkoop een schilderij aan de gravin', ok: () => heb('gravin') },
   { id: 'pers', h: 3, k: 'r', f: 5, n: 'Knap de drukpers op', ok: () => !!S.pers },
   { id: 'bonnen', h: 3, k: 'r', f: 3, n: 'Druk valse kortingsbonnen', ok: () => heb('bonnen') },
@@ -5002,7 +5003,7 @@ function controleerDoelen() {
   const H = hoofd(), mijn = DOELEN.filter((d) => d.h == H), af = mijn.filter((d) => S.doelen[d.id]).length;
   $('doelknop').innerHTML = `<img src="pizza/doel.png" alt="🎯"><b>H${H} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}</b>`;
   if (H == 3 && af >= HOOFDNODIG && !heb('inval') && modus == 'inrichten' && !toonInval.bezig && $('einde').classList.contains('verborgen')) setTimeout(toonInval, 800);
-  if (H < 6 && af >= HOOFDNODIG && HOOFDSTUK[H].af() && modus == 'inrichten' && !hoofdstukKlaar.bezig) hoofdstukKlaar(H);
+  if (H < 6 && af >= HOOFDNODIG && HOOFDSTUK[H].af() && modus == 'inrichten' && !hoofdstukKlaar.bezig && !toonInval.bezig && $('achter').classList.contains('verborgen')) hoofdstukKlaar(H); /* niet bovenop de uitslag van de inval: die roept zelf controleerDoelen als je Verder tikt */
 }
 // DE GROTE INVAL (afsluiter hoofdstuk 3): de kunstrecherche valt 's ochtends binnen. Een zaklamp zwaait door de achterkamer; tik op de verboden
 // spullen om ze te verstoppen (in de pizzadoos), maar niet als de lichtbundel erop schijnt (dan zien ze het). 25 seconden; hooguit 1 gevonden = ontkomen.
@@ -5068,7 +5069,7 @@ function toonAftiteling() { // de aftiteling: alle personages, en hoe lang je er
   const rij = (e, n, w) => `<tr><td style="font-size:22px">${e}</td><td><b>${n}</b><br><small>${w}</small></td></tr>`;
   $('eindkaart').innerHTML = `<img src="pizza/plaat7.jpg" alt="Iedereen maakt een buiging" style="width:100%;border-radius:10px;margin-bottom:8px"><h1>👑 Uitgespeeld!</h1><p>De Italiaanse vlag wappert op de Toren van Pizza. De stad heeft een nieuwe pizzabaas: <b>${esc(speler || 'jij')}</b>!</p>
     ${eindStand()}<p><b>Met dank aan:</b></p><table>
-    ${rij('👨‍🍳', 'Mario', 'kok, zanger, pizza-acrobaat')}${rij('🕶️', 'Luigi', 'aartsrivaal, schoonvader van Marco, toch een beetje vriend')}${rij('🤵💃', 'Marco en Valentina', 'getrouwd in jouw zaak')}
+    ${rij('👨‍🍳', 'Mario', 'kok, zanger, pizza-acrobaat')}${rij('🕶️', 'Luigi', S.liefde && S.liefde.fase == 9 ? 'aartsrivaal, en toch een beetje vriend' : 'aartsrivaal, schoonvader van Marco, toch een beetje vriend')}${rij('🤵💃', 'Marco en Valentina', S.liefde && S.liefde.fase == 9 ? 'Marco woont nu bij zijn tante in Napels (Valentina schrijft hem elke dag)' : S.liefde && S.liefde.vrede ? 'getrouwd bij Luigi' : 'getrouwd in jouw zaak')}
     ${rij('🦼', 'Opa Henk', 'snelste opa van de stad (volgens hemzelf)')}${rij('🍦', 'Gianni IJskoud', 'de vijand van je vijand')}${rij('😎', 'Barrie de Bink', 'streken op bestelling')}
     ${rij('🎩', 'Gerrit Gleufhoed', 'kunstliefhebber')}${rij('🤳', 'Kimberley', 'influencer')}${rij('🐈', 'Pepperoni', 'rattenvanger')}${rij('🧑‍🍳', 'Ben, Dana, Anja en Marcel', 'bedenkers en testers')}${rij('🪗', 'FluidR3 GM-soundfont', 'de instrumenten van de muziek (Frank Wen, CC BY 3.0)')}${rij('🎼', 'Rabanus Flavus (Peter Gerloff)', 'de arrangementen van Funiculì, Santa Lucia en Bella ciao (CC0, Wikimedia Commons)')}</table>
     <p class="buurt">Je kunt gewoon doorspelen, of opnieuw beginnen (📊 Gisteren). Grazie mille!</p><button class="groot" id="verder">Doorspelen</button>`;
@@ -5083,6 +5084,8 @@ const HOOFDINTRO = [null,
   'Baas, Luigi is woedend. Dit wordt oorlog! Barrie heeft een hele kaart vol streken, en Luigi heeft vrienden in groene pakken. Maar… onze Marco is verliefd op iemand. Op wie? Dat hoor je nog wel.',
   'Wat een rust na al die ruzie, baas. Tijd voor iets lekkers: er staat een ijssalon te koop! En in Huize Avondrood willen ze graag pizza op zondag. Maar Opa Henk zegt: eerst racen.',
   'Baas… dit is het. Vier zaken, de Toren van Pizza afbouwen, en dan de Italiaanse vlag erbovenop. Daar heb je van elke kleur 100 vlagfiches voor nodig. Kijk in de vlagkist hoeveel je er nog mist. Forza!' ];
+new MutationObserver((ms) => { for (const m of ms) if (/\bverborgen\b/.test(m.oldValue || '') && !m.target.classList.contains('verborgen')) { m.target.scrollTop = 0; m.target.querySelectorAll('.kaart').forEach((k) => k.scrollTop = 0); } })
+  .observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true }); // een venster dat opengaat begint bovenaan (niet halverwege waar het vorige venster gescrold was)
 function hoofdIntro(nu) { const H = hoofd(); S.introGezien = S.introGezien || {}; if (S.introGezien[H] || TEGEL) return; if (!nu) { setTimeout(() => hoofdIntro(true), 700); return; }
   if (!$('einde').classList.contains('verborgen') || !$('welkom').classList.contains('verborgen') || $('ronde') || pauze) { setTimeout(() => hoofdIntro(true), 1500); return; }
   S.introGezien[H] = S.dag; bewaar();

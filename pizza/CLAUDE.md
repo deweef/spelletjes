@@ -672,3 +672,12 @@ Uit de speeltest, keuze Marcel (22 nov, Pizzabaas 2): 1-3 vragen per dag (`planV
 spoed van de markt voor dubbele prijs, of laten); doel `zelfbestel` naar H2 en `zes` terug naar H1; Mario's tip verdwijnt vanzelf na 15 s (`marioTip.weg`);
 acrobatiek geeft ~een derde (munt × 0,35, kunstje +2); een nieuwe stoel tussen twee tafels hoort bij de tafel met de minste stoelen (`c.bij`, melding);
 doel `ster5` = twee pizza's van 5 sterren; op een staande telefoon zegt het titelscherm dat het spel het fijnst speelt op een tablet of liggend (`#titeltablet`).
+Speeltest 2 (H3-6, 22 nov), gerepareerd: plaat 3 start pas na Verder op de uitslag van de inval (`controleerDoelen` wacht tot `#achter` dicht is);
+een venster dat opengaat begint bovenaan (MutationObserver op `class`: van `verborgen` naar zichtbaar → scrollTop 0, ook van de `.kaart` erin);
+doel `gerrit` telt "Nog niet" (koper:1) niet meer; de zaagvraag van de goochelaar heeft id `zagen` (doel = `antw('zagen:0')`, was `Goochelaar:0` = "Ja, leuk!");
+de vlag hijsen kan pas met 10 doelen van H6 (`doelenH6()`, staat op de knop); na het lintknippen ververst de bouwplaats (`torendicht`);
+je eigen pand heet "🍕 Jouw pizzeria (buurt)"; dagoverzicht noemt Mario's automatische inkoop alleen bij één zaak;
+de aftiteling klopt ook als Marco ontslagen is (fase 9) of de bruiloft bij Luigi was (`vrede`).
+Open (keuze Marcel): rode vlagfiches zijn krap (rood per hoofdstuk 3/0/77/31/3/20, wit 8/12/0/36/44/40, groen ruim); Barrie 1 klus per 3 dagen;
+inval makkelijk; plaat 4 "De grote dag!" komt pas bij 10 doelen (soms dagen na de bruiloft); plaat 5 eindigt met VROEMMM zonder race;
+verhaalplaat schuift om de 4,2 s door; H3-start hint (schilderij ophangen / tweede zaak).
