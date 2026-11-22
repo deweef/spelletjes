@@ -2087,7 +2087,7 @@ const MUNT = {
   ethertje: { n: 'Ethertje', ik: '💎', start: 40, vol: 0.3, kl: '#8e7cc3' },
   mozzamunt: { n: 'MozzaMunt', ik: '🍕', start: 5, vol: 0.45, kl: '#e74c3c' },
   dogepizza: { n: 'DogePizza', ik: '🐶', start: 0.5, vol: 0.6, kl: '#e67e22' } };
-const BEWAAR = 0.02; // bewaarkosten van de wallet per nacht (22 nov: even 1%, Marcel wilde toch 2%)
+const BEWAAR = 0.01; // bewaarkosten van de wallet per nacht (22 nov: was 2%)
 const CRYPTONIEUWS = [
   ['dogepizza', 3, 'Een beroemde miljardair tweet een pizza-emoji met een hondje. DogePizza schiet omhoog!'],
   ['dogepizza', 0.35, 'Iemand ontdekt dat DogePizza gewoon een plaatje van een hond is. Paniek!'],
@@ -2109,7 +2109,7 @@ function cryptoAvond() { // elke avond: nieuwe koersen
   if (c.koers.mozzamunt < MUNT.mozzamunt.start * 0.01 && kans(0.3)) { const had = c.bezit.mozzamunt > 0; c.koers.mozzamunt = MUNT.mozzamunt.start * 0.3; c.bezit.mozzamunt = 0; if (c.inleg) c.inleg.mozzamunt = 0; // herstart = een nieuwe munt: de oude munten zijn niks meer waard
     c.nieuws.push('🍕 MozzaMunt is herstart door een nieuwe "oprichter". Het is een gloednieuwe munt: de oude MozzaMunten zijn niks meer waard.' + (had ? ' Die van jou ook niet.' : '')); }
   for (const k of Object.keys(MUNT)) { if (!(c.bezit[k] > 0)) continue; c.bezit[k] *= 1 - BEWAAR; // bewaarkosten van de wallet, elke nacht
-    if (c.bezit[k] * c.koers[k] > 5 && kans(0.01)) { const weg = c.bezit[k] * c.koers[k]; c.bezit[k] = 0; if (c.inleg) c.inleg[k] = 0; // per munt 1% kans op een hack (22 nov: was 2%) (de bank is veilig)
+    if (c.bezit[k] * c.koers[k] > 5 && kans(0.02)) { const weg = c.bezit[k] * c.koers[k]; c.bezit[k] = 0; if (c.inleg) c.inleg[k] = 0; // per munt 2% kans op een hack (de bank is veilig)
       c.nieuws.push(`🏴‍☠️ Je ${MUNT[k].n}-wallet is gehackt! Alles weg (${euro(weg)}). "Wachtwoord: pizza123" was misschien niet zo slim.`); } }
   for (const k of Object.keys(MUNT)) { c.hist[k].push(c.koers[k]); if (c.hist[k].length > 20) c.hist[k].shift(); }
 }
