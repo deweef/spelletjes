@@ -194,6 +194,7 @@
       <button class="groot" id="begin">👨‍🍳 Mario laat je alles zien</button>
       <button class="knop" id="beginzelf" style="margin-top:8px">Overslaan, ik weet het al</button>
     </div>
+    <p id="titeltablet" style="display:none;font-size:13px;margin:0 0 8px;background:#e8f1ff;border-radius:8px;padding:5px 8px">📱 Pizzabaas speelt het fijnst op een <b>tablet</b>, of met je telefoon <b>liggend</b>. Staand kan ook, maar alles is kleiner.</p>
     <div id="titelverder" style="display:none">
       <button class="groot" id="verderspelen" style="margin-top:0">▶️ Verder spelen</button>
       <button class="knop" id="nieuwspel" style="margin-top:8px">🔄 Nieuw spel</button>
@@ -1851,8 +1852,8 @@ const PIZZA_UITLEG = `<ol style="text-align:left;line-height:1.5"><li>Tik op <b>
   <li>Kies <b>➕ Nieuwe pizza</b>.</li><li>Tik op ingrediënten om ze op de pizza te leggen (max. 14 stukjes, 4 van één soort).</li>
   <li>Kijk naar de <b>gezichtjes</b>: 😍 = die soort klant vindt hem heerlijk, 🤢 = bestellen ze nooit.</li>
   <li>Kies een prijs: te duur en studenten haken af, villabewoners mag je best iets meer vragen.</li><li><b>Bewaren</b>: hij staat meteen op de kaart.</li></ol>`;
-function planVragen() { // 2 tot 4 vragen op een willekeurig moment van de dag (niet in de eerste en laatste stukjes)
-  const n = 2 + Math.floor(Math.random() * 3); vraagTijden = [];
+function planVragen() { // 1 tot 3 vragen op een willekeurig moment van de dag (was 2-4; 22 nov, speeltest: te veel onderbrekingen)
+  const n = 1 + Math.floor(Math.random() * 3); vraagTijden = [];
   for (let i = 0; i < n; i++) vraagTijden.push(DAG * (0.1 + 0.75 * (i + Math.random() * 0.8) / n));
   vraagTijden.sort((a, b) => a - b);
 }
@@ -2452,9 +2453,9 @@ function acroTik() {
   const d = Math.abs(A.y - ACRO.vang);
   if (A.v > 0 && d < ACRO.venster) { // gevangen en weer opgegooid
     const perfect = d < 14; A.vangen++; A.combo = perfect ? A.combo + 1 : 0;
-    const munt = (1 + Math.floor(A.vangen / 5)) * (perfect ? 2 : 1); A.geld += munt; A.vlieg.push({ x: 40 + Math.random() * 280, y: 470, t: 0, tekst: '+€' + munt });
+    const munt = Math.max(1, Math.round((1 + Math.floor(A.vangen / 5)) * (perfect ? 2 : 1) * 0.35)); /* 22 nov: was 3x zoveel (€ 251 in 40 s) */ A.geld += munt; A.vlieg.push({ x: 40 + Math.random() * 280, y: 470, t: 0, tekst: '+€' + munt });
     if (perfect) { A.tekst = A.combo > 1 ? `Perfetto! ×${A.combo}` : 'Perfetto!'; A.tt = 0.9; ding(1300, 0.06); } else ding(700, 0.05, 'triangle', 0.04);
-    if (A.vangen % 5 == 0) { A.geld += 5; A.flits = 0.6; A.tekst = ['Over de rug!', 'Dubbele draai!', 'Op één vinger!', 'Onder het been door!', 'Met de ogen dicht!'][(A.vangen / 5 - 1) % 5] + ' +€5'; A.tt = 1.3; kassa(); }
+    if (A.vangen % 5 == 0) { A.geld += 2; A.flits = 0.6; A.tekst = ['Over de rug!', 'Dubbele draai!', 'Op één vinger!', 'Onder het been door!', 'Met de ogen dicht!'][(A.vangen / 5 - 1) % 5] + ' +€5'; A.tt = 1.3; kassa(); }
     acroGooi(perfect ? 1.05 : 0.9);
   } else if (A.v < 0) { A.tekst = 'Te vroeg!'; A.tt = 0.6; A.combo = 0; } // het deeg is nog op weg omhoog
 }
@@ -3617,7 +3618,14 @@ const prijsV = (i) => i == 'deeg' ? BODEM.k : ING[i].k * (S.korting && S.korting
 const nodig = (p) => { const n = { deeg: TELT }; for (const s of p.stukjes) n[s.i] = (n[s.i] || 0) + TELT; return n; };
 const kanMaken = (p) => { const v = S.voorraad; if (!v) return true; const n = nodig(p); return Object.keys(n).every((i) => (v[i] || 0) >= n[i] - 0.01); };
 function gebruik(p) { if (!S.voorraad) return; const n = nodig(p); for (const i in n) { S.voorraad[i] = Math.max(0, (S.voorraad[i] || 0) - n[i]); verbruikt[i] = (verbruikt[i] || 0) + n[i];
-    if (modus == 'open' && S.voorraad[i] < n[i] * 3 && !gewaarschuwd.has(i)) { gewaarschuwd.add(i); setTimeout(() => meld(`⚠️ ${VNAAM(i)} is bijna op! Via 📦 Voorraad haalt iemand snel wat op de markt (dubbele prijs).`, 4000), 400); } } } // nog voor ±3 pizza's
+    if (modus == 'open' && S.voorraad[i] < n[i] * 3 && !gewaarschuwd.has(i)) { gewaarschuwd.add(i); bijnaOp(i); } } } // nog voor ±3
+function bijnaOp(i) { // venster (22 nov, speeltest: het meldinkje viel weg achter vragen): spoed van de markt of laten
+  const hoeveel = Math.max(15, Math.ceil((verbruikt[i] || 10) * 1.2)), l = { [i]: hoeveel }, prijs = Math.round(bestelPrijs(l, true));
+  const v = { id: 'bijnaop', ik: '👨‍🍳', wie: 'Mario de kok', zelf: true, vraag: `Baas! ${VNAAM(i)} is bijna op. Nog een paar pizza's en dan moeten klanten iets anders kiezen, of ze lopen weg.`,
+    a: [[`Snel naar de markt: ${hoeveel} stuks (€ ${prijs}, dubbele prijs)`, () => { inkopen(l, true); kassa(); return `Beppe fietst naar de markt en is zo terug. ${betaalTekst(laatsteBetaling)}`; }],
+      ['Laat maar, dan kiezen ze maar iets anders.', () => 'Mario haalt zijn schouders op. "Jij bent de baas." (Morgen: bestel ruimer bij 📦 Voorraad, of zet Mario\'s automatische inkoop aan.)']] };
+  setTimeout(function probeer() { if (modus != 'open') return; if (pauze) { setTimeout(probeer, 700); return; } toonVraag(v); }, 400);
+}
 const voorraadSoorten = () => ['deeg', ...new Set(S.menu.flatMap((p) => p.stukjes.map((s) => s.i)))];
 function voorstel() { // Mario is ruim (14 nov, Marcel: "anders hoef je niet na te denken"): 2× gisteren (of een schatting), en hij kijkt maar half wat er nog ligt; per 5
   const uit = {}, gist = S.verbruik || {}, v = S.voorraad || {};
@@ -4560,7 +4568,10 @@ doek.addEventListener('pointerdown', (e) => {
     if (!aanDeMuur(d, x)) { meld('Een schilderij hangt aan de muur: zet hem tegen de linker- of rechtermuur.'); return; }
     if (d.een && S.spullen.some((s) => s.t == kies)) { meld('Je hebt al een ' + d.n.toLowerCase() + '.'); return; }
     if (vanOpslag) { S.spullen.push({ ...uitOpslag, x, y }); S.opslag.splice(S.opslag.indexOf(uitOpslag), 1); uitOpslag = null; kies = null; plof(); bewaar(); meld('📦 Uit de opslag gehaald.', 2000); tekenKnoppen(); return; }
-    S.spullen.push({ t: kies, x, y, ...(SPUL[kies].kruid ? { sinds: S.dag } : {}), ...(kies == 'stoel' ? { stijl: S.stoelStijl || (S.houtStoel ? 'kussen' : 'streep') } : isTafel({ t: kies }) && S.houtTafel ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof(); bewaar(); // planten om de beurt een andere soort
+    S.spullen.push({ t: kies, x, y, ...(SPUL[kies].kruid ? { sinds: S.dag } : {}), ...(kies == 'stoel' ? { stijl: S.stoelStijl || (S.houtStoel ? 'kussen' : 'streep') } : isTafel({ t: kies }) && S.houtTafel ? { hout: 1 } : {}), ...(kies == 'plant' ? { v: S.spullen.filter((p) => p.t == 'plant').length % 4 } : {}) }); S.geld -= d.prijs; plof();
+    if (kies == 'stoel') { const c = S.spullen[S.spullen.length - 1], l = stoelTafels(x, y); // tussen twee tafels: bij de tafel met de minste stoelen (22 nov)
+      if (l.length > 1) { const best = l.map((k) => [k, stoelPlekken(k.tafel).filter((p) => p.stoel != c).length]).sort((a, b) => a[1] - b[1])[0][0]; c.bij = best.tafel.x + ',' + best.tafel.y; meld('Deze stoel staat tussen twee tafels: hij hoort bij de tafel met de minste stoelen. Tik erop om te wisselen.', 3500); } }
+    bewaar(); // planten om de beurt een andere soort
     if (d.een) kies = null;
     tekenKnoppen(); return;
   }
@@ -4889,14 +4900,14 @@ const DOELEN = [
   { id: 'kleedkaars', tip: "Tik op een tafel die al staat: daar kun je een kleedje en een kaarsje kiezen.", h: 1, k: 'g', f: 3, n: 'Een tafel met een kleedje én een kaarsje', ok: () => S.spullen.some((t) => isTafel(t) && kleedVan(t) && t.kaars) },
   { id: 'dertig', tip: "Meer tafels, een tweede ober en lekkere pizza's: dan krijg je meer tevreden klanten.", h: 1, k: 'g', f: 5, n: 'Haal 30 tevreden klanten op één dag', ok: () => (S.besteDag || 0) >= 30 },
   { id: 'rep40', tip: "Tevreden klanten vertellen het door. Gezellige tafels en lekkere pizza's helpen!", h: 1, k: 'g', f: 5, n: 'Bereik populariteit 40', ok: () => S.rep >= 40 },
-  { id: 'zelfbestel', tip: "Tik op 📦 Voorraad, zet het vinkje van Mario uit en bestel zelf. 'Zoals gisteren' is handig.", h: 1, k: 'g', f: 5, n: 'Bestel zelf je voorraad (zet Mario\'s automatische inkoop uit)', ok: () => heb('zelfbesteld') },
+  { id: 'zelfbestel', tip: "Tik op 📦 Voorraad, zet het vinkje van Mario uit en bestel zelf. 'Zoals gisteren' is handig.", h: 2, k: 'g', f: 5, n: 'Bestel zelf je voorraad (zet Mario\'s automatische inkoop uit)', ok: () => heb('zelfbesteld') },
   { id: 'vlekken', tip: "Tijdens het werk vallen er dingen op de grond. Tik op een vlek om hem op te ruimen.", h: 1, k: 'g', f: 3, n: 'Ruim 5 vlekken op in één dag', ok: () => heb('vlekken') },
   { id: 'rat', tip: "Komt er een rat van Luigi? Tik erop om hem te vangen!", h: 1, k: 'r', f: 3, n: 'Vang een rat van Luigi', ok: () => heb('rat') },
   { id: 'personeel', tip: "Tik op Personeel of Oven: met twee obers of twee ovens gaat alles sneller.", h: 1, k: 'g', f: 5, n: 'Neem een tweede ober of een tweede oven', ok: () => S.obers >= 2 || S.ovens >= 2 },
-  { id: 'ster5', tip: "Maak een pizza met van alles erop. Op de kaart zie je de sterren: probeer er 5 te halen.", h: 1, k: 'g', f: 10, n: 'Verzin een pizza van 5 sterren', ok: () => S.menu.some((p) => p.sinds && pizzaSter(p) >= 5) },
+  { id: 'ster5', tip: "Maak een pizza met van alles erop. Op de kaart zie je de sterren: probeer er twee van 5 sterren te maken.", h: 1, k: 'g', f: 10, n: 'Verzin twee pizza\'s van 5 sterren', ok: () => S.menu.filter((p) => p.sinds && pizzaSter(p) >= 5).length >= 2 },
   { id: 'voedselbank', h: 1, k: 'w', f: 5, n: 'Help de voedselbank', ok: () => antw('voedselbank:0') || antw('voedselbank:1') },
   { id: 'muzikant', h: 1, k: 'w', f: 3, n: 'Laat de straatmuzikant spelen', ok: () => antw('muzikant:0') },
-  { id: 'zes', tip: "Verzin meer pizza's: voor elk soort klant iets lekkers.", h: 2, k: 'g', f: 5, n: 'Zet 6 pizza\'s op de kaart', ok: () => S.menu.length >= 6 },
+  { id: 'zes', tip: "Verzin meer pizza's: voor elk soort klant iets lekkers.", h: 1, k: 'g', f: 5, n: 'Zet 6 pizza\'s op de kaart', ok: () => S.menu.length >= 6 },
   { id: 'pizzaregen', h: 1, k: 'g', f: 5, geheim: 'De oven wordt heel boos als je hem plaagt…', n: 'Pizzaregen! (7× snel op de oven tikken)', ok: () => heb('pizzaregen') },
   // H2 De stad in
   { id: 'stad', tip: "Tik linksboven op 🗺️ om de stad in te gaan.", h: 2, k: 'g', f: 3, n: 'Ga de stad in (🗺️)', ok: () => !!S.stad },
@@ -5087,6 +5098,7 @@ function marioTip() { // klein ballonnetje onderin met Mario en de volgende stap
   b.innerHTML = `<div style="flex:none;width:52px;height:88px;background:url(pizza/kok.png) 0 0 / auto 88px no-repeat"></div><div style="background:#fff7e0;border:2px solid #c0392b;border-radius:12px;padding:6px 9px;font:14px system-ui;color:#3a2a1a;box-shadow:0 3px 10px #0004">
     <b>Tip van Mario:</b> ${esc(d.tip || d.n)}<br><small style="opacity:.7">(${VLAGKLEUR[d.k][0]} +${d.f}) · tik = weg voor vandaag</small><br><button id="tipsuit" style="margin-top:4px;border:0;background:#e9d3ad;border-radius:8px;padding:3px 8px;font:12px system-ui;color:#3a2a1a">🔕 Geen tips meer</button></div>`;
   b.onclick = () => { S.tipWeg = S.dag; bewaar(); b.remove(); };
+  clearTimeout(marioTip.weg); marioTip.weg = setTimeout(() => { if ($('mariotip')) $('mariotip').remove(); }, 15000); // vanzelf weg na 15 s (komt morgen of na een gehaald doel terug)
   $('tipsuit').onclick = (e) => { e.stopPropagation(); S.tipsUit = true; bewaar(); b.remove(); meld('Geen tips meer van Mario. Aanzetten kan weer bij 🎯 Doelen.', 4000); }; }
 // verhaalplaten van ChatGPT (pizza/plaatN.jpg uit pizza/plaatN-chatgpt.png, extra/platen_knip.py): langzaam inzoomen, tekst regel voor regel, een liedje
 const VERHAAL = {
@@ -5312,6 +5324,7 @@ $('terug').onclick = (e) => {
 
 // ---------- start ----------
 // titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
+if (Math.min(innerWidth, innerHeight) < 600 && innerHeight > innerWidth) $('titeltablet').style.display = ''; // telefoon, staand
 $('welkom').addEventListener('click', function tik() { if ($('titelkaart').style.display != 'none') return; wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.laadStijl('effecten', ac); speelLied('funiculi', false, 'italiaans'); } $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; $('titelkaart').classList.add('in'); });
 $('begin').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); setTimeout(rondleiding, 200); };
 $('beginzelf').onclick = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); };

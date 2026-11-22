@@ -668,3 +668,7 @@ scrollen (de versieringslijst viel op de telefoon boven het scherm uit) en verbe
 als hoofdtip (`tel.uitverkocht > 3`); Pizzabaas 2: `hoofdstukKlaar` sluit eerst de stadskaart (het feestscherm viel erachter na het huren van de tweede zaak).
 Nog open uit de speeltest (keuze Marcel): minder vragen per dag, voorraad-waarschuwing in een venster, doel "inkoop uit" later, Mario's tip niet over de
 keuken, acrobatiek levert veel op (€ 251 in 40 s), stoel tussen twee tafels telt bij de verkeerde tafel, doel "5 sterren" te makkelijk.
+Uit de speeltest, keuze Marcel (22 nov, Pizzabaas 2): 1-3 vragen per dag (`planVragen`, was 2-4); voorraad bijna op = venster van Mario (`bijnaOp(i)`:
+spoed van de markt voor dubbele prijs, of laten); doel `zelfbestel` naar H2 en `zes` terug naar H1; Mario's tip verdwijnt vanzelf na 15 s (`marioTip.weg`);
+acrobatiek geeft ~een derde (munt × 0,35, kunstje +2); een nieuwe stoel tussen twee tafels hoort bij de tafel met de minste stoelen (`c.bij`, melding);
+doel `ster5` = twee pizza's van 5 sterren; op een staande telefoon zegt het titelscherm dat het spel het fijnst speelt op een tablet of liggend (`#titeltablet`).
