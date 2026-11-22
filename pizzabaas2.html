@@ -5397,7 +5397,7 @@ function rondleiding(n = 0) {
   if ($('rstop')) $('rstop').onclick = (e) => { e.stopPropagation(); o.remove(); hoofdIntro(); };
   o.onclick = (e) => { if (r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6) rondleiding(n + 1); };
 }
-if (S.nieuw && !TEGEL) { delete S.nieuw; bewaar(); } // net opnieuw begonnen: het titelscherm biedt Mario's rondleiding aan (zoals bij de allereerste keer)
+if (S.nieuw && !TEGEL) { delete S.nieuw; bewaar(); $('voorstart').remove(); $('welkom').classList.remove('wacht'); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; } // net opnieuw begonnen: geen voorblad, meteen het kaartje met de rondleiding (de muziek komt bij de volgende tik) // net opnieuw begonnen: het titelscherm biedt Mario's rondleiding aan (zoals bij de allereerste keer)
 else if (lees(SLEUTEL) && !TEGEL) { // je speelt al: titelscherm met Verder spelen (dat tikje maakt meteen het geluid wakker)
   $('titelnieuw').style.display = 'none'; $('titelverder').style.display = '';
   const verderSpelen = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); }; $('verderspelen').onclick = verderSpelen;

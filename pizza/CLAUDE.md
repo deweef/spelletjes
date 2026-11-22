@@ -705,3 +705,4 @@ Titelscherm (22 nov): "🎵 Tik om te beginnen" (een browser, zeker op de iPad, 
 Voor-voorblad (22 nov, idee Marcel): eerst `#voorstart` (rood-wit tafelkleed, logo, grote ronde 🍕 Start-knop; `#welkom.wacht` houdt het vallende logo
 tegen). Start = de tik die het geluid wakker maakt: de voorplaat komt met Funiculì meteen erbij, na 2,6 s komt het kaartje vanzelf (`startTitel`).
 In tests: eerst `#startknop` klikken (met force: hij pulseert), daarna het kaartje. Met `#tegel` wordt het voorblad overgeslagen.
+Na "Ja, helemaal opnieuw" (herstart = reload met `nieuw: true`): geen voorblad, meteen de voorplaat met het kaartje "Mario laat je alles zien" (zonder muziek: na een reload mag de browser pas na een tik geluid maken).
