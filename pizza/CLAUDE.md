@@ -689,3 +689,8 @@ met een schilderij komt Gerrit meteen (verplicht `gleufhoed`); de kunstrecherche
 de gokker opent de gokhal de tweede keer ook bij fout raden (`S.gokMis`); plaat 4 komt direct na de bruiloft (film of "bij Luigi"), plaat 5 direct na
 de eerste racewinst (`plaatNu`, `S.plaatGezien`; hoofdstukKlaar slaat hem dan over), plaat 5 heeft een slotregel; tik je zelf op Verder, dan schuift
 de plaat niet meer vanzelf door.
+Speeltest 3 (22 nov), gerepareerd: telefoontje/intro H3 verwijzen naar 🪴 Plant → Schilderij (niet de kunstuitleen; die leent alleen als er al een hangt);
+Barrie-tekst over de lopende klus; een vraag met al een citaat erin krijgt geen extra aanhalingstekens (`aanhaal`, ook in het managerlogboek);
+doel `recherche` telt ook "Kijkt u gerust" als ze niks vindt (`rechercheurNiks`); `#melding` z-index 12 (boven de schermen, zodat "Doel gehaald" bij
+de hoofdstukintro te zien is); bruiloftstekst zonder "morgen"; roulette schuift bij Draaien het wiel in beeld; "1 fiche"; na een misser komt de gokker
+vaker terug (60%); race: knop Sluiten schuift in beeld. Uit de test: race is leuk maar vrij makkelijk en kort (±35 s).
