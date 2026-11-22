@@ -748,3 +748,7 @@ Simulatie 30 dagen (2 → 6 tafels, 1 oven): 375 blije klanten, 2 boos weggelope
 (GEDULD = 25 s per tafel + 7 s per extra persoon): keuze aan Marcel of dat strenger moet.
 Geduld (22 nov, Marcel akkoord): GEDULD 22 (was 25) × per soort (`GEDULDSOORT`: student/werker 0,75, toerist 1, villa 1,15, opa 1,35). Simulatie 30 dagen: 377 blij, 15 boos (was 2), 344 geen plek; met 6 tafels en 1 oven ±4% boos.
 Wisselende jury (22 nov, Marcel): `juryVandaag()` vast per dag; ±1 op de 3 dagen de vaste jury (VASTEJURY, met jury.jpg), anders 3 gastjuryleden van verschillende soorten uit `GASTJURY` (namen, kaartjes met de emoji van de soort). Villabewoner/toerist in de jury: Luigi +1 per zo iemand (die vinden alles lekker).
+Haperende muziek (22 nov): js/muziek.js maakte bij `speel`/`speelMidi` in één keer alle noten van een heel lied aan (Funiculì = duizenden
+AudioBufferSources), daar haperde de iPad van. Nu plant een `planner` steeds ~5 s vooruit (elke seconde bijvullen); `Muziek.stop` verhoogt `B.gen`, dan
+worden de rest-noten niet meer ingepland. OfflineAudioContext (proefopnames) plant alles meteen. Bergkoning (plaat 3) was 10 s en laag: nu 4 keer, steeds
+sneller, daarna een octaaf hoger (18 s). De juryfoto wordt alvast geladen zodra je de stad in gaat en heeft een vaste maat (stond op de iPad half in beeld).

@@ -73,7 +73,14 @@ const Muziek = (() => {
       const r = (toon + kies[0]) % 12, m = 40 + ((r - 4 + 12) % 12); uit.push(NAAM[m % 12] + (Math.floor(m / 12) - 1) + ':' + Math.min(maat, u - a)); } // bas tussen E2 en D#3
     return (L._bas = uit.join(' '));
   }
-  function speel(ctx, L, t0, stijl = 'italiaans', lead) { // lead = solist (anders: L.lead, of willekeurig uit STIJL.leads)
+  // 22 nov: noten in stukjes inplannen (steeds ~5 s vooruit) in plaats van een heel lied in één keer: duizenden noten tegelijk aanmaken liet de iPad haperen
+  const nootNu = (...a) => noot(...a), slagNu = (...a) => slag(...a);
+  function planner(ctx) { const B = bus(ctx), gen = B.gen || 0, lijst = [], offline = typeof OfflineAudioContext != 'undefined' && ctx instanceof OfflineAudioContext; let i = 0;
+    const plan = () => { if ((B.gen || 0) != gen) return; const grens = offline ? Infinity : ctx.currentTime + 5; while (i < lijst.length && lijst[i][0] < grens) { try { lijst[i][1](); } catch (e) {} i++; } if (i < lijst.length) setTimeout(plan, 1000); };
+    return { noot: (...a) => lijst.push([a[4], () => nootNu(...a)]), slag: (...a) => lijst.push([a[2], () => slagNu(...a)]), start: () => { lijst.sort((a, b) => a[0] - b[0]); plan(); } }; }
+  function speel(ctx, L, t0, stijl = 'italiaans', lead) {
+    const P = planner(ctx), noot = P.noot, slag = P.slag; try { return speelNu(ctx, L, t0, stijl, lead, noot, slag); } finally { P.start(); } }
+  function speelNu(ctx, L, t0, stijl, lead, noot, slag) { // lead = solist (anders: L.lead, of willekeurig uit STIJL.leads)
     t0 = naFade(ctx, t0); const S = STIJL[stijl] || STIJL.italiaans, B = bus(ctx), tel = L.tempo, mel = [], uit = ctx.createGain();
     uit.gain.value = { hoempa: 1, klassiek: 1.1, rock: 0.42, volks: 0.45 }[S.soort] || 1; uit.connect(B.muz); // alle stijlen ongeveer even hard
     B.muz.gain.cancelScheduledValues(t0); B.muz.gain.setValueAtTime(1, t0);
@@ -102,7 +109,7 @@ const Muziek = (() => {
     return Math.max(eind, t);
   }
   const naFade = (ctx, t0) => { const B = bussen.get(ctx); return B && B.stilTot && B.stilTot > t0 ? B.stilTot + 0.05 : t0; }; // een nieuw lied begint pas als de vorige uitgefaad is (anders zet het de fade terug op vol)
-  function stop(ctx, fade = 1.2) { const B = bussen.get(ctx); if (!B) return; const nu = ctx.currentTime; B.stilTot = nu + fade; B.muz.gain.cancelScheduledValues(nu); B.muz.gain.setValueAtTime(B.muz.gain.value, nu); B.muz.gain.linearRampToValueAtTime(0.0001, nu + fade);
+  function stop(ctx, fade = 1.2) { const B = bussen.get(ctx); if (!B) return; B.gen = (B.gen || 0) + 1; /* noten die nog ingepland moesten worden: niet meer */ const nu = ctx.currentTime; B.stilTot = nu + fade; B.muz.gain.cancelScheduledValues(nu); B.muz.gain.setValueAtTime(B.muz.gain.value, nu); B.muz.gain.linearRampToValueAtTime(0.0001, nu + fade);
     const weg = B.bronnen; B.bronnen = []; setTimeout(() => { weg.forEach((b) => { try { b.stop ? b.stop() : b.disconnect(); } catch (e) {} }); }, fade * 1000 + 50); }
   function effect(ctx, naam) {
     if (!ctx || !klaar('effecten')) return false; const fx = bus(ctx).fx, t = ctx.currentTime + 0.02;
@@ -135,6 +142,8 @@ const Muziek = (() => {
     return rol;
   }
   function speelMidi(ctx, data, t0, stijl = 'italiaans', lead, snel = 1) { // -> eindtijd; snel = 1.1 is 10% sneller
+    const P = planner(ctx); try { return speelMidiNu(ctx, data, t0, stijl, lead, snel, P.noot, P.slag); } finally { P.start(); } }
+  function speelMidiNu(ctx, data, t0, stijl, lead, snel, noot, slag) {
     t0 = naFade(ctx, t0); const S = STIJL[stijl] || STIJL.italiaans, R = ROL[stijl] || ROL.italiaans, B = bus(ctx), uit = ctx.createGain();
     uit.gain.value = { hoempa: 1, klassiek: 1.1, rock: 0.45, volks: 0.5 }[S.soort] || 1; uit.connect(B.muz); B.muz.gain.cancelScheduledValues(t0); B.muz.gain.setValueAtTime(1, t0);
     const solo = lead || (S.leads ? S.leads[Math.floor(Math.random() * S.leads.length)] : S.mel); speel.laatste = solo;

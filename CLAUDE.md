@@ -61,7 +61,7 @@ Een lied is gewoon een notenlijst `{ noten: 'E4:1 A4:1 -:2 …', bas: 'A2:8 …'
 (eigen melodieën of oude volksliedjes en klassiek; geen moderne hits, die zijn beschermd). `Muziek.laadStijl(stijl, ctx)` laadt de instrumenten,
 `Muziek.speel(ctx, lied, t0, stijl, solist?)` arrangeert het (stijlen: `italiaans` contrabas/gitaar/strijkers met als solist willekeurig accordeon, mandoline (nylongitaar getokkeld) of viool (`STIJL.leads`, `Muziek.solist()` = de laatste), `rock` gitaar/basgitaar/drums,
 `volks` klarinet/tuba/accordeon/tamboerijn, `klassiek` viool/piano/cello; nieuwe stijl = regel in `STIJL`), `Muziek.stop(ctx)` faadt uit,
-`Muziek.effect(ctx, 'deurbel'|'bel'|'applaus'|'telefoon')`. Geluiden in `klank/<instrument>.json` (FluidR3 GM-soundfont van Frank Wen, CC BY 3.0:
+`Muziek.effect(ctx, 'deurbel'|'bel'|'applaus'|'telefoon')`. `speel`/`speelMidi` plannen de noten in stukjes (~5 s vooruit), anders hapert een iPad bij lange liedjes. Geluiden in `klank/<instrument>.json` (FluidR3 GM-soundfont van Frank Wen, CC BY 3.0:
 noem hem in het spel, zie `klank/LEESMIJ.md`); een nieuw instrument toevoegen met `extra/klank_knip.py` (download staat erin; raw.githubusercontent.com
 is vanuit de cloud bereikbaar). Per stijl ±1-1,4 MB, alleen geladen als hij nodig is; de service worker bewaart ze daarna offline.
 Zelf horen kan Claude het niet: maak een proefopname (Playwright + `OfflineAudioContext`, `Muziek.speel(off, …)`, `startRendering`, ffmpeg naar mp3)
