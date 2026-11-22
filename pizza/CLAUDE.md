@@ -707,3 +707,4 @@ tegen). Start = de tik die het geluid wakker maakt: de voorplaat komt met Funicu
 In tests: eerst `#startknop` klikken (met force: hij pulseert), daarna het kaartje. Met `#tegel` wordt het voorblad overgeslagen.
 Na "Ja, helemaal opnieuw" (herstart = reload met `nieuw: true`): geen voorblad, meteen de voorplaat met het kaartje "Mario laat je alles zien" (zonder muziek: na een reload mag de browser pas na een tik geluid maken).
 Rondleiding (22 nov): de titelmuziek speelt door tot de rondleiding klaar is of overgeslagen wordt (`rondeKlaar`); na opnieuw beginnen start hij bij "Mario laat je alles zien".
+Doelen (22 nov, Marcel): een gehaald doel geeft alleen vlagfiches, geen geld meer (was f × € 2); de rondleiding zegt dat ook.

@@ -4914,7 +4914,7 @@ function zaakWaarde() {
   return Math.max(0, Math.round(w));
 }
 // ---------- doelen: aan de hand nemen in het begin (alleen de gewone kant van het spel; de schimmige wereld zoek je zelf uit) ----------
-// S.doelen = { id: dag gehaald }. controleerDoelen kijkt na elke actie (tekenKnoppen) en na elke dag; per gehaald doel een vinkje en wat geld.
+// S.doelen = { id: dag gehaald }. controleerDoelen kijkt na elke actie (tekenKnoppen) en na elke dag; per gehaald doel een vinkje en vlagfiches (sinds 22 nov geen geld meer).
 // Pizzabaas 2 (16 nov): 6 hoofdstukken, elk 15 doelen; doelen geven vlagfiches (k: g groen eerlijk, w wit goed voor de stad, r rood schimmig; f = aantal).
 // Een hoofdstuk is af bij HOOFDNODIG doelen en zijn afsluiter (HOOFDSTUK[h].af). Doelen van latere hoofdstukken tellen pas als je daar bent.
 const HOOFDNODIG = 10;
@@ -5036,7 +5036,7 @@ function controleerDoelen() {
   S.vroeg = S.vroeg || {}; for (const d of DOELEN) if (d.h > hoofd() && !S.vroeg[d.id] && okNu(d)) S.vroeg[d.id] = S.dag; // al gedaan vóór het hoofdstuk van dat doel: telt zodra je daar bent (22 nov)
   if (S.hoofdBonus == null) { S.hoofdBonus = hoofd() - 1; for (const k of ['g', 'w', 'r']) S.vlag[k] += 10 * S.hoofdBonus; } // oude standen: de hoofdstukbonus alsnog
   const nu = DOELEN.filter((d) => d.h <= hoofd() && !S.doelen[d.id] && (S.vroeg[d.id] || okNu(d)));
-  if (nu.length) { let geld = 0; for (const d of nu) { S.doelen[d.id] = S.dag; geld += d.f * 2; S.vlag[d.k] += d.f; } S.geld += geld; bewaar(); kassa();
+  if (nu.length) { for (const d of nu) { S.doelen[d.id] = S.dag; S.vlag[d.k] += d.f; } bewaar(); kassa(); /* een doel geeft vlagfiches, geen geld (22 nov) */
     meld(`🎯 Doel gehaald: ${nu.map((d) => d.n + ' ' + VLAGKLEUR[d.k][0] + '+' + d.f).join(' · ')}`, 4500, true); if ($('mariotip')) setTimeout(marioTip, 400); }
   const H = hoofd(), mijn = DOELEN.filter((d) => d.h == H), af = mijn.filter((d) => S.doelen[d.id]).length;
   $('doelknop').innerHTML = `<img src="pizza/doel.png" alt="🎯"><b>H${H} ${Math.min(af, HOOFDNODIG)}/${HOOFDNODIG}</b>`;
@@ -5382,7 +5382,7 @@ const RONDE = [
   ['[data-pizza]', "Hier verzin je je eigen pizza's. Studenten, opa's en toeristen houden allemaal van iets anders!"],
   ['[data-p="ober"]', 'Hier neem je obers aan, en later een manager die op de zaak past.'],
   ['#open', 'Klaar? Open de deuren! Klanten komen binnen, bestellen en eten. Laat ze niet te lang wachten.'],
-  ['#doelknop', 'Weet je even niet wat je moet doen? Hier staan je doelen. Elk doel geeft wat geld.'],
+  ['#doelknop', 'Weet je even niet wat je moet doen? Hier staan je doelen. Elk doel geeft vlagfiches 🟢⚪🔴: daarmee hijs je aan het eind de Italiaanse vlag op de toren.'],
   ['#stadknop', 'En hier ga je de stad in: de markt, de bank… en wie weet wat nog meer. 😉'],
   [null, 'Dat was het! Succes, baas. Maak er de beste pizzeria van de stad van!'] ];
 function rondeKlaar(o) { o.remove(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } hoofdIntro(); } // pas na de rondleiding stopt de titelmuziek
