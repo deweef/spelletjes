@@ -694,3 +694,9 @@ Barrie-tekst over de lopende klus; een vraag met al een citaat erin krijgt geen 
 doel `recherche` telt ook "Kijkt u gerust" als ze niks vindt (`rechercheurNiks`); `#melding` z-index 12 (boven de schermen, zodat "Doel gehaald" bij
 de hoofdstukintro te zien is); bruiloftstekst zonder "morgen"; roulette schuift bij Draaien het wiel in beeld; "1 fiche"; na een misser komt de gokker
 vaker terug (60%); race: knop Sluiten schuift in beeld. Uit de test: race is leuk maar vrij makkelijk en kort (±35 s).
+Keuze Marcel (22 nov): race langer en moeilijker: 480 m (was 320), 5 bochten, Henk 8,6 en Luigi 8,8 (max 9), bananen om de ~4,6 s, AI minder vaak
+te laat (11%/8%), en wie meer dan 6 m achterligt geeft 7% extra gas (blijft spannend). Testbot: ±58 s per race, finishes binnen een paar meter;
+met weinig fouten win je soms, met veel fouten niet. Wijnkelder: bij het namaken geen Terug-knop meer (spieken kon). Nieuw: Café 't Achterafje
+(PLEK `kroeg`, het bakstenen pand met de luifel links van de markt, open vanaf H4): Barrie zit er altijd, met dezelfde menukaart
+(`barrieBlok()`, `barrieKnoppen()`, `toonKroeg()`; `inKroeg` zorgt dat de minispelletjes daarna terug naar het café gaan; als je Barrie nog
+niet kende, leer je hem daar kennen). Plaatje voor het café: nog vragen aan ChatGPT (nu alleen tekst).

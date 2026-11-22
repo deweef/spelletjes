@@ -1897,7 +1897,7 @@ function stapBezoeker(dt) {
 // luikOpen / deurOpen = 0 (dicht) … 1 (open); het deurtje is er pas als je de achterkamer kent (of als Gerrit hem net laat zien)
 function haakPlek() { // waar je moet staan om de sleutel te pakken: naast het schilderij (zaak 1), of null (dan hangt hij bij het deurtje)
   const s = !S.zaak && S.spullen.find((t) => t.t == 'schilderij'); return s ? [s.x == 0 ? 1 : W - 1, s.y + 0.6] : null; }
-function naarAchter() { achterPauze = true; S.achterDag = S.dag; vandaag.sleutelWeg = true; bewaar(); tekenKnoppen(); toonAchterkamer(); }
+function naarAchter() { inKroeg = false; achterPauze = true; S.achterDag = S.dag; vandaag.sleutelWeg = true; bewaar(); tekenKnoppen(); toonAchterkamer(); }
 function kamerBezoek() { // wie komt er vandaag voor de achterkamer (of niemand)? Een droge vervalsing wordt opgehaald
   const droogLigt = (S.vervalsingen || []).some((f) => f.dag < S.dag);
   if (S.barrie && kans(0.3)) return 'barrieLangs'; // (was 0,2 en alleen als er geen klus liep; nu kan er elke dag een streek bij)
@@ -2164,7 +2164,7 @@ const torenOpen = () => S.toren && S.toren.open;
 // je niet van baan wisselen, achter iemand moet je inhalen (je kunt er niet doorheen). Bochten (`race.bochten` = [van, tot, richting]): de weg schuift
 // opzij en de binnenbaan gaat 8% sneller. Henk snijdt in de grote bocht af over het gras (40%: vast in het rozenperk). Luigi gooit bananen die je
 // door de lucht ziet vliegen (`race.vlieg`), meestal voor jouw wielen; Henk en Luigi glijden er zelf ook over uit.
-const RACE = { lengte: 320, max: 9, henk: 8.45, luigi: 8.7, banaan: 5.5, px: 22 }, TEHUIS = { n: 20, korting: 0.8 };
+const RACE = { lengte: 480, max: 9, henk: 8.6, luigi: 8.8, banaan: 4.6, px: 22 } /* 22 nov: langer (was 320) en moeilijker */, TEHUIS = { n: 20, korting: 0.8 };
 const BAANX = (l) => (l - 1) * 82;
 let race = null;
 function toonRace() {
@@ -2181,7 +2181,7 @@ function raceStuur(d) { if (!race || race.uit) return; const R = race, ik = R.r[
   ik.baan = L; ding(700, 0.04, 'triangle', 0.04); }
 addEventListener('keydown', (e) => { if (!race || $('race').classList.contains('verborgen')) return; if (e.key == 'ArrowLeft') raceStuur(-1); if (e.key == 'ArrowRight') raceStuur(1); if (e.key == ' ' && !race.go) raceStuur(0); });
 function startRace() {
-  const L = RACE.lengte, bochten = [[55, 95, -1], [135, 185, 1], [220, 260, -1]], dingen = [];
+  const L = RACE.lengte, bochten = [[55, 95, -1], [135, 185, 1], [220, 260, -1], [310, 350, 1], [400, 440, -1]], dingen = [];
   for (let m = 28; m < L - 12; m += 12 + Math.random() * 9) { const vrij = Math.floor(Math.random() * 3), soort = Math.random() < 0.14 ? '🍕' : Math.random() < 0.12 ? '🍌' : pak(['🐈', '🪴', '🧺', '🛒']);
     for (let b = 0; b < 3; b++) if (b != vrij && (b == (vrij + 1) % 3 || Math.random() < 0.3)) dingen.push({ m: m + Math.random() * 3, b, s: soort == '🍕' && b != (vrij + 1) % 3 ? pak(['🐈', '🪴']) : soort, weg: false }); }
   const p = (id, baan, vmax) => ({ id, m: 0, v: 0, x: baan, baan, slip: 0, boost: 0, bots: 0, vmax, kijk: Math.random() * 0.3, cut: null });
@@ -2196,7 +2196,7 @@ function raceAI(p, dt) { const R = race;
   const gevaar = (L) => { const d = R.dingen.filter((o) => !o.weg && o.b == L && o.m > p.m && o.m < p.m + 14 && o.s != '🍕').reduce((a, o) => Math.min(a, o.m - p.m), 99);
     const voor = R.r.some((q) => q != p && Math.abs(q.x - L) < 0.6 && q.m > p.m && q.m - p.m < 3 && q.v < p.v) ? 3 : 99; return Math.min(d, voor); };
   const nu = gevaar(p.baan); if (nu > 13 && !(raceBocht(p.m + 6) && Math.random() < 0.3)) return;
-  if (Math.random() < (p.id == 'henk' ? 0.16 : 0.12)) return; // soms te laat
+  if (Math.random() < (p.id == 'henk' ? 0.11 : 0.08)) return; // soms te laat
   const kandidaten = [p.baan - 1, p.baan + 1].filter((L) => raceVrij(p, L)).sort((a, b) => gevaar(b) - gevaar(a) + raceBocht(p.m + 6) * (a - b) * 0.3);
   if (kandidaten.length && gevaar(kandidaten[0]) > nu) p.baan = kandidaten[0];
 }
@@ -2224,7 +2224,7 @@ function raceLus(nu) {
         else { p.v += (p.vmax - p.v) * Math.min(1, dt * 1.5); p.m += p.v * dt * 1.55; if (C.stuk && C.t > 1.1 && !C.geweest) { C.geweest = true; C.vast = true; C.t = 0; R.tekst = 'Henk zit vast in het rozenperk! 🌹'; R.tt = 2; boos(); } }
         if (p.m >= C.tot) { p.cut = null; p.baan = raceVrij(p, C.terug) ? C.terug : 1; p.x = p.baan; } continue; }
       p.x += (p.baan - p.x) * Math.min(1, dt * 9);
-      const doel = p.slip > 0 ? 2 : p.boost > 0 ? p.vmax + 4 : p.vmax; p.v += (doel - p.v) * Math.min(1, dt * (p.slip > 0 ? 4 : p == ik ? 1.1 : 0.9));
+      const inhaal = p != ik && ik.m - p.m > 6 ? 1.07 : 1; /* wie achterligt, geeft extra gas: het blijft spannend */ const doel = p.slip > 0 ? 2 : p.boost > 0 ? p.vmax + 4 : p.vmax * inhaal; p.v += (doel - p.v) * Math.min(1, dt * (p.slip > 0 ? 4 : p == ik ? 1.1 : 0.9));
       for (const q of R.r) if (q != p && !q.cut && Math.abs(q.x - p.x) < 0.55 && q.m > p.m && q.m - p.m < 1.3) {
         if (q == ik && p.v > q.v + 1.2 && !(R.boem > 0)) { R.boem = 1.5; ik.slip = 0.45; ik.v *= 0.55; R.tekst = p.id == 'henk' ? 'BOEM! Henk rijdt achterop!' : 'BOEM! Luigi ramt je van achteren!'; R.tt = 1.3; boos(); if (ac) klak(ac.currentTime, 0.15, 300, 0.2); } // aangereden van achteren
         p.v = Math.min(p.v, q.v * 0.95); if (p == ik && R.tt <= 0) { R.tekst = q.id == 'henk' ? 'Je zit achter Henk: inhalen!' : 'Luigi blokkeert je: inhalen!'; R.tt = 0.8; } }
@@ -2636,16 +2636,15 @@ function wijnBlok() {
 function toonWijn() {
   wijnMaak = wijnMaak || { fles: 0, jaar: WIJNJAAR[0], deco: [] }; const o = S.wijnOrder, m = wijnMaak;
   $('achterkaart').innerHTML = `<h1>🍷 Château Kraanwater</h1>
-    <p class="buurt">Wijn uit een pak van € 3, een trechter en een mooi etiket. Bestelling: <b>${esc(WIJNNAAM[o.naam])}</b>. Weet je nog hoe de echte fles eruitzag? Welke fles, welke versieringen en welk jaar? (Kijk gerust nog eens met Terug.)</p>
+    <p class="buurt">Wijn uit een pak van € 3, een trechter en een mooi etiket. Bestelling: <b>${esc(WIJNNAAM[o.naam])}</b>. Weet je nog hoe de echte fles eruitzag? Welke fles, welke versieringen en welk jaar? (Terugkijken kan niet meer: de flessen staan al klaar.)</p>
     <p><b>Welke fles?</b><br>${[0, 1, 2, 3].map((i) => `<button class="knop ${m.fles == i ? 'rood' : ''}" data-fles="${i}" style="padding:2px">${wijnDing(i, 54)}</button>`).join(' ')}</p>
     <p><b>Wat komt er op het etiket?</b> (tik aan of uit)<br>${WIJNDECO.map((i) => `<button class="knop ${m.deco.includes(i) ? 'rood' : ''}" data-deco="${i}" style="padding:2px">${wijnDing(i, 46)}</button>`).join(' ')}</p>
     <p><b>Jaartal</b><br>${WIJNJAAR.map((j) => `<button class="knop ${m.jaar == j ? 'rood' : ''}" data-jaar="${j}">${j}</button>`).join(' ')}</p>
-    <div class="rij"><button class="knop rood" id="wijnvul">🍾 Vullen en etiketten plakken</button><button class="knop" id="wijnterug">Terug</button></div>`;
+    <div class="rij"><button class="knop rood" id="wijnvul">🍾 Vullen en etiketten plakken</button></div>`; // geen Terug meer (22 nov): anders kun je spieken
   const k = $('achterkaart');
   k.querySelectorAll('[data-fles]').forEach((b) => b.onclick = () => { m.fles = +b.dataset.fles; toonWijn(); });
   k.querySelectorAll('[data-jaar]').forEach((b) => b.onclick = () => { m.jaar = +b.dataset.jaar; toonWijn(); });
   k.querySelectorAll('[data-deco]').forEach((b) => b.onclick = () => { const i = +b.dataset.deco; m.deco = m.deco.includes(i) ? m.deco.filter((x) => x != i) : [...m.deco, i]; toonWijn(); });
-  $('wijnterug').onclick = () => toonAchterkamer();
   $('wijnvul').onclick = () => { const goedDeco = WIJNDECO.filter((i) => o.deco.includes(i) == m.deco.includes(i)).length / WIJNDECO.length;
     const q = goedDeco * 0.6 + (m.jaar == o.jaar ? 0.25 : 0) + (m.fles == o.fles ? 0.15 : 0); S.geld -= WIJNBATCH.prijs; kassa();
     S.wijn = { n: WIJNBATCH.n, q, naam: o.naam, jaar: o.jaar }; mijl('wijn'); nieuweWijnOrder(); wijnMaak = null; bewaar(); tekenKnoppen(); ding(900, 0.06); setTimeout(() => ding(700, 0.06), 90);
@@ -2938,7 +2937,27 @@ function doeKlus(k) {
 const ruzieTekst = () => { const z = S.ruzie || 0; return z < 1 ? '😇 vrede' : z < 30 ? '😐 rustig' : z < 60 ? '😠 gespannen' : '🤬 oorlog'; };
 function persZaak() { // in welke zaak staat de drukpers? (S.persZaak; oude opslag: de zaak in de studentenbuurt, anders de eerste)
   if (S.persZaak != null) return S.persZaak; const i = S.zaken.findIndex((z, j) => (j == S.zaak ? S.buurt : z.buurt) == 'studenten'); return i >= 0 ? i : 0; }
-function toonAchterkamer() {
+function barrieBlok() { return `${S.barrie ? `<div class="opdracht"><div class="portret" style="background-position:-425px 0;flex:none;margin:0"></div><div><b>Barrie de Bink</b><br>${barrieUit ? esc(barrieUit) : klusVandaag() ? `"Luigi heeft het even druk met… problemen. Hehe. Eén klus per dag, baas: morgen sta ik weer voor je klaar."` : klusLoopt() ? `"Mijn vorige klusje (${KLUS[S.klus.k].ik} ${esc(KLUS[S.klus.k].n)}) loopt nog tot ${esc(datumLang(S.klus.tot))}. Nog een streek? Dan vervangt die de oude."` : '"Zeg het maar, baas. Wat mag het zijn?"'}
+      <br><small>Ruzie met Luigi: <b>${ruzieTekst()}</b>${S.luigiRust > S.dag ? ` (wapenstilstand tot ${esc(datumLang(S.luigiRust))}; een klus maakt er een eind aan)` : ''}. Hoe meer ruzie, hoe vaker Luigi terugslaat.</small></div></div>
+      <div style="background:#fbf3df;border:2px solid #6b4a2b;border-radius:8px;padding:8px 10px;margin:6px 0;font-family:Georgia,serif"><div style="text-align:center;font-weight:bold">📜 Barrie's menukaart · deze week</div>
+      ${Object.entries(KLUS).map(([k, d]) => { const tag = klusWeek()[k], pr = klusPrijs(k), net = S.klusGedaan && S.klusGedaan[k] > S.dag - 7, op = tag == 'op', kan = !net && !klusVandaag() && !op && S.geld >= pr;
+        return `<div style="display:flex;align-items:center;gap:6px;border-top:1px dashed #c9b48a;padding:5px 0;${op ? 'opacity:.55' : ''}"><span style="font-size:22px">${d.ik}</span><span style="flex:1">${esc(d.n)}<br><small>${net ? `⏳ Net gedaan: Luigi let nog op. Weer vanaf ${esc(datumLang(S.klusGedaan[k] + 7))}.` : op ? `❌ ${esc(KLUSOP[(week() + k.length) % KLUSOP.length])}` : tag == 'aanbieding' ? `<s>€ ${d.prijs}</s> <b style="color:#2e9d52">€ ${pr} · AANBIEDING!</b>` : tag == 'duur' ? `<b style="color:#c0392b">€ ${pr}</b> · "Extra duur deze week, baas. Ik heb schulden."` : `€ ${pr}`} · ${d.dagen} dagen meer klanten</small></span>
+          <button class="knop rood" data-klus="${k}" style="padding:6px 10px" ${kan ? '' : 'disabled'}>${net ? 'Wacht' : op ? 'Op' : 'Doen'}</button></div>`; }).join('')}
+      ${klusVandaag() ? '' : '<small>Te weinig contant? Haal geld van de bank. Elke maandag een nieuwe kaart.</small>'}</div>
+      <div class="rij">${Object.entries(VREDE).map(([k, d]) => `<button class="knop" data-vrede="${k}" ${!S.ruzie || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} Vrede: ${esc(d.n)} voor Luigi (€ ${d.prijs})</button>`).join('')}</div>` : ''}`; } // Barrie's menukaart: in de achterkamer en in Café 't Achterafje
+let inKroeg = false; // in het café: de minispelletjes van Barrie komen terug via toonAchterkamer, dat dan het café toont
+function toonKroeg() { inKroeg = true; const nieuw = !S.barrie; if (nieuw) { S.barrie = S.dag; mijl('barrie'); bewaar(); }
+  $('achterkaart').innerHTML = `<h1>🍺 Café 't Achterafje</h1><p class="buurt">Bruine tafels, een flipperkast die al sinds 1987 kapot is en een barman die nooit iets heeft gezien. Achterin, in het hoekje onder de dartborden, zit Barrie de Bink met een bitterbal.</p>
+    ${nieuw ? '<p class="vraagtekst">"Hé, jij bent toch die pizzabaas? Barrie de Bink. Ik doe… klusjes. Vooral voor mensen die last hebben van Luigi." Hij schuift een vettige menukaart over tafel.</p>' : ''}
+    ${barrieBlok()}<div class="rij"><button class="knop" id="achterdicht">🗺️ Terug naar de stad</button></div>`;
+  $('stad').classList.add('verborgen'); $('achter').classList.remove('verborgen');
+  $('achterdicht').onclick = () => { inKroeg = false; $('achter').classList.add('verborgen'); barrieUit = ''; toonStad('kroeg'); };
+  barrieKnoppen(toonKroeg); }
+function barrieKnoppen(terug) {
+  $('achterkaart').querySelectorAll('[data-klus]').forEach((b) => b.onclick = () => { if (KLUSSPEL[b.dataset.klus]) { KLUSSPEL[b.dataset.klus](); return; } barrieUit = doeKlus(b.dataset.klus); kassa(); bewaar(); tekenKnoppen(); terug(); });
+  $('achterkaart').querySelectorAll('[data-vrede]').forEach((b) => b.onclick = () => { const d = VREDE[b.dataset.vrede]; ge(-d.prijs); S.ruzie = 0; S.luigiRust = S.dag + d.dagen;
+    mijl('vrede'); barrieUit = `Barrie brengt Luigi een ${d.n.toLowerCase()}. Luigi snuift, drinkt hem in één keer leeg en mompelt: "Va bene. Even geen ruzie." (${d.dagen} dagen wapenstilstand)`; bewaar(); tekenKnoppen(); terug(); }); }
+function toonAchterkamer() { if (inKroeg) { toonKroeg(); return; }
   if (!S.opdracht || S.opdracht.tot < S.dag) nieuweOpdracht();
   const o = S.opdracht, klaar = (S.vervalsingen || []);
   const eerste = !S.zaak, pers = eerste ? S.pers && persZaak() == 0 : S.buurt == 'studenten', gok = S.buurt == 'toeristen', wijn = S.buurt == 'villa';
@@ -2956,23 +2975,14 @@ function toonAchterkamer() {
     <div class="rij">${!S.pers ? `<button class="knop rood" id="perskoop" ${S.geld < PERS ? 'disabled' : ''}>🖨️ Drukpers opknappen (€ ${PERS})</button>` : `<button class="knop rood" id="druk" ${S.geld < INKT || (S.bonnen && S.bonnen.tot >= S.dag) ? 'disabled' : ''}>🖨️ Bonnen drukken (€ ${INKT} inkt)</button><button class="knop" id="nepgeld" ${S.nepgeld || S.geld < 15 ? 'disabled' : ''}>💶 ${S.nepgeld ? 'Nepgeld ligt in de la' : 'Envelop nepgeld drukken (€ 15)'}</button>`}</div>
     ${S.pers ? '<p class="buurt" style="margin:0">💶 Nepgeld: niet zelf uitgeven! Een envelop in de la, voor als de vrienden van Luigi ooit komen "ophalen"…</p>' : ''}
     ` : ''}<div class="opdracht" style="display:block"><b>💻 De laptop</b> <small>(crypto: samen ${euro(cryptoWaarde())})</small>${cryptoBlok(false)}</div>
-    ${S.barrie ? `<div class="opdracht"><div class="portret" style="background-position:-425px 0;flex:none;margin:0"></div><div><b>Barrie de Bink</b><br>${barrieUit ? esc(barrieUit) : klusVandaag() ? `"Luigi heeft het even druk met… problemen. Hehe. Eén klus per dag, baas: morgen sta ik weer voor je klaar."` : klusLoopt() ? `"Mijn vorige klusje (${KLUS[S.klus.k].ik} ${esc(KLUS[S.klus.k].n)}) loopt nog tot ${esc(datumLang(S.klus.tot))}. Nog een streek? Dan vervangt die de oude."` : '"Zeg het maar, baas. Wat mag het zijn?"'}
-      <br><small>Ruzie met Luigi: <b>${ruzieTekst()}</b>${S.luigiRust > S.dag ? ` (wapenstilstand tot ${esc(datumLang(S.luigiRust))}; een klus maakt er een eind aan)` : ''}. Hoe meer ruzie, hoe vaker Luigi terugslaat.</small></div></div>
-      <div style="background:#fbf3df;border:2px solid #6b4a2b;border-radius:8px;padding:8px 10px;margin:6px 0;font-family:Georgia,serif"><div style="text-align:center;font-weight:bold">📜 Barrie's menukaart · deze week</div>
-      ${Object.entries(KLUS).map(([k, d]) => { const tag = klusWeek()[k], pr = klusPrijs(k), net = S.klusGedaan && S.klusGedaan[k] > S.dag - 7, op = tag == 'op', kan = !net && !klusVandaag() && !op && S.geld >= pr;
-        return `<div style="display:flex;align-items:center;gap:6px;border-top:1px dashed #c9b48a;padding:5px 0;${op ? 'opacity:.55' : ''}"><span style="font-size:22px">${d.ik}</span><span style="flex:1">${esc(d.n)}<br><small>${net ? `⏳ Net gedaan: Luigi let nog op. Weer vanaf ${esc(datumLang(S.klusGedaan[k] + 7))}.` : op ? `❌ ${esc(KLUSOP[(week() + k.length) % KLUSOP.length])}` : tag == 'aanbieding' ? `<s>€ ${d.prijs}</s> <b style="color:#2e9d52">€ ${pr} · AANBIEDING!</b>` : tag == 'duur' ? `<b style="color:#c0392b">€ ${pr}</b> · "Extra duur deze week, baas. Ik heb schulden."` : `€ ${pr}`} · ${d.dagen} dagen meer klanten</small></span>
-          <button class="knop rood" data-klus="${k}" style="padding:6px 10px" ${kan ? '' : 'disabled'}>${net ? 'Wacht' : op ? 'Op' : 'Doen'}</button></div>`; }).join('')}
-      ${klusVandaag() ? '' : '<small>Te weinig contant? Haal geld van de bank. Elke maandag een nieuwe kaart.</small>'}</div>
-      <div class="rij">${Object.entries(VREDE).map(([k, d]) => `<button class="knop" data-vrede="${k}" ${!S.ruzie || S.geld < d.prijs ? 'disabled' : ''}>${d.ik} Vrede: ${esc(d.n)} voor Luigi (€ ${d.prijs})</button>`).join('')}</div>` : ''}
+    ${barrieBlok()}
     ${eerste ? '<p class="buurt">Pas op: er loopt een kunstrechercheur door de stad. Laat geen vervalsingen te lang liggen.</p>' : ''}<div class="rij"><button class="knop" id="achterdicht">Deur dicht</button></div>`;
   if ($('gokken')) $('gokken').onclick = () => toonGokhal();
   if ($('wijnmaak')) $('wijnmaak').onclick = () => toonWijn();
   $('achter').classList.remove('verborgen');
   $('achterdicht').onclick = () => { $('achter').classList.add('verborgen'); barrieUit = ''; };
   koppelCrypto($('achterkaart'), PROVISIE, toonAchterkamer);
-  $('achterkaart').querySelectorAll('[data-klus]').forEach((b) => b.onclick = () => { if (KLUSSPEL[b.dataset.klus]) { KLUSSPEL[b.dataset.klus](); return; } barrieUit = doeKlus(b.dataset.klus); kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); });
-  $('achterkaart').querySelectorAll('[data-vrede]').forEach((b) => b.onclick = () => { const d = VREDE[b.dataset.vrede]; ge(-d.prijs); S.ruzie = 0; S.luigiRust = S.dag + d.dagen;
-    mijl('vrede'); barrieUit = `Barrie brengt Luigi een ${d.n.toLowerCase()}. Luigi snuift, drinkt hem in één keer leeg en mompelt: "Va bene. Even geen ruzie." (${d.dagen} dagen wapenstilstand)`; bewaar(); tekenKnoppen(); toonAchterkamer(); });
+  barrieKnoppen(toonAchterkamer);
   if ($('nepgeld')) $('nepgeld').onclick = () => { ge(-15); S.nepgeld = 1; mijl('nepgeld'); kassa(); bewaar(); tekenKnoppen(); meld('💶 Een dikke envelop met briefjes van 50. Op elk briefje staat Barrie. Hij ligt in de la.', 4000); toonAchterkamer(); };
   if ($('perskoop')) $('perskoop').onclick = () => { S.geld -= PERS; S.pers = true; S.persZaak = S.zaak; kassa(); bewaar(); tekenKnoppen(); toonAchterkamer(); };
   if ($('druk')) $('druk').onclick = () => { S.geld -= INKT; bewaar(); tekenKnoppen(); toonDrukken(); };
@@ -3196,6 +3206,7 @@ const PLEK = {
   tehuis: { n: 'Huize Avondrood', ik: '👵', x: 300, y: 650, b: 120, h: 110 },
   ijssalon: { n: 'IJssalon', ik: '🍨', x: 925, y: 618, b: 75, h: 95 }, // 15 nov: huisje bij de bouwplaats (was bovenaan, tussen de pizzeria's)
   gianni: { n: 'Gelateria Gianni', ik: '🍦', x: 205, y: 270, b: 95, h: 130 },
+  kroeg: { n: "Café 't Achterafje", ik: '🍺', x: 400, y: 405, b: 130, h: 110 }, // 22 nov: Barrie de Bink zit hier altijd (vanaf H4); het bakstenen pand met de luifel
 };
 // ---------- de ijssalon (14 nov) en Gianni IJskoud, oud-collega én aartsvijand van Luigi ----------
 // S.ijs = { sinds, vitrine: [4 smaken], prijs (per bol), choco (warme chocomel in de winter), rep, gisteren: { klanten, winst, tekst } }
@@ -3304,7 +3315,7 @@ function marktAanbod() { // drie aanbiedingen per dag (vast per dag, zodat ze ni
 }
 // Pizzabaas 2: plekken in de stad gaan per hoofdstuk open (PLEKH = vanaf welk hoofdstuk). De panden te huur zijn er vanaf het begin: je tweede zaak is
 // de afsluiter van hoofdstuk 1. Snelle Sjonnie bij de achterkamer (3), ijs, tehuis en Gianni in 5; de toren zelf betalen pas in 6.
-const PLEKH = { studenten: 2, kunst: 2, bouw: 2, college: 2, wissel: 3, ijssalon: 5, gianni: 5, tehuis: 5 };
+const PLEKH = { studenten: 2, kunst: 2, bouw: 2, college: 2, wissel: 3, kroeg: 4, ijssalon: 5, gianni: 5, tehuis: 5 };
 const plekOpen = (id) => hoofd() >= (PLEKH[id] || 1);
 function toonStad(plek) {
   if (plek && !plekOpen(plek)) { meld(`🔒 ${PLEK[plek].n}: gaat open in hoofdstuk ${PLEKH[plek]}.`, 2500); plek = null; }
@@ -3380,6 +3391,8 @@ function toonStad(plek) {
       <div class="opdracht" style="display:block"><b>💡 Een tip voor vannacht?</b><br>Sjonnie buigt zich naar je toe. "Ik ken iemand die iemand kent. Twintig euro, en ik vertel je welke munt er vannacht gaat bewegen. Meestal klopt het."
       ${S.tip && S.tip.dag == S.dag ? `<br><b>Jouw tip: ${MUNT[S.tip.k].ik} ${esc(MUNT[S.tip.k].n)} gaat vannacht ${S.tip.op > 0 ? 'knallen 🚀' : 'keihard onderuit 📉'}.</b>` : ''}</div>`;
     knoppen = S.tip && S.tip.dag == S.dag ? '' : `<button class="knop rood" id="koopTip" ${S.geld < 20 ? 'disabled' : ''}>💡 Koop een tip (€ 20)</button>`; }
+  if (plek == 'kroeg') { h += `<p>Een bruin café met beslagen ramen. Op de deur: "Geen vragen. Geen politie. Wel bitterballen." Binnen zit Barrie de Bink${S.barrie ? ', zoals altijd' : ', al zegt de naam je nog niks'}.</p>`;
+    knoppen = `<button class="knop rood" id="kroegin">🍺 Naar binnen${S.barrie ? ', naar Barrie' : ''}</button>`; }
   if (plek == 'bouw') { const t = torenBij(), f = TORENFASE[t.fase];
     h += t.fase == 0 && !t.bouwt ? `<p>Een kraan, zand en een bord: "Hier komt binnenkort: ????". Een bouwvakker veegt zijn mond af: "De gemeente wil hier iets bijzonders. Een toren! Maar er is geen geld… Wil jij meebetalen? Dan wordt het de <b>Toren van Pizza</b>!"</p>`
       : t.fase < 4 ? `<p>De <b>Toren van Pizza</b> groeit! ${t.bouwt ? `De bouwvakkers werken aan ${esc(TORENFASE[t.fase].n)}: klaar op ${esc(datumLang(t.bouwt.tot))}.` : `Klaar: ${t.fase} van de 4 stukken. Volgende: ${esc(f.n)}.`}</p>`
@@ -3398,6 +3411,7 @@ function toonStad(plek) {
   k2.querySelectorAll('[data-verkoop]').forEach((b) => b.onclick = () => { const c = crypto(), id = b.dataset.verkoop, w = c.bezit[id] * c.koers[id] * 0.9; c.bezit[id] = 0; if (c.inleg) c.inleg[id] = 0; ge(Math.round(w * 100) / 100); kassa(); bewaar(); tekenKnoppen();
     meld(`Sjonnie telt ${euro(w)} uit op de toonbank. "Leuk zakendoen!"`, 3500); toonStad('wissel'); });
   if ($('stapel')) $('stapel').onclick = () => toonToren();
+  if ($('kroegin')) $('kroegin').onclick = () => toonKroeg();
   if ($('kunsthuur')) $('kunsthuur').onclick = () => { ge(-KUNSTHUUR); S.kunstHuur = { v: kunstVanDeWeek(), tot: S.dag + 7 }; kassa(); bewaar(); tekenKnoppen(); meld(`${SCHILDERIJEN[S.kunstHuur.v]} hangt nu bij jou aan de muur. Niet aankomen!`, 3500); toonStad(plek); };
   if ($('kunstverkoop')) $('kunstverkoop').onclick = () => { const w = lijstjeWens(), f = S.vervalsingen.find((x) => x.dag < S.dag && x.v == w.v); S.vervalsingen = S.vervalsingen.filter((x) => x != f); S.lijstje = null;
     if (f.q >= 0.6) { const p = Math.round(w.prijs * f.q); ge(p, 'kunst'); kassa(); meld(`Mevrouw Van Lijstje bekijkt het met een loep. "Wonderbaarlijk teruggevonden." Ze telt € ${p} uit. Niet aankomen.`, 5000); }
@@ -5223,7 +5237,7 @@ function herstart() { // alles opnieuw, behalve je hoogste pizzatoren
 }
 $('sleutel').onclick = () => { wekGeluid(); sluitMenu(); // één keer per dag naar de achterkamer (S.achterDag), anders valt het op
   if (S.achterDag == S.dag) { meld('Je bent vandaag al in de achterkamer geweest. Te vaak naar binnen glippen valt op… Morgen weer!', 3500); return; }
-  S.achterDag = S.dag; bewaar(); tekenKnoppen(); toonAchterkamer(); };
+  S.achterDag = S.dag; inKroeg = false; bewaar(); tekenKnoppen(); toonAchterkamer(); };
 $('stadknop').onclick = () => { wekGeluid(); sluitMenu(); if (modus != 'inrichten' && !manAanwezig()) { meld('Je kunt de zaak niet alleen laten! Neem een manager aan (Personeel).'); return; } toonStad(); };
 const isAanraak = matchMedia('(pointer: coarse)').matches;
 
