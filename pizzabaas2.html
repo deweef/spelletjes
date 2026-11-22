@@ -5383,10 +5383,7 @@ function balk(nu) {
 }
 const uur = (f) => { const m = Math.floor(17 * 60 + f * 5 * 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }; // van 17:00 tot 22:00
 
-// ---------- terugknop: tijdens het spelen eerst terug naar inrichten ----------
-$('terug').onclick = (e) => {
-  if (modus != 'inrichten') { e.preventDefault(); if (confirm('Zaak nu sluiten? De klanten van vandaag tellen dan niet meer mee.')) { modus = 'inrichten'; mensen = []; maakPersoneel(); tekenKnoppen(); } }
-};
+// terugknop: zie onder (22 nov: naar het beginscherm van Pizzabaas, de werkdag staat dan op pauze; was: 'Zaak nu sluiten?')
 
 // ---------- start ----------
 // titelscherm: eerst alleen de plaat en het logo; een tik laat het kaartje zien (en maakt het geluid wakker)
@@ -5434,14 +5431,22 @@ function rondleiding(n = 0) {
   o.onclick = (e) => { if (r && e.clientX >= r.left - 6 && e.clientX <= r.right + 6 && e.clientY >= r.top - 6 && e.clientY <= r.bottom + 6) rondleiding(n + 1); };
 }
 if (S.nieuw && !TEGEL) { delete S.nieuw; bewaar(); $('voorstart').remove(); $('welkom').classList.remove('wacht'); $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; } // net opnieuw begonnen: geen voorblad, meteen het kaartje met de rondleiding (de muziek komt bij de volgende tik) // net opnieuw begonnen: het titelscherm biedt Mario's rondleiding aan (zoals bij de allereerste keer)
-else if (lees(SLEUTEL) && !TEGEL) { // je speelt al: titelscherm met Verder spelen (dat tikje maakt meteen het geluid wakker)
+else if (lees(SLEUTEL) && !TEGEL) titelVerder(); // je speelt al: titelscherm met Verder spelen (dat tikje maakt meteen het geluid wakker)
+function titelVerder() { // het kaartje Verder spelen / Nieuw spel (ook als je tijdens het spelen op ‹ tikt)
   $('titelnieuw').style.display = 'none'; $('titelverder').style.display = '';
-  const verderSpelen = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); }; $('verderspelen').onclick = verderSpelen;
+  $('titelverder').innerHTML = `<button class="groot" id="verderspelen" style="margin-top:0">▶️ Verder spelen</button><button class="knop" id="nieuwspel" style="margin-top:8px">🔄 Nieuw spel</button>
+    <a class="knop" href="./" style="margin-top:8px;display:inline-block;text-decoration:none">🏠 Naar alle spelletjes</a>`;
+  const verderSpelen = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); pauze = titelVerder.pauze || false; titelVerder.pauze = false; tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); }; $('verderspelen').onclick = verderSpelen;
   $('nieuwspel').onclick = () => { const v = $('titelverder'); // eerst vragen of het echt moet (in het kaartje zelf, niet in een pop-up)
     v.innerHTML = `<p style="margin:0 0 6px"><b>⚠️ Weet je het zeker?</b> Je hebt nog een spel lopen${speler ? ' (' + esc(speler) + ')' : ''}: hoofdstuk ${hoofd()}, ${esc(datumLang(S.dag).toLowerCase())}, € ${Math.floor(S.geld)} in de kassa. Bij een nieuw spel zijn je zaak, je geld, je doelen en je ${kistOpen() ? 'vlag' : ''}fiches weg.</p>
       <button class="groot" id="nieuwnee" style="margin-top:0">▶️ Nee, verder met mijn spel</button><button class="knop rood" id="nieuwja" style="margin-top:8px">🔄 Ja, helemaal opnieuw</button>`;
     $('nieuwja').onclick = () => wisAnimatie(herstart); $('nieuwnee').onclick = verderSpelen; };
 }
+// ‹ linksboven: tijdens het spelen eerst terug naar het beginscherm van Pizzabaas (alles is bewaard); vanaf het beginscherm naar alle spelletjes
+$('terug').addEventListener('click', (e) => { if (TEGEL || !$('welkom').classList.contains('verborgen')) return; e.preventDefault(); bewaar();
+  titelVerder.pauze = pauze; pauze = true; if ($('mariotip')) $('mariotip').remove(); if ($('voorstart')) $('voorstart').remove(); $('welkom').classList.remove('wacht');
+  $('titeltik').style.display = 'none'; $('titelkaart').style.display = ''; titelVerder(); $('welkom').classList.remove('verborgen');
+  wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 0.5); liedTot = 0; const speel = () => speelLied('funiculi', false, 'italiaans'); if (ac.state == 'running') speel(); else ac.resume().then(speel, speel); } });
 
 if (TEGEL) { // plaatje voor de startpagina
   $('welkom').classList.add('verborgen');

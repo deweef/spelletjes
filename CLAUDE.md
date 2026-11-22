@@ -49,7 +49,7 @@ bedenk dat de site openbaar is.
   het spel. Overzicht en tegels staan op alfabet (`laad` sorteert op naam). Elk blok heeft een link "↑ overzicht";
   de tegels hebben nog een anker `spel-<bestandsnaam>` (licht op als je ernaar linkt).
 - Elk spel heeft linksboven een terugknop `<a class="terug" href="./">‹</a>` (in een submap: `href="../"`).
-  In Fladderfeest en Orkenstorm 3D gaat die knop tijdens het spelen eerst terug naar het menu van het spel; alleen
+  In Fladderfeest, Orkenstorm 3D en Pizzabaas 2 gaat die knop tijdens het spelen eerst terug naar het menu (beginscherm) van het spel; alleen
   vanuit dat menu naar de startpagina.
 
 ## Uitjes (geen spel)
