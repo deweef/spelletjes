@@ -730,3 +730,8 @@ doelknop is een pil "H1 · 3/10" (groene rand bij 10/10) en de snelknop "»" sta
 (MutationObserver) geldt alleen voor .scherm (anders sprong de vloer na dubbel tikken omhoog); geluid wordt bij elke tik weer gewekt (iOS 'interrupted');
 achter het beginscherm wordt de zaak niet getekend; verhaalplaten en ‹ laden eerst met een opbouwende pizza (`pizzaLaden`, `liedLaden`) zodat de muziek
 meteen bij de plaat begint; na hoofdstuk 1: "🍕 Naar je nieuwe pizzeria" (of nog even blijven).
+Marcel H2 (22 nov), gerepareerd: dubbel tikken schoof het beeld (een vinger die boven een menu werd losgelaten bleef in `vingers` staan, de volgende tik
+telde als knijpen): bij een nieuwe aanraking (`isPrimary`) worden oude vingers vergeten, en loslaten wordt ook buiten de vloer gezien; touch-action
+manipulation ook in vensters; eetwedstrijd haalbaar op de iPad (4 happen per punt, Vincent ~1,3 punt/s; bij ±5 tikken per seconde win je), dorst staat
+in de tekst; bonnetje: "Bedorven en weggegooid (al betaald bij de inkoop) € x" zonder haakjes; borden op de lange houten tafels blijven op het blad
+(de poten); torenstapelen: een gele kraanarm met loopkat waar het touw aan hangt (schuift mee omhoog).
