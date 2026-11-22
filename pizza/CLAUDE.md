@@ -739,3 +739,10 @@ Bovenbalk (22 nov): de knoppen staan in `#bovenbalk` (flex); 🗺️ is nu een k
 (op een staande telefoon alleen het kaartje). Smaakhulp: in Pizza maken staat per ingrediënt de smaak (vet/zoet/zout/pittig in de kleuren van de
 smaakmeter, `SMAAKTEKST` voor tekst) en een uitklapper "👅 Wie houdt waarvan?" (`wensLijst`, `veelTekst`: veel/wat/een beetje/geen); de pizzawedstrijd
 toont de jury zo ook.
+Marcel H2 (22 nov), aangepast: in een zaak mét manager koopt die automatisch in, ook als je er zelf bent (`kanAuto`, `inkoper`); alleen in een zaak
+zonder manager doe je het zelf. Pizzawedstrijd: elke dag (S.wedDag, was eens per week), jouw cijfer 3,5 + oordeel × 1,1 (was 3 +), Luigi 5-8 per
+jurylid: Margherita wint ~35%, drie keer 😐 ~58%, drie keer 🙂 ~97%. Gouden Pizzaschep: recensent 25% kans per dag (was 15%), schep vanaf 6 punten
+(was 6,5). Toren: elk hoofdstuk een stuk (fundering vanaf H2, dan H3, H4, H5; lint in H6; de torendoelen blijven in H6 en tellen daar meteen als
+ze al gebouwd zijn). Jingle Bells: couplet + refrein, twee keer (61 s). Kunstuitleen zegt in rood dat er in déze zaak eerst een schilderij moet hangen.
+Simulatie 30 dagen (2 → 6 tafels, 1 oven): 375 blije klanten, 2 boos weggelopen, 350 weg omdat er geen plek was. Boos weglopen gebeurt dus bijna nooit
+(GEDULD = 25 s per tafel + 7 s per extra persoon): keuze aan Marcel of dat strenger moet.
