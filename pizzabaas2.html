@@ -1746,8 +1746,10 @@ const VRAGEN = [
 // geweest (Luigi komt erachter), 3 = Luigi weet het (Marco wil aanzoek doen), 5 = getrouwd, 9 = voorbij. Vragen via `liefdeOchtend` (S.verplicht) en
 // 'marco1' (willekeurig, zaak 1). Plaatjes: bezoekers rij 12 Marco / 13 Valentina, portret 19/20, pizza/koppel.png (filmpje `toonFilm`).
 const KOPPEL = new Image(); KOPPEL.src = 'pizza/koppel.png';
-function liefdeOchtend() { const L = S.liefde; if (!L || S.zaak) return; let id = null;
-  if (L.fase == 1 && S.dag >= L.dag + (L.hart ? 1 : 2)) id = 'valentina1';
+function liefdeOchtend() { const L = S.liefde; if (hoofd() >= 4 && !L && !(S.verplicht || []).includes('marco1') && S.introGezien && S.introGezien[4] != null && S.dag >= S.introGezien[4] + 1) { S.verplicht = [...(S.verplicht || []), 'marco1']; return; } // H4: Marco komt het je zeker vertellen
+  if (!L) return; let id = null; // 22 nov: ook in je andere zaken (was alleen zaak 1: wie in een andere zaak stond, kwam nooit verder)
+  if (L.fase == 0 && hoofd() >= 4 && S.dag >= L.dag) id = 'marco1'; // nee gezegd: na een tijdje vraagt hij het nog eens
+  else if (L.fase == 1 && S.dag >= L.dag + (L.hart ? 1 : 2)) id = 'valentina1';
   else if (L.fase == 2 && S.dag >= L.dag + 1 + (S.dag % 2)) id = 'luigiLiefde';
   else if (L.fase == 3 && S.dag >= L.dag + 4) id = 'marco2';
   if (id && !(S.verplicht || []).includes(id)) S.verplicht = [...(S.verplicht || []), id]; }
@@ -1765,7 +1767,7 @@ const GIANNIVRAGEN = [ // Gianni IJskoud komt binnen (bezoekers rij 14, portret 
       ['Ik heb mijn eigen ijs, Gianni.', () => { S.gianniStreek = { dag: S.dag + 1 + (weekdag(S.dag + 1) == 0 ? 1 : 0), wat: 'kar' }; return '"Zoals je wilt." Hij tikt tegen zijn kale hoofd en vertrekt. Morgen staat zijn ijskar vast voor jouw deur…'; }],
       ['Hoorntje of bakje, Gianni?', () => { rep(1); if (S.ijs) S.ijs.rep = Math.min(100, (S.ijs.rep || 20) + 3); return 'Gianni kijkt je lang aan. Dan grinnikt hij, heel even. "Ha. Hoorntje. Jij bevalt me. Een béétje." Hij koopt een bolletje pistache in jouw ijssalon en zegt dat het "niet slecht" is. Dat is van Gianni een groot compliment.'; }] ] } ];
 const LIEFDEVRAGEN = [
-  { id: 'marco1', ik: '🤵', portret: 19, rij: 12, wie: 'Marco, je jongste ober', kans: 3, als: () => !S.zaak && S.dag >= 6 && (!S.liefde || (S.liefde.fase == 0 && S.dag >= S.liefde.dag)),
+  { id: 'marco1', ik: '🤵', portret: 19, rij: 12, wie: 'Marco, je jongste ober', kans: 3, als: () => S.dag >= 6 && (!S.liefde || (S.liefde.fase == 0 && S.dag >= S.liefde.dag)),
     vraag: 'Baas… mag ik je iets vragen? Er werkt een meisje bij Luigi. Ze ruimt de tafels af en ze lacht als een zonsopgang. Valentina. Zijn… dochter. Ik geloof dat ik verliefd ben.',
     a: [['Ga ervoor, Marco!', () => { S.liefde = { fase: 1, dag: S.dag }; return 'Marco straalt. Hij serveert de rest van de avond met een grijns tot achter zijn oren, en zingt zachtjes mee met de jukebox.'; }],
       ['De dochter van de vijand? Vergeet het maar.', () => { S.liefde = { fase: 0, dag: S.dag + 10 }; oberTempo(0.9); return 'Marco zucht. De hele avond. Diep. Hij laat twee borden vallen en staart naar het raam van Luigi.'; }],
@@ -2813,6 +2815,9 @@ function klusAf(k, gelukt, tekst, politie) { const d = KLUS[k];
   else if (kans(0.5)) { ge(-200); S.rep = Math.max(0, S.rep - 8); barrieUit = politie || '🚨 Luigi zag Barrie en belde de politie! Op het bureau zei Barrie meteen dat jij hem stuurde. € 200 boete, en de hele stad praat erover (populariteit −8).'; }
   else { S.sabotage = pak(['rat', 'stinkbom', 'keuring']); S.luigiRust = 0; S.ruzie = Math.min(100, S.ruzie + 15); barrieUit = `😬 ${tekst || 'Mislukt!'} Luigi heeft het door. "Dit is OORLOG!" Morgen neemt hij wraak…`; }
   kassa(); bewaar(); tekenKnoppen(); setTimeout(toonAchterkamer, 1700); }
+function klusStart(c, x, start) { // 22 nov: eerst rustig lezen; de tijd loopt pas na een tik (de eerste tik telt niet mee in het spel)
+  x.fillStyle = 'rgba(0,0,0,.6)'; x.fillRect(0, 0, 340, 420); x.fillStyle = '#e8a33a'; x.fillRect(80, 190, 180, 44); x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = 'bold 18px system-ui'; x.fillText('Tik om te beginnen', 170, 212);
+  const eerste = (e) => { e.stopImmediatePropagation(); c.removeEventListener('pointerdown', eerste, true); start(); }; c.addEventListener('pointerdown', eerste, true); }
 function klusScherm(titel, uitleg, knop) {
   $('achterkaart').innerHTML = `<h1>${titel}</h1><p class="buurt">${uitleg}</p><canvas id="klusdoek" width="340" height="420" style="width:100%;max-width:340px;display:block;margin:0 auto;border-radius:12px;touch-action:none"></canvas>${knop ? `<div class="rij">${knop}</div>` : ''}`;
   const c = $('klusdoek'); return [c, c.getContext('2d')]; }
@@ -2836,7 +2841,7 @@ function toonRatten() {
     if (binnen >= 6 || t <= 0 || rats.every((r) => r.in) || rats.filter((r) => r.in == 'weg').length > 2) { klaar = true; const ok = binnen >= 6; x.fillStyle = ok ? '#2ecc71' : '#e74c3c'; x.font = 'bold 24px system-ui'; x.fillText(ok ? 'IIIIEK! Gillende klanten!' : 'Te weinig ratten…', 170, 230);
       klusAf('ratten', ok, ok ? `${binnen} ratten in Luigi's eetzaal!` : `Maar ${binnen} ratten haalden de eetzaal, de rest zat al buiten.`); return; }
     requestAnimationFrame(stap); }
-  window.__klus = () => ({ rats, t, klaar }); teken(); requestAnimationFrame(stap);
+  window.__klus = () => ({ rats, t, klaar }); teken(); klusStart(c, x, () => { laatst = performance.now(); requestAnimationFrame(stap); });
 }
 // HOND (16 nov): Barrie loopt met zijn hond heen en weer over de stoep; tik als de hond precies op Luigi's deurmat staat (en er geen voorbijganger kijkt).
 // Drie pogingen, twee raak = gelukt. Elke keer sneller.
@@ -2884,7 +2889,7 @@ function toonScooter() {
     teken(); if (band.every((b) => !b.lucht)) { klaar = true; x.fillStyle = '#2ecc71'; x.font = 'bold 24px system-ui'; x.fillText('Pssssssst! Vier platte banden!', 170, 205); klusAf('scooter', true, 'Gelukt!'); return; }
     if (t <= 0) { klaar = true; x.fillStyle = '#e74c3c'; x.font = 'bold 24px system-ui'; x.fillText('Te laat!', 170, 205); klusAf('scooter', false, 'Luigi kwam naar buiten voor je klaar was.'); return; }
     requestAnimationFrame(stap); }
-  window.__klus = () => ({ band, fase, t, klaar }); teken(); requestAnimationFrame(stap);
+  window.__klus = () => ({ band, fase, t, klaar }); teken(); klusStart(c, x, () => { laatst = performance.now(); requestAnimationFrame(stap); });
 }
 // RECENSIE: Barrie typt, jij kiest per zin het woord. Te overdreven = niemand gelooft het (en de site ziet dat het nep is), te lief = geen effect.
 function toonRecensie() {
@@ -4975,7 +4980,9 @@ const HOOFDSTUK = [null,
       return [['Neem een manager aan (Personeel, vanaf populariteit 40)', S.zaken.length >= 2 || !!S.manager], [`Je manager werkt ${MANAGERDAGEN} dagen bij je${m && d < MANAGERDAGEN ? ` (nu ${d} van de ${MANAGERDAGEN})` : ''}`, S.zaken.length >= 2 || d >= MANAGERDAGEN], ['Huur een tweede pand (🗺️ Stad)', S.zaken.length >= 2]]; }, afn: `Open je tweede pizzeria (huur een pand in de stad). Daarvoor heb je een manager nodig die ${MANAGERDAGEN} dagen bij je werkt` },
   { n: 'De stad in', ik: '🗺️', af: () => (S.scheppen || 0) >= 1 || (S.wedWinst || 0) >= 1, afn: 'Win de Gouden Pizzaschep of de pizzawedstrijd tegen Luigi' },
   { n: 'De achterkamer', ik: '🗝️', af: () => heb('inval'), afn: 'Overleef de grote inval (komt vanzelf als je 10 doelen hebt)' },
-  { n: 'Oorlog met Luigi', ik: '😡', af: () => S.liefde && S.liefde.fase >= 5, afn: 'Het verhaal van Marco en Valentina loopt af' },
+  { n: 'Oorlog met Luigi', ik: '😡', af: () => S.liefde && S.liefde.fase >= 5, afn: 'Help Marco, je jongste ober: hij is verliefd op Valentina, de dochter van Luigi. Speel hun verhaal uit (het komt vanzelf, elke paar dagen een stap)',
+    stappen: () => { const f = S.liefde ? S.liefde.fase : -1; if (f == 9) return [['Marco is ontslagen: het verhaal is voorbij', true]];
+      return [['Marco vertelt dat hij verliefd is', f >= 1], ['Valentina komt stiekem eten', f >= 2], ['Luigi komt erachter…', f >= 3], ['Het aanzoek (en de bruiloft)', f >= 5]]; } },
   { n: 'IJs en ouderen', ik: '🍨', af: () => heb('henk'), afn: 'Versla opa Henk in de scootmobielrace' },
   { n: 'De Toren van Pizza', ik: '🗼', af: () => heb('vlag'), afn: 'Hijs de Italiaanse vlag op de toren (bij de bouwplaats; 100 vlagfiches van elke kleur, de toren moet open zijn en je hebt 10 doelen van dit hoofdstuk)' } ];
 const doelenH6 = () => DOELEN.filter((d) => d.h == 6 && S.doelen && S.doelen[d.id]).length; // de vlag mag pas als je 10 doelen van hoofdstuk 6 hebt

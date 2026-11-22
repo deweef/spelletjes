@@ -755,3 +755,8 @@ sneller, daarna een octaaf hoger (18 s). De juryfoto wordt alvast geladen zodra 
 iPad schoof de hele pagina omhoog (22 nov, foto Marcel: vloer half weg, tikken kwamen op de verkeerde plek/het vorige commando): html/body nu `position: fixed; inset: 0; overscroll-behavior: none` en bij scroll/resize meteen terug naar 0. Ook in pizzabaas.html (samen met de vinger-fix en touch-action in vensters).
 H3 sneller op gang (22 nov, Marcel): een dag na de intro van H3 saboteert Luigi je zeker één keer (`S.h3Wraak`, rat of stinkbom); de dag daarna komt Barrie vanzelf langs (verplicht, tot je hem kent). Barrie heeft geen open achterkamer meer nodig: dan stuurt hij je naar Café 't Achterafje, dat nu vanaf H3 open is (PLEKH kroeg 3). Simulatie: Barrie op dag 4 na de intro.
 Grote inval (22 nov, Marcel): eerst een uitlegscherm over het spel heen ("Tik om te beginnen"); de 25 seconden lopen pas na die tik (`gestart`).
+Minispelletjes van Barrie met een klok (ratten, scooterbanden): eerst "Tik om te beginnen" (`klusStart`; die eerste tik telt niet mee).
+H4 (22 nov, Marcel vond "het verhaal loopt af" vaag): het doel heet nu "Help Marco, je jongste ober: hij is verliefd op Valentina…" met stappen
+(verliefd, etentje, Luigi komt erachter, aanzoek en bruiloft; `HOOFDSTUK[4].stappen`). Het verhaal liep alleen in zaak 1 (`liefdeOchtend` en `marco1`
+hadden `!S.zaak`): nu in elke zaak; een dag na de intro van H4 komt Marco het zeker vertellen (verplicht), en na een "nee" vraagt hij het later
+nog eens. Simulatie in de tweede zaak: bruiloft op dag 8 na de intro.
