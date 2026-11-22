@@ -5105,9 +5105,10 @@ function toonInval() {
   const [c, x] = klusScherm('🚨 De grote inval!', 'Bonk bonk bonk! "POLITIE! Kunstrecherche!" Ze staan al bij de achterdeur. <b>Tik op de verboden spullen om ze in de pizzadozen te verstoppen</b>, maar niet als de zaklamp erop schijnt!');
   const DING = [['🖼️', 'het nepschilderij'], ['🖨️', 'de drukpers'], ['🎰', 'de fiches'], ['🍷', 'Château Kraanwater'], ['💻', 'de laptop'], ['💶', 'het nepgeld'], ['🎨', 'de verf']];
   const spul = DING.map(([e, n], i) => ({ e, n, x: 40 + (i % 4) * 85 + Math.random() * 20, y: 120 + Math.floor(i / 4) * 120 + Math.random() * 40, weg: false, gezien: false }));
-  let t = 25, hoek = -0.4, dir = 1, laatst = performance.now(), klaar = false, tekst = '', tt = 0;
+  let t = 25, hoek = -0.4, dir = 1, laatst = performance.now(), klaar = false, tekst = '', tt = 0, gestart = false; // gestart: eerst uitleg, de tijd loopt pas na een tik (22 nov)
   const inBundel = (o) => { const a = Math.atan2(o.y - 400, o.x - 170) + Math.PI / 2; return Math.abs(a - hoek) < 0.28 && o.y < 390; };
-  c.addEventListener('pointerdown', (e) => { if (klaar) return; const [px, py] = plek(c, e); const o = spul.find((o) => !o.weg && !o.gezien && Math.hypot(o.x - px, o.y - py) < 34); if (!o) return;
+  c.addEventListener('pointerdown', (e) => { if (klaar) return; if (!gestart) { gestart = true; laatst = performance.now(); ding(300, 0.3, 'square', 0.06); setTimeout(() => ding(300, 0.3, 'square', 0.06), 350); setTimeout(() => ding(300, 0.3, 'square', 0.06), 700); requestAnimationFrame(stap); return; }
+    const [px, py] = plek(c, e); const o = spul.find((o) => !o.weg && !o.gezien && Math.hypot(o.x - px, o.y - py) < 34); if (!o) return;
     if (inBundel(o)) { o.gezien = true; tekst = `👀 "Wat is DAT?!" Ze zien ${o.n}!`; tt = 1.5; boos(); } else { o.weg = true; tekst = `📦 ${o.n} zit in een pizzadoos.`; tt = 1; ding(900, 0.05, 'triangle', 0.05); } });
   function teken() { x.fillStyle = '#2b2018'; x.fillRect(0, 0, 340, 420); x.fillStyle = '#3d2e22'; for (let i = 0; i < 12; i++) x.fillRect(0, i * 35, 340, 2);
     // de lichtbundel van de zaklamp vanuit de deur onderaan
@@ -5128,8 +5129,12 @@ function toonInval() {
         <p>Je accountant was erg geschrokken. <b>Meneer Cijfer, de boekhouder, komt voortaan voor je werken</b>: zet hem aan bij de bank in de stad (📒), dan brengt hij elke avond alles boven € 500 naar de bank.</p><button class="groot" id="invalklaar">Verder</button>`;
       $('invalklaar').onclick = () => { $('achter').classList.add('verborgen'); bewaar(); tekenKnoppen(); controleerDoelen(); }; return; }
     requestAnimationFrame(stap); }
-  ding(300, 0.3, 'square', 0.06); setTimeout(() => ding(300, 0.3, 'square', 0.06), 350); setTimeout(() => ding(300, 0.3, 'square', 0.06), 700);
-  window.__inval = () => ({ spul, hoek, t }); teken(); requestAnimationFrame(stap);
+  window.__inval = () => ({ spul, hoek, t, gestart }); teken();
+  // uitleg over het spel heen; pas na een tik gaat de tijd lopen
+  x.fillStyle = 'rgba(0,0,0,.78)'; x.fillRect(0, 0, 340, 420); x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.font = 'bold 22px system-ui'; x.fillText('🚨 Bonk bonk bonk!', 170, 80); x.font = '15px system-ui';
+  ['De kunstrecherche staat voor de deur.', '', 'Tik op de verboden spullen', '(🖼️ 🖨️ 🎰 🍷 💻 💶 🎨)', 'om ze in de pizzadozen te verstoppen.', '', 'Maar NIET als de zaklamp erop schijnt:', 'dan zien ze het!', '', 'Je hebt 25 seconden.'].forEach((r, i) => x.fillText(r, 170, 130 + i * 22));
+  x.fillStyle = '#e8a33a'; x.fillRect(80, 360, 180, 40); x.fillStyle = '#fff'; x.font = 'bold 18px system-ui'; x.fillText('Tik om te beginnen', 170, 380);
 }
 // HET EINDE: de vlagfiches worden omgesmolten tot de Italiaanse vlag en gaan de toren in (scène op een canvas; de plaat van ChatGPT komt later)
 function toonVlag() {
