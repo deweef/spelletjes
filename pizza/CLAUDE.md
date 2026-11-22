@@ -714,3 +714,4 @@ hoofdstuk: een plaagzinnetje per hoofdstuk (H2: "Van elke kleur evenveel"); intr
 de onthulling (kist open → omsmelten tot de Italiaanse vlag op de toren, 100 van elke kleur); vanaf dan Vlagkist met /100.
 Voorblad-muziek (22 nov): Marcel hoorde op de iPad het liedje "dubbel"; in Chromium start het maar één keer. Nu: de AudioContext wordt al bij het laden gemaakt (stil) en de italiaanse instrumenten + funiculi.json laden terwijl het voorblad er staat; Start doet resume() en speelt pas als het geluid echt aan staat.
 Na opnieuw beginnen (reload) is het eerst stil; "Mario laat je alles zien" wacht op resume() en start dan Funiculì (zoals Start op het voorblad).
+Opnieuw beginnen (22 nov): `wisAnimatie(herstart)`: muziek faadt 2,2 s uit, een pizza van 8 punten wordt punt voor punt opgegeten ("Mario ruimt de oude zaak op…", ±2,6 s), dan wissen en herladen. Ook bij failliet en de herbegin-knop.

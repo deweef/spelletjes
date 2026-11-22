@@ -4901,7 +4901,7 @@ function tekenKnoppen() {
   k.querySelector('[data-dag]').onclick = () => { $('eindkaart').innerHTML = (laatsteDag || '<h1>📊 Gisteren</h1><p>Je hebt nog geen dag gedraaid.</p><button class="groot" id="verder">Sluiten</button>')
       + '<p style="text-align:center;margin-top:14px"><button class="knop" id="herbegin">🔄 Helemaal opnieuw beginnen (alles kwijt!)</button></p>'; $('einde').classList.remove('verborgen');
     $('verder').onclick = () => $('einde').classList.add('verborgen');
-    $('herbegin').onclick = () => { if (confirm('Echt helemaal opnieuw beginnen? Je zaak, je geld en al je spullen zijn dan weg (je hoogste pizzatoren blijft).')) herstart(); }; };
+    $('herbegin').onclick = () => { if (confirm('Echt helemaal opnieuw beginnen? Je zaak, je geld en al je spullen zijn dan weg (je hoogste pizzatoren blijft).')) wisAnimatie(herstart); }; };
   if ($('open')) $('open').onclick = () => { wekGeluid(); openDeuren(); };
 }
 let laatsteDag = '';
@@ -5239,12 +5239,24 @@ function eindStand() { return `<table><tr><td>📅 Dagen gespeeld</td><td>${S.da
 function toonFailliet() {
   $('eindkaart').innerHTML = `<h1>💸 Failliet!</h1><p>De deurwaarder plakt een briefje op de deur: <b>GESLOTEN</b>. Mario huilt in zijn schort, de ober neemt de laatste fles wijn mee. Luigi staat aan de overkant te lachen.</p>
     ${eindStand()}<p>Maar een echte pizzabaas geeft niet op. Nieuwe stad, nieuwe kansen!</p><button class="groot" id="verder">🔄 Opnieuw beginnen</button>`;
-  $('einde').classList.remove('verborgen'); $('verder').onclick = () => herstart();
+  $('einde').classList.remove('verborgen'); $('verder').onclick = () => wisAnimatie(herstart);
 }
 function toonKoning() {
   $('eindkaart').innerHTML = `<h1>👑 Pizzakoning van de stad!</h1><p>Vier pizzeria's, in elke buurt van de stad één, de Toren van Pizza staat er dankzij jou, en € ${Math.round(S.geld + (S.bankSaldo || 0))} in kas. De burgemeester geeft je een gouden pizzaschep. Luigi verhuist naar een ander land.</p>
     ${eindStand()}<p>Je hebt het spel uitgespeeld! Je kunt gewoon doorspelen (meer zaken, hogere torens), of opnieuw beginnen.</p><button class="groot" id="verder">Doorspelen</button>`;
   $('einde').classList.remove('verborgen'); $('verder').onclick = () => $('einde').classList.add('verborgen'); kassa(); setTimeout(kassa, 300);
+}
+function wisAnimatie(klaar) { // opnieuw beginnen (22 nov): de muziek faadt uit en een pizza wordt stukje voor stukje opgegeten, dan pas wissen en herladen
+  if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 2.2); liedTot = 0; }
+  const o = document.createElement('div'); o.style.cssText = 'position:fixed;inset:0;z-index:50;background:rgba(30,12,2,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#fff;font:700 20px system-ui;opacity:0;transition:opacity .4s';
+  o.innerHTML = '<canvas width="240" height="240" style="width:180px;height:180px"></canvas><div>Mario ruimt de oude zaak op…</div>'; document.body.appendChild(o); requestAnimationFrame(() => o.style.opacity = 1);
+  const c = o.querySelector('canvas'), x = c.getContext('2d'), start = performance.now(), duur = 2600, PEP = [[0.3, 0.2], [-0.35, 0.3], [0.1, -0.45], [-0.2, -0.15], [0.45, -0.2], [-0.05, 0.5], [0.25, 0.55], [-0.5, -0.4]];
+  (function teken(nu) { const t = Math.min(1, (nu - start) / duur), stuk = Math.ceil(8 * (1 - t)); // 8 punten, één voor één weg
+    x.clearRect(0, 0, 240, 240); x.save(); x.translate(120, 120); x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, 112, -Math.PI / 2, -Math.PI / 2 + stuk * Math.PI / 4); x.closePath(); x.clip();
+    x.fillStyle = '#e0a04a'; x.beginPath(); x.arc(0, 0, 112, 0, 7); x.fill(); x.fillStyle = '#c0392b'; x.beginPath(); x.arc(0, 0, 96, 0, 7); x.fill(); x.fillStyle = '#f7d774'; x.beginPath(); x.arc(0, 0, 88, 0, 7); x.fill();
+    x.fillStyle = '#a5281b'; for (const [px, py] of PEP) { x.beginPath(); x.arc(px * 90, py * 90, 11, 0, 7); x.fill(); }
+    x.strokeStyle = '#b5762a'; x.lineWidth = 2; for (let i = 0; i < 8; i++) { x.beginPath(); x.moveTo(0, 0); x.lineTo(112 * Math.cos(-Math.PI / 2 + i * Math.PI / 4), 112 * Math.sin(-Math.PI / 2 + i * Math.PI / 4)); x.stroke(); } x.restore();
+    if (t < 1) requestAnimationFrame(teken); else setTimeout(klaar, 250); })(performance.now());
 }
 function herstart() { // alles opnieuw, behalve je hoogste pizzatoren
   schrijf(SLEUTEL, { ...NIEUW(), torenBest: S.torenBest || 0, nieuw: true }); location.reload(); // nieuw = op het titelscherm weer de rondleiding aanbieden
@@ -5406,9 +5418,9 @@ else if (lees(SLEUTEL) && !TEGEL) { // je speelt al: titelscherm met Verder spel
   $('titelnieuw').style.display = 'none'; $('titelverder').style.display = '';
   const verderSpelen = () => { wekGeluid(); if (ac && typeof Muziek != 'undefined') { Muziek.stop(ac, 1.5); liedTot = 0; } $('welkom').classList.add('verborgen'); tekenKnoppen(); hoofdIntro(); setTimeout(marioTip, 1500); }; $('verderspelen').onclick = verderSpelen;
   $('nieuwspel').onclick = () => { const v = $('titelverder'); // eerst vragen of het echt moet (in het kaartje zelf, niet in een pop-up)
-    v.innerHTML = `<p style="margin:0 0 6px"><b>⚠️ Weet je het zeker?</b> Je hebt nog een spel lopen${speler ? ' (' + esc(speler) + ')' : ''}: hoofdstuk ${hoofd()}, ${esc(datumLang(S.dag).toLowerCase())}, € ${Math.floor(S.geld)} in de kassa. Bij een nieuw spel zijn je zaak, je geld, je doelen en je vlagfiches weg.</p>
+    v.innerHTML = `<p style="margin:0 0 6px"><b>⚠️ Weet je het zeker?</b> Je hebt nog een spel lopen${speler ? ' (' + esc(speler) + ')' : ''}: hoofdstuk ${hoofd()}, ${esc(datumLang(S.dag).toLowerCase())}, € ${Math.floor(S.geld)} in de kassa. Bij een nieuw spel zijn je zaak, je geld, je doelen en je ${kistOpen() ? 'vlag' : ''}fiches weg.</p>
       <button class="groot" id="nieuwnee" style="margin-top:0">▶️ Nee, verder met mijn spel</button><button class="knop rood" id="nieuwja" style="margin-top:8px">🔄 Ja, helemaal opnieuw</button>`;
-    $('nieuwja').onclick = () => herstart(); $('nieuwnee').onclick = verderSpelen; };
+    $('nieuwja').onclick = () => wisAnimatie(herstart); $('nieuwnee').onclick = verderSpelen; };
 }
 
 if (TEGEL) { // plaatje voor de startpagina
