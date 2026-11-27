@@ -119,5 +119,13 @@
     "plaatje": "hobbelrace.jpg",
     "stand": "liggend",
     "concept": true
+  },
+  {
+    "naam": "Noppenschuif",
+    "omschrijving": "Schuif de bouwsteentjes met noppen naar de deur van hun eigen kleur. Ze passen alleen als ze niet te breed zijn, en ze zitten elkaar flink in de weg. Ruim het bord op in zo weinig mogelijk zetten!",
+    "bestand": "blokken.html",
+    "plaatje": "blokken.jpg",
+    "stand": "staand",
+    "concept": true
   }
 ]
