@@ -45,5 +45,5 @@ De voorbeelden zijn alleen ter inspiratie: geen merknamen (ook niet "LEGO"), gee
 - Grote borden (6×6 en meer) worden traag voor de oplosser; dan `maxStaten` laag houden en vaker proberen.
 
 ## Stand van zaken
-- Stap 1 (27 nov): bord, stenen met noppen, slepen, uitgangen, terug/opnieuw, sterren, Wereld 0 met 6 levels (7 en 8 op grotere borden volgen).
+- Stap 1 (27 nov): bord, stenen met noppen, slepen, uitgangen, terug/opnieuw, sterren, Wereld 0 met 8 levels (3 tot 20 zetten).
 - Volgende: Wereld 1 Opruimdag met Pa en de kauwgomsteen; plaatje voor de startpagina; geluid verder.
