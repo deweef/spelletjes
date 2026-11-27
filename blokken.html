@@ -62,9 +62,9 @@ h1 span{display:inline-block;padding:0 1px;text-shadow:0 3px 0 rgba(0,0,0,.35)}
   <h1>Hoe werkt het?</h1>
   <div class="doos">
     <p>🧱 Zet je vinger op een steen en <b>sleep</b> hem. Hij schuift alleen over lege vakjes en niet door andere stenen heen.</p>
-    <p>🚪 Langs de rand zitten <b>uitgangen</b>. Schuif een steen tegen de uitgang met <b>zijn eigen kleur</b> en hij verdwijnt.</p>
+    <p>🚪 Langs de rand zitten <b>uitgangen</b>. Duw een steen <b>de uitgang van zijn eigen kleur in</b>. Is hij voor meer dan de helft door de deur, dan verdwijnt hij.</p>
     <p>📏 Een steen past alleen als hij <b>niet breder</b> is dan de uitgang. Draaien kan niet.</p>
-    <p>⭐ Hoe minder zetten, hoe meer sterren. Eén keer slepen is één zet, ook als je een bochtje maakt.</p>
+    <p>⭐ Hoe minder zetten, hoe meer sterren. Eén keer slepen is één zet, ook als je een bochtje maakt. Een steen die al voor zijn deur staat naar buiten duwen is gratis.</p>
     <p>↶ Vergist? Neem een zet terug.</p>
   </div>
   <button class="knop" id="snapKnop">Snap ik!</button>
@@ -121,7 +121,8 @@ function uitgang(lv,g,i,x,y){const b=lv.blokken[i];
 function bereik(lv,g,i,x0,y0){const gezien=new Set([x0+','+y0]),rij=[[x0,y0]];
   for(let n=0;n<rij.length;n++){const[x,y]=rij[n];for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const X=x+dx,Y=y+dy,s=X+','+Y;
     if(!gezien.has(s)&&vrij(lv,g,i,X,Y)){gezien.add(s);rij.push([X,Y])}}}return rij}
-// Oplosser: kleinste aantal zetten (één zet = één blok verschuiven, eventueel de uitgang uit). zetten null = niet oplosbaar.
+// Oplosser: kleinste aantal zetten. Eén zet = één blok verschuiven (en eventueel meteen de uitgang uit). Een steen die al
+// voor zijn deur staat naar buiten duwen is gratis (net als in het spel). zetten null = niet oplosbaar.
 // Slim: kan een steen in één zet naar buiten, dan is dat altijd een beste zet (een leger bord maakt het alleen makkelijker),
 // dus dan bekijken we alleen die zet. Stenen met dezelfde vorm en kleur zijn uitwisselbaar. Plekken zijn getallen (y*w+x).
 function los(lv,max=3e6){const W=lv.w,H=lv.h,N=lv.blokken.length,WH=W*H;
@@ -138,7 +139,10 @@ function los(lv,max=3e6){const W=lv.w,H=lv.h,N=lv.blokken.length,WH=W*H;
   const sleutel=p=>{let s='';for(const gr of groepen){const v=gr.map(i=>p[i]+1).sort((a,b)=>a-b);s+=String.fromCharCode(...v)+'|'}return s};
   const g=new Int16Array(WH),bezocht=new Int32Array(WH);let stempel=0;const rij=new Int32Array(WH);
   const vrijOp=(i,a)=>{const x=a%W,y=(a-x)/W;if(x<0||y<0||x>W-bw[i]||y>H-bh[i])return false;for(const c of cel[i]){const v=g[a+c];if(v!==-1&&v!==i)return false}return true};
-  const start=lv.blokken.map(b=>b.y*W+b.x);let laag=[start];const gezien=new Set([sleutel(start)]);let d=0;
+  // gratis: haal alle stenen weg die vanaf hun plek meteen naar buiten kunnen (net zo lang tot er geen meer is)
+  const g2=new Int16Array(WH);const gratis=p=>{let weer=true;while(weer){weer=false;g2.fill(-1);for(let i=0;i<N;i++)if(p[i]>=0)for(const c of cel[i])g2[p[i]+c]=i;
+    for(let i=0;i<N;i++){const up=p[i]>=0&&uitPad[i][p[i]];if(up&&up.every(v=>g2[v]===-1||g2[v]===i)){p[i]=-1;weer=true;break}}}return p};
+  const start=gratis(lv.blokken.map(b=>b.y*W+b.x));if(start.every(q=>q<0))return{zetten:0,staten:1};let laag=[start];const gezien=new Set([sleutel(start)]);let d=0;
   while(laag.length){const volg=[];d++;
     for(const pos of laag){g.fill(-1);for(let i=0;i<N;i++)if(pos[i]>=0)for(const c of cel[i])g[pos[i]+c]=i;
       const kind=[];let snel=null;
@@ -147,7 +151,7 @@ function los(lv,max=3e6){const W=lv.w,H=lv.h,N=lv.blokken.length,WH=W*H;
           if(up&&up.every(v=>g[v]===-1||g[v]===i)){snel=pos.slice();snel[i]=-1;break}
           if(a!==pos[i]){const k=pos.slice();k[i]=a;kind.push(k)}
           const x=a%W;for(const b of[x+1<W?a+1:-1,x>0?a-1:-1,a+W<WH?a+W:-1,a-W>=0?a-W:-1]){if(b<0||bezocht[b]===stempel)continue;bezocht[b]=stempel;if(vrijOp(i,b))rij[n++]=b}}}
-      for(const k of snel?[snel]:kind){const s=sleutel(k);if(gezien.has(s))continue;gezien.add(s);
+      for(const k0 of snel?[snel]:kind){const k=gratis(k0),s=sleutel(k);if(gezien.has(s))continue;gezien.add(s);
         if(k.every(q=>q<0))return{zetten:d,staten:gezien.size};volg.push(k)}
       if(gezien.size>max)return{zetten:null,staten:gezien.size,teGroot:true}}
     laag=volg}
@@ -160,12 +164,12 @@ const WERELDEN=[
 {naam:'Wereld 0: Opwarmen',uitleg:'Even inkomen. Wie heeft al die steentjes hier laten liggen?',levels:[
 {id:'w0-1',naam:'Twee stenen',tip:'Twee stenen voor de verkeerde deur. Eén moet even opzij.',kaart:["AABB","AABB","....","...."],k:{A:'r',B:'b'},uit:[{kant:'boven',van:0,tot:1,k:'b'},{kant:'boven',van:2,tot:3,k:'r'}],min:3},
 {id:'w0-2',naam:'Piramide',tip:'Wie onderaan staat, moet wachten. Of niet?',kaart:["......","..AA..","..AA..",".BBCC.",".BBCC."],k:{A:'g',B:'b',C:'r'},uit:[{kant:'onder',van:2,tot:3,k:'g'},{kant:'rechts',van:3,tot:4,k:'b'},{kant:'links',van:3,tot:4,k:'r'}],min:4},
-{id:'w0-3',naam:'Rood en roze',tip:'Roze wil naar rechts, rood wil omhoog. Wie gaat eerst?',kaart:["AABB","CDDE","CDDE","FGG."],k:{A:'r',B:'r',C:'r',D:'p',E:'p',F:'p',G:'p'},uit:[{kant:'boven',van:1,tot:2,k:'r'},{kant:'rechts',van:1,tot:3,k:'p'}],min:8},
-{id:'w0-4',naam:'Drie deuren',tip:'Drie kleuren, drie deuren. Kijk goed hoe breed elke deur is.',kaart:["AABB","C.BB","DEEF",".EEF","GGGF"],k:{A:'n',B:'b',C:'r',D:'r',E:'b',F:'r',G:'b'},uit:[{kant:'boven',van:1,tot:2,k:'n'},{kant:'links',van:3,tot:4,k:'b'},{kant:'rechts',van:0,tot:2,k:'r'}],min:9},
-{id:'w0-5',naam:'Blauwe golf',tip:'Heel veel blauw, en één zwarte steen die lekker in de weg zit.',kaart:["ABBCC","AADCC","EDDFF","EGG..","EHHHI"],k:{A:'b',B:'b',C:'k',D:'r',E:'b',F:'b',G:'r',H:'b',I:'r'},uit:[{kant:'boven',van:0,tot:2,k:'k'},{kant:'rechts',van:0,tot:3,k:'b'},{kant:'onder',van:2,tot:4,k:'r'}],min:11},
-{id:'w0-6',naam:'Dwarsliggers',tip:'Paars, rood en zwart zitten elkaar flink dwars.',kaart:["ABBCC","DBEFF","DGEHH","DGI.J",".IIJJ"],k:{A:'r',B:'z',C:'r',D:'k',E:'r',F:'r',G:'z',H:'k',I:'z',J:'r'},uit:[{kant:'rechts',van:1,tot:3,k:'r'},{kant:'links',van:2,tot:4,k:'z'},{kant:'boven',van:0,tot:1,k:'k'}],min:13},
-{id:'w0-7',naam:'Vier kleuren',tip:'Nu met vier kleuren. Wie moet als eerste opzij?',kaart:["AABBC", "AABBC", "DEEEF", "DGEFF", "HGI.J", ".GIKK"],k:{A:'z',B:'g',C:'z',D:'n',E:'r',F:'g',G:'g',H:'r',I:'r',J:'z',K:'r'},uit:[{kant:'links',van:2,tot:4,k:'z'},{kant:'onder',van:0,tot:3,k:'r'},{kant:'boven',van:3,tot:4,k:'n'},{kant:'boven',van:1,tot:2,k:'g'}],min:16},
-{id:'w0-8',naam:'Eindbaas',tip:'Het grootste bord tot nu toe. Rustig nadenken, ↶ mag altijd.',kaart:[".AABB.", "CADBBE", "CDDFFE", "GGDFHE", "IGJJHK", "IIJLM."],k:{A:'k',B:'k',C:'z',D:'k',E:'g',F:'z',G:'p',H:'p',I:'k',J:'k',K:'p',L:'z',M:'z'},uit:[{kant:'onder',van:3,tot:5,k:'p'},{kant:'rechts',van:3,tot:4,k:'z'},{kant:'links',van:2,tot:5,k:'k'},{kant:'onder',van:2,tot:2,k:'g'}],min:20}
+{id:'w0-3',naam:'Rood en roze',tip:'Roze wil naar rechts, rood wil omhoog. Wie gaat eerst?',kaart:["AABB","CDDE","CDDE","FGG."],k:{A:'r',B:'r',C:'r',D:'p',E:'p',F:'p',G:'p'},uit:[{kant:'boven',van:1,tot:2,k:'r'},{kant:'rechts',van:1,tot:3,k:'p'}],min:7},
+{id:'w0-4',naam:'Drie deuren',tip:'Drie kleuren, drie deuren. Kijk goed hoe breed elke deur is.',kaart:["AABB","C.BB","DEEF",".EEF","GGGF"],k:{A:'n',B:'b',C:'r',D:'r',E:'b',F:'r',G:'b'},uit:[{kant:'boven',van:1,tot:2,k:'n'},{kant:'links',van:3,tot:4,k:'b'},{kant:'rechts',van:0,tot:2,k:'r'}],min:8},
+{id:'w0-5',naam:'Blauwe golf',tip:'Heel veel blauw, en één zwarte steen die lekker in de weg zit.',kaart:["ABBCC","AADCC","EDDFF","EGG..","EHHHI"],k:{A:'b',B:'b',C:'k',D:'r',E:'b',F:'b',G:'r',H:'b',I:'r'},uit:[{kant:'boven',van:0,tot:2,k:'k'},{kant:'rechts',van:0,tot:3,k:'b'},{kant:'onder',van:2,tot:4,k:'r'}],min:9},
+{id:'w0-6',naam:'Dwarsliggers',tip:'Paars, rood en zwart zitten elkaar flink dwars.',kaart:["ABBCC","DBEFF","DGEHH","DGI.J",".IIJJ"],k:{A:'r',B:'z',C:'r',D:'k',E:'r',F:'r',G:'z',H:'k',I:'z',J:'r'},uit:[{kant:'rechts',van:1,tot:3,k:'r'},{kant:'links',van:2,tot:4,k:'z'},{kant:'boven',van:0,tot:1,k:'k'}],min:12},
+{id:'w0-7',naam:'Vier kleuren',tip:'Nu met vier kleuren. Wie moet als eerste opzij?',kaart:["AABBC", "AABBC", "DEEEF", "DGEFF", "HGI.J", ".GIKK"],k:{A:'z',B:'g',C:'z',D:'n',E:'r',F:'g',G:'g',H:'r',I:'r',J:'z',K:'r'},uit:[{kant:'links',van:2,tot:4,k:'z'},{kant:'onder',van:0,tot:3,k:'r'},{kant:'boven',van:3,tot:4,k:'n'},{kant:'boven',van:1,tot:2,k:'g'}],min:15},
+{id:'w0-8',naam:'Eindbaas',tip:'Het grootste bord tot nu toe. Rustig nadenken, ↶ mag altijd.',kaart:[".AABB.", "CADBBE", "CDDFFE", "GGDFHE", "IGJJHK", "IIJLM."],k:{A:'k',B:'k',C:'z',D:'k',E:'g',F:'z',G:'p',H:'p',I:'k',J:'k',K:'p',L:'z',M:'z'},uit:[{kant:'onder',van:3,tot:5,k:'p'},{kant:'rechts',van:3,tot:4,k:'z'},{kant:'links',van:2,tot:5,k:'k'},{kant:'onder',van:2,tot:2,k:'g'}],min:19}
 ]}
 ];
 </script>
@@ -245,7 +249,7 @@ function nop(k){if(noppen[k])return noppen[k];const r=cs*.13,s=Math.ceil(r*3*dpr
 function tekenBlok(b,X,Y,til){
   const set=new Set(b.cellen.map(c=>c+'')),heeft=(x,y)=>set.has(x+','+y),[f,d,l]=KLEUR[b.k];
   const m=cs*.04,diep=cs*.08,r=cs*.12;
-  if(til){ctx.fillStyle='rgba(0,0,0,.25)';for(const[cx,cy]of b.cellen)ctx.fillRect(X+cx*cs+m+cs*.06,Y+cy*cs+m+cs*.1,cs-2*m,cs-2*m);Y-=cs*.06}
+  if(til){ctx.fillStyle='rgba(0,0,0,.25)';for(const[cx,cy]of b.cellen)ctx.fillRect(X+cx*cs+cs*.06,Y+cy*cs+cs*.1,cs,cs);Y-=cs*.06}
   const vak=b.cellen.map(([cx,cy])=>{const T=!heeft(cx,cy-1),B=!heeft(cx,cy+1),Lk=!heeft(cx-1,cy),R=!heeft(cx+1,cy),px=X+cx*cs,py=Y+cy*cs;
     return {x0:px+(Lk?m:-.7),y0:py+(T?m:-.7),x1:px+cs-(R?m:-.7),y1:py+cs-(B?m:-.7),T,B,L:Lk,R,
       ra:[T&&Lk?r:0,T&&R?r:0,B&&R?r:0,B&&Lk?r:0]}});
@@ -270,7 +274,8 @@ function teken(dt){
   for(const u of lv.uit){const[f,d,l]=KLEUR[u.k],len=(u.tot-u.van+1)*cs,a=u.van*cs+2,b=len-4;let x,y,w,h;
     if(u.kant==='boven'){x=ox+a;y=oy-rand;w=b;h=rand}else if(u.kant==='onder'){x=ox+a;y=oy+H;w=b;h=rand}
     else if(u.kant==='links'){x=ox-rand;y=oy+a;w=rand;h=b}else{x=ox+W;y=oy+a;w=rand;h=b}
-    ctx.fillStyle=d;ctx.fillRect(x,y,w,h);ctx.fillStyle=f;ctx.fillRect(x+2,y+2,w-4,h-4);
+    u._r=[x,y,w,h];const duw=sleep&&sleep.u===u;
+    ctx.fillStyle=d;ctx.fillRect(x,y,w,h);ctx.fillStyle=duw?l:f;ctx.fillRect(x+2,y+2,w-4,h-4);
     // pijltje naar buiten
     const[dx,dy]=RICHTING[u.kant],mx=x+w/2,my=y+h/2,s=rand*.32;ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();
     ctx.moveTo(mx+dx*s,my+dy*s);ctx.lineTo(mx-dx*s*.6-dy*s,my-dy*s*.6-dx*s);ctx.lineTo(mx-dx*s*.6+dy*s,my-dy*s*.6+dx*s);ctx.fill()}
@@ -278,9 +283,12 @@ function teken(dt){
   const k=Math.min(1,dt*22),volg=lv.blokken.map((b,i)=>i).sort((a,b)=>(sleep&&sleep.i===a)-(sleep&&sleep.i===b));
   for(const i of volg){const an=anim[i],b=lv.blokken[i];
     if(an.uit){an.t+=dt;const[dx,dy]=RICHTING[an.uit.kant];an.x+=dx*dt*14;an.y+=dy*dt*14;an.a=Math.max(0,1-an.t*3.2);if(an.a<=0)continue}
+    else if(sleep&&sleep.i===i&&sleep.u){const[dx,dy]=RICHTING[sleep.u.kant];an.x=pos[i][0]+dx*sleep.over;an.y=pos[i][1]+dy*sleep.over}
     else if(pos[i]){an.x+=(pos[i][0]-an.x)*k;an.y+=(pos[i][1]-an.y)*k}else continue;
     ctx.save();
-    if(an.uit){ctx.globalAlpha=an.a;ctx.beginPath();ctx.rect(ox-rand,oy-rand,W+2*rand,H+2*rand);ctx.clip()}
+    // half in de deur: alleen tekenen binnen het bord en de deur
+    const deur=an.uit||(sleep&&sleep.i===i&&sleep.u);
+    if(deur){if(an.uit)ctx.globalAlpha=an.a;ctx.beginPath();ctx.rect(ox,oy,W,H);if(deur._r)ctx.rect(...deur._r);ctx.clip()}
     tekenBlok(b,ox+an.x*cs,oy+an.y*cs,sleep&&sleep.i===i);ctx.restore()}
   // vonkjes
   for(const v of vonk){v.t+=dt;v.x+=v.vx*dt;v.y+=v.vy*dt;v.vy+=900*dt;ctx.globalAlpha=Math.max(0,1-v.t*1.6);ctx.fillStyle=v.c;ctx.fillRect(v.x-3,v.y-3,6,6)}
@@ -298,23 +306,26 @@ cv.addEventListener('pointerdown',e=>{if(!spelt||sleep)return;const[px,py]=punt(
   geluid('tik');cv.setPointerCapture(e.pointerId);
   sleep={i,id:e.pointerId,sx:pos[i][0],sy:pos[i][1],px,py,voor:pos.map(p=>p&&p.slice())}});
 cv.addEventListener('pointermove',e=>{if(!sleep||e.pointerId!==sleep.id)return;const[px,py]=punt(e),i=sleep.i;
-  const tx=sleep.sx+Math.round((px-sleep.px)/cs),ty=sleep.sy+Math.round((py-sleep.py)/cs);
+  const fx=sleep.sx+(px-sleep.px)/cs,fy=sleep.sy+(py-sleep.py)/cs,tx=Math.round(fx),ty=Math.round(fy);
   const g=rooster(lv,pos);let[x,y]=pos[i];
   for(let t=0;t<60&&(x!==tx||y!==ty);t++){const sx=Math.sign(tx-x),sy=Math.sign(ty-y);
     const keus=Math.abs(tx-x)>=Math.abs(ty-y)?[[sx,0],[0,sy]]:[[0,sy],[sx,0]];let gezet=false;
     for(const[a,b]of keus){if((a||b)&&vrij(lv,g,i,x+a,y+b)){x+=a;y+=b;gezet=true;break}}
-    if(!gezet)break;
-    const u=uitgang(lv,g,i,x,y);if(u){pos[i]=[x,y];laatGaan(i,u);return}}
-  if(x!==pos[i][0]||y!==pos[i][1]){pos[i]=[x,y];geluid('tik')}});
-function loslaten(e){if(!sleep||e.pointerId!==sleep.id)return;const i=sleep.i,g=rooster(lv,pos),u=uitgang(lv,g,i,pos[i][0],pos[i][1]);
-  if(u){laatGaan(i,u);return}
-  if(pos[i][0]!==sleep.sx||pos[i][1]!==sleep.sy)telZet();
+    if(!gezet)break}
+  if(x!==pos[i][0]||y!==pos[i][1]){pos[i]=[x,y];geluid('tik')}
+  // staat hij voor zijn eigen deur en duw je verder naar buiten? Dan schuift hij de deur in; over de helft = weg.
+  const u=uitgang(lv,rooster(lv,pos),i,x,y);sleep.u=null;sleep.over=0;
+  if(u){const[dx,dy]=RICHTING[u.kant],b=lv.blokken[i],diep=1+Math.max(...b.cellen.map(c=>dx?c[0]:c[1])),over=(fx-x)*dx+(fy-y)*dy;
+    if(over>0){sleep.u=u;sleep.over=Math.min(over,diep);if(over>=diep/2)laatGaan(i,u)}}});
+function loslaten(e){if(!sleep||e.pointerId!==sleep.id)return;const i=sleep.i;
+  if(sleep.u)geluid('bonk');  // niet ver genoeg geduwd: terug
+  if(pos[i][0]!==sleep.sx||pos[i][1]!==sleep.sy)telZet(true);
   sleep=null}
 cv.addEventListener('pointerup',loslaten);cv.addEventListener('pointercancel',loslaten);
-function telZet(){stapel.push(sleep.voor);zetten++;zetTekst()}
-function laatGaan(i,u){telZet();sleep=null;anim[i].uit=u;anim[i].t=0;anim[i].x=pos[i][0];anim[i].y=pos[i][1];spat(i,u);pos[i]=null;geluid('plop');
+function telZet(telt){stapel.push({pos:sleep.voor,telt});if(telt)zetten++;zetTekst()}
+function laatGaan(i,u){telZet(pos[i][0]!==sleep.sx||pos[i][1]!==sleep.sy);sleep=null;anim[i].uit=u;anim[i].t=0;spat(i,u);pos[i]=null;geluid('plop');
   if(pos.every(p=>!p))setTimeout(klaar,650)}
-$('ongedaan').onclick=()=>{if(!stapel.length||sleep||klaarGemeld)return;pos=stapel.pop();zetten=Math.max(0,zetten-1);
+$('ongedaan').onclick=()=>{if(!stapel.length||sleep||klaarGemeld)return;const st=stapel.pop();pos=st.pos;if(st.telt)zetten=Math.max(0,zetten-1);
   pos.forEach((p,i)=>{if(p&&anim[i].uit){anim[i].uit=null;anim[i].a=1;anim[i].x=p[0];anim[i].y=p[1]}});zetTekst()};
 $('opnieuw').onclick=()=>{if(huidig!=null)start(huidig)};
 

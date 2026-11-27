@@ -21,9 +21,12 @@ De voorbeelden zijn alleen ter inspiratie: geen merknamen (ook niet "LEGO"), gee
 
 ## Regels in het spel
 - Slepen met de vinger (of muis): de steen volgt de vinger vakje voor vakje over lege vakjes en stopt tegen andere stenen.
-- Raakt een steen de uitgang van zijn kleur, past hij qua breedte en is de weg naar buiten vrij, dan zoeft hij eruit
-  (ook midden in het slepen). Draaien kan niet.
-- Eén keer slepen = één zet, ook met een bochtje. ↶ neemt een zet terug (ook een steen die al weg was), ⟲ begint opnieuw.
+- Een steen gaat niet vanzelf weg als hij tegen zijn deur staat (wens Marcel, 27 nov): je duwt hem de deur in
+  (hij volgt je vinger, de deur licht op). Is hij voor meer dan de helft door de deur, dan zoeft hij weg; eerder
+  loslaten = terug. Hij past alleen als hij niet breder is dan de deur en de weg naar buiten vrij is. Draaien kan niet.
+- Eén keer slepen = één zet, ook met een bochtje, en ook als je hem in dezelfde beweging de deur uit duwt. Een steen die
+  al voor zijn deur staat naar buiten duwen is gratis (anders kost loslaten-en-opnieuw-pakken een ster). De oplosser
+  telt precies zo. ↶ neemt een zet terug (ook een steen die al weg was), ⟲ begint opnieuw.
 - Sterren: ⭐⭐⭐ = het minimum volgens de oplosser, ⭐⭐ = minimum + max(2, 30%), anders ⭐.
 - Levels gaan op volgorde open. Beste aantal zetten per speler in `noppen_beste:<naam>` (JSON per level-id).
 
