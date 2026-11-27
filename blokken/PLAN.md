@@ -52,9 +52,9 @@ De voorbeelden zijn alleen ter inspiratie: geen merknamen (ook niet "LEGO"), gee
 - Stap 2 (27 nov): Wereld 1 Opruimdag. Pa (getekend gezichtje met ballon boven het bord) zegt de tip van het level,
   roept AU! bij elke zet boven het minimum en reageert op de sterren. Kauwgomsteen: roze klodder met getal = hoeveel
   andere stenen er eerst weg moeten (`plak:{C:2}` in het level); tik erop = schudden + uitleg van Pa. Stenen die bij het
-  begin al voor hun deur staan tellen mee (gratis naar buiten). Levels 1-5 staan erin, 6-10 (6x6 en 6x7) volgen.
+  begin al voor hun deur staan tellen mee (gratis naar buiten). Wereld 1 heeft 9 levels (12 tot 23 zetten); 6x7-borden bleken te traag om te maken, dus maximaal 6x6.
 - Levelmaker: `"methode":"klim"` (oplosbaar bord stap voor stap moeilijker maken, goed tot 5x6) en `"kauwgom":n` (kiest
   pas na het zoeken op welke steen een klodder het meeste extra zetten kost; probeert getallen tot plakMax+2).
   Voor 6x6 en groter werkt `"methode":"vol"` met `"kauwgom"` beter. Onoplosbare borden kosten de oplosser veel tijd:
   houd `maxStaten` laag (20.000-60.000).
-- Volgende: levels 6-10 van Wereld 1; daarna ideeën voor Wereld 2 (slot + sleutel of regenboogsteen).
+- Volgende: ideeën voor Wereld 2 (slot + sleutel of regenboogsteen).
