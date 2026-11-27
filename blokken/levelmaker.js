@@ -69,14 +69,52 @@ function pogingVol(){const{w,h}=O;const kaart=Array.from({length:h},()=>Array(w)
       const len=Math.min(lang,nodig+Math.floor(rnd()*2)),van=Math.floor(rnd()*(lang-len+1));
       if(bezet[kant].some(([a,b])=>!(van+len-1<a||van>b)))continue;bezet[kant].push([van,van+len-1]);uit.push({kant,van,tot:van+len-1,k:kl});gelukt=true}
     if(!gelukt)return telR('uitgangen')}
-  const L={kaart:L0.kaart,k,uit},lv2=M.maakLevel(L);
+  const L={kaart:L0.kaart,k,uit};
+  // kauwgomstenen: zitten vast tot er 'plak' andere stenen weg zijn
+  if(O.kauwgom){L.plak={};const letters=Object.keys(k).sort(()=>rnd()-.5).slice(0,O.kauwgom);
+    for(const c of letters)L.plak[c]=1+Math.floor(rnd()*(O.plakMax||2))}
+  const lv2=M.maakLevel(L);
   const p2=lv2.blokken.map(b=>[b.x,b.y]),g=M.rooster(lv2,p2);
   const meteen=lv2.blokken.filter((b,i)=>M.bereik(lv2,g,i,b.x,b.y).some(([x,y])=>M.uitgang(lv2,g,i,x,y))).length;
   if(meteen<1)return telR('geenBegin');if(meteen>(O.meteenMax||2))return telR('teMakkelijk');
   const r=M.los(lv2,O.maxStaten);if(r.zetten==null)return telR(r.teGroot?'teGroot':'onoplosbaar');
   const extra=r.zetten-lv2.blokken.length;if(extra<(O.extraMin||0)||extra>(O.extraMax??99))return telR('extra'+extra);
+  if(O.kauwgom){const zonder=M.los(M.maakLevel({kaart:L.kaart,k,uit}),O.maxStaten);if(zonder.zetten!=null&&zonder.zetten>=r.zetten)return telR('kauwgomZinloos')}
   L.min=r.zetten;L.extra=extra;L.staten=r.staten;return L}
-const uit=[];for(let t=0;t<O.pogingen&&uit.length<O.aantal;t++){const L=O.methode==='vol'?pogingVol():poging();if(L&&!uit.some(u=>u.kaart.join()===L.kaart.join()))uit.push(L)}
-for(const l of uit){console.error(l.min+' zetten (extra '+l.extra+'), '+l.staten+' staten, uitgangen: '+l.uit.map(u=>u.kant+' '+u.van+'-'+u.tot+' '+u.k).join(', '));
-  console.error(l.kaart.map(r=>'   '+r+'   '+[...r].map(c=>c=='.'?'.':l.k[c]).join('')).join('\n'))}
+// Methode 'klim': begin met een oplosbaar vol bord en verander telkens één ding (kleur van een steen, een deur verschuiven
+// of verbreden, kauwgom verplaatsen). Houd de verandering als het level oplosbaar blijft en niet makkelijker wordt.
+function meet(L){const lv=M.maakLevel(L),p=lv.blokken.map(b=>[b.x,b.y]),g=M.rooster(lv,p);
+  // elke steen moet door een deur van zijn kleur passen
+  for(const b of lv.blokken)if(!L.uit.some(u=>{if(u.k!==b.k)return false;const hor=u.kant==='boven'||u.kant==='onder';return Math.max(...b.cellen.map(c=>c[hor?0:1]))+1<=u.tot-u.van+1}))return null;
+  const meteen=lv.blokken.filter((b,i)=>!M.vast(lv,p,i)&&M.bereik(lv,g,i,b.x,b.y).some(([x,y])=>M.uitgang(lv,g,i,x,y))).length;
+  if(meteen<1||meteen>(O.meteenMax||2))return null;
+  const r=M.los(lv,O.maxStaten);if(r.zetten==null)return null;return{min:r.zetten,extra:r.zetten-lv.blokken.length,staten:r.staten}}
+function pogingKlim(){let L=null,m=null;
+  for(let t=0;t<200&&!m;t++){const O2=O.extraMin;O.extraMin=0;const extraMax=O.extraMax;O.extraMax=99;const kg=O.kauwgom;O.kauwgom=0;
+    L=pogingVol();O.extraMin=O2;O.extraMax=extraMax;O.kauwgom=kg;if(L){delete L.min;delete L.extra;delete L.staten;m=meet(L)}}
+  if(!m)return telR('geenStart');
+  if(O.kauwgom){L.plak={};}
+  const kl=[...new Set(Object.values(L.k))],kanten=['boven','onder','links','rechts'];
+  for(let stap=0;stap<(O.stappen||300);stap++){const N=JSON.parse(JSON.stringify(L)),r=rnd(),letters=Object.keys(N.k);
+    if(r<.4){const c=kies(letters);N.k[c]=kies(kl)}
+    else if(r<.75){const u=kies(N.uit),hor=u.kant==='boven'||u.kant==='onder',lang=hor?O.w:O.h,len=u.tot-u.van+1+(rnd()<.5?-1:rnd()<.5?1:0);
+      if(rnd()<.3)u.kant=kies(kanten);const L2=Math.max(1,Math.min(len,(u.kant==='boven'||u.kant==='onder')?O.w:O.h,3));const lang2=(u.kant==='boven'||u.kant==='onder')?O.w:O.h;
+      u.van=Math.floor(rnd()*(lang2-L2+1));u.tot=u.van+L2-1;
+      if(N.uit.some(v=>v!==u&&v.kant===u.kant&&!(u.tot<v.van||u.van>v.tot)))continue}
+    else if(O.kauwgom){const c=kies(letters);if(N.plak[c])delete N.plak[c];else N.plak[c]=1+Math.floor(rnd()*(O.plakMax||2));
+      if(Object.keys(N.plak).length>O.kauwgom)continue}
+    else continue;
+    const nm=meet(N);if(!nm)continue;
+    if(nm.extra>(O.extraMax??99))continue;
+    if(nm.extra>=m.extra){L=N;m=nm}
+    if(m.extra>=O.extraMin&&(!O.kauwgom||Object.keys(L.plak).length===O.kauwgom)&&rnd()<.15)break}
+  if(m.extra<O.extraMin||m.extra>(O.extraMax??99))return telR('klimTeLaag'+m.extra);
+  if(O.kauwgom){if(Object.keys(L.plak).length<O.kauwgom)return telR('teWeinigKauwgom');
+    const zonder=M.los(M.maakLevel({kaart:L.kaart,k:L.k,uit:L.uit}),O.maxStaten);if(zonder.zetten!=null&&zonder.zetten>=m.min)return telR('kauwgomZinloos')}
+  else delete L.plak;
+  Object.assign(L,m);return L}
+const toon=l=>{console.error(l.min+' zetten (extra '+l.extra+'), '+l.staten+' staten, uitgangen: '+l.uit.map(u=>u.kant+' '+u.van+'-'+u.tot+' '+u.k).join(', '));
+  console.error(l.kaart.map(r=>'   '+r+'   '+[...r].map(c=>c=='.'?'.':l.k[c]).join('')).join('\n')+(l.plak?'\n   kauwgom: '+JSON.stringify(l.plak):''))};
+const uit=[];for(let t=0;t<O.pogingen&&uit.length<O.aantal;t++){const L=O.methode==='klim'?pogingKlim():O.methode==='vol'?pogingVol():poging();
+  if(L&&!uit.some(u=>u.kaart.join()===L.kaart.join())){uit.push(L);toon(L);require('fs').writeFileSync(O.uitvoer||'/dev/null',JSON.stringify(uit))}}
 console.error('afgekeurd:',JSON.stringify(reden));console.log(JSON.stringify(uit));

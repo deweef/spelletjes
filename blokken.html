@@ -32,6 +32,12 @@ h1 span{display:inline-block;padding:0 1px;text-shadow:0 3px 0 rgba(0,0,0,.35)}
 #kop b{display:block;font-size:19px}
 #kop span{font-size:14px;opacity:.85}
 #tip{position:fixed;left:16px;right:16px;text-align:center;font-size:14px;opacity:.85;pointer-events:none}
+#tip.pa{opacity:1;display:flex;align-items:center;gap:8px;text-align:left;max-width:460px;margin:0 auto}
+#tip.pa svg{flex:0 0 54px;height:54px}
+#tip.pa .ballon{position:relative;flex:1;background:#fff;color:#2f3654;border-radius:14px;padding:7px 11px;font-size:14px;line-height:1.3;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+#tip.pa .ballon:before{content:'';position:absolute;left:-7px;top:50%;margin-top:-7px;border:7px solid transparent;border-left:0;border-right-color:#fff}
+#tip.pa .ballon.au{background:#ffe1dc;color:#b8291f;font-weight:800;animation:au .35s}
+@keyframes au{0%,100%{transform:none}25%{transform:translateX(-5px) rotate(-2deg)}75%{transform:translateX(5px) rotate(2deg)}}
 #c{position:fixed;left:0;right:0;display:block;touch-action:none}
 #onder{position:fixed;left:0;right:0;bottom:0;padding:0 0 calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:10px}
 #onder .knop{font-size:16px;padding:10px 16px}
@@ -65,6 +71,8 @@ h1 span{display:inline-block;padding:0 1px;text-shadow:0 3px 0 rgba(0,0,0,.35)}
     <p>🚪 Langs de rand zitten <b>uitgangen</b>. Duw een steen <b>de uitgang van zijn eigen kleur in</b>. Is hij voor meer dan de helft door de deur, dan verdwijnt hij.</p>
     <p>📏 Een steen past alleen als hij <b>niet breder</b> is dan de uitgang. Draaien kan niet.</p>
     <p>⭐ Hoe minder zetten, hoe meer sterren. Eén keer slepen is één zet, ook als je een bochtje maakt. Een steen die al voor zijn deur staat naar buiten duwen is gratis.</p>
+    <p>🩷 Een steen met <b>kauwgom</b> zit vast. Het getal zegt hoeveel andere stenen er eerst weg moeten.</p>
+    <p>🦶 Vanaf Wereld 1 loopt Pa op blote voeten door de kamer: elke zet meer dan nodig is een steentje waar hij op trapt.</p>
     <p>↶ Vergist? Neem een zet terug.</p>
   </div>
   <button class="knop" id="snapKnop">Snap ik!</button>
@@ -93,15 +101,18 @@ h1 span{display:inline-block;padding:0 1px;text-shadow:0 3px 0 rgba(0,0,0,.35)}
 
 <script id="motor">
 // ===== Spelregels en oplosser (ook gebruikt door blokken/levelmaker.js en blokken/controleer.js) =====
-// Een level: { naam, kaart:["AABB",...], k:{A:'r',B:'b'}, uit:[{kant:'boven'|'onder'|'links'|'rechts', van, tot, k}], min }
+// Een level: { naam, kaart:["AABB",...], k:{A:'r',B:'b'}, uit:[{kant:'boven'|'onder'|'links'|'rechts', van, tot, k}], min,
+//   plak:{C:2} (kauwgomsteen: zit vast tot er zoveel andere stenen weg zijn) }
 const RICHTING={boven:[0,-1],onder:[0,1],links:[-1,0],rechts:[1,0]};
 function maakLevel(L){
   const h=L.kaart.length,w=L.kaart[0].length,groep={};
   L.kaart.forEach((rij,y)=>[...rij].forEach((ch,x)=>{if(ch!=='.'){(groep[ch]=groep[ch]||[]).push([x,y])}}));
   const blokken=Object.keys(groep).sort().map((ch,i)=>{const c=groep[ch],mx=Math.min(...c.map(p=>p[0])),my=Math.min(...c.map(p=>p[1]));
-    return {id:i,letter:ch,k:L.k[ch],cellen:c.map(p=>[p[0]-mx,p[1]-my]),x:mx,y:my}});
+    return {id:i,letter:ch,k:L.k[ch],cellen:c.map(p=>[p[0]-mx,p[1]-my]),x:mx,y:my,plak:(L.plak&&L.plak[ch])||0}});
   return {w,h,blokken,uit:L.uit};
 }
+// zit steen i nog vast aan de kauwgom? (pos[j] == null: steen j is al weg)
+function vast(lv,pos,i){const p=lv.blokken[i].plak;if(!p)return false;let weg=0;for(const q of pos)if(!q)weg++;return weg<p}
 // rooster: per vakje het nummer van het blok of -1 (pos[i] == null: blok is al weg)
 function rooster(lv,pos){const g=new Int16Array(lv.w*lv.h).fill(-1);
   lv.blokken.forEach((b,i)=>{const p=pos[i];if(!p)return;for(const[cx,cy]of b.cellen)g[(p[1]+cy)*lv.w+p[0]+cx]=i});return g}
@@ -135,18 +146,19 @@ function los(lv,max=3e6){const W=lv.w,H=lv.h,N=lv.blokken.length,WH=W*H;
         for(const[cx,cy]of b.cellen){let X=x+cx+dx,Y=y+cy+dy;while(X>=0&&Y>=0&&X<W&&Y<H){vak.add(Y*W+X);X+=dx;Y+=dy}}
         r[y*W+x]=[...vak]}}
     return r});
-  const soort=lv.blokken.map(b=>b.k+JSON.stringify(b.cellen)),groepen=Object.values(soort.reduce((a,s,i)=>((a[s]=a[s]||[]).push(i),a),{}));
+  const plak=lv.blokken.map(b=>b.plak||0),wegVan=p=>{let n=0;for(const q of p)if(q<0)n++;return n};
+  const soort=lv.blokken.map(b=>b.k+b.plak+JSON.stringify(b.cellen)),groepen=Object.values(soort.reduce((a,s,i)=>((a[s]=a[s]||[]).push(i),a),{}));
   const sleutel=p=>{let s='';for(const gr of groepen){const v=gr.map(i=>p[i]+1).sort((a,b)=>a-b);s+=String.fromCharCode(...v)+'|'}return s};
   const g=new Int16Array(WH),bezocht=new Int32Array(WH);let stempel=0;const rij=new Int32Array(WH);
   const vrijOp=(i,a)=>{const x=a%W,y=(a-x)/W;if(x<0||y<0||x>W-bw[i]||y>H-bh[i])return false;for(const c of cel[i]){const v=g[a+c];if(v!==-1&&v!==i)return false}return true};
   // gratis: haal alle stenen weg die vanaf hun plek meteen naar buiten kunnen (net zo lang tot er geen meer is)
   const g2=new Int16Array(WH);const gratis=p=>{let weer=true;while(weer){weer=false;g2.fill(-1);for(let i=0;i<N;i++)if(p[i]>=0)for(const c of cel[i])g2[p[i]+c]=i;
-    for(let i=0;i<N;i++){const up=p[i]>=0&&uitPad[i][p[i]];if(up&&up.every(v=>g2[v]===-1||g2[v]===i)){p[i]=-1;weer=true;break}}}return p};
+    const weg=wegVan(p);for(let i=0;i<N;i++){const up=p[i]>=0&&plak[i]<=weg&&uitPad[i][p[i]];if(up&&up.every(v=>g2[v]===-1||g2[v]===i)){p[i]=-1;weer=true;break}}}return p};
   const start=gratis(lv.blokken.map(b=>b.y*W+b.x));if(start.every(q=>q<0))return{zetten:0,staten:1};let laag=[start];const gezien=new Set([sleutel(start)]);let d=0;
   while(laag.length){const volg=[];d++;
     for(const pos of laag){g.fill(-1);for(let i=0;i<N;i++)if(pos[i]>=0)for(const c of cel[i])g[pos[i]+c]=i;
-      const kind=[];let snel=null;
-      for(let i=0;i<N&&!snel;i++){if(pos[i]<0)continue;stempel++;let n=0;rij[n++]=pos[i];bezocht[pos[i]]=stempel;
+      const kind=[];let snel=null;const weg=wegVan(pos);
+      for(let i=0;i<N&&!snel;i++){if(pos[i]<0||plak[i]>weg)continue;stempel++;let n=0;rij[n++]=pos[i];bezocht[pos[i]]=stempel;
         for(let q=0;q<n;q++){const a=rij[q],up=uitPad[i][a];
           if(up&&up.every(v=>g[v]===-1||g[v]===i)){snel=pos.slice();snel[i]=-1;break}
           if(a!==pos[i]){const k=pos.slice();k[i]=a;kind.push(k)}
@@ -209,10 +221,25 @@ function geluid(soort){try{ac=ac||new (window.AudioContext||window.webkitAudioCo
   const t=ac.currentTime,o=ac.createOscillator(),v=ac.createGain();o.connect(v);v.connect(ac.destination);
   if(soort==='tik'){o.type='triangle';o.frequency.setValueAtTime(520,t);v.gain.setValueAtTime(.04,t);v.gain.exponentialRampToValueAtTime(.001,t+.05);o.start(t);o.stop(t+.06)}
   else if(soort==='plop'){o.type='sine';o.frequency.setValueAtTime(700,t);o.frequency.exponentialRampToValueAtTime(180,t+.18);v.gain.setValueAtTime(.25,t);v.gain.exponentialRampToValueAtTime(.001,t+.22);o.start(t);o.stop(t+.25)}
+  else if(soort==='au'){o.type='sawtooth';o.frequency.setValueAtTime(420,t);o.frequency.exponentialRampToValueAtTime(160,t+.25);v.gain.setValueAtTime(.08,t);v.gain.exponentialRampToValueAtTime(.001,t+.3);o.start(t);o.stop(t+.32)}
   else if(soort==='bonk'){o.type='square';o.frequency.setValueAtTime(110,t);v.gain.setValueAtTime(.05,t);v.gain.exponentialRampToValueAtTime(.001,t+.08);o.start(t);o.stop(t+.1)}
   else if(soort==='klaar'){o.disconnect();[523,659,784,1047].forEach((f,n)=>{const p=ac.createOscillator(),q=ac.createGain();p.type='triangle';p.frequency.value=f;p.connect(q);q.connect(ac.destination);
     q.gain.setValueAtTime(0,t+n*.11);q.gain.linearRampToValueAtTime(.16,t+n*.11+.02);q.gain.exponentialRampToValueAtTime(.001,t+n*.11+.35);p.start(t+n*.11);p.stop(t+n*.11+.4)})}
 }catch(e){}}
+
+// ===== Pa (vanaf Wereld 1) =====
+const PA_SVG=`<svg viewBox="0 0 54 54" aria-hidden="true"><circle cx="27" cy="27" r="26" fill="#ffd27a"/>
+<ellipse cx="27" cy="29" rx="15" ry="17" fill="#f2c29b"/><path d="M12 25q-1-12 8-15M42 25q1-12-8-15" stroke="#7a5a3a" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M13 31q2 17 14 17t14-17q-4 6-14 6t-14-6z" fill="#8a6a48"/><circle cx="21" cy="26" r="5" fill="#fff" stroke="#333" stroke-width="1.6"/><circle cx="33" cy="26" r="5" fill="#fff" stroke="#333" stroke-width="1.6"/>
+<line x1="26" y1="26" x2="28" y2="26" stroke="#333" stroke-width="1.6"/><circle cx="21.5" cy="26.5" r="1.8" fill="#333"/><circle cx="33.5" cy="26.5" r="1.8" fill="#333"/>
+<path d="M22 37q5 3 10 0" stroke="#4a3220" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+const AU=['AU!','AU! Mijn teen!','AAAH, die nop!','Wie legt dit hier?!','Au au au...','Mijn voetzool!','Dat doet ZEER!','AU! Waarom altijd blote voeten...'];
+const kies=a=>a[Math.floor(Math.random()*a.length)];
+let paTimer=null;
+function paZegt(tekst,au){const b=document.querySelector('#tip .ballon');if(!b)return;clearTimeout(paTimer);
+  b.textContent=tekst;b.classList.remove('au');void b.offsetWidth;if(au)b.classList.add('au');
+  paTimer=setTimeout(()=>{if(L&&L.tip){b.classList.remove('au');b.textContent=L.tip}},au?2200:3200)}
+const metPa=()=>L&&WERELDEN[L.wereld].pa;
 
 // ===== Het spel =====
 const cv=$('c'),ctx=cv.getContext('2d');
@@ -222,13 +249,14 @@ function start(i){
   huidig=i;L=ALLE[i];lv=maakLevel(L);pos=lv.blokken.map(b=>[b.x,b.y]);anim=pos.map(p=>({x:p[0],y:p[1],a:1,uit:null,t:0}));
   zetten=0;stapel=[];sleep=null;klaarGemeld=false;
   $('menu').hidden=true;$('uitleg').hidden=true;$('klaar').hidden=true;$('spel').hidden=false;
-  $('lvNaam').textContent=`${L.id.split('-')[1]}. ${L.naam}`;$('tip').textContent=L.tip||'';
+  $('lvNaam').textContent=`${L.id.split('-')[1]}. ${L.naam}`;const tip=$('tip');tip.className=metPa()?'pa':'';
+  if(metPa()){tip.innerHTML=PA_SVG+'<div class="ballon"></div>';tip.querySelector('.ballon').textContent=L.tip||''}else tip.textContent=L.tip||'';
   zetTekst();maat();spelt=true;
 }
 function zetTekst(){$('lvZet').textContent=`Zetten: ${zetten}   ·   ⭐⭐⭐ in ${L.min}`}
 function maat(){
   dpr=Math.min(window.devicePixelRatio||1,3);
-  const kop=$('kop').getBoundingClientRect().bottom+8,tipH=$('tip').textContent?36:6,onder=$('onder').getBoundingClientRect().height+8;
+  const kop=$('kop').getBoundingClientRect().bottom+8,tipH=metPa()?66:$('tip').textContent?36:6,onder=$('onder').getBoundingClientRect().height+8;
   cvTop=kop+tipH;cvH=Math.max(100,innerHeight-cvTop-onder);
   $('tip').style.top=kop+'px';
   cv.style.top=cvTop+'px';cv.style.height=cvH+'px';cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(cvH*dpr);
@@ -289,12 +317,26 @@ function teken(dt){
     // half in de deur: alleen tekenen binnen het bord en de deur
     const deur=an.uit||(sleep&&sleep.i===i&&sleep.u);
     if(deur){if(an.uit)ctx.globalAlpha=an.a;ctx.beginPath();ctx.rect(ox,oy,W,H);if(deur._r)ctx.rect(...deur._r);ctx.clip()}
-    tekenBlok(b,ox+an.x*cs,oy+an.y*cs,sleep&&sleep.i===i);ctx.restore()}
+    let sx=0;if(an.schud>0){an.schud-=dt;sx=Math.sin(an.schud*60)*cs*.06}
+    tekenBlok(b,ox+an.x*cs+sx,oy+an.y*cs,sleep&&sleep.i===i);
+    if(pos[i]&&vast(lv,pos,i))tekenKauwgom(b,ox+an.x*cs+sx,oy+an.y*cs,b.plak-pos.filter(p=>!p).length);
+    ctx.restore()}
   // vonkjes
   for(const v of vonk){v.t+=dt;v.x+=v.vx*dt;v.y+=v.vy*dt;v.vy+=900*dt;ctx.globalAlpha=Math.max(0,1-v.t*1.6);ctx.fillStyle=v.c;ctx.fillRect(v.x-3,v.y-3,6,6)}
   ctx.globalAlpha=1;vonk=vonk.filter(v=>v.t<.7);
 }
 let vonk=[];
+function midden(b){// het midden van de steen (in vakjes, vanaf linksboven); valt dat buiten de steen, dan het dichtstbijzijnde vakje
+  const mx=b.cellen.reduce((a,c)=>a+c[0],0)/b.cellen.length+.5,my=b.cellen.reduce((a,c)=>a+c[1],0)/b.cellen.length+.5;
+  if(b.cellen.some(([x,y])=>mx>=x&&mx<=x+1&&my>=y&&my<=y+1))return[mx,my];
+  const c=b.cellen.reduce((a,c)=>(Math.hypot(c[0]+.5-mx,c[1]+.5-my)<Math.hypot(a[0]+.5-mx,a[1]+.5-my)?c:a));return[c[0]+.5,c[1]+.5]}
+function tekenKauwgom(b,X,Y,n){const[cx,cy]=midden(b),x=X+cx*cs,y=Y+cy*cs,r=cs*.3;
+  ctx.fillStyle='#ff7fbf';ctx.strokeStyle='#d94c97';ctx.lineWidth=2;ctx.beginPath();
+  for(let a=0;a<=12;a++){const h=a/12*Math.PI*2,rr=r*(1+.18*Math.sin(a*2.7));ctx.lineTo(x+Math.cos(h)*rr,y+Math.sin(h)*rr*.85)}ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.5)';ctx.beginPath();ctx.ellipse(x-r*.35,y-r*.3,r*.25,r*.13,-.5,0,7);ctx.fill();
+  ctx.fillStyle='#7a1e4f';ctx.font=`900 ${Math.round(cs*.32)}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n,x,y+1)}
+function losPop(j){const b=lv.blokken[j],[cx,cy]=midden(b),x=ox+(pos[j][0]+cx)*cs,y=oy+(pos[j][1]+cy)*cs;
+  for(let n=0;n<14;n++)vonk.push({x,y,vx:(Math.random()-.5)*300,vy:(Math.random()-.5)*300-120,t:0,c:n%2?'#ff7fbf':'#ffd0e8'})}
 function spat(i,u){const b=lv.blokken[i],p=pos[i]||[anim[i].x,anim[i].y],[dx,dy]=RICHTING[u.kant],kl=KLEUR[b.k];
   const mx=ox+(p[0]+.5)*cs+dx*cs,my=oy+(p[1]+.5)*cs+dy*cs;
   for(let n=0;n<18;n++)vonk.push({x:mx,y:my,vx:(Math.random()-.5)*380+dx*200,vy:(Math.random()-.5)*380+dy*200-150,t:0,c:kl[n%3]})}
@@ -303,6 +345,8 @@ function spat(i,u){const b=lv.blokken[i],p=pos[i]||[anim[i].x,anim[i].y],[dx,dy]
 function punt(e){const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]}
 cv.addEventListener('pointerdown',e=>{if(!spelt||sleep)return;const[px,py]=punt(e),cx=Math.floor((px-ox)/cs),cy=Math.floor((py-oy)/cs);
   if(cx<0||cy<0||cx>=lv.w||cy>=lv.h)return;const g=rooster(lv,pos),i=g[cy*lv.w+cx];if(i<0)return;
+  if(vast(lv,pos,i)){geluid('bonk');anim[i].schud=.35;const n=lv.blokken[i].plak-pos.filter(p=>!p).length;
+    if(metPa())paZegt(`Bah, kauwgom! Die laat pas los als er nog ${n} ${n===1?'steen':'stenen'} weg ${n===1?'is':'zijn'}.`);return}
   geluid('tik');cv.setPointerCapture(e.pointerId);
   sleep={i,id:e.pointerId,sx:pos[i][0],sy:pos[i][1],px,py,voor:pos.map(p=>p&&p.slice())}});
 cv.addEventListener('pointermove',e=>{if(!sleep||e.pointerId!==sleep.id)return;const[px,py]=punt(e),i=sleep.i;
@@ -322,8 +366,9 @@ function loslaten(e){if(!sleep||e.pointerId!==sleep.id)return;const i=sleep.i;
   if(pos[i][0]!==sleep.sx||pos[i][1]!==sleep.sy)telZet(true);
   sleep=null}
 cv.addEventListener('pointerup',loslaten);cv.addEventListener('pointercancel',loslaten);
-function telZet(telt){stapel.push({pos:sleep.voor,telt});if(telt)zetten++;zetTekst()}
-function laatGaan(i,u){telZet(pos[i][0]!==sleep.sx||pos[i][1]!==sleep.sy);sleep=null;anim[i].uit=u;anim[i].t=0;spat(i,u);pos[i]=null;geluid('plop');
+function telZet(telt){stapel.push({pos:sleep.voor,telt});if(telt){zetten++;if(metPa()&&zetten>L.min){geluid('au');paZegt(kies(AU),true)}}zetTekst()}
+function laatGaan(i,u){telZet(pos[i][0]!==sleep.sx||pos[i][1]!==sleep.sy);sleep=null;anim[i].uit=u;anim[i].t=0;spat(i,u);const wasVast=lv.blokken.map((b,j)=>pos[j]&&vast(lv,pos,j));pos[i]=null;geluid('plop');
+  lv.blokken.forEach((b,j)=>{if(wasVast[j]&&!vast(lv,pos,j)){losPop(j);if(metPa()&&zetten<=L.min)paZegt('Hé, de kauwgom laat los!')}});
   if(pos.every(p=>!p))setTimeout(klaar,650)}
 $('ongedaan').onclick=()=>{if(!stapel.length||sleep||klaarGemeld)return;const st=stapel.pop();pos=st.pos;if(st.telt)zetten=Math.max(0,zetten-1);
   pos.forEach((p,i)=>{if(p&&anim[i].uit){anim[i].uit=null;anim[i].a=1;anim[i].x=p[0];anim[i].y=p[1]}});zetTekst()};
@@ -335,7 +380,9 @@ function klaar(){if(klaarGemeld||!spelt)return;klaarGemeld=true;geluid('klaar');
   const s=sterrenVoor(L,zetten),oud=beste[L.id];if(oud==null||zetten<oud){beste[L.id]=zetten;bewaar()}
   $('klaarTitel').textContent=s===3?'Perfect!':'Opgeruimd!';
   $('sterren').innerHTML=[0,1,2].map(n=>`<i class="${n<s?'aan':''}">⭐</i>`).join('');
-  $('klaarTekst').textContent=`${zetten} zetten${s===3?' (het minimum!)':`, het kan in ${L.min}`}. ${LOF[Math.floor(Math.random()*LOF.length)]}`;
+  const extra=zetten-L.min,pa=s===3?kies(['Pa kan weer veilig naar de koelkast.','Geen pleister nodig vandaag!','Pa danst op blote voeten door de kamer.']):
+    `Pa trapte ${extra} keer op een steentje. ${s===2?'Hij overleeft het wel.':'Hij hinkt naar de bank.'}`;
+  $('klaarTekst').textContent=`${zetten} zetten${s===3?' (het minimum!)':`, het kan in ${L.min}`}. ${metPa()?pa:kies(LOF)}`;
   $('volgende').hidden=huidig>=ALLE.length-1;$('klaar').hidden=false}
 $('volgende').onclick=()=>start(huidig+1);$('nogEens').onclick=()=>start(huidig);$('naarMenu').onclick=toonMenu;
 
