@@ -91,6 +91,18 @@ function meet(L){const lv=M.maakLevel(L),p=lv.blokken.map(b=>[b.x,b.y]),g=M.roos
   const r=M.los(lv,O.maxStaten);if(r.zetten==null)return null;
   // hoeveel zetten kost de kauwgom extra?
   return{min:r.zetten,extra:r.zetten-lv.blokken.length,staten:r.staten}}
+// Kauwgom erbij: probeer elke steen met een getal en neem de klodder die het meeste extra zetten kost.
+function kauwgomErbij(L,m,kg){const max=(O.extraMax??99),zonder=m.min;L.plak={};
+  for(let n=0;n<kg;n++){let best=null,bm=null;
+    for(const c of Object.keys(L.k)){if(L.plak[c])continue;for(let p=1;p<=Math.min((O.plakMax||2)+2,Object.keys(L.k).length-1);p++){
+      const N=JSON.parse(JSON.stringify(L));N.plak[c]=p;const nm=meet(N);if(!nm||nm.extra>max)continue;
+      if(!bm||nm.min>bm.min||(nm.min===bm.min&&rnd()<.3)){best=N;bm=nm}}}
+    if(!best||bm.min<=m.min)return telR('kauwgomZinloos');L=best;m=bm}
+  m.effect=m.min-zonder;if(m.extra<O.extraMin)return telR('metKauwgomTeLaag'+m.extra);return{L,m}}
+function pogingVolKauwgom(){const kg=O.kauwgom,e=O.extraMin;O.kauwgom=0;O.extraMin=Math.max(0,e-3);let L;
+  try{L=pogingVol()}finally{O.kauwgom=kg;O.extraMin=e}
+  if(!L)return null;delete L.plak;const m=meet(L);if(!m)return telR('meetNull');
+  const r=kauwgomErbij(L,m,kg);if(!r)return null;Object.assign(r.L,{min:r.m.min,extra:r.m.extra,staten:r.m.staten,kauwgomEffect:r.m.effect});return r.L}
 function pogingKlim(){let L=null,m=null;const kg=O.kauwgom;O.kauwgom=0;
   try{
   for(let t=0;t<200&&!m;t++){const O2=O.extraMin,O3=O.extraMax;O.extraMin=0;O.extraMax=99;
@@ -108,18 +120,11 @@ function pogingKlim(){let L=null,m=null;const kg=O.kauwgom;O.kauwgom=0;
     if(nm.extra>=m.extra){L=N;m=nm}
     if(m.extra>=doel&&rnd()<.1)break}
   if(m.extra<doel)return telR('klimTeLaag'+m.extra);
-  if(kg){// kauwgom: probeer elke steen met 1..plakMax en neem de klodder die het meeste extra zetten kost
-    const zonder=m.min;L.plak={};
-    for(let n=0;n<kg;n++){let best=null,bm=null;
-      for(const c of Object.keys(L.k)){if(L.plak[c])continue;for(let p=1;p<=Math.min((O.plakMax||2)+2,Object.keys(L.k).length-1);p++){
-        const N=JSON.parse(JSON.stringify(L));N.plak[c]=p;const nm=meet(N);if(!nm||nm.extra>max)continue;
-        if(!bm||nm.min>bm.min||(nm.min===bm.min&&rnd()<.3)){best=N;bm=nm}}}
-      if(!best||bm.min<=m.min-(n?0:0)&&n>0||bm.min<=zonder&&n===0)return telR('kauwgomZinloos');L=best;m=bm}
-    m.effect=m.min-zonder;if(m.extra<O.extraMin)return telR('metKauwgomTeLaag'+m.extra)}
+  if(kg){const r=kauwgomErbij(L,m,kg);if(!r)return null;L=r.L;m=r.m}
   Object.assign(L,{min:m.min,extra:m.extra,staten:m.staten});if(kg)L.kauwgomEffect=m.effect;return L
   }finally{O.kauwgom=kg}}
 const toon=l=>{console.error(l.min+' zetten (extra '+l.extra+'), '+l.staten+' staten, uitgangen: '+l.uit.map(u=>u.kant+' '+u.van+'-'+u.tot+' '+u.k).join(', '));
   console.error(l.kaart.map(r=>'   '+r+'   '+[...r].map(c=>c=='.'?'.':l.k[c]).join('')).join('\n')+(l.plak?'\n   kauwgom: '+JSON.stringify(l.plak):''))};
-const uit=[];for(let t=0;t<O.pogingen&&uit.length<O.aantal;t++){const L=O.methode==='klim'?pogingKlim():O.methode==='vol'?pogingVol():poging();
+const uit=[];for(let t=0;t<O.pogingen&&uit.length<O.aantal;t++){const L=O.methode==='klim'?pogingKlim():O.methode==='vol'?(O.kauwgom?pogingVolKauwgom():pogingVol()):poging();
   if(L&&!uit.some(u=>u.kaart.join()===L.kaart.join())){uit.push(L);toon(L);require('fs').writeFileSync(O.uitvoer||'/dev/null',JSON.stringify(uit))}}
 console.error('afgekeurd:',JSON.stringify(reden));console.log(JSON.stringify(uit));
